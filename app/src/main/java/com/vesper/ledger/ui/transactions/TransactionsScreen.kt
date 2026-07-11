@@ -87,6 +87,7 @@ fun TransactionsScreen(
     val startDate by viewModel.startDate.collectAsState()
     val endDate by viewModel.endDate.collectAsState()
     val selectedMonth by viewModel.selectedMonth.collectAsState()
+    val selectedYear by viewModel.selectedYear.collectAsState()
     val amountFilterOption by viewModel.amountFilterOption.collectAsState()
     val minAmount by viewModel.minAmount.collectAsState()
     val maxAmount by viewModel.maxAmount.collectAsState()
@@ -824,7 +825,7 @@ fun TransactionsScreen(
                                 onValueChange = { range ->
                                     sliderPosition = range
                                     viewModel.minAmount.value = range.start.toDouble()
-                                    viewModel.maxAmount.value = range.end.toDouble()
+                                    viewModel.maxAmount.value = range.endInclusive.toDouble()
                                     viewModel.amountFilterOption.value = AmountFilterOption.CUSTOM
                                 },
                                 valueRange = 0f..maxLimit,
