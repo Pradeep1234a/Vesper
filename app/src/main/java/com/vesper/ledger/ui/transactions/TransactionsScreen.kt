@@ -267,7 +267,7 @@ fun TransactionsScreen(
                             ShCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 3.dp),
+                                    .padding(vertical = 1.dp),
                                 contentPadding = PaddingValues(12.dp)
                             ) {
                                 Box {

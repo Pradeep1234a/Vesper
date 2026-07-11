@@ -12,6 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material3.*
@@ -67,53 +70,40 @@ fun DashboardScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .background(Color.Black, shape = RoundedCornerShape(8.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "V",
-                                color = Color.White,
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            )
-                        }
-                        Text(
-                            text = "Vesper Ledger",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 20.sp
-                            )
+                    Text(
+                        text = "Vesper Ledger",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 20.sp
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { /* Drawer or menu click */ }) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Menu",
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 },
                 actions = {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "A",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                    IconButton(onClick = { /* Notification click */ }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                     IconButton(onClick = onSettingsClick) {
                         Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onBackground
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = "Profile",
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 },
@@ -362,36 +352,44 @@ fun DashboardScreen(
             }
 
             item {
-                ShCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Quick Actions",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            fontFamily = SpaceGroteskFamily
+                        )
+                    )
+                    ShCard(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        QuickActionItem(
-                            icon = Icons.Outlined.RemoveCircleOutline,
-                            label = "Expense",
-                            onClick = { onAddTransactionClick("EXPENSE", null) }
-                        )
-                        QuickActionItem(
-                            icon = Icons.Outlined.AddCircleOutline,
-                            label = "Income",
-                            onClick = { onAddTransactionClick("INCOME", null) }
-                        )
-                        QuickActionItem(
-                            icon = Icons.Outlined.BarChart,
-                            label = "Charts",
-                            onClick = onReportsClick
-                        )
-                        QuickActionItem(
-                            icon = Icons.Outlined.Savings,
-                            label = "Goals",
-                            onClick = onSavingsClick
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            QuickActionItem(
+                                icon = Icons.Outlined.RemoveCircleOutline,
+                                label = "Expense",
+                                onClick = { onAddTransactionClick("EXPENSE", null) }
+                            )
+                            QuickActionItem(
+                                icon = Icons.Outlined.AddCircleOutline,
+                                label = "Income",
+                                onClick = { onAddTransactionClick("INCOME", null) }
+                            )
+                            QuickActionItem(
+                                icon = Icons.Outlined.BarChart,
+                                label = "Charts",
+                                onClick = onReportsClick
+                            )
+                            QuickActionItem(
+                                icon = Icons.Outlined.Savings,
+                                label = "Goals",
+                                onClick = onSavingsClick
+                            )
+                        }
                     }
                 }
             }
@@ -399,163 +397,37 @@ fun DashboardScreen(
             item {
                 val topCats = uiState.topCategories
                 if (topCats.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Category Ranking",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-                }
-            }
-
-            item {
-                val topCats = uiState.topCategories
-                when (topCats.size) {
-                    1 -> {
-                        val cat = topCats[0]
-                        ShCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            contentPadding = PaddingValues(12.dp)
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = getIconByName(cat.iconName),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = cat.categoryName,
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "$currencySymbol${df.format(cat.amount)}",
+                                text = "Category Spending",
                                 style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontSize = 20.sp,
-                                    fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    fontSize = 18.sp,
+                                    fontFamily = SpaceGroteskFamily
                                 )
                             )
+                            Text(
+                                text = "See All",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Medium,
+                                    textDecoration = TextDecoration.Underline
+                                ),
+                                modifier = Modifier.clickable { onReportsClick() }
+                            )
                         }
-                    }
-                    2 -> {
-                        val cat1 = topCats[0]
-                        val cat2 = topCats[1]
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            ShCard(
-                                modifier = Modifier.weight(1f),
-                                contentPadding = PaddingValues(12.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        imageVector = getIconByName(cat1.iconName),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = cat1.categoryName,
-                                        style = MaterialTheme.typography.labelMedium.copy(
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "$currencySymbol${df.format(cat1.amount)}",
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 20.sp,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                )
-                            }
-                            ShCard(
-                                modifier = Modifier.weight(1f),
-                                contentPadding = PaddingValues(12.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        imageVector = getIconByName(cat2.iconName),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = cat2.categoryName,
-                                        style = MaterialTheme.typography.labelMedium.copy(
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "$currencySymbol${df.format(cat2.amount)}",
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 20.sp,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                )
-                            }
-                        }
-                    }
-                    3 -> {
-                        val cat1 = topCats[0]
-                        val cat2 = topCats[1]
-                        val cat3 = topCats[2]
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(130.dp)
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            // Left Column (Rank 1)
-                            ShCard(
-                                modifier = Modifier
-                                    .weight(1.1f)
-                                    .fillMaxHeight(),
-                                contentPadding = PaddingValues(12.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxHeight(),
-                                    verticalArrangement = Arrangement.SpaceBetween
+                        when (topCats.size) {
+                            1 -> {
+                                val cat = topCats[0]
+                                ShCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentPadding = PaddingValues(12.dp)
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -563,14 +435,14 @@ fun DashboardScreen(
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
                                         Icon(
-                                            imageVector = getIconByName(cat1.iconName),
+                                            imageVector = getIconByName(cat.iconName),
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = cat1.categoryName,
+                                            text = cat.categoryName,
                                             style = MaterialTheme.typography.labelMedium.copy(
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Medium,
@@ -578,8 +450,9 @@ fun DashboardScreen(
                                             )
                                         )
                                     }
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     Text(
-                                        text = "$currencySymbol${df.format(cat1.amount)}",
+                                        text = "$currencySymbol${df.format(cat.amount)}",
                                         style = MaterialTheme.typography.headlineMedium.copy(
                                             fontSize = 20.sp,
                                             fontFamily = SpaceGroteskFamily,
@@ -587,95 +460,232 @@ fun DashboardScreen(
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                     )
-                                    Text(
-                                        text = "1st Ranked",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 10.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    )
                                 }
                             }
-
-                            // Right Column (Stacked Rank 2 & 3)
-                            Column(
-                                modifier = Modifier
-                                    .weight(0.9f)
-                                    .fillMaxHeight(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                ShCard(
-                                    modifier = Modifier.weight(1f),
-                                    contentPadding = PaddingValues(10.dp)
+                            2 -> {
+                                val cat1 = topCats[0]
+                                val cat2 = topCats[1]
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Start,
-                                        modifier = Modifier.fillMaxWidth()
+                                    ShCard(
+                                        modifier = Modifier.weight(1f),
+                                        contentPadding = PaddingValues(12.dp)
                                     ) {
-                                        Icon(
-                                            imageVector = getIconByName(cat2.iconName),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Icon(
+                                                imageVector = getIconByName(cat1.iconName),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = cat1.categoryName,
+                                                style = MaterialTheme.typography.labelMedium.copy(
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(6.dp))
                                         Text(
-                                            text = cat2.categoryName,
-                                            style = MaterialTheme.typography.labelMedium.copy(
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            text = "$currencySymbol${df.format(cat1.amount)}",
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontSize = 20.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "$currencySymbol${df.format(cat2.amount)}",
-                                        style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontSize = 18.sp,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                    ShCard(
+                                        modifier = Modifier.weight(1f),
+                                        contentPadding = PaddingValues(12.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Icon(
+                                                imageVector = getIconByName(cat2.iconName),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = cat2.categoryName,
+                                                style = MaterialTheme.typography.labelMedium.copy(
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text(
+                                            text = "$currencySymbol${df.format(cat2.amount)}",
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontSize = 20.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
                                         )
-                                    )
+                                    }
                                 }
+                            }
+                            3 -> {
+                                val cat1 = topCats[0]
+                                val cat2 = topCats[1]
+                                val cat3 = topCats[2]
 
-                                ShCard(
-                                    modifier = Modifier.weight(1f),
-                                    contentPadding = PaddingValues(10.dp)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(130.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Start,
-                                        modifier = Modifier.fillMaxWidth()
+                                    // Left Column (Rank 1)
+                                    ShCard(
+                                        modifier = Modifier
+                                            .weight(1.1f)
+                                            .fillMaxHeight(),
+                                        contentPadding = PaddingValues(12.dp)
                                     ) {
-                                        Icon(
-                                            imageVector = getIconByName(cat3.iconName),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = cat3.categoryName,
-                                            style = MaterialTheme.typography.labelMedium.copy(
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        Column(
+                                            modifier = Modifier.fillMaxHeight(),
+                                            verticalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Start,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(cat1.iconName),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = cat1.categoryName,
+                                                    style = MaterialTheme.typography.labelMedium.copy(
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Medium,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                )
+                                            }
+                                            Text(
+                                                text = "$currencySymbol${df.format(cat1.amount)}",
+                                                style = MaterialTheme.typography.headlineMedium.copy(
+                                                    fontSize = 20.sp,
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
                                             )
-                                        )
+                                            Text(
+                                                text = "1st Ranked",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontSize = 10.sp,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            )
+                                        }
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "$currencySymbol${df.format(cat3.amount)}",
-                                        style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontSize = 18.sp,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    )
+
+                                    // Right Column (Stacked Rank 2 & 3)
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(0.9f)
+                                            .fillMaxHeight(),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        ShCard(
+                                            modifier = Modifier.weight(1f),
+                                            contentPadding = PaddingValues(10.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Start,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(cat2.iconName),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = cat2.categoryName,
+                                                    style = MaterialTheme.typography.labelMedium.copy(
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Medium,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = "$currencySymbol${df.format(cat2.amount)}",
+                                                style = MaterialTheme.typography.headlineMedium.copy(
+                                                    fontSize = 18.sp,
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            )
+                                        }
+
+                                        ShCard(
+                                            modifier = Modifier.weight(1f),
+                                            contentPadding = PaddingValues(10.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Start,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(cat3.iconName),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = cat3.categoryName,
+                                                    style = MaterialTheme.typography.labelMedium.copy(
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Medium,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = "$currencySymbol${df.format(cat3.amount)}",
+                                                style = MaterialTheme.typography.headlineMedium.copy(
+                                                    fontSize = 18.sp,
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -686,195 +696,196 @@ fun DashboardScreen(
 
 
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Recent Transactions",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-                    Text(
-                        text = "See All",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textDecoration = TextDecoration.Underline
-                        ),
-                        modifier = Modifier.clickable { onSeeAllTransactionsClick() }
-                    )
-                }
-            }
-
-            if (uiState.recentTransactions.isEmpty()) {
-                item {
-                    ShCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        contentPadding = PaddingValues(24.dp)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No recent transactions.",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
+                        Text(
+                            text = "Recent Transactions",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                fontFamily = SpaceGroteskFamily
                             )
-                        }
+                        )
+                        Text(
+                            text = "See All",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium,
+                                textDecoration = TextDecoration.Underline
+                            ),
+                            modifier = Modifier.clickable { onSeeAllTransactionsClick() }
+                        )
                     }
-                }
-            } else {
-                items(uiState.recentTransactions) { tx ->
-                    var showMenu by remember { mutableStateOf(false) }
-                    val isIncome = tx.type == TransactionType.INCOME
-                    val accentColor = if (isIncome) Color(0xFF16A34A) else Color(0xFFDC2626)
-                    val accentBg = if (isIncome) Color(0xFF16A34A).copy(alpha = 0.08f) else Color(0xFFDC2626).copy(alpha = 0.08f)
-                    val cat = uiState.categories.find { it.id == tx.categoryId }
-                    val iconName = cat?.iconName ?: "category"
-                    val categoryLabel = cat?.name ?: tx.note.ifBlank { "Misc" }
 
-                    ShCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 3.dp),
-                        contentPadding = PaddingValues(12.dp)
-                    ) {
-                        Box {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) { showMenu = true },
-                                verticalAlignment = Alignment.CenterVertically
+                    if (uiState.recentTransactions.isEmpty()) {
+                        ShCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(24.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
                             ) {
-                                    // Category Icon Container
-                                    Box(
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .background(
-                                                color = accentBg,
-                                                shape = RoundedCornerShape(10.dp)
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = getIconByName(iconName),
-                                            contentDescription = null,
-                                            tint = accentColor,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    
-                                    // Title/Category & Amount/Date aligned up-and-down
-                                    Row(
-                                        modifier = Modifier.weight(1f),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        // Left Column: Title on top, Category Name on bottom
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            val displayTitle = if (tx.title.isBlank() || tx.title == "Untitled Transaction") categoryLabel else tx.title
-                                            Text(
-                                                text = displayTitle,
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                ),
-                                                maxLines = 1
-                                            )
-                                            Spacer(modifier = Modifier.height(2.dp))
-                                            Text(
-                                                text = categoryLabel,
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontSize = 11.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                ),
-                                                maxLines = 1
-                                            )
+                                Text(
+                                    text = "No recent transactions.",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
+                                )
+                            }
+                        }
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            uiState.recentTransactions.forEach { tx ->
+                                var showMenu by remember { mutableStateOf(false) }
+                                val isIncome = tx.type == TransactionType.INCOME
+                                val accentColor = if (isIncome) Color(0xFF16A34A) else Color(0xFFDC2626)
+                                val accentBg = if (isIncome) Color(0xFF16A34A).copy(alpha = 0.08f) else Color(0xFFDC2626).copy(alpha = 0.08f)
+                                val cat = uiState.categories.find { it.id == tx.categoryId }
+                                val iconName = cat?.iconName ?: "category"
+                                val categoryLabel = cat?.name ?: tx.note.ifBlank { "Misc" }
+
+                                ShCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentPadding = PaddingValues(12.dp)
+                                ) {
+                                    Box {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null
+                                                ) { showMenu = true },
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            // Category Icon Container
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .background(
+                                                        color = accentBg,
+                                                        shape = RoundedCornerShape(10.dp)
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(iconName),
+                                                    contentDescription = null,
+                                                    tint = accentColor,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(10.dp))
+                                            
+                                            // Title/Category & Amount/Date aligned up-and-down
+                                            Row(
+                                                modifier = Modifier.weight(1f),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                // Left Column: Title on top, Category Name on bottom
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    val displayTitle = if (tx.title.isBlank() || tx.title == "Untitled Transaction") categoryLabel else tx.title
+                                                    Text(
+                                                        text = displayTitle,
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            fontSize = 14.sp,
+                                                            fontWeight = FontWeight.SemiBold,
+                                                            color = MaterialTheme.colorScheme.onSurface
+                                                        ),
+                                                        maxLines = 1
+                                                    )
+                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Text(
+                                                        text = categoryLabel,
+                                                        style = MaterialTheme.typography.labelSmall.copy(
+                                                            fontSize = 11.sp,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        ),
+                                                        maxLines = 1
+                                                    )
+                                                }
+                                                
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                
+                                                // Right Column: Amount on top, Date on bottom
+                                                Column(horizontalAlignment = Alignment.End) {
+                                                    val prefix = if (isIncome) "+" else "-"
+                                                    Text(
+                                                        text = "$prefix$currencySymbol${df.format(tx.amount)}",
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            fontSize = 14.sp,
+                                                            fontFamily = SpaceGroteskFamily,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = accentColor
+                                                        )
+                                                    )
+                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Text(
+                                                        text = dateFormat.format(Date(tx.dateEpochMillis)),
+                                                        style = MaterialTheme.typography.labelSmall.copy(
+                                                            fontSize = 11.sp,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )
+                                                    )
+                                                }
+                                            }
                                         }
-                                        
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        
-                                        // Right Column: Amount on top, Date on bottom
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            val prefix = if (isIncome) "+" else "-"
-                                            Text(
-                                                text = "$prefix$currencySymbol${df.format(tx.amount)}",
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    fontSize = 14.sp,
-                                                    fontFamily = SpaceGroteskFamily,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = accentColor
-                                                )
+
+                                        // CRUD Action Menu (appears on click)
+                                        DropdownMenu(
+                                            expanded = showMenu,
+                                            onDismissRequest = { showMenu = false }
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            imageVector = Icons.Outlined.Edit,
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.onSurface,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Text("Edit", style = MaterialTheme.typography.bodyMedium)
+                                                    }
+                                                },
+                                                onClick = {
+                                                    showMenu = false
+                                                    onAddTransactionClick(tx.type.name, tx.id)
+                                                }
                                             )
-                                            Spacer(modifier = Modifier.height(2.dp))
-                                            Text(
-                                                text = dateFormat.format(Date(tx.dateEpochMillis)),
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontSize = 11.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            imageVector = Icons.Outlined.DeleteOutline,
+                                                            contentDescription = null,
+                                                            tint = Color(0xFFDC2626),
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Text(
+                                                            "Delete",
+                                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                                color = Color(0xFFDC2626)
+                                                            )
+                                                        )
+                                                    }
+                                                },
+                                                onClick = {
+                                                    showMenu = false
+                                                    viewModel.deleteTransaction(tx)
+                                                }
                                             )
                                         }
                                     }
                                 }
-
-                            // CRUD Action Menu (appears on click)
-                            DropdownMenu(
-                                expanded = showMenu,
-                                onDismissRequest = { showMenu = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(
-                                                imageVector = Icons.Outlined.Edit,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurface,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text("Edit", style = MaterialTheme.typography.bodyMedium)
-                                        }
-                                    },
-                                    onClick = {
-                                        showMenu = false
-                                        onAddTransactionClick(tx.type.name, tx.id)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(
-                                                imageVector = Icons.Outlined.DeleteOutline,
-                                                contentDescription = null,
-                                                tint = Color(0xFFDC2626),
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                "Delete",
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    color = Color(0xFFDC2626)
-                                                )
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        showMenu = false
-                                        viewModel.deleteTransaction(tx)
-                                    }
-                                )
                             }
                         }
                     }
