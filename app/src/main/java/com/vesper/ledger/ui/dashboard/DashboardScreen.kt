@@ -753,15 +753,8 @@ fun DashboardScreen(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null
                                     ) { showMenu = true },
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null
-                                        ) { showMenu = true },
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                     // Category Icon Container
                                     Box(
                                         modifier = Modifier
