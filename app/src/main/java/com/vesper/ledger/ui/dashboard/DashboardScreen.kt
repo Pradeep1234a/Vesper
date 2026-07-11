@@ -119,9 +119,14 @@ fun DashboardScreen(
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item {
+                val greeting = when (java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)) {
+                    in 0..11 -> "Good morning"
+                    in 12..16 -> "Good afternoon"
+                    else -> "Good evening"
+                }
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     Text(
-                        text = "Good morning, Alex!",
+                        text = "$greeting!",
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp
@@ -168,13 +173,6 @@ fun DashboardScreen(
                         Text(
                             text = "Your net worth",
                             style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        )
-                        Text(
-                            text = "+0.8% this month",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = Color(0xFF16A34A),
-                                fontWeight = FontWeight.SemiBold
-                            )
                         )
                     }
                 }
