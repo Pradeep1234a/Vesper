@@ -37,6 +37,12 @@ abstract class AppDatabase : RoomDatabase() {
                         CoroutineScope(Dispatchers.IO).launch {
                             val dao = getDatabase(context).transactionDao()
                             dao.insertCategories(defaultCategories)
+                            
+                            // Mockup pre-populated transactions
+                            dao.insertTransaction(Transaction(title = "Trader Joe's", amount = 128.45, type = TransactionType.EXPENSE, categoryId = 5, dateEpochMillis = 1786675200000L, note = "Groceries"))
+                            dao.insertTransaction(Transaction(title = "Netflix Subscription", amount = 15.99, type = TransactionType.EXPENSE, categoryId = 9, dateEpochMillis = 1786675200000L, note = "Subscriptions"))
+                            dao.insertTransaction(Transaction(title = "Salary Deposit", amount = 4120.00, type = TransactionType.INCOME, categoryId = 1, dateEpochMillis = 1786588800000L, note = "Salary"))
+                            dao.insertTransaction(Transaction(title = "Chevron Gas", amount = 62.10, type = TransactionType.EXPENSE, categoryId = 8, dateEpochMillis = 1786588800000L, note = "Gasoline"))
                         }
                     }
                 })

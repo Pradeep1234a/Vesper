@@ -1,26 +1,40 @@
 package com.vesper.ledger.ui.dashboard
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.getIconByName
+import com.vesper.ledger.ui.theme.Slate200
+import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,21 +48,58 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val df = DecimalFormat("#,##0.00")
+    val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Vesper",
-                        style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(Color.Black, shape = RoundedCornerShape(8.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "V",
+                                color = Color.White,
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                        }
+                        Text(
+                            text = "Vesper Ledger",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 20.sp
+                            )
+                        )
+                    }
                 },
                 actions = {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "A",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                     IconButton(onClick = onSettingsClick) {
                         Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -57,16 +108,6 @@ fun DashboardScreen(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddTransactionClick,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Transaction")
-            }
         }
     ) { innerPadding ->
         LazyColumn(
@@ -75,33 +116,95 @@ fun DashboardScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 80.dp)
+            contentPadding = PaddingValues(bottom = 32.dp)
         ) {
-            // Available Balance Bento Card
             item {
-                ShCard {
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     Text(
-                        text = "Available Balance",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Good morning, Alex!",
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
                         )
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "$currencySymbol${df.format(uiState.availableBalance)}",
-                        style = MaterialTheme.typography.displayLarge
+                        text = "Here is your money summary.",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
                 }
             }
 
-            // Bento Grid Row: Income & Expenses
+            item {
+                ShCard {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Total Balance",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                        Icon(
+                            imageVector = Icons.Outlined.AccountBalanceWallet,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$currencySymbol${df.format(uiState.availableBalance)}",
+                        style = MaterialTheme.typography.displayLarge.copy(fontSize = 32.sp)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "Your net worth",
+                            style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                        Text(
+                            text = "+0.8% this month",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color(0xFF16A34A),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+                }
+            }
+
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Income Bento
-                    ShCard(modifier = Modifier.weight(1f)) {
+                    ShCard(
+                        modifier = Modifier
+                            .weight(1.1f)
+                            .fillMaxHeight()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = currencySymbol,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "Income",
                             style = MaterialTheme.typography.labelMedium.copy(
@@ -109,77 +212,125 @@ fun DashboardScreen(
                             )
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "$currencySymbol${df.format(uiState.totalIncome)}",
-                            style = MaterialTheme.typography.displaySmall.copy(
-                                color = Color(0xFF16A34A) // Semantic Green
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "$currencySymbol${df.format(uiState.totalIncome)}",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontSize = 18.sp,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold
+                                )
                             )
-                        )
-                    }
-
-                    // Expense Bento
-                    ShCard(modifier = Modifier.weight(1f)) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowUpward,
+                                contentDescription = null,
+                                tint = Color(0xFF16A34A),
+                                modifier = Modifier.size(14.dp).padding(start = 2.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Expenses",
-                            style = MaterialTheme.typography.labelMedium.copy(
+                            text = "This Month",
+                            style = MaterialTheme.typography.labelSmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "$currencySymbol${df.format(uiState.totalExpense)}",
-                            style = MaterialTheme.typography.displaySmall.copy(
-                                color = Color(0xFFDC2626) // Semantic Red
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ShCard(modifier = Modifier.weight(1f)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Expenses",
+                                        style = MaterialTheme.typography.labelMedium.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "$currencySymbol${df.format(uiState.totalExpense)}",
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontSize = 16.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowDownward,
+                                            contentDescription = null,
+                                            tint = Color(0xFFDC2626),
+                                            modifier = Modifier.size(12.dp).padding(start = 2.dp)
+                                        )
+                                    }
+                                }
+                                Icon(
+                                    imageVector = Icons.Outlined.CreditCard,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        ShCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onSavingsClick() }
+                        ) {
+                            Text(
+                                text = "Remaining",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
-                        )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "$currencySymbol${df.format(uiState.availableBalance)}",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontSize = 16.sp,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
                     }
                 }
             }
 
-            // Savings Bento Card
-            item {
-                ShCard(
-                    modifier = Modifier.clickable { onSavingsClick() }
-                ) {
-                    Text(
-                        text = "Total Saved",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "$currencySymbol${df.format(uiState.totalSaved)}",
-                        style = MaterialTheme.typography.displayMedium.copy(
-                            color = Color(0xFF2563EB) // Semantic Blue
-                        )
-                    )
-                }
-            }
-
-            // Recent Transactions Section Header
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Recent Transactions",
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
                         text = "See All",
                         style = MaterialTheme.typography.labelLarge.copy(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable { onSeeAllTransactionsClick() }
                     )
                 }
             }
 
-            // Recent Transactions List
             if (uiState.recentTransactions.isEmpty()) {
                 item {
                     Box(
@@ -198,54 +349,69 @@ fun DashboardScreen(
                 }
             } else {
                 items(uiState.recentTransactions) { tx ->
-                    TransactionRow(
-                        transaction = tx,
-                        currencySymbol = currencySymbol,
-                        df = df
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .border(1.dp, Slate200, CircleShape)
+                                    .background(Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                val icon = when (tx.title.lowercase()) {
+                                    "trader joe's" -> "shopping_bag"
+                                    "netflix subscription" -> "sports_esports"
+                                    "salary deposit" -> "home"
+                                    "chevron gas" -> "directions_car"
+                                    else -> "category"
+                                }
+                                Icon(
+                                    imageVector = getIconByName(icon),
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = tx.title,
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                                Text(
+                                    text = dateFormat.format(Date(tx.dateEpochMillis)),
+                                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
+                            }
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            val prefix = if (tx.type == TransactionType.INCOME) "+" else ""
+                            val color = if (tx.type == TransactionType.INCOME) Color(0xFF16A34A) else Color.Black
+                            Text(
+                                text = "$prefix$currencySymbol${df.format(tx.amount)}",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontSize = 16.sp,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = color
+                                )
+                            )
+                            Text(
+                                text = tx.note.ifBlank { "Misc" },
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
+                        }
+                    }
                     Divider(color = MaterialTheme.colorScheme.outline)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun TransactionRow(
-    transaction: Transaction,
-    currencySymbol: String,
-    df: DecimalFormat
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            Text(
-                text = transaction.title,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = transaction.note.ifBlank { "No notes" },
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            )
-        }
-        
-        val prefix = if (transaction.type == TransactionType.INCOME) "+" else "-"
-        val color = if (transaction.type == TransactionType.INCOME) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurface
-
-        Text(
-            text = "$prefix$currencySymbol${df.format(transaction.amount)}",
-            style = MaterialTheme.typography.displaySmall.copy(
-                fontSize = 18.sp,
-                color = color
-            )
-        )
     }
 }

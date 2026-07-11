@@ -14,18 +14,11 @@ import com.vesper.ledger.VesperApplication
 import com.vesper.ledger.ui.addtransaction.AddTransactionScreen
 import com.vesper.ledger.ui.addtransaction.AddTransactionViewModel
 import com.vesper.ledger.ui.addtransaction.AddTransactionViewModelFactory
-import com.vesper.ledger.ui.dashboard.DashboardScreen
-import com.vesper.ledger.ui.dashboard.DashboardViewModel
-import com.vesper.ledger.ui.dashboard.DashboardViewModelFactory
 import com.vesper.ledger.ui.savings.SavingsScreen
 import com.vesper.ledger.ui.savings.SavingsViewModel
 import com.vesper.ledger.ui.savings.SavingsViewModelFactory
-import com.vesper.ledger.ui.settings.SettingsScreen
 import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.settings.SettingsViewModelFactory
-import com.vesper.ledger.ui.transactions.TransactionsScreen
-import com.vesper.ledger.ui.transactions.TransactionsViewModel
-import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
 
 @Composable
 fun NavGraph(
@@ -35,8 +28,6 @@ fun NavGraph(
     val context = LocalContext.current
     val app = context.applicationContext as VesperApplication
 
-    val dashboardFactory = DashboardViewModelFactory(app.transactionRepository, app.savingsRepository)
-    val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository)
     val addTransactionFactory = AddTransactionViewModelFactory(app.transactionRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
     val settingsFactory = SettingsViewModelFactory(app, app.transactionRepository)
@@ -46,27 +37,13 @@ fun NavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Dashboard.route,
+        startDestination = "main_screen",
         modifier = modifier.fillMaxSize()
     ) {
-        composable(Screen.Dashboard.route) {
-            val dashboardViewModel: DashboardViewModel = viewModel(factory = dashboardFactory)
-            DashboardScreen(
-                viewModel = dashboardViewModel,
-                currencySymbol = currencySymbol,
+        composable("main_screen") {
+            MainScreen(
                 onAddTransactionClick = { navController.navigate(Screen.AddTransaction.route) },
-                onSeeAllTransactionsClick = { navController.navigate(Screen.Transactions.route) },
-                onSettingsClick = { navController.navigate(Screen.Settings.route) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) }
-            )
-        }
-
-        composable(Screen.Transactions.route) {
-            val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
-            TransactionsScreen(
-                viewModel = transactionsViewModel,
-                currencySymbol = currencySymbol,
-                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -84,13 +61,6 @@ fun NavGraph(
             SavingsScreen(
                 viewModel = savingsViewModel,
                 currencySymbol = currencySymbol,
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.Settings.route) {
-            SettingsScreen(
-                viewModel = settingsViewModel,
                 onBackClick = { navController.popBackStack() }
             )
         }
