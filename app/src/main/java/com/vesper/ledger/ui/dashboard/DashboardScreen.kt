@@ -352,44 +352,43 @@ fun DashboardScreen(
             }
 
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ShCard(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
                         text = "Quick Actions",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            fontFamily = SpaceGroteskFamily
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
-                    ShCard(
-                        modifier = Modifier.fillMaxWidth()
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            QuickActionItem(
-                                icon = Icons.Outlined.RemoveCircleOutline,
-                                label = "Expense",
-                                onClick = { onAddTransactionClick("EXPENSE", null) }
-                            )
-                            QuickActionItem(
-                                icon = Icons.Outlined.AddCircleOutline,
-                                label = "Income",
-                                onClick = { onAddTransactionClick("INCOME", null) }
-                            )
-                            QuickActionItem(
-                                icon = Icons.Outlined.BarChart,
-                                label = "Charts",
-                                onClick = onReportsClick
-                            )
-                            QuickActionItem(
-                                icon = Icons.Outlined.Savings,
-                                label = "Goals",
-                                onClick = onSavingsClick
-                            )
-                        }
+                        QuickActionItem(
+                            icon = Icons.Outlined.RemoveCircleOutline,
+                            label = "Expense",
+                            onClick = { onAddTransactionClick("EXPENSE", null) }
+                        )
+                        QuickActionItem(
+                            icon = Icons.Outlined.AddCircleOutline,
+                            label = "Income",
+                            onClick = { onAddTransactionClick("INCOME", null) }
+                        )
+                        QuickActionItem(
+                            icon = Icons.Outlined.BarChart,
+                            label = "Charts",
+                            onClick = onReportsClick
+                        )
+                        QuickActionItem(
+                            icon = Icons.Outlined.Savings,
+                            label = "Goals",
+                            onClick = onSavingsClick
+                        )
                     }
                 }
             }
@@ -405,18 +404,18 @@ fun DashboardScreen(
                         ) {
                             Text(
                                 text = "Category Spending",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
-                                    fontFamily = SpaceGroteskFamily
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
                             Text(
                                 text = "See All",
-                                style = MaterialTheme.typography.labelLarge.copy(
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Medium,
-                                    textDecoration = TextDecoration.Underline
+                                    fontWeight = FontWeight.SemiBold
                                 ),
                                 modifier = Modifier.clickable { onReportsClick() }
                             )
@@ -704,18 +703,18 @@ fun DashboardScreen(
                     ) {
                         Text(
                             text = "Recent Transactions",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                fontFamily = SpaceGroteskFamily
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                         Text(
                             text = "See All",
-                            style = MaterialTheme.typography.labelLarge.copy(
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium,
-                                textDecoration = TextDecoration.Underline
+                                fontWeight = FontWeight.SemiBold
                             ),
                             modifier = Modifier.clickable { onSeeAllTransactionsClick() }
                         )
