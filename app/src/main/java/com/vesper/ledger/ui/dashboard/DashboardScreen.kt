@@ -201,7 +201,7 @@ fun DashboardScreen(
                     ShCard(
                         modifier = Modifier
                             .weight(1f)
-                            .clickable { onAddTransactionClick("INCOME") },
+                            .clickable { onAddTransactionClick("INCOME", null) },
                         contentPadding = PaddingValues(12.dp)
                     ) {
                         Row(
@@ -240,7 +240,7 @@ fun DashboardScreen(
                     ShCard(
                         modifier = Modifier
                             .weight(1f)
-                            .clickable { onAddTransactionClick("EXPENSE") },
+                            .clickable { onAddTransactionClick("EXPENSE", null) },
                         contentPadding = PaddingValues(12.dp)
                     ) {
                         Row(
@@ -375,12 +375,12 @@ fun DashboardScreen(
                         QuickActionItem(
                             icon = Icons.Outlined.RemoveCircleOutline,
                             label = "Expense",
-                            onClick = { onAddTransactionClick("EXPENSE") }
+                            onClick = { onAddTransactionClick("EXPENSE", null) }
                         )
                         QuickActionItem(
                             icon = Icons.Outlined.AddCircleOutline,
                             label = "Income",
-                            onClick = { onAddTransactionClick("INCOME") }
+                            onClick = { onAddTransactionClick("INCOME", null) }
                         )
                         QuickActionItem(
                             icon = Icons.Outlined.BarChart,
