@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.platform.LocalContext
+import android.app.DatePickerDialog
+import java.util.Calendar
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
@@ -35,6 +38,8 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,8 +56,20 @@ fun TransactionsScreen(
     val categories by viewModel.categories.collectAsState()
     val transactions by viewModel.filteredTransactions.collectAsState()
 
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val startDate by viewModel.startDate.collectAsState()
+    val endDate by viewModel.endDate.collectAsState()
+    val selectedMonth by viewModel.selectedMonth.collectAsState()
+    val minAmount by viewModel.minAmount.collectAsState()
+    val maxAmount by viewModel.maxAmount.collectAsState()
+    val singleAmount by viewModel.singleAmount.collectAsState()
+
+    var showFilterSheet by remember { mutableStateOf(false) }
+
     val df = DecimalFormat("#,##0.00")
     val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
+    val sdfShort = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    val context = LocalContext.current
 
     val groupedTransactions = remember(transactions) {
         transactions.groupBy { tx ->
@@ -117,74 +134,44 @@ fun TransactionsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Search Input Field
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { viewModel.searchQuery.value = it },
-                placeholder = { Text("Search transactions...", style = MaterialTheme.typography.bodyMedium) },
+            // Search Input Field & Filter Menu Button Row
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                shape = MaterialTheme.shapes.small,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
-            )
-
-            // Filtering Row: Types
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item {
-                    FilterChip(
-                        selected = selectedType == null,
-                        onClick = { viewModel.selectedType.value = null },
-                        label = { Text("All Types") }
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { viewModel.searchQuery.value = it },
+                    placeholder = { Text("Search transactions...", style = MaterialTheme.typography.bodyMedium) },
+                    modifier = Modifier.weight(1f),
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    shape = MaterialTheme.shapes.small,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
-                }
-                item {
-                    FilterChip(
-                        selected = selectedType == TransactionType.INCOME,
-                        onClick = { viewModel.selectedType.value = TransactionType.INCOME },
-                        label = { Text("Income") }
-                    )
-                }
-                item {
-                    FilterChip(
-                        selected = selectedType == TransactionType.EXPENSE,
-                        onClick = { viewModel.selectedType.value = TransactionType.EXPENSE },
-                        label = { Text("Expenses") }
-                    )
-                }
-            }
-
-            // Filtering Row: Categories
-            if (categories.isNotEmpty()) {
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                )
+                IconButton(
+                    onClick = { showFilterSheet = true }
                 ) {
-                    item {
-                        FilterChip(
-                            selected = selectedCategory == null,
-                            onClick = { viewModel.selectedCategory.value = null },
-                            label = { Text("All Categories") }
-                        )
-                    }
-                    items(categories) { cat ->
-                        FilterChip(
-                            selected = selectedCategory == cat.id,
-                            onClick = { viewModel.selectedCategory.value = cat.id },
-                            label = { Text(cat.name) }
-                        )
-                    }
+                    val activeFiltersCount = (if (selectedCategory != null) 1 else 0) +
+                            (if (selectedType != null) 1 else 0) +
+                            (if (selectedDate != null) 1 else 0) +
+                            (if (startDate != null && endDate != null) 1 else 0) +
+                            (if (selectedMonth != null) 1 else 0) +
+                            (if (minAmount != null || maxAmount != null) 1 else 0) +
+                            (if (singleAmount != null) 1 else 0)
+                    
+                    val hasActiveFilters = activeFiltersCount > 0
+                    
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Filters",
+                        tint = if (hasActiveFilters) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+                    )
                 }
             }
 
@@ -240,7 +227,7 @@ fun TransactionsScreen(
                         .fillMaxSize()
                         .weight(1f)
                         .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                     contentPadding = PaddingValues(bottom = 80.dp) // extra padding to clear the FAB!
                 ) {
                     groupedTransactions.forEach { (dateStr, txList) ->
@@ -405,6 +392,318 @@ fun TransactionsScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    if (showFilterSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilterSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Header Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Filters",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                    TextButton(onClick = { viewModel.clearAllFilters() }) {
+                        Text("Clear All", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+
+                // Divider
+                Divider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                // 1. Transaction Type Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Transaction Type",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = selectedType == null,
+                            onClick = { viewModel.selectedType.value = null },
+                            label = { Text("All") }
+                        )
+                        FilterChip(
+                            selected = selectedType == TransactionType.INCOME,
+                            onClick = { viewModel.selectedType.value = TransactionType.INCOME },
+                            label = { Text("Income") }
+                        )
+                        FilterChip(
+                            selected = selectedType == TransactionType.EXPENSE,
+                            onClick = { viewModel.selectedType.value = TransactionType.EXPENSE },
+                            label = { Text("Expenses") }
+                        )
+                    }
+                }
+
+                // 2. Category Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Category",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    var expandedCatDropdown by remember { mutableStateOf(false) }
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            onClick = { expandedCatDropdown = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val activeCatName = categories.find { it.id == selectedCategory }?.name ?: "All Categories"
+                            Text(activeCatName)
+                        }
+                        DropdownMenu(
+                            expanded = expandedCatDropdown,
+                            onDismissRequest = { expandedCatDropdown = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("All Categories") },
+                                onClick = {
+                                    viewModel.selectedCategory.value = null
+                                    expandedCatDropdown = false
+                                }
+                            )
+                            categories.forEach { cat ->
+                                DropdownMenuItem(
+                                    text = { Text(cat.name) },
+                                    onClick = {
+                                        viewModel.selectedCategory.value = cat.id
+                                        expandedCatDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 3. Date Selection Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Date Filters",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+
+                    val calendar = Calendar.getInstance()
+                    val datePickerDialogSingle = DatePickerDialog(
+                        context,
+                        { _, year, month, day ->
+                            val cal = Calendar.getInstance().apply {
+                                set(year, month, day, 0, 0, 0)
+                            }
+                            viewModel.selectedDate.value = cal.timeInMillis
+                            viewModel.startDate.value = null
+                            viewModel.endDate.value = null
+                            viewModel.selectedMonth.value = null
+                        },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    )
+
+                    val datePickerDialogStart = DatePickerDialog(
+                        context,
+                        { _, year, month, day ->
+                            val cal = Calendar.getInstance().apply {
+                                set(year, month, day, 0, 0, 0)
+                            }
+                            viewModel.startDate.value = cal.timeInMillis
+                            viewModel.selectedDate.value = null
+                            viewModel.selectedMonth.value = null
+                        },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    )
+
+                    val datePickerDialogEnd = DatePickerDialog(
+                        context,
+                        { _, year, month, day ->
+                            val cal = Calendar.getInstance().apply {
+                                set(year, month, day, 23, 59, 59)
+                            }
+                            viewModel.endDate.value = cal.timeInMillis
+                            viewModel.selectedDate.value = null
+                            viewModel.selectedMonth.value = null
+                        },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { datePickerDialogSingle.show() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(selectedDate?.let { sdfShort.format(java.util.Date(it)) } ?: "Single Date")
+                        }
+                        
+                        OutlinedButton(
+                            onClick = { datePickerDialogStart.show() },
+                            modifier = Modifier.weight(1.1f)
+                        ) {
+                            Text(startDate?.let { sdfShort.format(java.util.Date(it)) } ?: "Start Date")
+                        }
+
+                        OutlinedButton(
+                            onClick = { datePickerDialogEnd.show() },
+                            modifier = Modifier.weight(1.1f)
+                        ) {
+                            Text(endDate?.let { sdfShort.format(java.util.Date(it)) } ?: "End Date")
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+                        var expandedMonthDropdown by remember { mutableStateOf(false) }
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(
+                                onClick = { expandedMonthDropdown = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                val activeMonthName = selectedMonth?.let { months[it] } ?: "Filter by Month"
+                                Text(activeMonthName)
+                            }
+                            DropdownMenu(
+                                expanded = expandedMonthDropdown,
+                                onDismissRequest = { expandedMonthDropdown = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("No Month Filter") },
+                                    onClick = {
+                                        viewModel.selectedMonth.value = null
+                                        expandedMonthDropdown = false
+                                    }
+                                )
+                                months.forEachIndexed { index, mName ->
+                                    DropdownMenuItem(
+                                        text = { Text(mName) },
+                                        onClick = {
+                                            viewModel.selectedMonth.value = index
+                                            viewModel.selectedDate.value = null
+                                            viewModel.startDate.value = null
+                                            viewModel.endDate.value = null
+                                            expandedMonthDropdown = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 4. Amount Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Amount Filters",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    
+                    OutlinedTextField(
+                        value = singleAmount?.toString() ?: "",
+                        onValueChange = {
+                            viewModel.singleAmount.value = it.toDoubleOrNull()
+                            if (it.isNotBlank()) {
+                                viewModel.minAmount.value = null
+                                viewModel.maxAmount.value = null
+                            }
+                        },
+                        placeholder = { Text("Exact Amount (e.g. 50.0)", style = MaterialTheme.typography.bodyMedium) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        ),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = minAmount?.toString() ?: "",
+                            onValueChange = {
+                                viewModel.minAmount.value = it.toDoubleOrNull()
+                                if (it.isNotBlank()) {
+                                    viewModel.singleAmount.value = null
+                                }
+                            },
+                            placeholder = { Text("Min Amount", style = MaterialTheme.typography.bodyMedium) },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number
+                            ),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
+                        )
+
+                        OutlinedTextField(
+                            value = maxAmount?.toString() ?: "",
+                            onValueChange = {
+                                viewModel.maxAmount.value = it.toDoubleOrNull()
+                                if (it.isNotBlank()) {
+                                    viewModel.singleAmount.value = null
+                                }
+                            },
+                            placeholder = { Text("Max Amount", style = MaterialTheme.typography.bodyMedium) },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number
+                            ),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = { showFilterSheet = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Apply Filters")
                 }
             }
         }

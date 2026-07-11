@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.TrendingDown
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -154,13 +155,16 @@ fun DashboardScreen(
                         Text(
                             text = "Total Balance",
                             style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                         Icon(
                             imageVector = Icons.Outlined.AccountBalanceWallet,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -355,14 +359,26 @@ fun DashboardScreen(
                 ShCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "Quick Actions",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Quick Actions",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
-                    )
+                        Icon(
+                            imageVector = Icons.Outlined.Bolt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
