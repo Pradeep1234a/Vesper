@@ -194,10 +194,10 @@ fun DashboardScreen(
                         .height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Left Column (Large Savings Card) - weight 1f
+                    // Left Column (Large Savings Card) - weight 1.1f
                     ShCard(
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(1.1f)
                             .fillMaxHeight()
                             .clickable { onSavingsClick() }
                     ) {
@@ -270,10 +270,10 @@ fun DashboardScreen(
                         }
                     }
 
-                    // Right Column (Stacked Income & Expenses Cards) - weight 1f
+                    // Right Column (Stacked Income & Expenses Cards) - weight 0.9f
                     Column(
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(0.9f)
                             .fillMaxHeight(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
