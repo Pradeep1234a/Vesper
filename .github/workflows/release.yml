@@ -30,8 +30,11 @@ jobs:
       - name: Grant Execute Permission to Gradlew
         run: chmod +x gradlew
 
+      - name: Generate Temporary Keystore
+        run: keytool -genkey -v -keystore release.keystore -alias vesper -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Vesper, OU=Ledger, O=Vesper, L=Mobile, S=App, C=US" -storepass password -keypass password
+
       - name: Build Release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/release.keystore -Pandroid.injected.signing.store.password=password -Pandroid.injected.signing.key.alias=vesper -Pandroid.injected.signing.key.password=password
 
       - name: Prepare APK for Release
         run: |
