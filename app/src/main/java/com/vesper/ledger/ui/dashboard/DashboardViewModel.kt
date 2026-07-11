@@ -17,6 +17,7 @@ data class DashboardUiState(
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
     val totalSaved: Double = 0.0,
+    val totalTarget: Double = 0.0,
     val availableBalance: Double = 0.0,
     val recentTransactions: List<Transaction> = emptyList()
 )
@@ -33,6 +34,7 @@ class DashboardViewModel(
         val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
         val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
         val saved = savingsGoals.sumOf { it.currentAmount }
+        val target = savingsGoals.sumOf { it.targetAmount }
         val available = income - expense
         val recent = transactions.take(5)
 
@@ -40,6 +42,7 @@ class DashboardViewModel(
             totalIncome = income,
             totalExpense = expense,
             totalSaved = saved,
+            totalTarget = target,
             availableBalance = available,
             recentTransactions = recent
         )
