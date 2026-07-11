@@ -81,7 +81,7 @@ fun MainScreen(
                         .background(MaterialTheme.colorScheme.background)
                         .border(1.dp, MaterialTheme.colorScheme.outline, RectangleShape)
                         .navigationBarsPadding()
-                        .height(64.dp),
+                        .height(60.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TabItem(
@@ -154,8 +154,8 @@ fun MainScreen(
                 Box(
                     modifier = Modifier
                         .navigationBarsPadding()
-                        .offset(y = (-14).dp)
-                        .size(52.dp)
+                        .offset(y = (-8).dp)
+                        .size(44.dp)
                         .background(MaterialTheme.colorScheme.onBackground, CircleShape)
                         .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                         .clickable(
@@ -168,7 +168,7 @@ fun MainScreen(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add Transaction",
                         tint = MaterialTheme.colorScheme.background,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
@@ -257,13 +257,13 @@ fun RowScope.TabItem(
             imageVector = icon,
             contentDescription = label,
             tint = color,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(24.dp)
         )
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(1.dp))
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.sp,
+                fontSize = 11.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 color = color
             )
