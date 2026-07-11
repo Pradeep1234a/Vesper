@@ -372,21 +372,29 @@ fun DashboardScreen(
                         QuickActionItem(
                             icon = Icons.Outlined.RemoveCircleOutline,
                             label = "Expense",
+                            containerColor = Color(0xFFDC2626).copy(alpha = 0.08f),
+                            iconColor = Color(0xFFDC2626),
                             onClick = { onAddTransactionClick("EXPENSE", null) }
                         )
                         QuickActionItem(
                             icon = Icons.Outlined.AddCircleOutline,
                             label = "Income",
+                            containerColor = Color(0xFF16A34A).copy(alpha = 0.08f),
+                            iconColor = Color(0xFF16A34A),
                             onClick = { onAddTransactionClick("INCOME", null) }
                         )
                         QuickActionItem(
                             icon = Icons.Outlined.BarChart,
                             label = "Charts",
+                            containerColor = Color(0xFF2563EB).copy(alpha = 0.08f),
+                            iconColor = Color(0xFF2563EB),
                             onClick = onReportsClick
                         )
                         QuickActionItem(
                             icon = Icons.Outlined.Savings,
                             label = "Goals",
+                            containerColor = Color(0xFFF59E0B).copy(alpha = 0.08f),
+                            iconColor = Color(0xFFF59E0B),
                             onClick = onSavingsClick
                         )
                     }
@@ -413,9 +421,10 @@ fun DashboardScreen(
                             Text(
                                 text = "See All",
                                 style = MaterialTheme.typography.labelMedium.copy(
-                                    fontSize = 13.sp,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.SemiBold,
+                                    textDecoration = TextDecoration.Underline
                                 ),
                                 modifier = Modifier.clickable { onReportsClick() }
                             )
@@ -424,41 +433,56 @@ fun DashboardScreen(
                         when (topCats.size) {
                             1 -> {
                                 val cat = topCats[0]
+                                val catColor = uiState.categories.find { it.name == cat.categoryName }?.colorHex?.let {
+                                    Color(android.graphics.Color.parseColor(it))
+                                } ?: MaterialTheme.colorScheme.onSurfaceVariant
+
                                 ShCard(
                                     modifier = Modifier.fillMaxWidth(),
                                     contentPadding = PaddingValues(12.dp)
                                 ) {
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Start,
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Icon(
-                                            imageVector = getIconByName(cat.iconName),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .background(
+                                                        color = catColor.copy(alpha = 0.1f),
+                                                        shape = RoundedCornerShape(10.dp)
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(cat.iconName),
+                                                    contentDescription = null,
+                                                    tint = catColor,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(10.dp))
+                                            Text(
+                                                text = cat.categoryName,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            )
+                                        }
                                         Text(
-                                            text = cat.categoryName,
-                                            style = MaterialTheme.typography.labelMedium.copy(
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            text = "$currencySymbol${df.format(cat.amount)}",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontSize = 14.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = "$currencySymbol${df.format(cat.amount)}",
-                                        style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontSize = 20.sp,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    )
                                 }
                             }
                             2 -> {
@@ -712,9 +736,10 @@ fun DashboardScreen(
                         Text(
                             text = "See All",
                             style = MaterialTheme.typography.labelMedium.copy(
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.SemiBold,
+                                textDecoration = TextDecoration.Underline
                             ),
                             modifier = Modifier.clickable { onSeeAllTransactionsClick() }
                         )
@@ -898,6 +923,8 @@ fun DashboardScreen(
 fun QuickActionItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
+    containerColor: Color,
+    iconColor: Color,
     onClick: () -> Unit
 ) {
     Column(
@@ -913,7 +940,7 @@ fun QuickActionItem(
             modifier = Modifier
                 .size(48.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    color = containerColor,
                     shape = RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -921,7 +948,7 @@ fun QuickActionItem(
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = iconColor,
                 modifier = Modifier.size(24.dp)
             )
         }
