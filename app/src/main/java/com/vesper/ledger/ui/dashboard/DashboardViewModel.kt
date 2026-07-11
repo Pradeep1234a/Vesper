@@ -13,13 +13,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+data class CategorySpending(
+    val categoryName: String,
+    val iconName: String,
+    val amount: Double
+)
+
 data class DashboardUiState(
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
     val totalSaved: Double = 0.0,
     val totalTarget: Double = 0.0,
     val availableBalance: Double = 0.0,
-    val recentTransactions: List<Transaction> = emptyList()
+    val recentTransactions: List<Transaction> = emptyList(),
+    val topCategories: List<CategorySpending> = emptyList()
 )
 
 class DashboardViewModel(
@@ -29,8 +36,9 @@ class DashboardViewModel(
 
     val uiState: StateFlow<DashboardUiState> = combine(
         transactionRepository.allTransactions,
-        savingsRepository.allSavingsGoals
-    ) { transactions, savingsGoals ->
+        savingsRepository.allSavingsGoals,
+        transactionRepository.allCategories
+    ) { transactions, savingsGoals, categories ->
         val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
         val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
         val saved = savingsGoals.sumOf { it.currentAmount }
@@ -38,13 +46,57 @@ class DashboardViewModel(
         val available = income - expense
         val recent = transactions.take(5)
 
+        // Calculate top 3 categories by expense spending
+        val expenses = transactions.filter { it.type == TransactionType.EXPENSE }
+        val categorySpendMap = expenses.groupBy { it.categoryId }
+            .mapValues { entry -> entry.value.sumOf { it.amount } }
+
+        val sortedSpend = categorySpendMap.toList()
+            .sortedByDescending { it.second }
+            .take(3)
+
+        val topCats = sortedSpend.map { (catId, amt) ->
+            val cat = categories.find { it.id == catId }
+            CategorySpending(
+                categoryName = cat?.name ?: "Other",
+                iconName = cat?.iconName ?: "category",
+                amount = amt
+            )
+        }.toMutableList()
+
+        // Pad if less than 3
+        if (topCats.size < 3) {
+            val remainingCategories = categories.filter { it.type == TransactionType.EXPENSE && it.id !in categorySpendMap.keys }
+            for (cat in remainingCategories) {
+                if (topCats.size >= 3) break
+                topCats.add(
+                    CategorySpending(
+                        categoryName = cat.name,
+                        iconName = cat.iconName,
+                        amount = 0.0
+                    )
+                )
+            }
+        }
+
+        while (topCats.size < 3) {
+            topCats.add(
+                CategorySpending(
+                    categoryName = "Miscellaneous",
+                    iconName = "category",
+                    amount = 0.0
+                )
+            )
+        }
+
         DashboardUiState(
             totalIncome = income,
             totalExpense = expense,
             totalSaved = saved,
             totalTarget = target,
             availableBalance = available,
-            recentTransactions = recent
+            recentTransactions = recent,
+            topCategories = topCats
         )
     }.stateIn(
         scope = viewModelScope,
@@ -63,9 +115,9 @@ class DashboardViewModelFactory(
     private val transactionRepository: TransactionRepository,
     private val savingsRepository: SavingsRepository
 ) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
             return DashboardViewModel(transactionRepository, savingsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
