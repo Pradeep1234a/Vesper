@@ -2,6 +2,7 @@ package com.vesper.ledger.ui.transactions
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -40,6 +41,7 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material.icons.outlined.Tune
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -154,55 +156,47 @@ fun TransactionsScreen(
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
                 )
-                IconButton(
-                    onClick = { showFilterSheet = true }
-                ) {
-                    val activeFiltersCount = (if (selectedCategory != null) 1 else 0) +
-                            (if (selectedType != null) 1 else 0) +
-                            (if (selectedDate != null) 1 else 0) +
-                            (if (startDate != null && endDate != null) 1 else 0) +
-                            (if (selectedMonth != null) 1 else 0) +
-                            (if (minAmount != null || maxAmount != null) 1 else 0) +
-                            (if (singleAmount != null) 1 else 0)
-                    
-                    val hasActiveFilters = activeFiltersCount > 0
-                    
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = "Filters",
-                        tint = if (hasActiveFilters) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            }
 
-            // Sort Toggle Section
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    viewModel.sortBy.value = when (sortBy) {
-                        SortOption.DATE_DESC -> SortOption.DATE_ASC
-                        SortOption.DATE_ASC -> SortOption.AMOUNT_DESC
-                        SortOption.AMOUNT_DESC -> SortOption.AMOUNT_ASC
-                        SortOption.AMOUNT_ASC -> SortOption.DATE_DESC
+                val activeFiltersCount = (if (selectedCategory != null) 1 else 0) +
+                        (if (selectedType != null) 1 else 0) +
+                        (if (selectedDate != null) 1 else 0) +
+                        (if (startDate != null && endDate != null) 1 else 0) +
+                        (if (selectedMonth != null) 1 else 0) +
+                        (if (minAmount != null || maxAmount != null) 1 else 0) +
+                        (if (singleAmount != null) 1 else 0)
+                
+                val hasActiveFilters = activeFiltersCount > 0
+
+                Card(
+                    modifier = Modifier
+                        .height(56.dp)
+                        .width(56.dp)
+                        .clickable { showFilterSheet = true },
+                    shape = MaterialTheme.shapes.small,
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (hasActiveFilters) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        }
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = if (hasActiveFilters) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Tune,
+                            contentDescription = "Filters",
+                            tint = if (hasActiveFilters) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
-                }) {
-                    Icon(imageVector = Icons.Default.FilterList, contentDescription = "Sort")
                 }
-                Text(
-                    text = when (sortBy) {
-                        SortOption.DATE_DESC -> "Newest First"
-                        SortOption.DATE_ASC -> "Oldest First"
-                        SortOption.AMOUNT_DESC -> "Highest Amount"
-                        SortOption.AMOUNT_ASC -> "Lowest Amount"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
             }
 
             // Grouped Transaction list
@@ -426,6 +420,65 @@ fun TransactionsScreen(
 
                 // Divider
                 Divider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                // Sort By Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Sort By",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    var expandedSortDropdown by remember { mutableStateOf(false) }
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            onClick = { expandedSortDropdown = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val currentSortLabel = when (sortBy) {
+                                SortOption.DATE_DESC -> "Newest First"
+                                SortOption.DATE_ASC -> "Oldest First"
+                                SortOption.AMOUNT_DESC -> "Highest Amount"
+                                SortOption.AMOUNT_ASC -> "Lowest Amount"
+                            }
+                            Text(currentSortLabel)
+                        }
+                        DropdownMenu(
+                            expanded = expandedSortDropdown,
+                            onDismissRequest = { expandedSortDropdown = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Newest First") },
+                                onClick = {
+                                    viewModel.sortBy.value = SortOption.DATE_DESC
+                                    expandedSortDropdown = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Oldest First") },
+                                onClick = {
+                                    viewModel.sortBy.value = SortOption.DATE_ASC
+                                    expandedSortDropdown = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Highest Amount") },
+                                onClick = {
+                                    viewModel.sortBy.value = SortOption.AMOUNT_DESC
+                                    expandedSortDropdown = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Lowest Amount") },
+                                onClick = {
+                                    viewModel.sortBy.value = SortOption.AMOUNT_ASC
+                                    expandedSortDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 // 1. Transaction Type Section
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

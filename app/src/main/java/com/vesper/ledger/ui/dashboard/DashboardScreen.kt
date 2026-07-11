@@ -790,7 +790,9 @@ fun DashboardScreen(
                                 val categoryLabel = cat?.name ?: tx.note.ifBlank { "Misc" }
 
                                 ShCard(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 1.dp),
                                     contentPadding = PaddingValues(12.dp)
                                 ) {
                                     Box {
