@@ -454,12 +454,27 @@ fun DashboardScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
+                            Column {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(cat.iconName),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = cat.categoryName,
                                         style = MaterialTheme.typography.labelMedium.copy(
@@ -468,31 +483,25 @@ fun DashboardScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "$currencySymbol${df.format(cat.amount)}",
-                                        style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontSize = 28.sp,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    )
                                 }
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = getIconByName(cat.iconName),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(18.dp)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "$currencySymbol${df.format(cat.amount)}",
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontSize = 28.sp,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                }
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "1st Ranked",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                )
                             }
                         }
                     }
@@ -510,18 +519,10 @@ fun DashboardScreen(
                             ) {
                                 Column {
                                     Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Start,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text(
-                                            text = cat1.categoryName,
-                                            style = MaterialTheme.typography.labelMedium.copy(
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        )
                                         Box(
                                             modifier = Modifier
                                                 .size(32.dp)
@@ -536,6 +537,15 @@ fun DashboardScreen(
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = cat1.categoryName,
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        )
                                     }
                                     Spacer(modifier = Modifier.height(12.dp))
                                     Text(
@@ -562,18 +572,10 @@ fun DashboardScreen(
                             ) {
                                 Column {
                                     Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Start,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text(
-                                            text = cat2.categoryName,
-                                            style = MaterialTheme.typography.labelMedium.copy(
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        )
                                         Box(
                                             modifier = Modifier
                                                 .size(32.dp)
@@ -588,6 +590,15 @@ fun DashboardScreen(
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = cat2.categoryName,
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        )
                                     }
                                     Spacer(modifier = Modifier.height(12.dp))
                                     Text(
@@ -635,18 +646,10 @@ fun DashboardScreen(
                                 ) {
                                     Column {
                                         Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start,
+                                            modifier = Modifier.fillMaxWidth()
                                         ) {
-                                            Text(
-                                                text = cat1.categoryName,
-                                                style = MaterialTheme.typography.labelMedium.copy(
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            )
                                             Box(
                                                 modifier = Modifier
                                                     .size(32.dp)
@@ -661,6 +664,15 @@ fun DashboardScreen(
                                                     modifier = Modifier.size(18.dp)
                                                 )
                                             }
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = cat1.categoryName,
+                                                style = MaterialTheme.typography.labelMedium.copy(
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            )
                                         }
                                         Spacer(modifier = Modifier.height(12.dp))
                                         Text(
@@ -696,45 +708,47 @@ fun DashboardScreen(
                                         modifier = Modifier.fillMaxHeight(),
                                         verticalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text(
-                                                text = cat2.categoryName,
-                                                style = MaterialTheme.typography.labelMedium.copy(
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            )
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(RoundedCornerShape(8.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                                contentAlignment = Alignment.Center
+                                        Column {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Start,
+                                                modifier = Modifier.fillMaxWidth()
                                             ) {
-                                                Icon(
-                                                    imageVector = getIconByName(cat2.iconName),
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    modifier = Modifier.size(18.dp)
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = getIconByName(cat2.iconName),
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = cat2.categoryName,
+                                                    style = MaterialTheme.typography.labelMedium.copy(
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Medium,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
                                                 )
                                             }
-                                        }
-                                        Spacer(modifier = Modifier.height(12.dp))
-                                        Text(
-                                            text = "$currencySymbol${df.format(cat2.amount)}",
-                                            style = MaterialTheme.typography.headlineMedium.copy(
-                                                fontSize = 22.sp,
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            Text(
+                                                text = "$currencySymbol${df.format(cat2.amount)}",
+                                                style = MaterialTheme.typography.headlineMedium.copy(
+                                                    fontSize = 22.sp,
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
                                             )
-                                        )
-                                        Spacer(modifier = Modifier.height(2.dp))
+                                        }
                                         Text(
                                             text = "2nd Ranked",
                                             style = MaterialTheme.typography.labelSmall.copy(
@@ -751,45 +765,47 @@ fun DashboardScreen(
                                         modifier = Modifier.fillMaxHeight(),
                                         verticalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text(
-                                                text = cat3.categoryName,
-                                                style = MaterialTheme.typography.labelMedium.copy(
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            )
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(RoundedCornerShape(8.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                                contentAlignment = Alignment.Center
+                                        Column {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Start,
+                                                modifier = Modifier.fillMaxWidth()
                                             ) {
-                                                Icon(
-                                                    imageVector = getIconByName(cat3.iconName),
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    modifier = Modifier.size(18.dp)
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = getIconByName(cat3.iconName),
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = cat3.categoryName,
+                                                    style = MaterialTheme.typography.labelMedium.copy(
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Medium,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
                                                 )
                                             }
-                                        }
-                                        Spacer(modifier = Modifier.height(12.dp))
-                                        Text(
-                                            text = "$currencySymbol${df.format(cat3.amount)}",
-                                            style = MaterialTheme.typography.headlineMedium.copy(
-                                                fontSize = 22.sp,
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            Text(
+                                                text = "$currencySymbol${df.format(cat3.amount)}",
+                                                style = MaterialTheme.typography.headlineMedium.copy(
+                                                    fontSize = 22.sp,
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
                                             )
-                                        )
-                                        Spacer(modifier = Modifier.height(2.dp))
+                                        }
                                         Text(
                                             text = "3rd Ranked",
                                             style = MaterialTheme.typography.labelSmall.copy(
