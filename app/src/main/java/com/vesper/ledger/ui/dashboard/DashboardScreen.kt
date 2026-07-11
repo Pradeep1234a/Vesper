@@ -434,78 +434,43 @@ fun DashboardScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Category Ranking",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
-                )
+                val topCats = uiState.topCategories
+                if (topCats.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Category Ranking",
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
             }
 
             item {
                 val topCats = uiState.topCategories
-                if (topCats.size >= 3) {
-                    val cat1 = topCats[0]
-                    val cat2 = topCats[1]
-                    val cat3 = topCats[2]
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Max)
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // Left Column (Rank 1 - Large Card) - weight 1.1f
+                when (topCats.size) {
+                    1 -> {
+                        val cat = topCats[0]
                         ShCard(
                             modifier = Modifier
-                                .weight(1.1f)
-                                .fillMaxHeight()
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxHeight(),
-                                verticalArrangement = Arrangement.SpaceBetween
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "1st",
-                                            style = MaterialTheme.typography.labelMedium.copy(
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                        )
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = getIconByName(cat1.iconName),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(12.dp))
                                     Text(
-                                        text = cat1.categoryName,
+                                        text = cat.categoryName,
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "$currencySymbol${df.format(cat1.amount)}",
+                                        text = "$currencySymbol${df.format(cat.amount)}",
                                         style = MaterialTheme.typography.headlineMedium.copy(
                                             fontSize = 28.sp,
                                             fontFamily = SpaceGroteskFamily,
@@ -514,128 +479,316 @@ fun DashboardScreen(
                                         )
                                     )
                                 }
-                                Text(
-                                    text = "Top Spending",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = getIconByName(cat.iconName),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp)
                                     )
-                                )
+                                }
                             }
                         }
-
-                        // Right Column (Stacked Rank 2 & Rank 3) - weight 0.9f
-                        Column(
+                    }
+                    2 -> {
+                        val cat1 = topCats[0]
+                        val cat2 = topCats[1]
+                        Row(
                             modifier = Modifier
-                                .weight(0.9f)
-                                .fillMaxHeight(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // Rank 2 Card
-                            ShCard(modifier = Modifier.weight(1f)) {
-                                Column(
-                                    modifier = Modifier.fillMaxHeight(),
-                                    verticalArrangement = Arrangement.SpaceBetween
+                            ShCard(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
+                                    Column {
                                         Text(
-                                            text = "2nd",
-                                            style = MaterialTheme.typography.labelMedium.copy(
+                                            text = cat1.categoryName,
+                                            style = MaterialTheme.typography.labelSmall.copy(
                                                 fontSize = 14.sp,
                                                 fontWeight = FontWeight.Medium,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         )
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = getIconByName(cat2.iconName),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(18.dp)
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "$currencySymbol${df.format(cat1.amount)}",
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontSize = 24.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Text(
-                                        text = cat2.categoryName,
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 13.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                    )
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(cat1.iconName),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            ShCard(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = cat2.categoryName,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "$currencySymbol${df.format(cat2.amount)}",
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontSize = 24.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        )
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(cat2.iconName),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    3 -> {
+                        val cat1 = topCats[0]
+                        val cat2 = topCats[1]
+                        val cat3 = topCats[2]
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Max)
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            // Left Column (Rank 1 - Large Card) - weight 1.1f
+                            ShCard(
+                                modifier = Modifier
+                                    .weight(1.1f)
+                                    .fillMaxHeight()
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxHeight(),
+                                    verticalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "1st",
+                                                style = MaterialTheme.typography.labelMedium.copy(
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(cat1.iconName),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Text(
+                                            text = cat1.categoryName,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "$currencySymbol${df.format(cat1.amount)}",
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontSize = 28.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        )
+                                    }
                                     Text(
-                                        text = "$currencySymbol${df.format(cat2.amount)}",
-                                        style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontSize = 22.sp,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                        text = "Top Spending",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
                                 }
                             }
 
-                            // Rank 3 Card
-                            ShCard(modifier = Modifier.weight(1f)) {
-                                Column(
-                                    modifier = Modifier.fillMaxHeight(),
-                                    verticalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
+                            // Right Column (Stacked Rank 2 & Rank 3) - weight 0.9f
+                            Column(
+                                modifier = Modifier
+                                    .weight(0.9f)
+                                    .fillMaxHeight(),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // Rank 2 Card
+                                ShCard(modifier = Modifier.weight(1f)) {
+                                    Column(
+                                        modifier = Modifier.fillMaxHeight(),
+                                        verticalArrangement = Arrangement.SpaceBetween
                                     ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "2nd",
+                                                style = MaterialTheme.typography.labelMedium.copy(
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(cat2.iconName),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(12.dp))
                                         Text(
-                                            text = "3rd",
-                                            style = MaterialTheme.typography.labelMedium.copy(
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Medium,
+                                            text = cat2.categoryName,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 13.sp,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         )
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = getIconByName(cat3.iconName),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(18.dp)
+                                        Text(
+                                            text = "$currencySymbol${df.format(cat2.amount)}",
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontSize = 22.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
-                                        }
+                                        )
                                     }
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Text(
-                                        text = cat3.categoryName,
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 13.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+
+                                // Rank 3 Card
+                                ShCard(modifier = Modifier.weight(1f)) {
+                                    Column(
+                                        modifier = Modifier.fillMaxHeight(),
+                                        verticalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "3rd",
+                                                style = MaterialTheme.typography.labelMedium.copy(
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(cat3.iconName),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Text(
+                                            text = cat3.categoryName,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 13.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         )
-                                    )
-                                    Text(
-                                        text = "$currencySymbol${df.format(cat3.amount)}",
-                                        style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontSize = 22.sp,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                        Text(
+                                            text = "$currencySymbol${df.format(cat3.amount)}",
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontSize = 22.sp,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }

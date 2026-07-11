@@ -62,31 +62,6 @@ class DashboardViewModel(
                 iconName = cat?.iconName ?: "category",
                 amount = amt
             )
-        }.toMutableList()
-
-        // Pad if less than 3
-        if (topCats.size < 3) {
-            val remainingCategories = categories.filter { it.type == TransactionType.EXPENSE && it.id !in categorySpendMap.keys }
-            for (cat in remainingCategories) {
-                if (topCats.size >= 3) break
-                topCats.add(
-                    CategorySpending(
-                        categoryName = cat.name,
-                        iconName = cat.iconName,
-                        amount = 0.0
-                    )
-                )
-            }
-        }
-
-        while (topCats.size < 3) {
-            topCats.add(
-                CategorySpending(
-                    categoryName = "Miscellaneous",
-                    iconName = "category",
-                    amount = 0.0
-                )
-            )
         }
 
         DashboardUiState(
