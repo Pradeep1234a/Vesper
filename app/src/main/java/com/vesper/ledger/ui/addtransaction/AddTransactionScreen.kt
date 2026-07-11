@@ -74,7 +74,7 @@ fun AddTransactionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Transaction") },
+                title = { Text(if (viewModel.isEditMode) "Edit Transaction" else "Add Transaction") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
@@ -270,7 +270,7 @@ fun AddTransactionScreen(
 
             // Save Button
             ShButton(
-                text = "Save Transaction",
+                text = if (viewModel.isEditMode) "Save Changes" else "Save Transaction",
                 onClick = {
                     viewModel.saveTransaction {
                         onBackClick()

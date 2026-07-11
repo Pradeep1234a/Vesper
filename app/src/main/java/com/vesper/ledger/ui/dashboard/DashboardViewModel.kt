@@ -3,6 +3,7 @@ package com.vesper.ledger.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.data.repository.SavingsRepository
@@ -26,7 +27,8 @@ data class DashboardUiState(
     val totalTarget: Double = 0.0,
     val availableBalance: Double = 0.0,
     val recentTransactions: List<Transaction> = emptyList(),
-    val topCategories: List<CategorySpending> = emptyList()
+    val topCategories: List<CategorySpending> = emptyList(),
+    val categories: List<Category> = emptyList()
 )
 
 class DashboardViewModel(
@@ -71,7 +73,8 @@ class DashboardViewModel(
             totalTarget = target,
             availableBalance = available,
             recentTransactions = recent,
-            topCategories = topCats
+            topCategories = topCats,
+            categories = categories
         )
     }.stateIn(
         scope = viewModelScope,

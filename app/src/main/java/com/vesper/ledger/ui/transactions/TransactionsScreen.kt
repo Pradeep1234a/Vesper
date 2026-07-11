@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,7 +25,12 @@ import androidx.compose.material.icons.filled.Add
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
+import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.getIconByName
+import com.vesper.ledger.ui.theme.SpaceGroteskFamily
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.DeleteOutline
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -36,7 +42,7 @@ fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
     onBackClick: () -> Unit,
-    onAddTransactionClick: () -> Unit
+    onAddTransactionClick: (type: String?, id: Long?) -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
@@ -96,7 +102,7 @@ fun TransactionsScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = onAddTransactionClick,
+                onClick = { onAddTransactionClick(null, null) },
                 icon = { Icon(imageVector = Icons.Default.Add, contentDescription = null) },
                 text = { Text("New") },
                 expanded = !listState.isScrollInProgress,
@@ -250,67 +256,136 @@ fun TransactionsScreen(
                         }
 
                         items(txList) { tx ->
+                            var showMenu by remember { mutableStateOf(false) }
                             val category = categories.find { it.id == tx.categoryId }
-                            Row(
+                            val isIncome = tx.type == TransactionType.INCOME
+                            val accentColor = if (isIncome) Color(0xFF16A34A) else Color(0xFFDC2626)
+                            val accentBg = if (isIncome) Color(0xFF16A34A).copy(alpha = 0.08f) else Color(0xFFDC2626).copy(alpha = 0.08f)
+                            val iconName = category?.iconName ?: "category"
+                            val categoryLabel = category?.name ?: "Uncategorized"
+
+                            ShCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { transactionToDelete = tx }
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(vertical = 3.dp),
+                                contentPadding = PaddingValues(12.dp)
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
+                                Box {
+                                    Row(
                                         modifier = Modifier
-                                            .size(40.dp)
-                                            .background(
-                                                color = Color(android.graphics.Color.parseColor(category?.colorHex ?: "#71717A")).copy(alpha = 0.15f),
-                                                shape = MaterialTheme.shapes.small
-                                            ),
-                                        contentAlignment = Alignment.Center
+                                            .fillMaxWidth()
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null
+                                            ) { showMenu = true },
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Icon(
-                                            imageVector = getIconByName(category?.iconName ?: "category"),
-                                            contentDescription = category?.name,
-                                            tint = Color(android.graphics.Color.parseColor(category?.colorHex ?: "#71717A")),
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(
-                                            text = tx.title,
-                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-                                        )
-                                        Text(
-                                            text = category?.name ?: "Uncategorized",
-                                            style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        )
-                                    }
-                                }
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            // Category Icon Container
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .background(
+                                                        color = accentBg,
+                                                        shape = RoundedCornerShape(10.dp)
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = getIconByName(iconName),
+                                                    contentDescription = null,
+                                                    tint = accentColor,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(10.dp))
+                                            Column {
+                                                Text(
+                                                    text = tx.title,
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    ),
+                                                    maxLines = 1
+                                                )
+                                                Text(
+                                                    text = categoryLabel,
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontSize = 11.sp,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    ),
+                                                    maxLines = 1
+                                                )
+                                            }
+                                        }
 
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    val prefix = if (tx.type == TransactionType.INCOME) "+" else "-"
-                                    val color = if (tx.type == TransactionType.INCOME) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurface
-                                    Text(
-                                        text = "$prefix$currencySymbol${df.format(tx.amount)}",
-                                        style = MaterialTheme.typography.displaySmall.copy(
-                                            fontSize = 16.sp,
-                                            color = color
-                                        ),
-                                        modifier = Modifier.padding(end = 8.dp)
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                        modifier = Modifier
-                                            .size(20.dp)
-                                            .clickable { transactionToDelete = tx }
-                                    )
+                                        Spacer(modifier = Modifier.width(8.dp))
+
+                                        // Amount
+                                        val prefix = if (isIncome) "+" else "-"
+                                        Text(
+                                            text = "$prefix$currencySymbol${df.format(tx.amount)}",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = accentColor
+                                            )
+                                        )
+                                    }
+
+                                    // CRUD Action Menu
+                                    DropdownMenu(
+                                        expanded = showMenu,
+                                        onDismissRequest = { showMenu = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.Edit,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurface,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text("Edit", style = MaterialTheme.typography.bodyMedium)
+                                                }
+                                            },
+                                            onClick = {
+                                                showMenu = false
+                                                onAddTransactionClick(tx.type.name, tx.id)
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.DeleteOutline,
+                                                        contentDescription = null,
+                                                        tint = Color(0xFFDC2626),
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text(
+                                                        "Delete",
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            color = Color(0xFFDC2626)
+                                                        )
+                                                    )
+                                                }
+                                            },
+                                            onClick = {
+                                                showMenu = false
+                                                transactionToDelete = tx
+                                            }
+                                        )
+                                    }
                                 }
                             }
-                            Divider(color = MaterialTheme.colorScheme.outline)
                         }
                     }
                 }

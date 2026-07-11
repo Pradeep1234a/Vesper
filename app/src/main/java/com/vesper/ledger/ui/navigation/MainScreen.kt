@@ -52,7 +52,7 @@ import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
 @Composable
 fun MainScreen(
     settingsViewModel: SettingsViewModel,
-    onAddTransactionClick: (type: String?) -> Unit,
+    onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSavingsClick: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -191,7 +191,7 @@ fun MainScreen(
                     onBackClick = {
                         navController.popBackStack()
                     },
-                    onAddTransactionClick = { onAddTransactionClick(null) }
+                    onAddTransactionClick = onAddTransactionClick
                 )
             }
 

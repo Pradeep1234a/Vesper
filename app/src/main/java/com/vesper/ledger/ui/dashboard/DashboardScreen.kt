@@ -28,8 +28,12 @@ import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.TrendingDown
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -49,7 +53,7 @@ import java.util.Locale
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     currencySymbol: String,
-    onAddTransactionClick: (type: String?) -> Unit,
+    onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSavingsClick: () -> Unit,
@@ -706,83 +710,157 @@ fun DashboardScreen(
 
             if (uiState.recentTransactions.isEmpty()) {
                 item {
-                    Box(
+                    ShCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 32.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(vertical = 4.dp),
+                        contentPadding = PaddingValues(24.dp)
                     ) {
-                        Text(
-                            text = "No recent transactions.",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No recent transactions.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
                             )
-                        )
+                        }
                     }
                 }
             } else {
                 items(uiState.recentTransactions) { tx ->
-                    Row(
+                    var showMenu by remember { mutableStateOf(false) }
+                    val isIncome = tx.type == TransactionType.INCOME
+                    val accentColor = if (isIncome) Color(0xFF16A34A) else Color(0xFFDC2626)
+                    val accentBg = if (isIncome) Color(0xFF16A34A).copy(alpha = 0.08f) else Color(0xFFDC2626).copy(alpha = 0.08f)
+                    val cat = uiState.categories.find { it.id == tx.categoryId }
+                    val iconName = cat?.iconName ?: "category"
+                    val categoryLabel = cat?.name ?: tx.note.ifBlank { "Misc" }
+
+                    ShCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(vertical = 3.dp),
+                        contentPadding = PaddingValues(12.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
+                        Box {
+                            Row(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .border(1.dp, Slate200, CircleShape)
-                                    .background(Color.White, CircleShape),
-                                contentAlignment = Alignment.Center
+                                    .fillMaxWidth()
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) { showMenu = true },
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val icon = when (tx.title.lowercase()) {
-                                    "trader joe's" -> "shopping_bag"
-                                    "netflix subscription" -> "sports_esports"
-                                    "salary deposit" -> "home"
-                                    "chevron gas" -> "directions_car"
-                                    else -> "category"
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    // Category Icon Container
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .background(
+                                                color = accentBg,
+                                                shape = RoundedCornerShape(10.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(iconName),
+                                            contentDescription = null,
+                                            tint = accentColor,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = tx.title,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            ),
+                                            maxLines = 1
+                                        )
+                                        Text(
+                                            text = "$categoryLabel · ${dateFormat.format(Date(tx.dateEpochMillis))}",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 11.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            ),
+                                            maxLines = 1
+                                        )
+                                    }
                                 }
-                                Icon(
-                                    imageVector = getIconByName(icon),
-                                    contentDescription = null,
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = tx.title,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-                                )
-                                Text(
-                                    text = dateFormat.format(Date(tx.dateEpochMillis)),
-                                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                )
-                            }
-                        }
 
-                        Column(horizontalAlignment = Alignment.End) {
-                            val prefix = if (tx.type == TransactionType.INCOME) "+" else ""
-                            val color = if (tx.type == TransactionType.INCOME) Color(0xFF16A34A) else Color.Black
-                            Text(
-                                text = "$prefix$currencySymbol${df.format(tx.amount)}",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontSize = 16.sp,
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = color
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                // Amount
+                                val prefix = if (isIncome) "+" else "-"
+                                Text(
+                                    text = "$prefix$currencySymbol${df.format(tx.amount)}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = accentColor
+                                    )
                                 )
-                            )
-                            Text(
-                                text = tx.note.ifBlank { "Misc" },
-                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            )
+                            }
+
+                            // CRUD Action Menu (appears on click)
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.Edit,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Edit", style = MaterialTheme.typography.bodyMedium)
+                                        }
+                                    },
+                                    onClick = {
+                                        showMenu = false
+                                        onAddTransactionClick(tx.type.name, tx.id)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.DeleteOutline,
+                                                contentDescription = null,
+                                                tint = Color(0xFFDC2626),
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                "Delete",
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    color = Color(0xFFDC2626)
+                                                )
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        showMenu = false
+                                        viewModel.deleteTransaction(tx)
+                                    }
+                                )
+                            }
                         }
                     }
-                    Divider(color = MaterialTheme.colorScheme.outline)
                 }
             }
         }

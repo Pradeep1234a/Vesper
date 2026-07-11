@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,7 +46,7 @@ fun NavGraph(
         composable("main_screen") {
             MainScreen(
                 settingsViewModel = settingsViewModel,
-                onAddTransactionClick = { type -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE")) },
+                onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) }
             )
         }
@@ -57,19 +58,27 @@ fun NavGraph(
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null
+                },
+                navArgument("id") {
+                    type = NavType.LongType
+                    defaultValue = -1L
                 }
             )
         ) { backStackEntry ->
             val typeStr = backStackEntry.arguments?.getString("type")
+            val txId = backStackEntry.arguments?.getLong("id") ?: -1L
             val initialType = when (typeStr) {
                 "INCOME" -> TransactionType.INCOME
                 "EXPENSE" -> TransactionType.EXPENSE
                 else -> null
             }
             val addTransactionViewModel: AddTransactionViewModel = viewModel(factory = addTransactionFactory)
-            if (initialType != null) {
-                addTransactionViewModel.type.value = initialType
+            
+            // Load the transaction for editing or reset state if new
+            LaunchedEffect(txId) {
+                addTransactionViewModel.loadTransaction(txId, initialType)
             }
+            
             AddTransactionScreen(
                 viewModel = addTransactionViewModel,
                 currencySymbol = currencySymbol,
