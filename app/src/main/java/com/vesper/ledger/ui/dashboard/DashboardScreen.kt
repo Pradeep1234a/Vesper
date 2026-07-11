@@ -203,7 +203,7 @@ fun DashboardScreen(
                         currencySymbol = currencySymbol,
                         df = df
                     )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                    Divider(color = MaterialTheme.colorScheme.outline)
                 }
             }
         }
