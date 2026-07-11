@@ -199,7 +199,8 @@ fun DashboardScreen(
                         modifier = Modifier
                             .weight(1.1f)
                             .fillMaxHeight()
-                            .clickable { onSavingsClick() }
+                            .clickable { onSavingsClick() },
+                        contentPadding = PaddingValues(14.dp)
                     ) {
                         Column(
                             modifier = Modifier.fillMaxHeight(),
@@ -219,26 +220,18 @@ fun DashboardScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.primaryContainer),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Savings,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
+                                    Icon(
+                                        imageVector = Icons.Outlined.Savings,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(10.dp))
                                 Text(
                                     text = "$currencySymbol${df.format(uiState.totalSaved)}",
                                     style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 28.sp,
+                                        fontSize = 24.sp,
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -253,16 +246,16 @@ fun DashboardScreen(
                                     progress = progress.coerceIn(0f, 1f),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(6.dp)
+                                        .height(4.dp)
                                         .clip(CircleShape),
                                     color = MaterialTheme.colorScheme.primary,
                                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
-                                Spacer(modifier = Modifier.height(6.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "Goal $pct% complete",
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 12.sp,
+                                        fontSize = 11.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 )
@@ -281,7 +274,8 @@ fun DashboardScreen(
                         ShCard(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { onAddTransactionClick("INCOME") }
+                                .clickable { onAddTransactionClick("INCOME") },
+                            contentPadding = PaddingValues(12.dp)
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxHeight(),
@@ -300,37 +294,21 @@ fun DashboardScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.TrendingUp,
-                                            contentDescription = null,
-                                            tint = Color(0xFF16A34A),
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
+                                    Icon(
+                                        imageVector = Icons.Outlined.TrendingUp,
+                                        contentDescription = null,
+                                        tint = Color(0xFF16A34A),
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "$currencySymbol${df.format(uiState.totalIncome)}",
                                     style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 24.sp,
+                                        fontSize = 22.sp,
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "This month",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 )
                             }
@@ -340,7 +318,8 @@ fun DashboardScreen(
                         ShCard(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { onAddTransactionClick("EXPENSE") }
+                                .clickable { onAddTransactionClick("EXPENSE") },
+                            contentPadding = PaddingValues(12.dp)
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxHeight(),
@@ -359,37 +338,21 @@ fun DashboardScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.TrendingDown,
-                                            contentDescription = null,
-                                            tint = Color(0xFFDC2626),
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
+                                    Icon(
+                                        imageVector = Icons.Outlined.TrendingDown,
+                                        contentDescription = null,
+                                        tint = Color(0xFFDC2626),
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "$currencySymbol${df.format(uiState.totalExpense)}",
                                     style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 24.sp,
+                                        fontSize = 22.sp,
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "This month",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 )
                             }
@@ -452,7 +415,8 @@ fun DashboardScreen(
                         ShCard(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
+                                .padding(vertical = 4.dp),
+                            contentPadding = PaddingValues(14.dp)
                         ) {
                             Column {
                                 Row(
@@ -460,20 +424,12 @@ fun DashboardScreen(
                                     horizontalArrangement = Arrangement.Start,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = getIconByName(cat.iconName),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
+                                    Icon(
+                                        imageVector = getIconByName(cat.iconName),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = cat.categoryName,
@@ -484,11 +440,11 @@ fun DashboardScreen(
                                         )
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(10.dp))
                                 Text(
                                     text = "$currencySymbol${df.format(cat.amount)}",
                                     style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 28.sp,
+                                        fontSize = 24.sp,
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -498,7 +454,7 @@ fun DashboardScreen(
                                 Text(
                                     text = "1st Ranked",
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 12.sp,
+                                        fontSize = 11.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 )
@@ -515,7 +471,8 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             ShCard(
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(12.dp)
                             ) {
                                 Column {
                                     Row(
@@ -523,20 +480,12 @@ fun DashboardScreen(
                                         horizontalArrangement = Arrangement.Start,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = getIconByName(cat1.iconName),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = getIconByName(cat1.iconName),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp)
+                                        )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             text = cat1.categoryName,
@@ -547,11 +496,11 @@ fun DashboardScreen(
                                             )
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Spacer(modifier = Modifier.height(10.dp))
                                     Text(
                                         text = "$currencySymbol${df.format(cat1.amount)}",
                                         style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontSize = 24.sp,
+                                            fontSize = 22.sp,
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -561,14 +510,15 @@ fun DashboardScreen(
                                     Text(
                                         text = "1st Ranked",
                                         style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 12.sp,
+                                            fontSize = 11.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
                                 }
                             }
                             ShCard(
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(12.dp)
                             ) {
                                 Column {
                                     Row(
@@ -576,20 +526,12 @@ fun DashboardScreen(
                                         horizontalArrangement = Arrangement.Start,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = getIconByName(cat2.iconName),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = getIconByName(cat2.iconName),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp)
+                                        )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             text = cat2.categoryName,
@@ -600,11 +542,11 @@ fun DashboardScreen(
                                             )
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Spacer(modifier = Modifier.height(10.dp))
                                     Text(
                                         text = "$currencySymbol${df.format(cat2.amount)}",
                                         style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontSize = 24.sp,
+                                            fontSize = 22.sp,
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -614,7 +556,7 @@ fun DashboardScreen(
                                     Text(
                                         text = "2nd Ranked",
                                         style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 12.sp,
+                                            fontSize = 11.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
@@ -638,7 +580,8 @@ fun DashboardScreen(
                             ShCard(
                                 modifier = Modifier
                                     .weight(1.1f)
-                                    .fillMaxHeight()
+                                    .fillMaxHeight(),
+                                contentPadding = PaddingValues(14.dp)
                             ) {
                                 Column(
                                     modifier = Modifier.fillMaxHeight(),
@@ -650,20 +593,12 @@ fun DashboardScreen(
                                             horizontalArrangement = Arrangement.Start,
                                             modifier = Modifier.fillMaxWidth()
                                         ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(RoundedCornerShape(8.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    imageVector = getIconByName(cat1.iconName),
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            }
+                                            Icon(
+                                                imageVector = getIconByName(cat1.iconName),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(20.dp)
+                                            )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Text(
                                                 text = cat1.categoryName,
@@ -674,11 +609,11 @@ fun DashboardScreen(
                                                 )
                                             )
                                         }
-                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Spacer(modifier = Modifier.height(10.dp))
                                         Text(
                                             text = "$currencySymbol${df.format(cat1.amount)}",
                                             style = MaterialTheme.typography.headlineMedium.copy(
-                                                fontSize = 28.sp,
+                                                fontSize = 24.sp,
                                                 fontFamily = SpaceGroteskFamily,
                                                 fontWeight = FontWeight.Bold,
                                                 color = MaterialTheme.colorScheme.onSurface
@@ -688,7 +623,7 @@ fun DashboardScreen(
                                     Text(
                                         text = "1st Ranked",
                                         style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 12.sp,
+                                            fontSize = 11.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
@@ -703,7 +638,10 @@ fun DashboardScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 // Rank 2 Card
-                                ShCard(modifier = Modifier.weight(1f)) {
+                                ShCard(
+                                    modifier = Modifier.weight(1f),
+                                    contentPadding = PaddingValues(12.dp)
+                                ) {
                                     Column(
                                         modifier = Modifier.fillMaxHeight(),
                                         verticalArrangement = Arrangement.SpaceBetween
@@ -714,20 +652,12 @@ fun DashboardScreen(
                                                 horizontalArrangement = Arrangement.Start,
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(32.dp)
-                                                        .clip(RoundedCornerShape(8.dp))
-                                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Icon(
-                                                        imageVector = getIconByName(cat2.iconName),
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                }
+                                                Icon(
+                                                    imageVector = getIconByName(cat2.iconName),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 Text(
                                                     text = cat2.categoryName,
@@ -738,11 +668,11 @@ fun DashboardScreen(
                                                     )
                                                 )
                                             }
-                                            Spacer(modifier = Modifier.height(12.dp))
+                                            Spacer(modifier = Modifier.height(8.dp))
                                             Text(
                                                 text = "$currencySymbol${df.format(cat2.amount)}",
                                                 style = MaterialTheme.typography.headlineMedium.copy(
-                                                    fontSize = 22.sp,
+                                                    fontSize = 20.sp,
                                                     fontFamily = SpaceGroteskFamily,
                                                     fontWeight = FontWeight.Bold,
                                                     color = MaterialTheme.colorScheme.onSurface
@@ -760,7 +690,10 @@ fun DashboardScreen(
                                 }
 
                                 // Rank 3 Card
-                                ShCard(modifier = Modifier.weight(1f)) {
+                                ShCard(
+                                    modifier = Modifier.weight(1f),
+                                    contentPadding = PaddingValues(12.dp)
+                                ) {
                                     Column(
                                         modifier = Modifier.fillMaxHeight(),
                                         verticalArrangement = Arrangement.SpaceBetween
@@ -771,20 +704,12 @@ fun DashboardScreen(
                                                 horizontalArrangement = Arrangement.Start,
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(32.dp)
-                                                        .clip(RoundedCornerShape(8.dp))
-                                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Icon(
-                                                        imageVector = getIconByName(cat3.iconName),
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                }
+                                                Icon(
+                                                    imageVector = getIconByName(cat3.iconName),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 Text(
                                                     text = cat3.categoryName,
@@ -795,11 +720,11 @@ fun DashboardScreen(
                                                     )
                                                 )
                                             }
-                                            Spacer(modifier = Modifier.height(12.dp))
+                                            Spacer(modifier = Modifier.height(8.dp))
                                             Text(
                                                 text = "$currencySymbol${df.format(cat3.amount)}",
                                                 style = MaterialTheme.typography.headlineMedium.copy(
-                                                    fontSize = 22.sp,
+                                                    fontSize = 20.sp,
                                                     fontFamily = SpaceGroteskFamily,
                                                     fontWeight = FontWeight.Bold,
                                                     color = MaterialTheme.colorScheme.onSurface

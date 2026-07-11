@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 fun ShCard(
     modifier: Modifier = Modifier,
     borderStroke: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
@@ -33,7 +34,7 @@ fun ShCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(contentPadding)
         ) {
             content()
         }
