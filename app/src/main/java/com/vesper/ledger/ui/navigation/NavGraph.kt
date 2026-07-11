@@ -23,6 +23,7 @@ import com.vesper.ledger.ui.settings.SettingsViewModelFactory
 @Composable
 fun NavGraph(
     navController: NavHostController,
+    settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -30,9 +31,7 @@ fun NavGraph(
 
     val addTransactionFactory = AddTransactionViewModelFactory(app.transactionRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
-    val settingsFactory = SettingsViewModelFactory(app, app.transactionRepository)
 
-    val settingsViewModel: SettingsViewModel = viewModel(factory = settingsFactory)
     val currencySymbol by settingsViewModel.currency.collectAsState()
 
     NavHost(
@@ -42,6 +41,7 @@ fun NavGraph(
     ) {
         composable("main_screen") {
             MainScreen(
+                settingsViewModel = settingsViewModel,
                 onAddTransactionClick = { navController.navigate(Screen.AddTransaction.route) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) }
             )

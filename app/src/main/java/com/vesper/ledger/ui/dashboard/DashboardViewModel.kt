@@ -33,7 +33,7 @@ class DashboardViewModel(
         val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
         val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
         val saved = savingsGoals.sumOf { it.currentAmount }
-        val available = income - expense - saved
+        val available = income - expense
         val recent = transactions.take(5)
 
         DashboardUiState(

@@ -289,14 +289,14 @@ fun DashboardScreen(
                                 .clickable { onSavingsClick() }
                         ) {
                             Text(
-                                text = "Remaining",
+                                text = "Saved",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "$currencySymbol${df.format(uiState.availableBalance)}",
+                                text = "$currencySymbol${df.format(uiState.totalSaved)}",
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     fontSize = 16.sp,
                                     fontFamily = SpaceGroteskFamily,

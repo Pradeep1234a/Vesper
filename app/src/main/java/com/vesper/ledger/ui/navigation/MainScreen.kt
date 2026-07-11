@@ -46,6 +46,7 @@ import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    settingsViewModel: SettingsViewModel,
     onAddTransactionClick: () -> Unit,
     onSavingsClick: () -> Unit
 ) {
@@ -59,9 +60,7 @@ fun MainScreen(
     val dashboardFactory = DashboardViewModelFactory(app.transactionRepository, app.savingsRepository)
     val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository)
     val reportsFactory = ReportsViewModelFactory(app.transactionRepository)
-    val settingsFactory = SettingsViewModelFactory(app, app.transactionRepository)
 
-    val settingsViewModel: SettingsViewModel = viewModel(factory = settingsFactory)
     val currencySymbol by settingsViewModel.currency.collectAsState()
 
     Scaffold(
@@ -90,9 +89,9 @@ fun MainScreen(
                     },
                     label = { Text("Dashboard", style = MaterialTheme.typography.labelSmall) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedIconColor = MaterialTheme.colorScheme.onBackground,
+                        selectedTextColor = MaterialTheme.colorScheme.onBackground,
+                        indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -117,9 +116,9 @@ fun MainScreen(
                     },
                     label = { Text("Transactions", style = MaterialTheme.typography.labelSmall) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedIconColor = MaterialTheme.colorScheme.onBackground,
+                        selectedTextColor = MaterialTheme.colorScheme.onBackground,
+                        indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -146,9 +145,9 @@ fun MainScreen(
                     },
                     label = { Text("Reports", style = MaterialTheme.typography.labelSmall) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedIconColor = MaterialTheme.colorScheme.onBackground,
+                        selectedTextColor = MaterialTheme.colorScheme.onBackground,
+                        indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -173,9 +172,9 @@ fun MainScreen(
                     },
                     label = { Text("Settings", style = MaterialTheme.typography.labelSmall) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedIconColor = MaterialTheme.colorScheme.onBackground,
+                        selectedTextColor = MaterialTheme.colorScheme.onBackground,
+                        indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
