@@ -26,6 +26,8 @@ import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.material.icons.outlined.TrendingDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontWeight
@@ -199,43 +201,49 @@ fun DashboardScreen(
                             .fillMaxHeight()
                             .clickable { onSavingsClick() }
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.AccountBalanceWallet,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(16.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Savings,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = "Saved",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                )
+                                Text(
+                                    text = "$currencySymbol${df.format(uiState.totalSaved)}",
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontSize = 18.sp,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                                Text(
+                                    text = "Goal Progress",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 10.sp
+                                    )
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Saved",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "$currencySymbol${df.format(uiState.totalSaved)}",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontSize = 18.sp,
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Goal Progress",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
                     }
 
                     // Right Column (Stacked Income & Expenses Cards) - weight 1f
@@ -246,12 +254,30 @@ fun DashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         // Income Card
-                        ShCard(modifier = Modifier.weight(1f)) {
+                        ShCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onAddTransactionClick("INCOME") }
+                        ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Top
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.TrendingUp,
+                                        contentDescription = null,
+                                        tint = Color(0xFF16A34A),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                                 Column {
                                     Text(
                                         text = "Income",
@@ -259,46 +285,43 @@ fun DashboardScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "$currencySymbol${df.format(uiState.totalIncome)}",
-                                            style = MaterialTheme.typography.headlineMedium.copy(
-                                                fontSize = 16.sp,
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        )
-                                        Icon(
-                                            imageVector = Icons.Default.ArrowUpward,
-                                            contentDescription = null,
-                                            tint = Color(0xFF16A34A),
-                                            modifier = Modifier.size(12.dp).padding(start = 2.dp)
-                                        )
-                                    }
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(Color.White.copy(alpha = 0.1f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
                                     Text(
-                                        text = currencySymbol,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        text = "$currencySymbol${df.format(uiState.totalIncome)}",
+                                        style = MaterialTheme.typography.headlineMedium.copy(
+                                            fontSize = 16.sp,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     )
                                 }
                             }
                         }
 
                         // Expenses Card
-                        ShCard(modifier = Modifier.weight(1f)) {
+                        ShCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onAddTransactionClick("EXPENSE") }
+                        ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Top
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.TrendingDown,
+                                        contentDescription = null,
+                                        tint = Color(0xFFDC2626),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                                 Column {
                                     Text(
                                         text = "Expenses",
@@ -306,30 +329,15 @@ fun DashboardScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "$currencySymbol${df.format(uiState.totalExpense)}",
-                                            style = MaterialTheme.typography.headlineMedium.copy(
-                                                fontSize = 16.sp,
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold
-                                            )
+                                    Text(
+                                        text = "$currencySymbol${df.format(uiState.totalExpense)}",
+                                        style = MaterialTheme.typography.headlineMedium.copy(
+                                            fontSize = 16.sp,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold
                                         )
-                                        Icon(
-                                            imageVector = Icons.Default.ArrowDownward,
-                                            contentDescription = null,
-                                            tint = Color(0xFFDC2626),
-                                            modifier = Modifier.size(12.dp).padding(start = 2.dp)
-                                        )
-                                    }
+                                    )
                                 }
-                                Icon(
-                                    imageVector = Icons.Outlined.CreditCard,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
                             }
                         }
                     }
