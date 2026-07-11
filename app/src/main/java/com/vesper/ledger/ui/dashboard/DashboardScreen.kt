@@ -22,6 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.outlined.RemoveCircleOutline
+import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.material.icons.outlined.TrendingDown
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -41,10 +49,11 @@ import java.util.Locale
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     currencySymbol: String,
-    onAddTransactionClick: () -> Unit,
+    onAddTransactionClick: (type: String?) -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onSavingsClick: () -> Unit
+    onSavingsClick: () -> Unit,
+    onReportsClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val df = DecimalFormat("#,##0.00")
@@ -185,68 +194,134 @@ fun DashboardScreen(
                         .height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Left Column (Large Savings Card) - weight 1f
                     ShCard(
                         modifier = Modifier
-                            .weight(1.1f)
+                            .weight(1f)
                             .fillMaxHeight()
+                            .clickable { onSavingsClick() }
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = currencySymbol,
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Income",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "$currencySymbol${df.format(uiState.totalIncome)}",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontSize = 18.sp,
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Savings,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(18.dp)
                                 )
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowUpward,
-                                contentDescription = null,
-                                tint = Color(0xFF16A34A),
-                                modifier = Modifier.size(14.dp).padding(start = 2.dp)
-                            )
+                            }
+                            Column {
+                                Text(
+                                    text = "Saved",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                )
+                                Text(
+                                    text = "$currencySymbol${df.format(uiState.totalSaved)}",
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontSize = 18.sp,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                                Text(
+                                    text = "Goal Progress",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 10.sp
+                                    )
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "This Month",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
                     }
 
+                    // Right Column (Stacked Income & Expenses Cards) - weight 1f
                     Column(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        ShCard(modifier = Modifier.weight(1f)) {
+                        // Income Card
+                        ShCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onAddTransactionClick("INCOME") }
+                        ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Top
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.TrendingUp,
+                                        contentDescription = null,
+                                        tint = Color(0xFF16A34A),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                                Column {
+                                    Text(
+                                        text = "Income",
+                                        style = MaterialTheme.typography.labelMedium.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                    Text(
+                                        text = "$currencySymbol${df.format(uiState.totalIncome)}",
+                                        style = MaterialTheme.typography.headlineMedium.copy(
+                                            fontSize = 16.sp,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                        // Expenses Card
+                        ShCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onAddTransactionClick("EXPENSE") }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.TrendingDown,
+                                        contentDescription = null,
+                                        tint = Color(0xFFDC2626),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                                 Column {
                                     Text(
                                         text = "Expenses",
@@ -254,55 +329,49 @@ fun DashboardScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "$currencySymbol${df.format(uiState.totalExpense)}",
-                                            style = MaterialTheme.typography.headlineMedium.copy(
-                                                fontSize = 16.sp,
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold
-                                            )
+                                    Text(
+                                        text = "$currencySymbol${df.format(uiState.totalExpense)}",
+                                        style = MaterialTheme.typography.headlineMedium.copy(
+                                            fontSize = 16.sp,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold
                                         )
-                                        Icon(
-                                            imageVector = Icons.Default.ArrowDownward,
-                                            contentDescription = null,
-                                            tint = Color(0xFFDC2626),
-                                            modifier = Modifier.size(12.dp).padding(start = 2.dp)
-                                        )
-                                    }
+                                    )
                                 }
-                                Icon(
-                                    imageVector = Icons.Outlined.CreditCard,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
                             }
                         }
-
-                        ShCard(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { onSavingsClick() }
-                        ) {
-                            Text(
-                                text = "Saved",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "$currencySymbol${df.format(uiState.totalSaved)}",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontSize = 16.sp,
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
                     }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    QuickActionItem(
+                        icon = Icons.Outlined.RemoveCircleOutline,
+                        label = "Expense",
+                        onClick = { onAddTransactionClick("EXPENSE") }
+                    )
+                    QuickActionItem(
+                        icon = Icons.Outlined.AddCircleOutline,
+                        label = "Income",
+                        onClick = { onAddTransactionClick("INCOME") }
+                    )
+                    QuickActionItem(
+                        icon = Icons.Outlined.BarChart,
+                        label = "Charts",
+                        onClick = onReportsClick
+                    )
+                    QuickActionItem(
+                        icon = Icons.Outlined.Savings,
+                        label = "Goals",
+                        onClick = onSavingsClick
+                    )
                 }
             }
 
@@ -411,5 +480,47 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun QuickActionItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onClick() }
+            .padding(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(12.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        )
     }
 }

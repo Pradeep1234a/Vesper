@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
@@ -53,7 +52,7 @@ import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
 @Composable
 fun MainScreen(
     settingsViewModel: SettingsViewModel,
-    onAddTransactionClick: () -> Unit,
+    onAddTransactionClick: (type: String?) -> Unit,
     onSavingsClick: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -71,17 +70,14 @@ fun MainScreen(
 
     Scaffold(
         bottomBar = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.BottomCenter
-            ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.background)
-                        .border(1.dp, MaterialTheme.colorScheme.outline, RectangleShape)
                         .navigationBarsPadding()
-                        .height(64.dp),
+                        .height(56.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TabItem(
@@ -116,8 +112,6 @@ fun MainScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    Spacer(modifier = Modifier.weight(1.2f))
-
                     TabItem(
                         icon = if (currentRoute == Screen.Reports.route) Icons.Filled.BarChart else Icons.Outlined.BarChart,
                         label = "Reports",
@@ -150,27 +144,6 @@ fun MainScreen(
                         modifier = Modifier.weight(1f)
                     )
                 }
-
-                Box(
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .offset(y = (-14).dp)
-                        .size(52.dp)
-                        .background(MaterialTheme.colorScheme.onBackground, CircleShape)
-                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { onAddTransactionClick() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add Transaction",
-                        tint = MaterialTheme.colorScheme.background,
-                        modifier = Modifier.size(26.dp)
-                    )
-                }
             }
         }
     ) { innerPadding ->
@@ -199,7 +172,14 @@ fun MainScreen(
                             restoreState = true
                         }
                     },
-                    onSavingsClick = onSavingsClick
+                    onSavingsClick = onSavingsClick,
+                    onReportsClick = {
+                        navController.navigate(Screen.Reports.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
 
@@ -210,7 +190,8 @@ fun MainScreen(
                     currencySymbol = currencySymbol,
                     onBackClick = {
                         navController.popBackStack()
-                    }
+                    },
+                    onAddTransactionClick = { onAddTransactionClick(null) }
                 )
             }
 
@@ -257,13 +238,13 @@ fun RowScope.TabItem(
             imageVector = icon,
             contentDescription = label,
             tint = color,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(24.dp)
         )
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(1.dp))
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.sp,
+                fontSize = 11.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 color = color
             )
