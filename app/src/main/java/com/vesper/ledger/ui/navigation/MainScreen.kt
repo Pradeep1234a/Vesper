@@ -52,7 +52,7 @@ import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
 @Composable
 fun MainScreen(
     settingsViewModel: SettingsViewModel,
-    onAddTransactionClick: () -> Unit,
+    onAddTransactionClick: (type: String?) -> Unit,
     onSavingsClick: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -111,14 +111,7 @@ fun MainScreen(
                     modifier = Modifier.weight(1f)
                 )
 
-                // Evenly spaced Add Tab (Integrated seamlessly)
-                TabItem(
-                    icon = Icons.Default.Add,
-                    label = "Add",
-                    selected = false,
-                    onClick = onAddTransactionClick,
-                    modifier = Modifier.weight(1f)
-                )
+
 
                 TabItem(
                     icon = if (currentRoute == Screen.Reports.route) Icons.Filled.BarChart else Icons.Outlined.BarChart,
@@ -179,7 +172,14 @@ fun MainScreen(
                             restoreState = true
                         }
                     },
-                    onSavingsClick = onSavingsClick
+                    onSavingsClick = onSavingsClick,
+                    onReportsClick = {
+                        navController.navigate(Screen.Reports.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
 
@@ -190,7 +190,8 @@ fun MainScreen(
                     currencySymbol = currencySymbol,
                     onBackClick = {
                         navController.popBackStack()
-                    }
+                    },
+                    onAddTransactionClick = { onAddTransactionClick(null) }
                 )
             }
 

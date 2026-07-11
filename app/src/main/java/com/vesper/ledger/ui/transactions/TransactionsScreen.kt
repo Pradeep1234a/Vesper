@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.filled.Add
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
@@ -33,7 +35,8 @@ import java.util.Locale
 fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onAddTransactionClick: () -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
@@ -51,6 +54,7 @@ fun TransactionsScreen(
         }
     }
 
+    val listState = rememberLazyListState()
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
 
     if (transactionToDelete != null) {
@@ -89,7 +93,18 @@ fun TransactionsScreen(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
-        }
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onAddTransactionClick,
+                icon = { Icon(imageVector = Icons.Default.Add, contentDescription = null) },
+                text = { Text("New") },
+                expanded = !listState.isScrollInProgress,
+                containerColor = MaterialTheme.colorScheme.onBackground,
+                contentColor = MaterialTheme.colorScheme.background
+            )
+        },
+        floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -214,12 +229,13 @@ fun TransactionsScreen(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f)
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 32.dp)
+                    contentPadding = PaddingValues(bottom = 80.dp) // extra padding to clear the FAB!
                 ) {
                     groupedTransactions.forEach { (dateStr, txList) ->
                         item {

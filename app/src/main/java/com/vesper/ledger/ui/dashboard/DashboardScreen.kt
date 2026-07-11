@@ -22,6 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.outlined.RemoveCircleOutline
+import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -41,10 +47,11 @@ import java.util.Locale
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     currencySymbol: String,
-    onAddTransactionClick: () -> Unit,
+    onAddTransactionClick: (type: String?) -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onSavingsClick: () -> Unit
+    onSavingsClick: () -> Unit,
+    onReportsClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val df = DecimalFormat("#,##0.00")
@@ -333,6 +340,41 @@ fun DashboardScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    QuickActionItem(
+                        icon = Icons.Outlined.RemoveCircleOutline,
+                        label = "Expense",
+                        color = Color(0xFFDC2626),
+                        onClick = { onAddTransactionClick("EXPENSE") }
+                    )
+                    QuickActionItem(
+                        icon = Icons.Outlined.AddCircleOutline,
+                        label = "Income",
+                        color = Color(0xFF16A34A),
+                        onClick = { onAddTransactionClick("INCOME") }
+                    )
+                    QuickActionItem(
+                        icon = Icons.Outlined.BarChart,
+                        label = "Charts",
+                        color = Color(0xFF2563EB),
+                        onClick = onReportsClick
+                    )
+                    QuickActionItem(
+                        icon = Icons.Outlined.Savings,
+                        label = "Goals",
+                        color = Color(0xFFD97706),
+                        onClick = onSavingsClick
+                    )
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -434,5 +476,48 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun QuickActionItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onClick() }
+            .padding(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    color = color.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(12.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        )
     }
 }
