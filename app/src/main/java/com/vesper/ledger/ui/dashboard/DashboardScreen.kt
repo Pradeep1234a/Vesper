@@ -345,33 +345,37 @@ fun DashboardScreen(
             }
 
             item {
-                Row(
+                ShCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(vertical = 8.dp)
                 ) {
-                    QuickActionItem(
-                        icon = Icons.Outlined.RemoveCircleOutline,
-                        label = "Expense",
-                        onClick = { onAddTransactionClick("EXPENSE") }
-                    )
-                    QuickActionItem(
-                        icon = Icons.Outlined.AddCircleOutline,
-                        label = "Income",
-                        onClick = { onAddTransactionClick("INCOME") }
-                    )
-                    QuickActionItem(
-                        icon = Icons.Outlined.BarChart,
-                        label = "Charts",
-                        onClick = onReportsClick
-                    )
-                    QuickActionItem(
-                        icon = Icons.Outlined.Savings,
-                        label = "Goals",
-                        onClick = onSavingsClick
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        QuickActionItem(
+                            icon = Icons.Outlined.RemoveCircleOutline,
+                            label = "Expense",
+                            onClick = { onAddTransactionClick("EXPENSE") }
+                        )
+                        QuickActionItem(
+                            icon = Icons.Outlined.AddCircleOutline,
+                            label = "Income",
+                            onClick = { onAddTransactionClick("INCOME") }
+                        )
+                        QuickActionItem(
+                            icon = Icons.Outlined.BarChart,
+                            label = "Charts",
+                            onClick = onReportsClick
+                        )
+                        QuickActionItem(
+                            icon = Icons.Outlined.Savings,
+                            label = "Goals",
+                            onClick = onSavingsClick
+                        )
+                    }
                 }
             }
 
