@@ -70,80 +70,80 @@ fun MainScreen(
 
     Scaffold(
         bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, RectangleShape)
-                    .navigationBarsPadding()
-                    .height(56.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TabItem(
-                    icon = if (currentRoute == Screen.Dashboard.route) Icons.Filled.Dashboard else Icons.Outlined.Dashboard,
-                    label = "Dashboard",
-                    selected = currentRoute == Screen.Dashboard.route,
-                    onClick = {
-                        if (currentRoute != Screen.Dashboard.route) {
-                            navController.navigate(Screen.Dashboard.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .navigationBarsPadding()
+                        .height(56.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TabItem(
+                        icon = if (currentRoute == Screen.Dashboard.route) Icons.Filled.Dashboard else Icons.Outlined.Dashboard,
+                        label = "Dashboard",
+                        selected = currentRoute == Screen.Dashboard.route,
+                        onClick = {
+                            if (currentRoute != Screen.Dashboard.route) {
+                                navController.navigate(Screen.Dashboard.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
 
-                TabItem(
-                    icon = if (currentRoute == Screen.Transactions.route) Icons.Filled.ListAlt else Icons.Outlined.ListAlt,
-                    label = "Transactions",
-                    selected = currentRoute == Screen.Transactions.route,
-                    onClick = {
-                        if (currentRoute != Screen.Transactions.route) {
-                            navController.navigate(Screen.Transactions.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+                    TabItem(
+                        icon = if (currentRoute == Screen.Transactions.route) Icons.Filled.ListAlt else Icons.Outlined.ListAlt,
+                        label = "Transactions",
+                        selected = currentRoute == Screen.Transactions.route,
+                        onClick = {
+                            if (currentRoute != Screen.Transactions.route) {
+                                navController.navigate(Screen.Transactions.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
 
-
-
-                TabItem(
-                    icon = if (currentRoute == Screen.Reports.route) Icons.Filled.BarChart else Icons.Outlined.BarChart,
-                    label = "Reports",
-                    selected = currentRoute == Screen.Reports.route,
-                    onClick = {
-                        if (currentRoute != Screen.Reports.route) {
-                            navController.navigate(Screen.Reports.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+                    TabItem(
+                        icon = if (currentRoute == Screen.Reports.route) Icons.Filled.BarChart else Icons.Outlined.BarChart,
+                        label = "Reports",
+                        selected = currentRoute == Screen.Reports.route,
+                        onClick = {
+                            if (currentRoute != Screen.Reports.route) {
+                                navController.navigate(Screen.Reports.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
 
-                TabItem(
-                    icon = if (currentRoute == Screen.Settings.route) Icons.Filled.Settings else Icons.Outlined.Settings,
-                    label = "Settings",
-                    selected = currentRoute == Screen.Settings.route,
-                    onClick = {
-                        if (currentRoute != Screen.Settings.route) {
-                            navController.navigate(Screen.Settings.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+                    TabItem(
+                        icon = if (currentRoute == Screen.Settings.route) Icons.Filled.Settings else Icons.Outlined.Settings,
+                        label = "Settings",
+                        selected = currentRoute == Screen.Settings.route,
+                        onClick = {
+                            if (currentRoute != Screen.Settings.route) {
+                                navController.navigate(Screen.Settings.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     ) { innerPadding ->

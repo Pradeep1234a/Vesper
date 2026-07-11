@@ -347,25 +347,21 @@ fun DashboardScreen(
                     QuickActionItem(
                         icon = Icons.Outlined.RemoveCircleOutline,
                         label = "Expense",
-                        color = Color(0xFFDC2626),
                         onClick = { onAddTransactionClick("EXPENSE") }
                     )
                     QuickActionItem(
                         icon = Icons.Outlined.AddCircleOutline,
                         label = "Income",
-                        color = Color(0xFF16A34A),
                         onClick = { onAddTransactionClick("INCOME") }
                     )
                     QuickActionItem(
                         icon = Icons.Outlined.BarChart,
                         label = "Charts",
-                        color = Color(0xFF2563EB),
                         onClick = onReportsClick
                     )
                     QuickActionItem(
                         icon = Icons.Outlined.Savings,
                         label = "Goals",
-                        color = Color(0xFFD97706),
                         onClick = onSavingsClick
                     )
                 }
@@ -483,7 +479,6 @@ fun DashboardScreen(
 fun QuickActionItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
-    color: Color,
     onClick: () -> Unit
 ) {
     Column(
@@ -499,7 +494,7 @@ fun QuickActionItem(
             modifier = Modifier
                 .size(48.dp)
                 .background(
-                    color = color.copy(alpha = 0.1f),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -507,7 +502,7 @@ fun QuickActionItem(
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = color,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -516,7 +511,7 @@ fun QuickActionItem(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface
             )
         )
     }
