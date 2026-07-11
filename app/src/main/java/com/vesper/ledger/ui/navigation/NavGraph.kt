@@ -17,9 +17,6 @@ import com.vesper.ledger.ui.addtransaction.AddTransactionViewModelFactory
 import com.vesper.ledger.ui.savings.SavingsScreen
 import com.vesper.ledger.ui.savings.SavingsViewModel
 import com.vesper.ledger.ui.savings.SavingsViewModelFactory
-import androidx.navigation.navArgument
-import androidx.navigation.NavType
-import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.settings.SettingsViewModelFactory
 
@@ -45,31 +42,13 @@ fun NavGraph(
         composable("main_screen") {
             MainScreen(
                 settingsViewModel = settingsViewModel,
-                onAddTransactionClick = { type -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE")) },
+                onAddTransactionClick = { navController.navigate(Screen.AddTransaction.route) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) }
             )
         }
 
-        composable(
-            route = Screen.AddTransaction.route,
-            arguments = listOf(
-                navArgument("type") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                }
-            )
-        ) { backStackEntry ->
-            val typeStr = backStackEntry.arguments?.getString("type")
-            val initialType = when (typeStr) {
-                "INCOME" -> TransactionType.INCOME
-                "EXPENSE" -> TransactionType.EXPENSE
-                else -> null
-            }
+        composable(Screen.AddTransaction.route) {
             val addTransactionViewModel: AddTransactionViewModel = viewModel(factory = addTransactionFactory)
-            if (initialType != null) {
-                addTransactionViewModel.type.value = initialType
-            }
             AddTransactionScreen(
                 viewModel = addTransactionViewModel,
                 currencySymbol = currencySymbol,
