@@ -278,40 +278,46 @@ fun TransactionsScreen(
                                                 interactionSource = remember { MutableInteractionSource() },
                                                 indication = null
                                             ) { showMenu = true },
-                                        horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.weight(1f)
+                                        // Category Icon Container
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(
+                                                    color = accentBg,
+                                                    shape = RoundedCornerShape(10.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            // Category Icon Container
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(36.dp)
-                                                    .background(
-                                                        color = accentBg,
-                                                        shape = RoundedCornerShape(10.dp)
-                                                    ),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    imageVector = getIconByName(iconName),
-                                                    contentDescription = null,
-                                                    tint = accentColor,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            }
-                                            Spacer(modifier = Modifier.width(10.dp))
-                                            Column {
+                                            Icon(
+                                                imageVector = getIconByName(iconName),
+                                                contentDescription = null,
+                                                tint = accentColor,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        
+                                        // Title/Category & Amount/Date aligned up-and-down
+                                        Row(
+                                            modifier = Modifier.weight(1f),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            // Left Column: Title on top, Category Name on bottom
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                val displayTitle = if (tx.title.isBlank() || tx.title == "Untitled Transaction") categoryLabel else tx.title
                                                 Text(
-                                                    text = tx.title,
+                                                    text = displayTitle,
                                                     style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontSize = 14.sp,
                                                         fontWeight = FontWeight.SemiBold,
                                                         color = MaterialTheme.colorScheme.onSurface
                                                     ),
                                                     maxLines = 1
                                                 )
+                                                Spacer(modifier = Modifier.height(2.dp))
                                                 Text(
                                                     text = categoryLabel,
                                                     style = MaterialTheme.typography.labelSmall.copy(
@@ -321,20 +327,31 @@ fun TransactionsScreen(
                                                     maxLines = 1
                                                 )
                                             }
+                                            
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            
+                                            // Right Column: Amount on top, Date on bottom
+                                            Column(horizontalAlignment = Alignment.End) {
+                                                val prefix = if (isIncome) "+" else "-"
+                                                Text(
+                                                    text = "$prefix$currencySymbol${df.format(tx.amount)}",
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontSize = 14.sp,
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = accentColor
+                                                    )
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = dateFormat.format(Date(tx.dateEpochMillis)),
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontSize = 11.sp,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                )
+                                            }
                                         }
-
-                                        Spacer(modifier = Modifier.width(8.dp))
-
-                                        // Amount
-                                        val prefix = if (isIncome) "+" else "-"
-                                        Text(
-                                            text = "$prefix$currencySymbol${df.format(tx.amount)}",
-                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                color = accentColor
-                                            )
-                                        )
                                     }
 
                                     // CRUD Action Menu
