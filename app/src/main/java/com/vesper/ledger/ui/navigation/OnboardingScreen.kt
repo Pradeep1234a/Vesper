@@ -18,10 +18,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -67,18 +81,18 @@ fun OnboardingScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 32.dp)
-                .systemBarsPadding(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. Brand Section (56dp fixed height)
+            // Top Safe Area (24dp)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 1. Fixed Header (56dp)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 32.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -97,85 +111,140 @@ fun OnboardingScreen(
                         letterSpacing = 2.sp
                     )
                 }
-                
-                // Minimal Skip button aligned to the right
+
                 Text(
                     text = "Skip",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
                     modifier = Modifier.clickable { onNavigateNext() }
                 )
             }
 
-            // Pager covering Illustration, Title, and Description to keep scroll shifts non-existent
-            HorizontalPager(
-                state = pagerState,
+            // 2. Illustration Area (280dp)
+            Box(
                 modifier = Modifier
-                    .weight(1f)
                     .fillMaxWidth()
-            ) { page ->
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // 2. Illustration Container (260dp fixed height)
+                    .height(280.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // HorizontalPager captures swipe gestures across full width
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(280.dp)
+                ) { page ->
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(260.dp)
-                            .padding(horizontal = 24.dp),
+                        modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        when (page) {
-                            0 -> OnboardingSlide1Illustration()
-                            1 -> OnboardingSlide2Illustration()
-                            2 -> OnboardingSlide3Illustration()
+                        // Inner screen size box aligned to center
+                        Box(
+                            modifier = Modifier.size(width = 124.dp, height = 238.dp)
+                        ) {
+                            when (page) {
+                                0 -> OnboardingSlide1Content()
+                                1 -> OnboardingSlide2Content()
+                                2 -> OnboardingSlide3Content()
+                            }
                         }
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                // Opaque mask overlay using offscreen composition to clear the phone viewport hole
+                val maskColor = MaterialTheme.colorScheme.background
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                        .drawWithContent {
+                            drawRect(color = maskColor)
 
-                    // 3. Title Area (72dp fixed height)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(72.dp)
-                            .padding(horizontal = 24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = pages[page].title,
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 38.sp
-                        )
-                    }
+                            val rectWidth = 124.dp.toPx()
+                            val rectHeight = 238.dp.toPx()
+                            val rectLeft = (size.width - rectWidth) / 2f
+                            val rectTop = (size.height - rectHeight) / 2f
 
-                    // 4. Description Area (72dp fixed height)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(72.dp)
-                            .padding(horizontal = 24.dp),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Text(
-                            text = pages[page].description,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 22.sp,
-                            modifier = Modifier.fillMaxWidth(0.85f)
-                        )
-                    }
+                            drawRoundRect(
+                                color = Color.Transparent,
+                                topLeft = androidx.compose.ui.geometry.Offset(rectLeft, rectTop),
+                                size = androidx.compose.ui.geometry.Size(rectWidth, rectHeight),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(18.dp.toPx()),
+                                blendMode = BlendMode.Clear
+                            )
+                        }
+                )
+
+                // Static Phone Outline Frame
+                Box(
+                    modifier = Modifier
+                        .size(width = 136.dp, height = 250.dp)
+                        .border(2.5.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(24.dp))
+                )
+            }
+
+            // 3. Title Container (96dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(96.dp)
+                    .padding(horizontal = 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(
+                    targetState = pages[pagerState.currentPage].title,
+                    transitionSpec = {
+                        val slideDirection = if (targetState > initialState) AnimatedContentTransitionScope.SlideDirection.Left else AnimatedContentTransitionScope.SlideDirection.Right
+                        (slideIntoContainer(slideDirection, animationSpec = tween(350, easing = FastOutSlowInEasing)) + fadeIn(animationSpec = tween(350)))
+                            .togetherWith(slideOutOfContainer(slideDirection, animationSpec = tween(350, easing = FastOutSlowInEasing)) + fadeOut(animationSpec = tween(350)))
+                    },
+                    label = "TitleTransition"
+                ) { title ->
+                    Text(
+                        text = title,
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 42.sp,
+                        maxLines = 2
+                    )
                 }
             }
 
-            // 5. Pagination Dots Area (32dp fixed height)
+            // 4. Description Container (88dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(88.dp)
+                    .padding(horizontal = 32.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                AnimatedContent(
+                    targetState = pages[pagerState.currentPage].description,
+                    transitionSpec = {
+                        val slideDirection = if (targetState > initialState) AnimatedContentTransitionScope.SlideDirection.Left else AnimatedContentTransitionScope.SlideDirection.Right
+                        (slideIntoContainer(slideDirection, animationSpec = tween(350, easing = FastOutSlowInEasing)) + fadeIn(animationSpec = tween(350)))
+                            .togetherWith(slideOutOfContainer(slideDirection, animationSpec = tween(350, easing = FastOutSlowInEasing)) + fadeOut(animationSpec = tween(350)))
+                    },
+                    label = "DescTransition"
+                ) { desc ->
+                    Text(
+                        text = desc,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 26.sp,
+                        modifier = Modifier.fillMaxWidth(0.82f),
+                        maxLines = 3
+                    )
+                }
+            }
+
+            // 5. Pagination Area (32dp)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -190,10 +259,10 @@ fun OnboardingScreen(
                         val isSelected = pagerState.currentPage == index
                         Box(
                             modifier = Modifier
-                                .size(6.dp)
+                                .size(8.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isSelected) MaterialTheme.colorScheme.primary 
+                                    if (isSelected) MaterialTheme.colorScheme.primary
                                     else MaterialTheme.colorScheme.outlineVariant
                                 )
                         )
@@ -201,12 +270,12 @@ fun OnboardingScreen(
                 }
             }
 
-            // 6. Navigation Button Area (72dp fixed height)
+            // 6. Primary Action Button Area (56dp)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(72.dp)
-                    .padding(horizontal = 24.dp),
+                    .height(56.dp)
+                    .padding(horizontal = 32.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Button(
@@ -221,11 +290,11 @@ fun OnboardingScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(8.dp),
+                        .height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        containerColor = if (isSystemInDarkTheme()) Color.White else Color.Black,
+                        contentColor = if (isSystemInDarkTheme()) Color.Black else Color.White
                     )
                 ) {
                     Row(
@@ -234,8 +303,9 @@ fun OnboardingScreen(
                     ) {
                         Text(
                             text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Next",
+                            fontFamily = SpaceGroteskFamily,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
@@ -246,6 +316,9 @@ fun OnboardingScreen(
                     }
                 }
             }
+
+            // Bottom Safe Area (24dp)
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -742,114 +815,322 @@ fun OnboardingSlide2Illustration() {
 }
 
 @Composable
-fun OnboardingSlide3Illustration() {
-    val outlineColor = MaterialTheme.colorScheme.outlineVariant
-    val onBgColor = MaterialTheme.colorScheme.onBackground
+fun OnboardingSlide1Content() {
     val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-
-    Box(
+    
+    Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(260.dp),
-        contentAlignment = Alignment.Center
+            .fillMaxSize()
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = "ADD TRANSACTION",
+            fontSize = 7.sp,
+            fontWeight = FontWeight.Bold,
+            color = secTextColor,
+            letterSpacing = 1.sp
+        )
+        
+        Spacer(modifier = Modifier.height(2.dp))
+        
+        Text(
+            text = "₹250.00",
+            fontSize = 20.sp,
+            fontFamily = SpaceGroteskFamily,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        
         Box(
-            modifier = Modifier.size(width = 250.dp, height = 230.dp)
+            modifier = Modifier
+                .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                .border(0.5.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .padding(horizontal = 8.dp, vertical = 3.dp)
         ) {
-            // 1. Phone Silhouette Device Frame (Outline)
-            Box(
-                modifier = Modifier
-                    .size(width = 120.dp, height = 210.dp)
-                    .align(Alignment.Center)
-                    .border(1.5.dp, outlineColor, RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.2f))
-            )
-
-            // 2. Large Floating Shield in the center of the phone
-            Box(
-                modifier = Modifier
-                    .size(width = 80.dp, height = 90.dp)
-                    .align(Alignment.Center)
-                    .offset(y = (-10).dp)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), RoundedCornerShape(16.dp))
-                    .border(1.dp, outlineColor, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .background(Color(0xFFEF4444), CircleShape)
+                )
+                Text(
+                    text = "Food & Dining",
+                    fontSize = 7.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val icons = listOf(
+                Icons.Outlined.Restaurant,
+                Icons.Outlined.DirectionsCar,
+                Icons.Outlined.ShoppingBag,
+                Icons.Outlined.Home
+            )
+            icons.forEachIndexed { index, icon ->
+                val isSelected = index == 0
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .background(
+                            if (isSelected) Color.White.copy(alpha = 0.15f)
+                            else Color.White.copy(alpha = 0.04f),
+                            RoundedCornerShape(6.dp)
+                        )
+                        .border(
+                            0.5.dp,
+                            if (isSelected) Color.White.copy(alpha = 0.4f)
+                            else Color.White.copy(alpha = 0.1f),
+                            RoundedCornerShape(6.dp)
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Lock,
+                        imageVector = icon,
                         contentDescription = null,
-                        tint = onBgColor,
-                        modifier = Modifier.size(28.dp)
+                        tint = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                        modifier = Modifier.size(10.dp)
                     )
                 }
             }
+        }
+        
+        Spacer(modifier = Modifier.weight(1f))
+        
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .background(Color.White, CircleShape)
+                .clip(CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Add,
+                contentDescription = null,
+                tint = Color.Black,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}
 
-            // 3. Left Badge: "100% Local"
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .offset(x = 10.dp, y = (-20).dp)
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
-                    .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("100%", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                    Text("Local", fontSize = 7.sp, color = secTextColor)
+@Composable
+fun OnboardingSlide2Content() {
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "ANALYTICS",
+            fontSize = 7.sp,
+            fontWeight = FontWeight.Bold,
+            color = secTextColor,
+            letterSpacing = 1.sp
+        )
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White.copy(alpha = 0.04f), RoundedCornerShape(8.dp))
+                .border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                .padding(6.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Monthly Spending", fontSize = 6.sp, color = secTextColor)
+                Text("₹32,450", fontSize = 10.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
+                
+                Spacer(modifier = Modifier.height(2.dp))
+                
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(14.dp)
+                ) {
+                    val w = size.width
+                    val h = size.height
+                    val path = Path().apply {
+                        moveTo(0f, h * 0.8f)
+                        lineTo(w * 0.2f, h * 0.7f)
+                        lineTo(w * 0.4f, h * 0.85f)
+                        lineTo(w * 0.6f, h * 0.4f)
+                        lineTo(w * 0.8f, h * 0.5f)
+                        lineTo(w, h * 0.15f)
+                    }
+                    drawPath(
+                        path = path,
+                        color = Color.White,
+                        style = Stroke(width = 1.5.dp.toPx())
+                    )
                 }
             }
+        }
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White.copy(alpha = 0.04f), RoundedCornerShape(8.dp))
+                .border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                .padding(6.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    Text("Top Category", fontSize = 6.sp, color = secTextColor)
+                    Text("Food", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("28%", fontSize = 8.sp, fontFamily = SpaceGroteskFamily, color = secTextColor)
+                }
+                Box(
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        drawArc(
+                            color = Color.White.copy(alpha = 0.1f),
+                            startAngle = 0f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            style = Stroke(width = 2.5.dp.toPx())
+                        )
+                        drawArc(
+                            color = Color.White,
+                            startAngle = -90f,
+                            sweepAngle = 100f,
+                            useCenter = false,
+                            style = Stroke(width = 2.5.dp.toPx())
+                        )
+                    }
+                }
+            }
+        }
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White.copy(alpha = 0.04f), RoundedCornerShape(8.dp))
+                .border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                .padding(6.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Spending Trend", fontSize = 6.sp, color = secTextColor)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(18.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    val heights = listOf(0.3f, 0.5f, 0.25f, 0.7f, 0.4f, 0.85f, 0.6f)
+                    heights.forEach { fraction ->
+                        Box(
+                            modifier = Modifier
+                                .width(6.dp)
+                                .fillMaxHeight(fraction)
+                                .background(Color.White.copy(alpha = 0.8f), RoundedCornerShape(topStart = 1.5.dp, topEnd = 1.5.dp))
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
-            // 4. Right Badge: "Offline"
+@Composable
+fun OnboardingSlide3Content() {
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "PRIVACY FIRST",
+            fontSize = 7.sp,
+            fontWeight = FontWeight.Bold,
+            color = secTextColor,
+            letterSpacing = 1.sp
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(Color.White.copy(alpha = 0.05f), CircleShape)
+                .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Lock,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Column(
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .offset(x = (-10).dp, y = (-20).dp)
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
-                    .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
+                    .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
+                    .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "100% Local Storage",
+                    fontSize = 7.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            Box(
+                modifier = Modifier
+                    .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
+                    .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Outlined.WifiOff,
                         contentDescription = null,
-                        tint = onBgColor,
-                        modifier = Modifier.size(10.dp)
+                        tint = Color.White,
+                        modifier = Modifier.size(8.dp)
                     )
-                    Text("Offline", fontSize = 7.sp, color = secTextColor)
-                }
-            }
-
-            // 5. Bottom floating action icons inside/on the phone
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(y = (-30).dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                val protectIcons = listOf(
-                    Icons.Outlined.Storage,
-                    Icons.Outlined.VpnKey,
-                    Icons.Outlined.Shield
-                )
-                protectIcons.forEach { icon ->
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(6.dp))
-                            .border(1.dp, outlineColor, RoundedCornerShape(6.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = onBgColor,
-                            modifier = Modifier.size(12.dp)
-                        )
-                    }
+                    Text(
+                        text = "Offline Mode Enabled",
+                        fontSize = 7.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
