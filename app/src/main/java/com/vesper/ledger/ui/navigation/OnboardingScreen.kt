@@ -27,6 +27,12 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import kotlinx.coroutines.launch
 
+data class OnboardingPage(
+    val title: String,
+    val description: String,
+    val icon: ImageVector
+)
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
