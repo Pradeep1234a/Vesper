@@ -67,7 +67,7 @@ fun MainScreen(
     val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository)
     val reportsFactory = ReportsViewModelFactory(app.transactionRepository)
 
-    val currencySymbol by settingsViewModel.currency.collectAsState()
+    val currencySymbol by settingsViewModel.currencySymbol.collectAsState()
     val userName by settingsViewModel.userName.collectAsState()
 
     Scaffold(

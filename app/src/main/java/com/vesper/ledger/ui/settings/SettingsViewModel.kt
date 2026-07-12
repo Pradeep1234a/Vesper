@@ -22,7 +22,35 @@ class SettingsViewModel(
 
     private val sharedPrefs = application.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
 
+    private fun getCurrencySymbol(code: String): String {
+        return when (code) {
+            "AED" -> "د.إ"
+            "ARS" -> "$"
+            "AUD" -> "$"
+            "BDT" -> "৳"
+            "BRL" -> "R$"
+            "CAD" -> "CA$"
+            "CHF" -> "CHF"
+            "CNY" -> "¥"
+            "DKK" -> "kr"
+            "EUR" -> "€"
+            "GBP" -> "£"
+            "ILS" -> "₪"
+            "INR" -> "₹"
+            "JPY" -> "¥"
+            "MXN" -> "$"
+            "NZD" -> "$"
+            "RUB" -> "₽"
+            "SAR" -> "ر.س"
+            "SGD" -> "$"
+            "USD" -> "$"
+            "ZAR" -> "R"
+            else -> code
+        }
+    }
+
     val currency = MutableStateFlow(sharedPrefs.getString("currency", "$") ?: "$")
+    val currencySymbol = MutableStateFlow(getCurrencySymbol(sharedPrefs.getString("currency", "$") ?: "$"))
     val theme = MutableStateFlow(sharedPrefs.getString("theme", "system") ?: "system")
     val language = MutableStateFlow(sharedPrefs.getString("language", "English") ?: "English")
     val dynamicColors = MutableStateFlow(sharedPrefs.getBoolean("dynamicColors", true))
@@ -51,6 +79,7 @@ class SettingsViewModel(
 
     fun saveCurrency(newCurrency: String) {
         currency.value = newCurrency
+        currencySymbol.value = getCurrencySymbol(newCurrency)
         sharedPrefs.edit().putString("currency", newCurrency).apply()
     }
 

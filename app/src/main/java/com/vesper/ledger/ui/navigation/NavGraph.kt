@@ -44,7 +44,7 @@ fun NavGraph(
 
     val authViewModel: AuthViewModel = viewModel(factory = authFactory)
 
-    val currencySymbol by settingsViewModel.currency.collectAsState()
+    val currencySymbol by settingsViewModel.currencySymbol.collectAsState()
     val isFirstLaunch by settingsViewModel.isFirstLaunch.collectAsState()
 
     NavHost(
