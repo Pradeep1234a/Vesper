@@ -36,6 +36,11 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+
       # ── Version Management ──
       - name: Read Current Version
         id: current_version
@@ -127,7 +132,7 @@ jobs:
       - name: Build Release APK (verbose)
         run: |
           set -o pipefail
-          ${{ steps.ensure_gradle.outputs.GRADLE_CMD || './gradlew' }} assembleRelease --stacktrace --warning-mode=all --no-daemon 2>&1 | tee build-output.log
+          ${{ steps.ensure_gradle.outputs.GRADLE_CMD || './gradlew' }} assembleRelease --stacktrace --info --warning-mode=all --no-daemon 2>&1 | tee build-output.log
 
       - name: Upload Gradle logs & reports
         if: always()

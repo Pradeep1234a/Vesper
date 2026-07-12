@@ -33,10 +33,13 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("vesper-release.jks")
-            storePassword = "vesper123"
-            keyAlias = "vesper"
-            keyPassword = "vesper123"
+            val keystoreFile = file("vesper-release.jks")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = "vesper123"
+                keyAlias = "vesper"
+                keyPassword = "vesper123"
+            }
         }
     }
 
@@ -47,7 +50,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            val keystoreFile = file("vesper-release.jks")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
