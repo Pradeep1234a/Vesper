@@ -93,14 +93,36 @@ jobs:
           EOF
 
       # ── Build ──
-      - name: Generate Gradle Wrapper
-        run: gradle wrapper --gradle-version 8.2
+      - name: Ensure Gradle wrapper or install Gradle
+        id: ensure_gradle
+        run: |
+          if [ -f ./gradlew ]; then
+            echo "Using committed Gradle wrapper"
+            chmod +x ./gradlew
+            echo "GRADLE_CMD=./gradlew" >> $GITHUB_OUTPUT
+          else
+            echo "No gradlew found — installing Gradle 8.2"
+            curl -sSfL https://services.gradle.org/distributions/gradle-8.2-bin.zip -o gradle-8.2-bin.zip
+            unzip -q gradle-8.2-bin.zip
+            export PATH="$PWD/gradle-8.2/bin:$PATH"
+            gradle wrapper --gradle-version 8.2
+            chmod +x gradlew
+            echo "GRADLE_CMD=./gradlew" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Grant Execute Permission to Gradlew
-        run: chmod +x gradlew
+      - name: Build Release APK (verbose)
+        run: |
+          set -o pipefail
+          ${{ steps.ensure_gradle.outputs.GRADLE_CMD || './gradlew' }} assembleRelease --stacktrace --warning-mode=all --no-daemon 2>&1 | tee build-output.log
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
+      - name: Upload Gradle logs & reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-logs
+          path: |
+            build-output.log
+            **/build/reports/problems/**
 
       - name: Prepare APK for Release
         run: |
