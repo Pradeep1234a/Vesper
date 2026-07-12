@@ -3,6 +3,7 @@ package com.vesper.ledger.ui.update
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -794,17 +795,59 @@ fun LogoBadge() {
     Box(
         modifier = Modifier
             .size(40.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0xFF0D0E11))
+            .padding(6.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "V",
-            fontFamily = SpaceGroteskFamily,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            val strokeWidth = 2.5.dp.toPx()
+
+            // Left branch of Y
+            drawLine(
+                color = Color.White,
+                start = androidx.compose.ui.geometry.Offset(w * 0.18f, h * 0.18f),
+                end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                strokeWidth = strokeWidth,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+
+            // Right branch of Y
+            drawLine(
+                color = Color.White,
+                start = androidx.compose.ui.geometry.Offset(w * 0.82f, h * 0.18f),
+                end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                strokeWidth = strokeWidth,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+
+            // Stem of Y
+            drawLine(
+                color = Color.White,
+                start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.82f),
+                strokeWidth = strokeWidth,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+
+            // Horizontal baseline
+            drawLine(
+                color = Color.White,
+                start = androidx.compose.ui.geometry.Offset(w * 0.22f, h * 0.82f),
+                end = androidx.compose.ui.geometry.Offset(w * 0.78f, h * 0.82f),
+                strokeWidth = strokeWidth,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+
+            // White dot
+            drawCircle(
+                color = Color.White,
+                radius = 2.5.dp.toPx(),
+                center = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.28f)
+            )
+        }
     }
 }
 

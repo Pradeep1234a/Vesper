@@ -37,30 +37,63 @@ fun VesperLogo(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        Canvas(modifier = Modifier.size(width = 44.dp, height = 40.dp)) {
-            val width = size.width
-            val height = size.height
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF0D0E11))
+                .padding(12.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val w = size.width
+                val h = size.height
+                val strokeWidth = 3.5.dp.toPx()
 
-            // Asymmetric Left Stem (Thick polygon)
-            val leftPath = androidx.compose.ui.graphics.Path().apply {
-                moveTo(0f, 0f)
-                lineTo(width * 0.38f, 0f)
-                lineTo(width * 0.5f, height)
-                lineTo(width * 0.12f, height)
-                close()
-            }
-            drawPath(path = leftPath, color = onBgColor)
+                // Left branch of Y
+                drawLine(
+                    color = Color.White,
+                    start = androidx.compose.ui.geometry.Offset(w * 0.18f, h * 0.18f),
+                    end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                    strokeWidth = strokeWidth,
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
 
-            // Asymmetric Right Stem (Thin polygon)
-            val rightPath = androidx.compose.ui.graphics.Path().apply {
-                moveTo(width, 0f)
-                lineTo(width * 0.72f, 0f)
-                lineTo(width * 0.5f, height)
-                close()
+                // Right branch of Y
+                drawLine(
+                    color = Color.White,
+                    start = androidx.compose.ui.geometry.Offset(w * 0.82f, h * 0.18f),
+                    end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                    strokeWidth = strokeWidth,
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
+
+                // Stem of Y
+                drawLine(
+                    color = Color.White,
+                    start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                    end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.82f),
+                    strokeWidth = strokeWidth,
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
+
+                // Horizontal baseline
+                drawLine(
+                    color = Color.White,
+                    start = androidx.compose.ui.geometry.Offset(w * 0.22f, h * 0.82f),
+                    end = androidx.compose.ui.geometry.Offset(w * 0.78f, h * 0.82f),
+                    strokeWidth = strokeWidth,
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
+
+                // White dot
+                drawCircle(
+                    color = Color.White,
+                    radius = 3.5.dp.toPx(),
+                    center = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.28f)
+                )
             }
-            drawPath(path = rightPath, color = onBgColor)
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = "VESPER",
             fontFamily = SpaceGroteskFamily,

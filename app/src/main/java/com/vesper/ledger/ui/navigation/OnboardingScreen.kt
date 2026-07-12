@@ -252,29 +252,61 @@ fun OnboardingScreen(
 
 @Composable
 fun LogoV(modifier: Modifier = Modifier) {
-    val onBgColor = MaterialTheme.colorScheme.onBackground
-    Canvas(modifier = modifier.size(width = 16.dp, height = 15.dp)) {
-        val width = size.width
-        val height = size.height
+    Box(
+        modifier = modifier
+            .size(28.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0xFF0D0E11))
+            .padding(6.dp)
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            val strokeWidth = 2.dp.toPx()
 
-        // Asymmetric Left Stem (Thick polygon)
-        val leftPath = Path().apply {
-            moveTo(0f, 0f)
-            lineTo(width * 0.38f, 0f)
-            lineTo(width * 0.5f, height)
-            lineTo(width * 0.12f, height)
-            close()
-        }
-        drawPath(path = leftPath, color = onBgColor)
+            // Left branch of Y
+            drawLine(
+                color = Color.White,
+                start = androidx.compose.ui.geometry.Offset(w * 0.18f, h * 0.18f),
+                end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                strokeWidth = strokeWidth,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
 
-        // Asymmetric Right Stem (Thin polygon)
-        val rightPath = Path().apply {
-            moveTo(width, 0f)
-            lineTo(width * 0.72f, 0f)
-            lineTo(width * 0.5f, height)
-            close()
+            // Right branch of Y
+            drawLine(
+                color = Color.White,
+                start = androidx.compose.ui.geometry.Offset(w * 0.82f, h * 0.18f),
+                end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                strokeWidth = strokeWidth,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+
+            // Stem of Y
+            drawLine(
+                color = Color.White,
+                start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
+                end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.82f),
+                strokeWidth = strokeWidth,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+
+            // Horizontal baseline
+            drawLine(
+                color = Color.White,
+                start = androidx.compose.ui.geometry.Offset(w * 0.22f, h * 0.82f),
+                end = androidx.compose.ui.geometry.Offset(w * 0.78f, h * 0.82f),
+                strokeWidth = strokeWidth,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+
+            // White dot
+            drawCircle(
+                color = Color.White,
+                radius = 2.dp.toPx(),
+                center = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.28f)
+            )
         }
-        drawPath(path = rightPath, color = onBgColor)
     }
 }
 
