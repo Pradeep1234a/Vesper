@@ -257,7 +257,8 @@ fun SettingsScreen(
                     .padding(horizontal = 16.dp)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
-                      Spacer(modifier = Modifier.height(8.dp))
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Dedicated Premium Profile Card
                 Card(
