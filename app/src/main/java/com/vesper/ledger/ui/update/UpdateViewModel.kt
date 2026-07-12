@@ -191,9 +191,7 @@ class UpdateViewModel(
     }
 
     fun showDialogManually() {
-        if (_uiState.value.updateInfo?.updateAvailable == true) {
-            _uiState.value = _uiState.value.copy(showUpdateDialog = true)
-        }
+        _uiState.value = _uiState.value.copy(showUpdateDialog = true)
     }
 }
 

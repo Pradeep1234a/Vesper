@@ -72,134 +72,182 @@ fun UpdateDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Header (Logo, Title, Badge)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    LogoBadge()
-                    Text(
-                        text = "Vesper Ledger",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = "Update Available",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    // Versions
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                                RoundedCornerShape(6.dp)
-                            )
-                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "v${updateInfo.currentVersionName}",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Icon(
-                            Icons.Outlined.ArrowForward,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = "v${updateInfo.latestVersionName}",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    // Update Type Badge
-                    val badgeColor = when (updateInfo.updateType) {
-                        UpdateType.MAJOR -> Color(0xFFDC2626) // Red
-                        UpdateType.FEATURE -> Color(0xFF2563EB) // Blue
-                        UpdateType.STABILITY -> Color(0xFF71717A) // Gray
-                        UpdateType.SECURITY -> Color(0xFFD97706) // Amber
-                        UpdateType.HOTFIX -> Color(0xFF16A34A) // Green
-                    }
-                    Box(
-                        modifier = Modifier
-                            .background(badgeColor.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
-                            .border(1.dp, badgeColor.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = updateInfo.updateType.label,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = badgeColor
-                        )
-                    }
-                }
-
-                // What's New Section (Scrollable list if long)
-                if (updateInfo.changelog.isNotEmpty()) {
+                if (!updateInfo.updateAvailable) {
+                    // ── Up To Date Dialog ──
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        LogoBadge()
                         Text(
-                            text = "What's New",
+                            text = "Vesper Ledger",
                             fontFamily = SpaceGroteskFamily,
-                            fontSize = 13.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
-                        
+                        Text(
+                            text = "✓ You're up to date",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF16A34A) // Green
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        MetadataRow(label = "Current Version", value = "v${updateInfo.currentVersionName} (${updateInfo.currentVersionCode})")
+                        MetadataRow(label = "Latest Version", value = "v${updateInfo.latestVersionName} (${updateInfo.latestVersionCode})")
+                        MetadataRow(label = "Status", value = "Latest Version Installed")
+                    }
+
+                    Button(
+                        onClick = onDismissRequest,
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background
+                        )
+                    ) {
+                        Text(
+                            text = "Close",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                } else {
+                    // ── Update Available Dialog ──
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        LogoBadge()
+                        Text(
+                            text = "Vesper Ledger",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = "Update Available",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        // Versions
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "v${updateInfo.currentVersionName}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Icon(
+                                Icons.Outlined.ArrowForward,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = "v${updateInfo.latestVersionName}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        // Update Type Badge
+                        val badgeColor = when (updateInfo.updateType) {
+                            UpdateType.MAJOR -> Color(0xFFDC2626) // Red
+                            UpdateType.FEATURE -> Color(0xFF2563EB) // Blue
+                            UpdateType.STABILITY -> Color(0xFF71717A) // Gray
+                            UpdateType.SECURITY -> Color(0xFFD97706) // Amber
+                            UpdateType.HOTFIX -> Color(0xFF16A34A) // Green
+                        }
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 160.dp)
-                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
-                                .padding(10.dp)
+                                .background(badgeColor.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
+                                .border(1.dp, badgeColor.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
                         ) {
-                            LazyColumn(
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            Text(
+                                text = updateInfo.updateType.label,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = badgeColor
+                            )
+                        }
+                    }
+
+                    // What's New Section (Scrollable list if long)
+                    if (updateInfo.changelog.isNotEmpty()) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "What's New",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 160.dp)
+                                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                                    .padding(10.dp)
                             ) {
-                                val grouped = updateInfo.changelog.groupBy { it.type }
-                                ChangeType.values().forEach { type ->
-                                    val list = grouped[type]
-                                    if (!list.isNullOrEmpty()) {
-                                        item {
-                                            Text(
-                                                text = "${type.icon} ${type.label}",
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                        items(list) { entry ->
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                            ) {
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    val grouped = updateInfo.changelog.groupBy { it.type }
+                                    ChangeType.values().forEach { type ->
+                                        val list = grouped[type]
+                                        if (!list.isNullOrEmpty()) {
+                                            item {
                                                 Text(
-                                                    text = "•",
+                                                    text = "${type.icon} ${type.label}",
                                                     fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
-                                                Text(
-                                                    text = entry.description,
-                                                    fontSize = 11.sp,
-                                                    color = MaterialTheme.colorScheme.onBackground,
-                                                    lineHeight = 15.sp
-                                                )
+                                            }
+                                            items(list) { entry ->
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "•",
+                                                        fontSize = 11.sp,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                    Text(
+                                                        text = entry.description,
+                                                        fontSize = 11.sp,
+                                                        color = MaterialTheme.colorScheme.onBackground,
+                                                        lineHeight = 15.sp
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -207,16 +255,16 @@ fun UpdateDialog(
                             }
                         }
                     }
-                }
 
-                // Action Area
-                UpdateActionArea(
-                    downloadState = downloadState,
-                    progress = progress,
-                    onDownloadClick = onDownloadClick,
-                    onInstallClick = onInstallClick,
-                    onLaterClick = onLaterClick
-                )
+                    // Action Area
+                    UpdateActionArea(
+                        downloadState = downloadState,
+                        progress = progress,
+                        onDownloadClick = onDownloadClick,
+                        onInstallClick = onInstallClick,
+                        onLaterClick = onLaterClick
+                    )
+                }
             }
         }
     }
@@ -329,57 +377,36 @@ fun SettingsUpdatesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val dfTime = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
-    var lastCheckedText by remember { mutableStateOf("Not checked yet") }
+    var lastCheckedText by remember { mutableStateOf("Today, " + dfTime.format(Date())) }
 
     LaunchedEffect(uiState.downloadState) {
         if (uiState.downloadState != UpdateDownloadState.CHECKING) {
-            lastCheckedText = "Today at ${dfTime.format(Date())}"
+            lastCheckedText = "Today, ${dfTime.format(Date())}"
         }
     }
 
-    // Status Header Block
+    // Status mapping
     val statusText: String
-    val statusDesc: String
     val statusColor: Color
-    
+    val isUpdateAvailable = uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable
+
     when {
         uiState.downloadState == UpdateDownloadState.CHECKING -> {
-            statusText = "Checking for updates..."
-            statusDesc = "Connecting to the update server."
+            statusText = "Checking..."
             statusColor = MaterialTheme.colorScheme.primary
         }
-        uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable -> {
-            when (uiState.downloadState) {
-                UpdateDownloadState.DOWNLOADED -> {
-                    statusText = "Install Update"
-                    statusDesc = "Downloaded and ready to install."
-                    statusColor = MaterialTheme.colorScheme.primary
-                }
-                UpdateDownloadState.DOWNLOADING -> {
-                    statusText = "Downloading..."
-                    statusDesc = "Fetching update files."
-                    statusColor = MaterialTheme.colorScheme.primary
-                }
-                UpdateDownloadState.INSTALLING -> {
-                    statusText = "Installing..."
-                    statusDesc = "Applying update files."
-                    statusColor = MaterialTheme.colorScheme.primary
-                }
-                UpdateDownloadState.ERROR -> {
-                    statusText = "Download Failed"
-                    statusDesc = uiState.errorMessage ?: "An error occurred during download."
-                    statusColor = MaterialTheme.colorScheme.error
-                }
-                else -> {
-                    statusText = "Update Available"
-                    statusDesc = "A new version of Vesper Ledger is available."
-                    statusColor = MaterialTheme.colorScheme.primary
-                }
+        isUpdateAvailable -> {
+            statusText = when (uiState.downloadState) {
+                UpdateDownloadState.DOWNLOADED -> "Update Ready To Install"
+                UpdateDownloadState.DOWNLOADING -> "Downloading..."
+                UpdateDownloadState.INSTALLING -> "Installing..."
+                UpdateDownloadState.ERROR -> "Download Failed"
+                else -> "Update Available"
             }
+            statusColor = if (uiState.downloadState == UpdateDownloadState.ERROR) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
         }
         else -> {
             statusText = "✓ Up To Date"
-            statusDesc = "You are running the latest stable version."
             statusColor = Color(0xFF16A34A) // Green
         }
     }
@@ -391,7 +418,7 @@ fun SettingsUpdatesScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Status Card
+        // Status Header Card
         ShCard {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -410,14 +437,14 @@ fun SettingsUpdatesScreen(
                 }
                 Column {
                     Text(
-                        text = statusText,
+                        text = if (isUpdateAvailable) "Update Available" else "✓ Up To Date",
                         fontFamily = SpaceGroteskFamily,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = statusDesc,
+                        text = if (isUpdateAvailable) "A new version of Vesper Ledger is available." else "You are running the latest stable version.",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -430,28 +457,16 @@ fun SettingsUpdatesScreen(
             val latestName = uiState.updateInfo?.latestVersionName ?: BuildConfig.VERSION_NAME
             val latestCode = uiState.updateInfo?.latestVersionCode ?: BuildConfig.VERSION_CODE
             
-            val statusLabel = when {
-                uiState.downloadState == UpdateDownloadState.CHECKING -> "Checking..."
-                uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable -> {
-                    when (uiState.downloadState) {
-                        UpdateDownloadState.DOWNLOADED -> "Downloaded"
-                        UpdateDownloadState.DOWNLOADING -> "Downloading"
-                        UpdateDownloadState.INSTALLING -> "Installing"
-                        UpdateDownloadState.ERROR -> "Error"
-                        else -> "Update Available"
-                    }
-                }
-                else -> "Up To Date"
+            MetadataRow(label = "Version", value = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+            if (isUpdateAvailable) {
+                MetadataRow(label = "Latest", value = "v$latestName ($latestCode)")
             }
-
-            MetadataRow(label = "Current Version", value = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-            MetadataRow(label = "Latest Version", value = "v$latestName ($latestCode)")
-            MetadataRow(label = "Status", value = statusLabel)
+            MetadataRow(label = "Status", value = statusText)
             MetadataRow(label = "Last Checked", value = lastCheckedText)
         }
 
         // Changelog / What's New section inside SettingsUpdatesScreen if update available
-        if (uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable && uiState.updateInfo!!.changelog.isNotEmpty()) {
+        if (isUpdateAvailable && uiState.updateInfo!!.changelog.isNotEmpty()) {
             Text(
                 text = "What's New",
                 fontFamily = SpaceGroteskFamily,
@@ -492,50 +507,93 @@ fun SettingsUpdatesScreen(
             }
         }
 
-        // Action Panel
-        if (uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable) {
-            ShCard {
-                UpdateActionArea(
-                    downloadState = uiState.downloadState,
-                    progress = uiState.downloadProgress,
-                    onDownloadClick = { viewModel.startDownload() },
-                    onInstallClick = { viewModel.installUpdate() },
-                    onLaterClick = null
-                )
-            }
-        } else {
-            // Check for Updates action area
+        // Action Panel Card with single action button matching states
+        ShCard {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (uiState.downloadState == UpdateDownloadState.CHECKING) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(vertical = 12.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
+                val buttonText: String
+                val isButtonEnabled: Boolean
+                val buttonAction: () -> Unit
+                
+                when {
+                    uiState.downloadState == UpdateDownloadState.CHECKING -> {
+                        buttonText = "Checking..."
+                        isButtonEnabled = false
+                        buttonAction = {}
+                    }
+                    uiState.downloadState == UpdateDownloadState.INSTALLING -> {
+                        buttonText = "Installing..."
+                        isButtonEnabled = false
+                        buttonAction = {}
+                    }
+                    uiState.downloadState == UpdateDownloadState.DOWNLOADING -> {
+                        buttonText = "Downloading..."
+                        isButtonEnabled = false
+                        buttonAction = {}
+                    }
+                    uiState.downloadState == UpdateDownloadState.DOWNLOADED -> {
+                        buttonText = "Install Update"
+                        isButtonEnabled = true
+                        buttonAction = { viewModel.installUpdate() }
+                    }
+                    uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable -> {
+                        buttonText = "Download Update"
+                        isButtonEnabled = true
+                        buttonAction = { viewModel.startDownload() }
+                    }
+                    uiState.updateInfo != null && !uiState.updateInfo!!.updateAvailable -> {
+                        buttonText = "Up To Date"
+                        isButtonEnabled = false
+                        buttonAction = {}
+                    }
+                    else -> {
+                        buttonText = "Check for Updates"
+                        isButtonEnabled = true
+                        buttonAction = { viewModel.checkForUpdates() }
+                    }
+                }
+                
+                if (uiState.downloadState == UpdateDownloadState.DOWNLOADING) {
+                    DownloadingPillProgress(uiState.downloadProgress)
+                } else {
+                    Button(
+                        onClick = buttonAction,
+                        enabled = isButtonEnabled,
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background,
+                            disabledContainerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+                            disabledContentColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                    ) {
                         Text(
-                            text = "Checking for updates...",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = buttonText,
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                } else {
-                    ShButton(
-                        text = "Check for Updates",
-                        onClick = { viewModel.checkForUpdates() },
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
+                
+                val statusTextHelper = when {
+                    uiState.downloadState == UpdateDownloadState.CHECKING -> "Connecting to GitHub..."
+                    uiState.downloadState == UpdateDownloadState.DOWNLOADING -> "Downloading update APK..."
+                    uiState.downloadState == UpdateDownloadState.DOWNLOADED -> "Ready to install."
+                    uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable -> "An update is available for download."
+                    uiState.updateInfo != null && !uiState.updateInfo!!.updateAvailable -> "Latest version is installed."
+                    else -> "Check if a new version is available."
+                }
+                
+                Text(
+                    text = statusTextHelper,
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -602,7 +660,7 @@ fun UpdateActionArea(
         when (downloadState) {
             UpdateDownloadState.AVAILABLE -> {
                 ShButton(
-                    text = "Update Now",
+                    text = "Download Update",
                     onClick = onDownloadClick,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -628,7 +686,7 @@ fun UpdateActionArea(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Downloaded and ready to install.",
+                        text = "Update Ready To Install",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold

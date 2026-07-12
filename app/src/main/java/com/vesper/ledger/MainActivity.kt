@@ -61,7 +61,17 @@ class MainActivity : ComponentActivity() {
                 val updateUiState by updateViewModel.uiState.collectAsState()
                 if (updateUiState.showUpdateDialog && updateUiState.updateInfo != null) {
                     val info = updateUiState.updateInfo!!
-                    if (info.updateType == UpdateType.STABILITY || info.updateType == UpdateType.HOTFIX) {
+                    if (!info.updateAvailable) {
+                        UpdateDialog(
+                            updateInfo = info,
+                            downloadState = updateUiState.downloadState,
+                            progress = updateUiState.downloadProgress,
+                            onDownloadClick = { updateViewModel.startDownload() },
+                            onInstallClick = { updateViewModel.installUpdate() },
+                            onLaterClick = { updateViewModel.pressLater() },
+                            onDismissRequest = { updateViewModel.dismissUpdateDialog() }
+                        )
+                    } else if (info.updateType == UpdateType.STABILITY || info.updateType == UpdateType.HOTFIX) {
                         UpdateBottomSheet(
                             updateInfo = info,
                             downloadState = updateUiState.downloadState,
