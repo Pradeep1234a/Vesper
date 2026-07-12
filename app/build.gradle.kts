@@ -4,6 +4,16 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// ── Read version from version.properties ──
+val versionPropsFile = rootProject.file("version.properties")
+val versionProps = java.util.Properties().apply {
+    if (versionPropsFile.exists()) {
+        versionPropsFile.inputStream().use { load(it) }
+    }
+}
+val appVersionCode = versionProps.getProperty("VERSION_CODE", "1").trim().toInt()
+val appVersionName = versionProps.getProperty("VERSION_NAME", "1.0.0").trim()
+
 android {
     namespace = "com.vesper.ledger"
     compileSdk = 34
@@ -12,8 +22,8 @@ android {
         applicationId = "com.vesper.ledger"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -49,6 +59,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"

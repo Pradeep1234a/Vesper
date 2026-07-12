@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vesper.ledger.BuildConfig
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ShCard
@@ -134,7 +135,7 @@ fun SettingsScreen(
         SettingsDialogType.ABOUT_APP -> {
             SettingsInfoDialog(
                 title = "About Vesper Ledger",
-                text = "Vesper Ledger v1.0.0\n\nA premium, minimalist personal finance tracker designed for Android using a clean shadcn-inspired design system.",
+                text = "Vesper Ledger v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n\nA premium, minimalist personal finance tracker designed for Android using a clean shadcn-inspired design system.",
                 onDismissRequest = { activeDialog = null }
             )
         }
@@ -542,7 +543,7 @@ fun SettingsScreen(
                     SettingsRow(
                         icon = Icons.Outlined.Info,
                         title = "App Version",
-                        trailing = { Text("v1.0.0", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                        trailing = { Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
                         onClick = { activeDialog = SettingsDialogType.ABOUT_APP }
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)

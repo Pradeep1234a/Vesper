@@ -1,10 +1,16 @@
 name: Android CI/CD Release
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -16,6 +22,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -24,6 +33,66 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      # ── Version Management ──
+      - name: Read Current Version
+        id: current_version
+        run: |
+          OLD_CODE=$(grep "VERSION_CODE" version.properties | cut -d'=' -f2 | tr -d ' \r')
+          OLD_NAME=$(grep "VERSION_NAME" version.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "old_code=$OLD_CODE" >> $GITHUB_OUTPUT
+          echo "old_name=$OLD_NAME" >> $GITHUB_OUTPUT
+          echo "📌 Current version: v$OLD_NAME ($OLD_CODE)"
+
+      - name: Bump Version
+        id: bump
+        run: |
+          OLD_CODE=${{ steps.current_version.outputs.old_code }}
+          OLD_NAME=${{ steps.current_version.outputs.old_name }}
+          BUMP_TYPE=${{ github.event.inputs.bump_type }}
+
+          # Increment versionCode
+          NEW_CODE=$((OLD_CODE + 1))
+
+          # Parse semver
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$OLD_NAME"
+
+          case "$BUMP_TYPE" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              UPDATE_BADGE="MAJOR UPDATE"
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              UPDATE_BADGE="FEATURE UPDATE"
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              UPDATE_BADGE="HOTFIX"
+              ;;
+          esac
+
+          NEW_NAME="${MAJOR}.${MINOR}.${PATCH}"
+
+          echo "new_code=$NEW_CODE" >> $GITHUB_OUTPUT
+          echo "new_name=$NEW_NAME" >> $GITHUB_OUTPUT
+          echo "update_badge=$UPDATE_BADGE" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+
+          echo "🚀 Version bump: v$OLD_NAME ($OLD_CODE) → v$NEW_NAME ($NEW_CODE) [$UPDATE_BADGE]"
+
+      - name: Write Version Properties
+        run: |
+          cat > version.properties << EOF
+          # Version properties - auto-managed by CI
+          # DO NOT EDIT MANUALLY
+          VERSION_CODE=${{ steps.bump.outputs.new_code }}
+          VERSION_NAME=${{ steps.bump.outputs.new_name }}
+          EOF
+
+      # ── Build ──
       - name: Generate Gradle Wrapper
         run: gradle wrapper --gradle-version 8.2
 
@@ -41,23 +110,43 @@ jobs:
             mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/VesperLedger.apk
           fi
 
+      # ── Commit & Tag ──
+      - name: Commit Version Bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.properties
+          git commit -m "chore: bump version to v${{ steps.bump.outputs.new_name }} (${{ steps.bump.outputs.new_code }})"
+          git push origin HEAD:main
+
+      - name: Create & Push Tag
+        run: |
+          TAG="v${{ steps.bump.outputs.new_name }}"
+          git tag -a "$TAG" -m "Release $TAG (${{ steps.bump.outputs.new_code }}) — ${{ steps.bump.outputs.update_badge }}"
+          git push origin "$TAG"
+
+      # ── GitHub Release ──
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: v${{ steps.bump.outputs.new_name }}
           files: app/build/outputs/apk/release/VesperLedger.apk
           draft: false
           prerelease: false
-          name: Release ${{ github.ref_name }}
+          name: "v${{ steps.bump.outputs.new_name }} — ${{ steps.bump.outputs.update_badge }}"
           body: |
-            Welcome to the official release of Vesper Ledger, a modern shadcn-inspired expense tracker.
-            
-            ### What's New
-            - Minimalist, distraction-free bento grid dashboard.
-            - Monochromatic theme following strict shadcn guidelines.
-            - Fast, offline-first Room database storage.
-            - Dynamic fonts (Space Grotesk & Plus Jakarta Sans).
-            - Custom categories and savings goals tracker.
-            
+            ## Vesper Ledger v${{ steps.bump.outputs.new_name }}
+
+            | Property | Value |
+            |---|---|
+            | **Version Name** | `${{ steps.bump.outputs.new_name }}` |
+            | **Version Code** | `${{ steps.bump.outputs.new_code }}` |
+            | **Previous** | `${{ steps.current_version.outputs.old_name }}` (`${{ steps.current_version.outputs.old_code }}`) |
+            | **Update Type** | `${{ steps.bump.outputs.update_badge }}` |
+            | **Bump** | `${{ steps.bump.outputs.bump_type }}` |
+
+            ---
+
             **Installation:** Download `VesperLedger.apk` below and install it on your Android device.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
