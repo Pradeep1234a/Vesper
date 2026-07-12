@@ -54,7 +54,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)), // slate-900
+            .background(Color(0xFF09090B)), // zinc-950
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -73,9 +73,9 @@ fun SplashScreen(
                 val width = size.width
                 val height = size.height
 
-                // Slate accent background glow circle
+                // Monochromatic frosted background circle
                 drawCircle(
-                    color = Color(0x1F10B981), // Emerald translucent accent
+                    color = Color(0x0FFFFFFF), // White with 6% opacity
                     radius = width / 2f
                 )
 
@@ -113,9 +113,9 @@ fun SplashScreen(
                     cap = StrokeCap.Round
                 )
 
-                // 3. Emerald Pivot indicator (wealth & balance accent)
+                // 3. Monochromatic Pivot indicator
                 drawCircle(
-                    color = Color(0xFF10B981), // Emerald green
+                    color = Color.White,
                     radius = 6.dp.toPx(),
                     center = Offset(width / 2f, height * 0.35f)
                 )

@@ -4,19 +4,7 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Frosted Glass Circle (Realme UI 7.1 styled glassmorphism base) -->
-    <path
-        android:fillColor="#15FFFFFF"
-        android:strokeColor="#35FFFFFF"
-        android:strokeWidth="1.5"
-        android:pathData="M 54,54 A 32,32 0 1,0 54,54.01 Z" />
-
-    <!-- Subtle inner glowing accent behind logo -->
-    <path
-        android:fillColor="#0D10B981"
-        android:pathData="M 54,54 A 20,20 0 1,0 54,54.01 Z" />
-
-    <!-- Balance Scale Logo (Matching Splash screen Canvas design exactly) -->
+    <!-- Monochromatic White Balance Scale Logo (Matches Splash screen exactly) -->
     <path
         android:strokeColor="#FFFFFF"
         android:strokeWidth="4"
@@ -24,9 +12,9 @@
         android:strokeLineJoin="round"
         android:pathData="M 30,34 L 54,60 L 78,34 M 54,60 L 54,78 M 40,78 L 68,78" />
 
-    <!-- Glowing Emerald Balance Pivot Indicator -->
+    <!-- Pure White Pivot Indicator Dot -->
     <path
-        android:fillColor="#10B981"
+        android:fillColor="#FFFFFF"
         android:pathData="M 54,34 A 3,3 0 1,0 54,34.01 Z" />
 
 </vector>

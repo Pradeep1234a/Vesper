@@ -1,7 +1,6 @@
 package com.vesper.ledger.ui.navigation
 
 import android.widget.Toast
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -38,28 +36,8 @@ fun PersonalizationScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF090D16)) // slate-950 deep dark
+            .background(Color(0xFF09090B)) // Zinc-950 (Shadcn Dark background)
     ) {
-        // Tech Grid Background matching Onboarding exactly
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val gridSpacing = 48.dp.toPx()
-            val strokeColor = Color(0x0A94A3B8)
-            val width = size.width
-            val height = size.height
-
-            var x = 0f
-            while (x < width) {
-                drawLine(strokeColor, Offset(x, 0f), Offset(x, height), 1.dp.toPx())
-                x += gridSpacing
-            }
-
-            var y = 0f
-            while (y < height) {
-                drawLine(strokeColor, Offset(0f, y), Offset(width, y), 1.dp.toPx())
-                y += gridSpacing
-            }
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -78,14 +56,14 @@ fun PersonalizationScreen(
                 Text(
                     text = "VESPER",
                     fontFamily = SpaceGroteskFamily,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = Color(0xFFFAFAFA), // Zinc-50
                     letterSpacing = 3.sp
                 )
             }
 
-            // Shadcn Portal Setup Card
+            // Shadcn Strict Card Container
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -93,12 +71,12 @@ fun PersonalizationScreen(
                     .padding(vertical = 16.dp)
                     .border(
                         width = 1.dp,
-                        color = Color(0xFF1E293B), // slate-800 border
-                        shape = RoundedCornerShape(24.dp)
+                        color = Color(0xFF27272A), // Zinc-800 border
+                        shape = RoundedCornerShape(8.dp) // Strict 8dp corner radius
                     ),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0x2B0F172A) // slate-900 transparent fill
+                    containerColor = Color(0xFF09090B) // Zinc-950 content fill
                 )
             ) {
                 Column(
@@ -116,15 +94,15 @@ fun PersonalizationScreen(
                         Text(
                             text = "Access Portal",
                             fontFamily = SpaceGroteskFamily,
-                            fontSize = 24.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
+                            color = Color(0xFFFAFAFA), // Zinc-50
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = "Enter your settings parameters below. All data resides offline on your sqlite storage.",
+                            text = "Configure your parameters below. All data resides offline on local sqlite database.",
                             fontSize = 13.sp,
-                            color = Color(0xFF64748B), // slate-500
+                            color = Color(0xFFA1A1AA), // Zinc-400
                             textAlign = TextAlign.Center,
                             lineHeight = 18.sp
                         )
@@ -142,22 +120,22 @@ fun PersonalizationScreen(
                                 fontSize = 12.sp,
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF94A3B8) // slate-400
+                                color = Color(0xFFE4E4E7) // Zinc-200
                             )
                             OutlinedTextField(
                                 value = nameInput,
                                 onValueChange = { nameInput = it },
-                                placeholder = { Text("e.g. Keshav", color = Color(0xFF475569)) },
+                                placeholder = { Text("e.g. Keshav", color = Color(0xFF71717A)) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(8.dp), // Strict 8dp
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = Color.White,
                                     unfocusedTextColor = Color.White,
-                                    focusedBorderColor = Color.White, // pure white highlight focus
-                                    unfocusedBorderColor = Color(0xFF1E293B), // slate-800
-                                    focusedContainerColor = Color(0xFF0F172A),
-                                    unfocusedContainerColor = Color(0xFF0F172A)
+                                    focusedBorderColor = Color(0xFFFAFAFA), // Zinc-50 focus highlight
+                                    unfocusedBorderColor = Color(0xFF27272A), // Zinc-800
+                                    focusedContainerColor = Color(0xFF09090B),
+                                    unfocusedContainerColor = Color(0xFF09090B)
                                 )
                             )
                         }
@@ -169,7 +147,7 @@ fun PersonalizationScreen(
                                 fontSize = 12.sp,
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF94A3B8)
+                                color = Color(0xFFE4E4E7)
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -180,24 +158,24 @@ fun PersonalizationScreen(
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(46.dp)
+                                            .height(44.dp)
                                             .background(
-                                                color = if (isSelected) Color.White else Color(0xFF0F172A),
-                                                shape = RoundedCornerShape(12.dp)
+                                                color = if (isSelected) Color(0xFFFAFAFA) else Color(0xFF09090B),
+                                                shape = RoundedCornerShape(8.dp)
                                             )
                                             .border(
                                                 width = 1.dp,
-                                                color = if (isSelected) Color.White else Color(0xFF1E293B),
-                                                shape = RoundedCornerShape(12.dp)
+                                                color = if (isSelected) Color(0xFFFAFAFA) else Color(0xFF27272A),
+                                                shape = RoundedCornerShape(8.dp)
                                             )
                                             .clickable { selectedCurrency = symbol },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = symbol,
-                                            fontSize = 16.sp,
+                                            fontSize = 15.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                                            color = if (isSelected) Color(0xFF09090B) else Color(0xFFA1A1AA)
                                         )
                                     }
                                 }
@@ -211,7 +189,7 @@ fun PersonalizationScreen(
                                 fontSize = 12.sp,
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF94A3B8)
+                                color = Color(0xFFE4E4E7)
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -222,24 +200,24 @@ fun PersonalizationScreen(
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(46.dp)
+                                            .height(44.dp)
                                             .background(
-                                                color = if (isSelected) Color.White else Color(0xFF0F172A),
-                                                shape = RoundedCornerShape(12.dp)
+                                                color = if (isSelected) Color(0xFFFAFAFA) else Color(0xFF09090B),
+                                                shape = RoundedCornerShape(8.dp)
                                             )
                                             .border(
                                                 width = 1.dp,
-                                                color = if (isSelected) Color.White else Color(0xFF1E293B),
-                                                shape = RoundedCornerShape(12.dp)
+                                                color = if (isSelected) Color(0xFFFAFAFA) else Color(0xFF27272A),
+                                                shape = RoundedCornerShape(8.dp)
                                             )
                                             .clickable { selectedTheme = theme },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = theme,
-                                            fontSize = 14.sp,
+                                            fontSize = 13.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = if (isSelected) Color(0xFF0F172A) else Color(0xFF94A3B8)
+                                            color = if (isSelected) Color(0xFF09090B) else Color(0xFFA1A1AA)
                                         )
                                     }
                                 }
@@ -271,17 +249,22 @@ fun PersonalizationScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
+                        .height(48.dp)
+                        .border(
+                            width = 1.dp,
+                            color = Color(0xFF27272A),
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    shape = RoundedCornerShape(8.dp), // Strict 8dp corner radius
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // pure white high contrast button
-                        contentColor = Color(0xFF0F172A)
+                        containerColor = Color(0xFFFAFAFA), // Solid white background
+                        contentColor = Color(0xFF09090B) // Pure black text
                     )
                 ) {
                     Text(
                         text = "Complete Setup",
                         fontFamily = SpaceGroteskFamily,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }

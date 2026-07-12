@@ -1,6 +1,5 @@
 package com.vesper.ledger.ui.navigation
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,7 +18,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -58,41 +56,8 @@ fun OnboardingScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF090D16)) // slate-950 deep dark
+            .background(Color(0xFF09090B)) // Zinc-950 (Shadcn Dark background)
     ) {
-        // Premium Geometric Tech Grid Accents in background
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val gridSpacing = 48.dp.toPx()
-            val strokeColor = Color(0x0A94A3B8) // slate-400 with 4% opacity
-            val width = size.width
-            val height = size.height
-
-            // Vertical grid lines
-            var x = 0f
-            while (x < width) {
-                drawLine(
-                    color = strokeColor,
-                    start = Offset(x, 0f),
-                    end = Offset(x, height),
-                    strokeWidth = 1.dp.toPx()
-                )
-                x += gridSpacing
-            }
-
-            // Horizontal grid lines
-            var y = 0f
-            while (y < height) {
-                drawLine(
-                    color = strokeColor,
-                    start = Offset(0f, y),
-                    end = Offset(width, y),
-                    strokeWidth = 1.dp.toPx()
-                )
-                y += gridSpacing
-            }
-        }
-
-        // Main Layout Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -112,22 +77,22 @@ fun OnboardingScreen(
                 Text(
                     text = "VESPER",
                     fontFamily = SpaceGroteskFamily,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = Color(0xFFFAFAFA), // Zinc-50
                     letterSpacing = 3.sp
                 )
                 TextButton(onClick = onNavigateNext) {
                     Text(
                         text = "Skip",
-                        color = Color(0xFF64748B), // slate-500
+                        color = Color(0xFFA1A1AA), // Zinc-400
                         fontWeight = FontWeight.Medium,
                         fontSize = 14.sp
                     )
                 }
             }
 
-            // Shadcn Card containing Pager Carousel
+            // Shadcn Strict Card Container
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -135,12 +100,12 @@ fun OnboardingScreen(
                     .padding(vertical = 24.dp)
                     .border(
                         width = 1.dp,
-                        color = Color(0xFF1E293B), // slate-800 border
-                        shape = RoundedCornerShape(24.dp)
+                        color = Color(0xFF27272A), // Zinc-800 border
+                        shape = RoundedCornerShape(8.dp) // Strict 8dp corner radius
                     ),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0x2B0F172A) // slate-900 transparent fill
+                    containerColor = Color(0xFF09090B) // Zinc-950 content fill
                 )
             ) {
                 Column(
@@ -155,7 +120,7 @@ fun OnboardingScreen(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
-                      ) { page ->
+                    ) { page ->
                         val onboardingPage = pages[page]
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -164,26 +129,26 @@ fun OnboardingScreen(
                                 .fillMaxSize()
                                 .padding(horizontal = 8.dp)
                         ) {
-                            // Frosted glassmorphic icon base container
+                            // Shadcn-style minimal outline icon container
                             Box(
                                 modifier = Modifier
-                                    .size(80.dp)
+                                    .size(72.dp)
                                     .background(
-                                        color = Color(0x0FFFFFFF), // White 6%
-                                        shape = RoundedCornerShape(20.dp)
+                                        color = Color(0xFF18181B), // Zinc-900
+                                        shape = RoundedCornerShape(8.dp)
                                     )
                                     .border(
                                         width = 1.dp,
-                                        color = Color(0x1AFFFFFF), // White 10%
-                                        shape = RoundedCornerShape(20.dp)
+                                        color = Color(0xFF27272A), // Zinc-800
+                                        shape = RoundedCornerShape(8.dp)
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = onboardingPage.icon,
                                     contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(36.dp)
+                                    tint = Color(0xFFFAFAFA), // Zinc-50
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
 
@@ -192,9 +157,9 @@ fun OnboardingScreen(
                             Text(
                                 text = onboardingPage.title,
                                 fontFamily = SpaceGroteskFamily,
-                                fontSize = 22.sp,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White,
+                                color = Color(0xFFFAFAFA), // Zinc-50
                                 textAlign = TextAlign.Center
                             )
 
@@ -203,7 +168,7 @@ fun OnboardingScreen(
                             Text(
                                 text = onboardingPage.description,
                                 fontSize = 14.sp,
-                                color = Color(0xFF94A3B8), // slate-400
+                                color = Color(0xFFA1A1AA), // Zinc-400
                                 textAlign = TextAlign.Center,
                                 lineHeight = 20.sp
                             )
@@ -221,9 +186,9 @@ fun OnboardingScreen(
                             Box(
                                 modifier = Modifier
                                     .height(4.dp)
-                                    .width(if (isSelected) 18.dp else 4.dp)
+                                    .width(if (isSelected) 16.dp else 4.dp)
                                     .clip(CircleShape)
-                                    .background(if (isSelected) Color.White else Color(0xFF334155))
+                                    .background(if (isSelected) Color(0xFFFAFAFA) else Color(0xFF27272A))
                             )
                         }
                     }
@@ -249,17 +214,22 @@ fun OnboardingScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
+                        .height(48.dp)
+                        .border(
+                            width = 1.dp,
+                            color = Color(0xFF27272A),
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    shape = RoundedCornerShape(8.dp), // Strict 8dp corner radius
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // Shadcn premium contrast white button
-                        contentColor = Color(0xFF0F172A)
+                        containerColor = Color(0xFFFAFAFA), // Solid white background
+                        contentColor = Color(0xFF09090B) // Pure black text
                     )
                 ) {
                     Text(
                         text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Next",
                         fontFamily = SpaceGroteskFamily,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
