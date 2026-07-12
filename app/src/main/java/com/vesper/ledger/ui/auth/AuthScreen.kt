@@ -1,18 +1,16 @@
 package com.vesper.ledger.ui.auth
 
 import android.widget.Toast
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +19,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -33,15 +30,60 @@ enum class AuthTab {
     SIGN_IN, SIGN_UP, FORGOT_PASSWORD, PASSWORD_RESET
 }
 
+@Composable
+fun VesperLogo(modifier: Modifier = Modifier) {
+    val onBgColor = MaterialTheme.colorScheme.onBackground
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+    ) {
+        Canvas(modifier = Modifier.size(width = 44.dp, height = 40.dp)) {
+            val width = size.width
+            val height = size.height
+
+            // Asymmetric Left Stem (Thick polygon)
+            val leftPath = androidx.compose.ui.graphics.Path().apply {
+                moveTo(0f, 0f)
+                lineTo(width * 0.38f, 0f)
+                lineTo(width * 0.5f, height)
+                lineTo(width * 0.12f, height)
+                close()
+            }
+            drawPath(path = leftPath, color = onBgColor)
+
+            // Asymmetric Right Stem (Thin polygon)
+            val rightPath = androidx.compose.ui.graphics.Path().apply {
+                moveTo(width, 0f)
+                lineTo(width * 0.72f, 0f)
+                lineTo(width * 0.5f, height)
+                close()
+            }
+            drawPath(path = rightPath, color = onBgColor)
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = "VESPER",
+            fontFamily = SpaceGroteskFamily,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = onBgColor,
+            letterSpacing = 6.sp
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(
     viewModel: AuthViewModel,
-    onAuthSuccess: (Boolean) -> Unit, // passes isNewUser to decide if Personalization is needed
+    onAuthSuccess: (Boolean) -> Unit, // isNewUser
     onContinueAsGuest: () -> Unit
 ) {
     var activeTab by remember { mutableStateOf(AuthTab.SIGN_IN) }
     var resetEmailTarget by remember { mutableStateOf("") }
+
+    val onBgColor = MaterialTheme.colorScheme.onBackground
+    val outlineColor = MaterialTheme.colorScheme.outline
 
     Box(
         modifier = Modifier
@@ -56,24 +98,21 @@ fun AuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header
+            // Header Bar (Contains back arrow if in Sign Up / Forgot Password)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "VESPER",
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    letterSpacing = 3.sp
-                )
+                if (activeTab != AuthTab.SIGN_IN) {
+                    IconButton(onClick = { activeTab = AuthTab.SIGN_IN }) {
+                        Icon(Icons.Outlined.ArrowBack, null, tint = onBgColor)
+                    }
+                }
             }
 
-            // Main Content Area
+            // Main scrollable forms
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -98,8 +137,7 @@ fun AuthScreen(
                         onVerified = { email ->
                             resetEmailTarget = email
                             activeTab = AuthTab.PASSWORD_RESET
-                        },
-                        onNavigateSignIn = { activeTab = AuthTab.SIGN_IN }
+                        }
                     )
                     AuthTab.PASSWORD_RESET -> PasswordResetView(
                         viewModel = viewModel,
@@ -108,15 +146,6 @@ fun AuthScreen(
                     )
                 }
             }
-
-            // Bottom trust label
-            Text(
-                text = "Vesper operates 100% offline. No credentials ever leave your device.",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
         }
     }
 }
@@ -132,77 +161,129 @@ fun SignInView(
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
     val outlineColor = MaterialTheme.colorScheme.outline
-    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val onBgColor = MaterialTheme.colorScheme.onBackground
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Welcome
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        VesperLogo(modifier = Modifier.padding(bottom = 12.dp))
+
+        // Titles
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
             Text(
                 text = "Welcome Back",
                 fontFamily = SpaceGroteskFamily,
-                fontSize = 24.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = onBgColor
             )
             Text(
-                text = "Enter your password to unlock your offline ledger session.",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Sign in to continue managing your income, expenses, and savings securely.",
+                fontSize = 14.sp,
+                color = secTextColor,
+                lineHeight = 20.sp
             )
         }
 
-        // Form fields
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            OutlinedTextField(
-                value = emailInput,
-                onValueChange = { 
-                    emailInput = it
-                    errorMessage = ""
-                },
-                label = { Text("Email Address") },
-                placeholder = { Text("email@example.com") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
+        // Form Fields
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Email Address
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Email Address", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                OutlinedTextField(
+                    value = emailInput,
+                    onValueChange = {
+                        emailInput = it
+                        errorMessage = ""
+                    },
+                    placeholder = { Text("Enter your email", color = secTextColor.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(Icons.Outlined.Mail, null, tint = secTextColor) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = outlineColor,
+                        focusedTextColor = onBgColor,
+                        unfocusedTextColor = onBgColor
+                    )
                 )
-            )
+            }
 
-            OutlinedTextField(
-                value = passwordInput,
-                onValueChange = { 
-                    passwordInput = it
-                    errorMessage = ""
-                },
-                label = { Text("Password") },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
-                            contentDescription = null
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
+            // Password
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Password", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                OutlinedTextField(
+                    value = passwordInput,
+                    onValueChange = {
+                        passwordInput = it
+                        errorMessage = ""
+                    },
+                    placeholder = { Text("Enter your password", color = secTextColor.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(Icons.Outlined.Lock, null, tint = secTextColor) },
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                                contentDescription = null,
+                                tint = secTextColor
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = outlineColor,
+                        focusedTextColor = onBgColor,
+                        unfocusedTextColor = onBgColor
+                    )
                 )
+            }
+        }
+
+        // Remember Me & Forgot Password Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Checkbox(
+                    checked = rememberMe,
+                    onCheckedChange = { rememberMe = it },
+                    colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+                )
+                Text("Remember me", fontSize = 13.sp, color = secTextColor)
+            }
+            Text(
+                text = "Forgot Password?",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = onBgColor,
+                modifier = Modifier.clickable { onNavigateForgot() }
             )
         }
 
@@ -211,11 +292,13 @@ fun SignInView(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start
             )
         }
 
-        // Action Trigger
+        // Primary Sign In Button
         Button(
             onClick = {
                 val email = emailInput.trim()
@@ -247,48 +330,77 @@ fun SignInView(
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
-            Text("Unlock Ledger", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+            Text("Sign In", fontFamily = SpaceGroteskFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
 
-        // Secondary Options
+        // Divider
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(modifier = Modifier.weight(1f).height(1.dp).background(outlineColor))
             Text(
-                text = "Forgot Password?",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .clickable { onNavigateForgot() }
-                    .padding(vertical = 4.dp)
+                text = "OR",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = secTextColor,
+                modifier = Modifier.padding(horizontal = 12.dp)
             )
+            Box(modifier = Modifier.weight(1f).height(1.dp).background(outlineColor))
+        }
+
+        // Guest session trigger
+        Button(
+            onClick = onContinueAsGuest,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = onBgColor
+            )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Outlined.Person, null, tint = onBgColor, modifier = Modifier.size(16.dp))
+                Text("Continue as Guest", fontFamily = SpaceGroteskFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        // Toggle text link
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Don't have an account? ", fontSize = 13.sp, color = secTextColor)
             Text(
                 text = "Create Account",
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clickable { onNavigateSignUp() }
-                    .padding(vertical = 4.dp)
+                color = onBgColor,
+                modifier = Modifier.clickable { onNavigateSignUp() }
             )
         }
 
-        // Guest session option
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp)
-                .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                .clickable { onContinueAsGuest() },
-            contentAlignment = Alignment.Center
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Device shield footer info
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            Icon(Icons.Outlined.Shield, null, tint = secTextColor, modifier = Modifier.size(14.dp))
             Text(
-                text = "Continue as Guest",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                text = "Your data stays securely on your device.",
+                fontSize = 11.sp,
+                color = secTextColor
             )
         }
     }
@@ -301,182 +413,189 @@ fun SignUpView(
     onNavigateSignIn: () -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var emailInput by remember { mutableStateOf("") }
+    var passwordInput by remember { mutableStateOf("") }
+    var confirmPasswordInput by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    // Recovery Details
-    var recoveryPhrase by remember { mutableStateOf("vesper local offline security key") }
-    var recoveryPin by remember { mutableStateOf("") }
-    var securityQuestion by remember { mutableStateOf("What was your first pet's name?") }
-    var securityAnswer by remember { mutableStateOf("") }
-
-    var agreePrivacy by remember { mutableStateOf(false) }
     var agreeTerms by remember { mutableStateOf(false) }
-
     var errorMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
     val outlineColor = MaterialTheme.colorScheme.outline
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val onBgColor = MaterialTheme.colorScheme.onBackground
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Welcome
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        VesperLogo(modifier = Modifier.padding(bottom = 12.dp))
+
+        // Titles
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
             Text(
-                text = "Create Local Account",
+                text = "Create Account",
                 fontFamily = SpaceGroteskFamily,
-                fontSize = 22.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = onBgColor
             )
             Text(
-                text = "Credentials will be cryptographically hashed and stored on-device.",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Create your local account to personalize your expense tracking experience.",
+                fontSize = 14.sp,
+                color = secTextColor,
+                lineHeight = 20.sp
             )
         }
 
-        // Form fields
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedTextField(
-                value = fullName,
-                onValueChange = { 
-                    fullName = it
-                    errorMessage = ""
-                },
-                label = { Text("Full Name") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { 
-                    email = it
-                    errorMessage = ""
-                },
-                label = { Text("Email Address") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = { 
-                    password = it
-                    errorMessage = ""
-                },
-                label = { Text("Password") },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { 
-                    confirmPassword = it
-                    errorMessage = ""
-                },
-                label = { Text("Confirm Password") },
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-
-            Divider(modifier = Modifier.padding(vertical = 4.dp), color = outlineColor)
-
-            // Offline Recovery config
-            Text(
-                text = "Configure Recovery Parameters (Mandatory)",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            OutlinedTextField(
-                value = recoveryPin,
-                onValueChange = { recoveryPin = it },
-                label = { Text("Recovery PIN (4 Digits)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-
-            OutlinedTextField(
-                value = recoveryPhrase,
-                onValueChange = { recoveryPhrase = it },
-                label = { Text("Recovery Phrase Word") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-
-            OutlinedTextField(
-                value = securityAnswer,
-                onValueChange = { securityAnswer = it },
-                label = { Text("Answer: $securityQuestion") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-        }
-
-        // Checkboxes
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = agreePrivacy, onCheckedChange = { agreePrivacy = it })
-                Text(
-                    text = "I agree to Privacy Policy",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+        // Form Fields
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Full Name
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Full Name", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                OutlinedTextField(
+                    value = fullName,
+                    onValueChange = {
+                        fullName = it
+                        errorMessage = ""
+                    },
+                    placeholder = { Text("Enter your full name", color = secTextColor.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(Icons.Outlined.Person, null, tint = secTextColor) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = outlineColor,
+                        focusedTextColor = onBgColor,
+                        unfocusedTextColor = onBgColor
+                    )
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = agreeTerms, onCheckedChange = { agreeTerms = it })
+
+            // Email Address
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Email Address", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                OutlinedTextField(
+                    value = emailInput,
+                    onValueChange = {
+                        emailInput = it
+                        errorMessage = ""
+                    },
+                    placeholder = { Text("Enter your email", color = secTextColor.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(Icons.Outlined.Mail, null, tint = secTextColor) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = outlineColor,
+                        focusedTextColor = onBgColor,
+                        unfocusedTextColor = onBgColor
+                    )
+                )
+            }
+
+            // Password
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Password", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                OutlinedTextField(
+                    value = passwordInput,
+                    onValueChange = {
+                        passwordInput = it
+                        errorMessage = ""
+                    },
+                    placeholder = { Text("Enter your password", color = secTextColor.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(Icons.Outlined.Lock, null, tint = secTextColor) },
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                                contentDescription = null,
+                                tint = secTextColor
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = outlineColor,
+                        focusedTextColor = onBgColor,
+                        unfocusedTextColor = onBgColor
+                    )
+                )
+            }
+
+            // Confirm Password
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Confirm Password", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                OutlinedTextField(
+                    value = confirmPasswordInput,
+                    onValueChange = {
+                        confirmPasswordInput = it
+                        errorMessage = ""
+                    },
+                    placeholder = { Text("Confirm your password", color = secTextColor.copy(alpha = 0.6f)) },
+                    leadingIcon = { Icon(Icons.Outlined.Lock, null, tint = secTextColor) },
+                    singleLine = true,
+                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                            Icon(
+                                imageVector = if (confirmPasswordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                                contentDescription = null,
+                                tint = secTextColor
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = outlineColor,
+                        focusedTextColor = onBgColor,
+                        unfocusedTextColor = onBgColor
+                    )
+                )
+            }
+        }
+
+        // Terms of service agreement checkbox
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = agreeTerms,
+                onCheckedChange = { agreeTerms = it },
+                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Column {
                 Text(
-                    text = "I agree to Terms and Conditions",
+                    text = "I agree to the Privacy Policy",
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = secTextColor
+                )
+                Text(
+                    text = "and Terms & Conditions.",
+                    fontSize = 12.sp,
+                    color = secTextColor
                 )
             }
         }
@@ -486,22 +605,20 @@ fun SignUpView(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start
             )
         }
 
-        // Button
+        // Create Account Action
         Button(
             onClick = {
                 val fName = fullName.trim()
-                val em = email.trim()
-                val pwd = password.trim()
-                val cpwd = confirmPassword.trim()
-                val phrase = recoveryPhrase.trim()
-                val pin = recoveryPin.trim()
-                val answer = securityAnswer.trim()
+                val em = emailInput.trim()
+                val pwd = passwordInput.trim()
+                val cpwd = confirmPasswordInput.trim()
 
-                // Validations
                 if (fName.length < 2) {
                     errorMessage = "Full Name must be at least 2 characters."
                     return@Button
@@ -518,21 +635,13 @@ fun SignUpView(
                     errorMessage = "Passwords do not match."
                     return@Button
                 }
-                if (pin.length != 4) {
-                    errorMessage = "PIN must be exactly 4 digits."
-                    return@Button
-                }
-                if (phrase.isEmpty() || answer.isEmpty()) {
-                    errorMessage = "All recovery fields are required."
-                    return@Button
-                }
-                if (!agreePrivacy || !agreeTerms) {
-                    errorMessage = "You must agree to Privacy Policy and Terms."
+                if (!agreeTerms) {
+                    errorMessage = "You must agree to Terms & Conditions."
                     return@Button
                 }
 
                 isLoading = true
-                viewModel.signUp(em, fName, pwd, phrase, pin, securityQuestion, answer) { success, msg ->
+                viewModel.signUp(em, fName, pwd) { success, msg ->
                     isLoading = false
                     if (success) {
                         onSuccess()
@@ -552,22 +661,39 @@ fun SignUpView(
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
-            Text("Create Account", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+            Text("Create Account", fontFamily = SpaceGroteskFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
 
+        // Navigate SignIn row link
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Text("Already have an account? ", fontSize = 13.sp, color = secTextColor)
             Text(
-                text = "Already have an account? Sign In",
+                text = "Sign In",
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clickable { onNavigateSignIn() }
-                    .padding(vertical = 4.dp)
+                color = onBgColor,
+                modifier = Modifier.clickable { onNavigateSignIn() }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Device shield footer info
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(Icons.Outlined.Shield, null, tint = secTextColor, modifier = Modifier.size(14.dp))
+            Text(
+                text = "Your account information remains stored locally on your device.",
+                fontSize = 11.sp,
+                color = secTextColor
             )
         }
     }
@@ -576,122 +702,90 @@ fun SignUpView(
 @Composable
 fun ForgotPasswordView(
     viewModel: AuthViewModel,
-    onVerified: (String) -> Unit,
-    onNavigateSignIn: () -> Unit
+    onVerified: (String) -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var recoveryPhrase by remember { mutableStateOf("") }
-    var recoveryPin by remember { mutableStateOf("") }
-    var recoveryAnswer by remember { mutableStateOf("") }
-    var securityQuestion by remember { mutableStateOf("What was your first pet's name?") }
-
+    var emailInput by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
     val outlineColor = MaterialTheme.colorScheme.outline
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val onBgColor = MaterialTheme.colorScheme.onBackground
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        VesperLogo(modifier = Modifier.padding(bottom = 12.dp))
+
+        // Titles
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
             Text(
                 text = "Recover Password",
                 fontFamily = SpaceGroteskFamily,
-                fontSize = 22.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = onBgColor
             )
             Text(
-                text = "Match recovery PIN, phrase, and security answer to reset.",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Verify your registered email Address to update your local password.",
+                fontSize = 14.sp,
+                color = secTextColor,
+                lineHeight = 20.sp
             )
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Account Email Address") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
+        OutlinedTextField(
+            value = emailInput,
+            onValueChange = {
+                emailInput = it
+                errorMessage = ""
+            },
+            placeholder = { Text("Enter your email", color = secTextColor.copy(alpha = 0.6f)) },
+            leadingIcon = { Icon(Icons.Outlined.Mail, null, tint = secTextColor) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = outlineColor,
+                focusedTextColor = onBgColor,
+                unfocusedTextColor = onBgColor
             )
-
-            OutlinedTextField(
-                value = recoveryPin,
-                onValueChange = { recoveryPin = it },
-                label = { Text("Recovery PIN") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-
-            OutlinedTextField(
-                value = recoveryPhrase,
-                onValueChange = { recoveryPhrase = it },
-                label = { Text("Recovery Phrase Word") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-
-            OutlinedTextField(
-                value = recoveryAnswer,
-                onValueChange = { recoveryAnswer = it },
-                label = { Text("Answer: $securityQuestion") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
-                )
-            )
-        }
+        )
 
         if (errorMessage.isNotEmpty()) {
             Text(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start
             )
         }
 
+        // Action Trigger
         Button(
             onClick = {
-                val em = email.trim()
-                val pin = recoveryPin.trim()
-                val phrase = recoveryPhrase.trim()
-                val ans = recoveryAnswer.trim()
-
-                if (em.isEmpty() || pin.isEmpty() || phrase.isEmpty() || ans.isEmpty()) {
-                    errorMessage = "All parameters are required."
+                val email = emailInput.trim()
+                if (email.isEmpty()) {
+                    errorMessage = "Email Address is required."
                     return@Button
                 }
 
                 isLoading = true
-                viewModel.verifyRecovery(em, phrase, pin, securityQuestion, ans) { success, msg ->
+                viewModel.verifyRecovery(email) { success, msg ->
                     isLoading = false
                     if (success) {
-                        onVerified(em)
+                        onVerified(email)
                     } else {
                         errorMessage = msg
                     }
@@ -708,21 +802,7 @@ fun ForgotPasswordView(
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
-            Text("Verify Recovery", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Back to Sign In",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .clickable { onNavigateSignIn() }
-                    .padding(vertical = 4.dp)
-            )
+            Text("Confirm Identity", fontFamily = SpaceGroteskFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -735,59 +815,95 @@ fun PasswordResetView(
 ) {
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
     val outlineColor = MaterialTheme.colorScheme.outline
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val onBgColor = MaterialTheme.colorScheme.onBackground
     val context = LocalContext.current
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        VesperLogo(modifier = Modifier.padding(bottom = 12.dp))
+
+        // Titles
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
             Text(
                 text = "Reset Password",
                 fontFamily = SpaceGroteskFamily,
-                fontSize = 22.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = onBgColor
             )
             Text(
                 text = "Set a secure new password for your account ($email).",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 14.sp,
+                color = secTextColor,
+                lineHeight = 20.sp
             )
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             OutlinedTextField(
                 value = newPassword,
-                onValueChange = { newPassword = it },
-                label = { Text("New Password") },
+                onValueChange = {
+                    newPassword = it
+                    errorMessage = ""
+                },
+                placeholder = { Text("Enter new password", color = secTextColor.copy(alpha = 0.6f)) },
+                leadingIcon = { Icon(Icons.Outlined.Lock, null, tint = secTextColor) },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                            contentDescription = null,
+                            tint = secTextColor
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
+                    unfocusedBorderColor = outlineColor,
+                    focusedTextColor = onBgColor,
+                    unfocusedTextColor = onBgColor
                 )
             )
 
             OutlinedTextField(
                 value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirm New Password") },
+                onValueChange = {
+                    confirmPassword = it
+                    errorMessage = ""
+                },
+                placeholder = { Text("Confirm new password", color = secTextColor.copy(alpha = 0.6f)) },
+                leadingIcon = { Icon(Icons.Outlined.Lock, null, tint = secTextColor) },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = outlineColor
+                    unfocusedBorderColor = outlineColor,
+                    focusedTextColor = onBgColor,
+                    unfocusedTextColor = onBgColor
                 )
             )
         }
@@ -797,7 +913,9 @@ fun PasswordResetView(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start
             )
         }
 
@@ -837,7 +955,7 @@ fun PasswordResetView(
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
-            Text("Update Password", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+            Text("Update Password", fontFamily = SpaceGroteskFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

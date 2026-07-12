@@ -8,9 +8,5 @@ data class UserAccount(
     @PrimaryKey val email: String,
     val fullName: String,
     val passwordHash: String,
-    val salt: String,
-    val recoveryPhrase: String,
-    val recoveryPin: String,
-    val securityQuestion: String,
-    val securityAnswerHash: String
+    val salt: String
 )

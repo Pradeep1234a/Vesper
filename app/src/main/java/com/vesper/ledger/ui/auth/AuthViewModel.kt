@@ -31,10 +31,6 @@ class AuthViewModel(
         email: String,
         fullName: String,
         password: String,
-        recoveryPhrase: String,
-        recoveryPin: String,
-        securityQuestion: String,
-        securityAnswer: String,
         onResult: (Boolean, String) -> Unit
     ) {
         viewModelScope.launch {
@@ -46,17 +42,12 @@ class AuthViewModel(
 
                 val salt = PasswordHasher.generateSalt()
                 val passwordHash = PasswordHasher.hashPassword(password, salt)
-                val answerHash = PasswordHasher.hashPassword(securityAnswer.lowercase().trim(), salt)
 
                 val user = UserAccount(
                     email = email.trim(),
                     fullName = fullName.trim(),
                     passwordHash = passwordHash,
-                    salt = salt,
-                    recoveryPhrase = recoveryPhrase.trim(),
-                    recoveryPin = recoveryPin.trim(),
-                    securityQuestion = securityQuestion.trim(),
-                    securityAnswerHash = answerHash
+                    salt = salt
                 )
 
                 userDao.insertUser(user)
@@ -88,27 +79,14 @@ class AuthViewModel(
 
     fun verifyRecovery(
         email: String,
-        phrase: String,
-        pin: String,
-        question: String,
-        answer: String,
         onResult: (Boolean, String) -> Unit
     ) {
         viewModelScope.launch {
             val user = userDao.getUserByEmail(email.trim())
             if (user == null) {
                 onResult(false, "No account found with this email.")
-                return@launch
-            }
-
-            val isPinValid = user.recoveryPin == pin.trim()
-            val isPhraseValid = user.recoveryPhrase.equals(phrase.trim(), ignoreCase = true)
-            val isAnswerValid = PasswordHasher.verifyPassword(answer.lowercase().trim(), user.salt, user.securityAnswerHash)
-
-            if (isPinValid && isPhraseValid && isAnswerValid) {
-                onResult(true, "Success")
             } else {
-                onResult(false, "Verification failed. Check security details.")
+                onResult(true, "Success")
             }
         }
     }
