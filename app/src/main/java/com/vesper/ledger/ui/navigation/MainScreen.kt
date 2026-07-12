@@ -116,7 +116,7 @@ fun MainScreen(
 
                     TabItem(
                         icon = if (currentRoute == Screen.Reports.route) Icons.Filled.BarChart else Icons.Outlined.BarChart,
-                        label = "Reports",
+                        label = "Analytics",
                         selected = currentRoute == Screen.Reports.route,
                         onClick = {
                             if (currentRoute != Screen.Reports.route) {
