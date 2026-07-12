@@ -392,9 +392,8 @@ fun SignInView(
         // Device shield footer info
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Outlined.Shield, null, tint = secTextColor, modifier = Modifier.size(14.dp))
             Text(
@@ -685,9 +684,8 @@ fun SignUpView(
         // Device shield footer info
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Outlined.Shield, null, tint = secTextColor, modifier = Modifier.size(14.dp))
             Text(
