@@ -82,11 +82,11 @@ fun DashboardScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "$greeting, $userName",
+                        text = "Vesper Ledger",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontFamily = SpaceGroteskFamily,
-                            fontSize = 18.sp
+                            fontSize = 20.sp
                         )
                     )
                 },
@@ -150,7 +150,7 @@ fun DashboardScreen(
                 }
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     Text(
-                        text = "$greeting!",
+                        text = "$greeting, $userName!",
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp

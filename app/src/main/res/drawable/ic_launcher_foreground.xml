@@ -3,30 +3,30 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    
-    <!-- Glassmorphic Card Background (Realme UI style) -->
+
+    <!-- Frosted Glass Circle (Realme UI 7.1 styled glassmorphism base) -->
     <path
         android:fillColor="#15FFFFFF"
         android:strokeColor="#35FFFFFF"
         android:strokeWidth="1.5"
-        android:pathData="M 28,28 h 52 a 12,12 0 0 1 12,12 v 52 a 12,12 0 0 1 -12,12 h -52 a 12,12 0 0 1 -12,-12 v -52 a 12,12 0 0 1 12,-12 z" />
+        android:pathData="M 54,54 A 32,32 0 1,0 54,54.01 Z" />
 
-    <!-- Frosted Glass Gradient Accent (Subtle inner glow) -->
+    <!-- Subtle inner glowing accent behind logo -->
     <path
         android:fillColor="#0D10B981"
-        android:pathData="M 36,36 h 36 v 36 h -36 z" />
+        android:pathData="M 54,54 A 20,20 0 1,0 54,54.01 Z" />
 
-    <!-- Geometric Balance Scale Logo (Frosted white contrast) -->
+    <!-- Balance Scale Logo (Matching Splash screen Canvas design exactly) -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="3.5"
+        android:strokeWidth="4"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M 38,44 L 54,68 L 70,44 M 54,68 L 54,78 M 44,78 L 64,78" />
+        android:pathData="M 30,34 L 54,60 L 78,34 M 54,60 L 54,78 M 40,78 L 68,78" />
 
     <!-- Glowing Emerald Balance Pivot Indicator -->
     <path
         android:fillColor="#10B981"
-        android:pathData="M 54,42 A 2.5,2.5 0 1,0 54,37 A 2.5,2.5 0 1,0 54,42" />
+        android:pathData="M 54,34 A 3,3 0 1,0 54,34.01 Z" />
 
 </vector>

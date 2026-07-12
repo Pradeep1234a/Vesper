@@ -1,7 +1,9 @@
 package com.vesper.ledger.ui.navigation
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -17,19 +19,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import kotlinx.coroutines.launch
-
-data class OnboardingPage(
-    val title: String,
-    val description: String,
-    val icon: ImageVector
-)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -38,13 +36,13 @@ fun OnboardingScreen(
 ) {
     val pages = listOf(
         OnboardingPage(
-            title = "Minimalist Wealth Tracking",
+            title = "Minimalist Tracking",
             description = "Track income, expenses, and savings with a shadcn-inspired interface that prioritizes clarity, whitespace, and visual balance.",
             icon = Icons.Outlined.AccountBalanceWallet
         ),
         OnboardingPage(
-            title = "Deep Analytics & Reports",
-            description = "Analyze your spending rhythms and income sources with clean typographic hierarchy and highly responsive charts.",
+            title = "Deep Analytics",
+            description = "Analyze your spending rhythms and income sources with clean typographic hierarchy and highly responsive reports.",
             icon = Icons.Outlined.BarChart
         ),
         OnboardingPage(
@@ -60,105 +58,185 @@ fun OnboardingScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)), // slate-900
-        contentAlignment = Alignment.Center
+            .background(Color(0xFF090D16)) // slate-950 deep dark
     ) {
+        // Premium Geometric Tech Grid Accents in background
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val gridSpacing = 48.dp.toPx()
+            val strokeColor = Color(0x0A94A3B8) // slate-400 with 4% opacity
+            val width = size.width
+            val height = size.height
+
+            // Vertical grid lines
+            var x = 0f
+            while (x < width) {
+                drawLine(
+                    color = strokeColor,
+                    start = Offset(x, 0f),
+                    end = Offset(x, height),
+                    strokeWidth = 1.dp.toPx()
+                )
+                x += gridSpacing
+            }
+
+            // Horizontal grid lines
+            var y = 0f
+            while (y < height) {
+                drawLine(
+                    color = strokeColor,
+                    start = Offset(0f, y),
+                    end = Offset(width, y),
+                    strokeWidth = 1.dp.toPx()
+                )
+                y += gridSpacing
+            }
+        }
+
+        // Main Layout Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = 24.dp)
+                .systemBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Skip button at top right
+            // Header Bar
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Text(
+                    text = "VESPER",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    letterSpacing = 3.sp
+                )
                 TextButton(onClick = onNavigateNext) {
-                    Text("Skip", color = Color(0xFF94A3B8)) // slate-400
+                    Text(
+                        text = "Skip",
+                        color = Color(0xFF64748B), // slate-500
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp
+                    )
                 }
             }
 
-            // Pager Carousel
-            HorizontalPager(
-                state = pagerState,
+            // Shadcn Card containing Pager Carousel
+            Card(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-            ) { page ->
-                val onboardingPage = pages[page]
+                    .padding(vertical = 24.dp)
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFF1E293B), // slate-800 border
+                        shape = RoundedCornerShape(24.dp)
+                    ),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0x2B0F172A) // slate-900 transparent fill
+                )
+            ) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp)
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    // Glassmorphic Icon backdrop container
-                    Box(
+                    HorizontalPager(
+                        state = pagerState,
                         modifier = Modifier
-                            .size(100.dp)
-                            .background(
-                                color = Color(0x15FFFFFF),
-                                shape = RoundedCornerShape(24.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = onboardingPage.icon,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(48.dp)
-                        )
+                            .weight(1f)
+                            .fillMaxWidth()
+                      ) { page ->
+                        val onboardingPage = pages[page]
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            // Frosted glassmorphic icon base container
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .background(
+                                        color = Color(0x0FFFFFFF), // White 6%
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color(0x1AFFFFFF), // White 10%
+                                        shape = RoundedCornerShape(20.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = onboardingPage.icon,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(32.dp))
+
+                            Text(
+                                text = onboardingPage.title,
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Text(
+                                text = onboardingPage.description,
+                                fontSize = 14.sp,
+                                color = Color(0xFF94A3B8), // slate-400
+                                textAlign = TextAlign.Center,
+                                lineHeight = 20.sp
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    Text(
-                        text = onboardingPage.title,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = onboardingPage.description,
-                        fontSize = 15.sp,
-                        color = Color(0xFF94A3B8), // slate-400
-                        textAlign = TextAlign.Center,
-                        lineHeight = 22.sp
-                    )
+                    // Dot indicators inside the card
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        repeat(pages.size) { index ->
+                            val isSelected = pagerState.currentPage == index
+                            Box(
+                                modifier = Modifier
+                                    .height(4.dp)
+                                    .width(if (isSelected) 18.dp else 4.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) Color.White else Color(0xFF334155))
+                            )
+                        }
+                    }
                 }
             }
 
-            // Bottom Indicators and CTA
+            // Bottom CTA section
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 24.dp)
             ) {
-                // Page Indicator Dots
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    repeat(pages.size) { index ->
-                        val isSelected = pagerState.currentPage == index
-                        Box(
-                            modifier = Modifier
-                                .height(6.dp)
-                                .width(if (isSelected) 24.dp else 6.dp)
-                                .clip(CircleShape)
-                                .background(if (isSelected) Color(0xFF10B981) else Color(0xFF475569)) // Emerald vs Slate-600
-                        )
-                    }
-                }
-
-                // CTA Button
                 Button(
                     onClick = {
                         if (pagerState.currentPage < pages.size - 1) {
@@ -174,14 +252,15 @@ fun OnboardingScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF10B981) // Emerald accent CTA
+                        containerColor = Color.White, // Shadcn premium contrast white button
+                        contentColor = Color(0xFF0F172A)
                     )
                 ) {
                     Text(
                         text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Next",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

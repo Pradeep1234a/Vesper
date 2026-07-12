@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Premium dark Slate background representing depth -->
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M 0,0 h 108 v 108 h -108 z" />
+        
+</vector>
