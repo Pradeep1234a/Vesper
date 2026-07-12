@@ -8,7 +8,7 @@ plugins {
 val versionPropsFile = rootProject.file("version.properties")
 val versionProps = java.util.Properties().apply {
     if (versionPropsFile.exists()) {
-        versionPropsFile.inputStream().use { versionProps.load(it) }
+        versionPropsFile.inputStream().use { this@apply.load(it) }
     }
 }
 val appVersionCode = versionProps.getProperty("VERSION_CODE", "1").trim().toInt()
