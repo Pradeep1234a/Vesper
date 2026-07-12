@@ -27,6 +27,10 @@ class AddTransactionViewModel(
     val categoryId = MutableStateFlow<Long?>(null)
     val dateEpochMillis = MutableStateFlow(System.currentTimeMillis())
     val note = MutableStateFlow("")
+    val accountName = MutableStateFlow("Cash Wallet")
+    val paymentMethod = MutableStateFlow("Cash")
+    val recurringPattern = MutableStateFlow("One Time")
+    val location = MutableStateFlow("")
 
     var isEditMode by mutableStateOf(false)
         private set
@@ -40,9 +44,10 @@ class AddTransactionViewModel(
         categories,
         type
     ) { allCats, selectedType ->
-        val filtered = allCats.filter { it.type == selectedType }
+        val targetType = if (selectedType == TransactionType.TRANSFER) TransactionType.EXPENSE else selectedType
+        val filtered = allCats.filter { it.type == targetType }
         val currentCat = allCats.find { it.id == categoryId.value }
-        if (currentCat == null || currentCat.type != selectedType) {
+        if (currentCat == null || (selectedType != TransactionType.TRANSFER && currentCat.type != selectedType)) {
             categoryId.value = filtered.firstOrNull()?.id
         }
         filtered
@@ -61,6 +66,10 @@ class AddTransactionViewModel(
                     categoryId.value = tx.categoryId
                     dateEpochMillis.value = tx.dateEpochMillis
                     note.value = tx.note
+                    accountName.value = tx.accountName
+                    paymentMethod.value = tx.paymentMethod
+                    recurringPattern.value = tx.recurringPattern
+                    location.value = tx.location
                 }
             }
         } else {
@@ -74,6 +83,10 @@ class AddTransactionViewModel(
             categoryId.value = null
             dateEpochMillis.value = System.currentTimeMillis()
             note.value = ""
+            accountName.value = "Cash Wallet"
+            paymentMethod.value = "Cash"
+            recurringPattern.value = "One Time"
+            location.value = ""
         }
     }
 
@@ -92,7 +105,11 @@ class AddTransactionViewModel(
                     type = type.value,
                     categoryId = catId,
                     dateEpochMillis = dateEpochMillis.value,
-                    note = note.value
+                    note = note.value,
+                    accountName = accountName.value,
+                    paymentMethod = paymentMethod.value,
+                    recurringPattern = recurringPattern.value,
+                    location = location.value
                 )
                 transactionRepository.updateTransaction(transaction)
             } else {
@@ -102,7 +119,11 @@ class AddTransactionViewModel(
                     type = type.value,
                     categoryId = catId,
                     dateEpochMillis = dateEpochMillis.value,
-                    note = note.value
+                    note = note.value,
+                    accountName = accountName.value,
+                    paymentMethod = paymentMethod.value,
+                    recurringPattern = recurringPattern.value,
+                    location = location.value
                 )
                 transactionRepository.insertTransaction(transaction)
             }

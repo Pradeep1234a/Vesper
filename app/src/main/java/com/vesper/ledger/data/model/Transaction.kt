@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 enum class TransactionType {
-    INCOME, EXPENSE
+    INCOME, EXPENSE, TRANSFER
 }
 
 @Entity(tableName = "transactions")
@@ -15,5 +15,9 @@ data class Transaction(
     val type: TransactionType,
     val categoryId: Long,
     val dateEpochMillis: Long,
-    val note: String = ""
+    val note: String = "",
+    val accountName: String = "Cash Wallet",
+    val paymentMethod: String = "Cash",
+    val recurringPattern: String = "One Time",
+    val location: String = ""
 )
