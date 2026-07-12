@@ -65,7 +65,7 @@ fun OnboardingScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF09090B)) // Zinc-950 (Shadcn Dark background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -88,13 +88,13 @@ fun OnboardingScreen(
                     fontFamily = SpaceGroteskFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFAFAFA), // Zinc-50
+                    color = MaterialTheme.colorScheme.onBackground,
                     letterSpacing = 3.sp
                 )
                 TextButton(onClick = onNavigateNext) {
                     Text(
                         text = "Skip",
-                        color = Color(0xFFA1A1AA), // Zinc-400
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium,
                         fontSize = 14.sp
                     )
@@ -109,12 +109,12 @@ fun OnboardingScreen(
                     .padding(vertical = 24.dp)
                     .border(
                         width = 1.dp,
-                        color = Color(0xFF27272A), // Zinc-800 border
-                        shape = RoundedCornerShape(8.dp) // Strict 8dp corner radius
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(8.dp)
                     ),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF09090B) // Zinc-950 content fill
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             ) {
                 Column(
@@ -138,7 +138,7 @@ fun OnboardingScreen(
                                 .fillMaxSize()
                                 .padding(horizontal = 8.dp)
                         ) {
-                            // Dynamic native UI visual anchors explaining the feature
+                            // Dynamic visual anchors explaining features
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -159,7 +159,7 @@ fun OnboardingScreen(
                                 fontFamily = SpaceGroteskFamily,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFFAFAFA), // Zinc-50
+                                color = MaterialTheme.colorScheme.onBackground,
                                 textAlign = TextAlign.Center
                             )
 
@@ -168,7 +168,7 @@ fun OnboardingScreen(
                             Text(
                                 text = onboardingPage.description,
                                 fontSize = 14.sp,
-                                color = Color(0xFFA1A1AA), // Zinc-400
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 lineHeight = 20.sp
                             )
@@ -188,7 +188,10 @@ fun OnboardingScreen(
                                     .height(4.dp)
                                     .width(if (isSelected) 16.dp else 4.dp)
                                     .clip(CircleShape)
-                                    .background(if (isSelected) Color(0xFFFAFAFA) else Color(0xFF27272A))
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.onBackground 
+                                        else MaterialTheme.colorScheme.outline
+                                    )
                             )
                         }
                     }
@@ -217,13 +220,13 @@ fun OnboardingScreen(
                         .height(48.dp)
                         .border(
                             width = 1.dp,
-                            color = Color(0xFF27272A),
+                            color = MaterialTheme.colorScheme.outline,
                             shape = RoundedCornerShape(8.dp)
                         ),
-                    shape = RoundedCornerShape(8.dp), // Strict 8dp corner radius
+                    shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFAFAFA), // Solid white background
-                        contentColor = Color(0xFF09090B) // Pure black text
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text(
@@ -240,6 +243,11 @@ fun OnboardingScreen(
 
 @Composable
 fun TrackingVisual() {
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val onBgColor = MaterialTheme.colorScheme.onBackground
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Column(
         modifier = Modifier
             .fillMaxWidth(0.9f)
@@ -250,8 +258,8 @@ fun TrackingVisual() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
-                .background(Color(0xFF09090B), RoundedCornerShape(8.dp))
+                .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
                 .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -260,32 +268,32 @@ fun TrackingVisual() {
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
-                        .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp)),
+                        .background(surfaceColor, RoundedCornerShape(8.dp))
+                        .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.TrendingDown,
                         contentDescription = null,
-                        tint = Color(0xFFFAFAFA),
+                        tint = onBgColor,
                         modifier = Modifier.size(16.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
-                    Text("Grocery Store", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Food & Dining", fontSize = 10.sp, color = Color(0xFFA1A1AA))
+                    Text("Grocery Store", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                    Text("Food & Dining", fontSize = 10.sp, color = secTextColor)
                 }
             }
-            Text("-$42.50", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("-$42.50", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
         }
 
         // Card 2 (Income)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
-                .background(Color(0xFF09090B), RoundedCornerShape(8.dp))
+                .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
                 .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -294,30 +302,35 @@ fun TrackingVisual() {
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
-                        .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp)),
+                        .background(surfaceColor, RoundedCornerShape(8.dp))
+                        .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.TrendingUp,
                         contentDescription = null,
-                        tint = Color(0xFFFAFAFA),
+                        tint = onBgColor,
                         modifier = Modifier.size(16.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
-                    Text("Freelance Client", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Salary", fontSize = 10.sp, color = Color(0xFFA1A1AA))
+                    Text("Freelance Client", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                    Text("Salary", fontSize = 10.sp, color = secTextColor)
                 }
             }
-            Text("+$450.00", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("+$450.00", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
         }
     }
 }
 
 @Composable
 fun RetrievalVisual() {
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val onBgColor = MaterialTheme.colorScheme.onBackground
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Column(
         modifier = Modifier
             .fillMaxWidth(0.9f)
@@ -330,19 +343,19 @@ fun RetrievalVisual() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(38.dp)
-                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
-                .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
+                .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
+                .background(surfaceColor, RoundedCornerShape(8.dp))
                 .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = null,
-                tint = Color(0xFF71717A),
+                tint = secTextColor,
                 modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Search transactions...", fontSize = 11.sp, color = Color(0xFF71717A))
+            Text("Search transactions...", fontSize = 11.sp, color = secTextColor)
         }
 
         // Mini Filter Chips
@@ -357,22 +370,23 @@ fun RetrievalVisual() {
                         .weight(1f)
                         .height(30.dp)
                         .background(
-                            color = if (isActive) Color.White else Color(0xFF09090B),
+                            color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .border(
                             width = 1.dp,
-                            color = if (isActive) Color.White else Color(0xFF27272A),
+                            color = if (isActive) MaterialTheme.colorScheme.primary else outlineColor,
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .padding(horizontal = 4.dp),
+                        .padding(horizontal = 4.dp)
+                        .clip(RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = label,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (isActive) Color(0xFF09090B) else Color(0xFFA1A1AA)
+                        color = if (isActive) MaterialTheme.colorScheme.onPrimary else secTextColor
                     )
                 }
             }
@@ -382,12 +396,17 @@ fun RetrievalVisual() {
 
 @Composable
 fun HistoryVisual() {
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val onBgColor = MaterialTheme.colorScheme.onBackground
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Column(
         modifier = Modifier
             .fillMaxWidth(0.9f)
             .height(105.dp)
-            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
-            .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
+            .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
+            .background(surfaceColor, RoundedCornerShape(8.dp))
             .padding(12.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -399,38 +418,34 @@ fun HistoryVisual() {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Bottom
         ) {
-            // Mini Bar Chart comparing Income, Expense, Savings
-            // Bar 1: Income (taller, outline)
+            // Mini Bar Chart
             Box(
                 modifier = Modifier
                     .width(20.dp)
                     .fillMaxHeight(0.85f)
-                    .border(1.5.dp, Color.White, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                    .border(1.5.dp, onBgColor, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
             )
-            // Bar 2: Expense (filled)
             Box(
                 modifier = Modifier
                     .width(20.dp)
                     .fillMaxHeight(0.55f)
-                    .background(Color.White, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                    .background(onBgColor, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
             )
-            // Bar 3: Savings (outlined)
             Box(
                 modifier = Modifier
                     .width(20.dp)
                     .fillMaxHeight(0.35f)
-                    .border(1.5.dp, Color(0xFFA1A1AA), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                    .border(1.5.dp, secTextColor, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
-        // Timeline Axis Labels
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text("Income", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            Text("Expense", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            Text("Savings", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
+            Text("Income", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+            Text("Expense", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+            Text("Savings", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = secTextColor)
         }
     }
 }

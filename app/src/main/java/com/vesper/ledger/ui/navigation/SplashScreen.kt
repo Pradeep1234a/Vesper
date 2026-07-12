@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,7 +30,6 @@ fun SplashScreen(
     val alpha = remember { Animatable(0f) }
 
     LaunchedEffect(key1 = true) {
-        // Animate scale and fade in
         scale.animateTo(
             targetValue = 1f,
             animationSpec = tween(durationMillis = 1000)
@@ -40,10 +38,8 @@ fun SplashScreen(
             targetValue = 1f,
             animationSpec = tween(durationMillis = 1000)
         )
-        // Keep splash showing for another 1 second
         delay(1000)
         
-        // Navigate to the next screen based on setup preference
         if (isFirstLaunch) {
             onNavigateNext("onboarding")
         } else {
@@ -51,10 +47,12 @@ fun SplashScreen(
         }
     }
 
+    val onBgColor = MaterialTheme.colorScheme.onBackground
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF09090B)), // zinc-950
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -64,7 +62,6 @@ fun SplashScreen(
                 .scale(scale.value)
                 .alpha(alpha.value)
         ) {
-            // High fidelity custom Canvas drawing of the Vesper Ledger scale logo
             Canvas(
                 modifier = Modifier
                     .size(120.dp)
@@ -73,24 +70,22 @@ fun SplashScreen(
                 val width = size.width
                 val height = size.height
 
-                // Monochromatic frosted background circle
+                // Monochromatic background circle based on theme
                 drawCircle(
-                    color = Color(0x0FFFFFFF), // White with 6% opacity
+                    color = onBgColor.copy(alpha = 0.06f),
                     radius = width / 2f
                 )
 
                 // 1. Balance post and base
-                // Vertical support post: center to bottom base
                 drawLine(
-                    color = Color.White,
+                    color = onBgColor,
                     start = Offset(width / 2f, height * 0.65f),
                     end = Offset(width / 2f, height * 0.85f),
                     strokeWidth = 5.dp.toPx(),
                     cap = StrokeCap.Round
                 )
-                // Bottom horizontal base bar
                 drawLine(
-                    color = Color.White,
+                    color = onBgColor,
                     start = Offset(width * 0.35f, height * 0.85f),
                     end = Offset(width * 0.65f, height * 0.85f),
                     strokeWidth = 5.dp.toPx(),
@@ -99,14 +94,14 @@ fun SplashScreen(
 
                 // 2. V-shaped balance beam
                 drawLine(
-                    color = Color.White,
+                    color = onBgColor,
                     start = Offset(width * 0.25f, height * 0.35f),
                     end = Offset(width / 2f, height * 0.65f),
                     strokeWidth = 5.dp.toPx(),
                     cap = StrokeCap.Round
                 )
                 drawLine(
-                    color = Color.White,
+                    color = onBgColor,
                     start = Offset(width / 2f, height * 0.65f),
                     end = Offset(width * 0.75f, height * 0.35f),
                     strokeWidth = 5.dp.toPx(),
@@ -115,7 +110,7 @@ fun SplashScreen(
 
                 // 3. Monochromatic Pivot indicator
                 drawCircle(
-                    color = Color.White,
+                    color = onBgColor,
                     radius = 6.dp.toPx(),
                     center = Offset(width / 2f, height * 0.35f)
                 )
@@ -127,7 +122,7 @@ fun SplashScreen(
                 text = "VESPER",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 letterSpacing = 4.sp
             )
 
@@ -137,7 +132,7 @@ fun SplashScreen(
                 text = "LEDGER",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF94A3B8), // slate-400
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 8.sp
             )
         }

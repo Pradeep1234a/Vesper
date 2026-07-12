@@ -36,7 +36,7 @@ fun PersonalizationScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF09090B)) // Zinc-950 (Shadcn Dark background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -58,7 +58,7 @@ fun PersonalizationScreen(
                     fontFamily = SpaceGroteskFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFAFAFA), // Zinc-50
+                    color = MaterialTheme.colorScheme.onBackground,
                     letterSpacing = 3.sp
                 )
             }
@@ -71,12 +71,12 @@ fun PersonalizationScreen(
                     .padding(vertical = 16.dp)
                     .border(
                         width = 1.dp,
-                        color = Color(0xFF27272A), // Zinc-800 border
-                        shape = RoundedCornerShape(8.dp) // Strict 8dp corner radius
+                        color = MaterialTheme.colorScheme.outline, // Outline border
+                        shape = RoundedCornerShape(8.dp)
                     ),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF09090B) // Zinc-950 content fill
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             ) {
                 Column(
@@ -96,13 +96,13 @@ fun PersonalizationScreen(
                             fontFamily = SpaceGroteskFamily,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFAFAFA), // Zinc-50
+                            color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Center
                         )
                         Text(
                             text = "Configure your parameters below. All data resides offline on local sqlite database.",
                             fontSize = 13.sp,
-                            color = Color(0xFFA1A1AA), // Zinc-400
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                             lineHeight = 18.sp
                         )
@@ -120,22 +120,22 @@ fun PersonalizationScreen(
                                 fontSize = 12.sp,
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFE4E4E7) // Zinc-200
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             OutlinedTextField(
                                 value = nameInput,
                                 onValueChange = { nameInput = it },
-                                placeholder = { Text("e.g. Keshav", color = Color(0xFF71717A)) },
+                                placeholder = { Text("e.g. Keshav", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp), // Strict 8dp
+                                shape = RoundedCornerShape(8.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
-                                    focusedBorderColor = Color(0xFFFAFAFA), // Zinc-50 focus highlight
-                                    unfocusedBorderColor = Color(0xFF27272A), // Zinc-800
-                                    focusedContainerColor = Color(0xFF09090B),
-                                    unfocusedContainerColor = Color(0xFF09090B)
+                                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary, // focus accent highlight
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                    focusedContainerColor = MaterialTheme.colorScheme.background,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.background
                                 )
                             )
                         }
@@ -147,7 +147,7 @@ fun PersonalizationScreen(
                                 fontSize = 12.sp,
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFE4E4E7)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -160,12 +160,12 @@ fun PersonalizationScreen(
                                             .weight(1f)
                                             .height(44.dp)
                                             .background(
-                                                color = if (isSelected) Color(0xFFFAFAFA) else Color(0xFF09090B),
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .border(
                                                 width = 1.dp,
-                                                color = if (isSelected) Color(0xFFFAFAFA) else Color(0xFF27272A),
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .clickable { selectedCurrency = symbol },
@@ -175,7 +175,7 @@ fun PersonalizationScreen(
                                             text = symbol,
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) Color(0xFF09090B) else Color(0xFFA1A1AA)
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
@@ -189,7 +189,7 @@ fun PersonalizationScreen(
                                 fontSize = 12.sp,
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFE4E4E7)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -202,12 +202,12 @@ fun PersonalizationScreen(
                                             .weight(1f)
                                             .height(44.dp)
                                             .background(
-                                                color = if (isSelected) Color(0xFFFAFAFA) else Color(0xFF09090B),
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .border(
                                                 width = 1.dp,
-                                                color = if (isSelected) Color(0xFFFAFAFA) else Color(0xFF27272A),
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .clickable { selectedTheme = theme },
@@ -217,7 +217,7 @@ fun PersonalizationScreen(
                                             text = theme,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = if (isSelected) Color(0xFF09090B) else Color(0xFFA1A1AA)
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
@@ -252,13 +252,13 @@ fun PersonalizationScreen(
                         .height(48.dp)
                         .border(
                             width = 1.dp,
-                            color = Color(0xFF27272A),
+                            color = MaterialTheme.colorScheme.outline,
                             shape = RoundedCornerShape(8.dp)
                         ),
-                    shape = RoundedCornerShape(8.dp), // Strict 8dp corner radius
+                    shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFAFAFA), // Solid white background
-                        contentColor = Color(0xFF09090B) // Pure black text
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text(
