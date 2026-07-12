@@ -1,6 +1,14 @@
 package com.vesper.ledger.ui.addtransaction
 
-import android.app.DatePickerDialog
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimeInput
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -26,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,7 +58,6 @@ fun AddTransactionScreen(
     currencySymbol: String,
     onBackClick: () -> Unit
 ) {
-    val title by viewModel.title.collectAsState()
     val amount by viewModel.amount.collectAsState()
     val type by viewModel.type.collectAsState()
     val categoryId by viewModel.categoryId.collectAsState()
@@ -67,7 +73,6 @@ fun AddTransactionScreen(
     val selectedCategory = categories.find { it.id == categoryId }
     val catColor = com.vesper.ledger.ui.components.safeParseColor(selectedCategory?.colorHex, MaterialTheme.colorScheme.primary)
 
-    val context = LocalContext.current
     val sdfDate = remember { SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault()) }
     val sdfTime = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
 
@@ -93,6 +98,7 @@ fun AddTransactionScreen(
     var showAccountPicker by remember { mutableStateOf(false) }
     var showPaymentPicker by remember { mutableStateOf(false) }
     var showRepeatPicker by remember { mutableStateOf(false) }
+    var showAdditionalDetails by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -166,68 +172,82 @@ fun AddTransactionScreen(
 
                 // ── Amount Hero Card ──
                 ShCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showCalculator = true },
+                    modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(20.dp)
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.Start
                     ) {
-                        // Left: Category Icon
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(catColor.copy(alpha = 0.1f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = getIconByName(selectedCategory?.iconName ?: "help"),
-                                contentDescription = selectedCategory?.name,
-                                tint = catColor,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        Text(
+                            text = "Amount",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
 
-                        // Center: Large Amount Display
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(
-                                text = if (amount.isBlank()) "${currencySymbol}0.00" else "$currencySymbol$amount",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 48.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Tap to enter amount",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = currencySymbol,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 36.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.padding(end = 4.dp)
+                                )
 
-                        // Right: Selected Currency Symbol
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(8.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = currencySymbol,
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
+                                BasicTextField(
+                                    value = amount,
+                                    onValueChange = {
+                                        if (it.length <= 15) {
+                                            viewModel.amount.value = it
+                                        }
+                                    },
+                                    textStyle = LocalTextStyle.current.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    ),
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Decimal
+                                    ),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    decorationBox = { innerTextField ->
+                                        if (amount.isEmpty()) {
+                                            Text(
+                                                text = "0.00",
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontSize = 36.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                )
+                            }
+
+                            IconButton(
+                                onClick = { showCalculator = true },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Calculate,
+                                    contentDescription = "Calculator",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -288,7 +308,7 @@ fun AddTransactionScreen(
                 // ── Unified Form Section Card ──
                 ShCard(
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(0.dp) // separator lines to edges
+                    contentPadding = PaddingValues(0.dp)
                 ) {
                     // Row 1: Date & Time
                     FormRow(
@@ -315,139 +335,169 @@ fun AddTransactionScreen(
                         value = paymentMethod,
                         onClick = { showPaymentPicker = true }
                     )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                }
 
-                    // Row 4: Repeat Option
-                    FormRow(
-                        icon = Icons.Outlined.Repeat,
-                        label = "Repeat Transaction",
-                        value = recurringPattern,
-                        onClick = { showRepeatPicker = true }
+                // ── Additional Details Toggle Header ──
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showAdditionalDetails = !showAdditionalDetails }
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Additional Details",
+                        fontSize = 14.sp,
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    Icon(
+                        imageVector = if (showAdditionalDetails) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                        contentDescription = "Toggle Additional Details",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-                    // Row 5: Notes Field (Inlined text area)
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                if (showAdditionalDetails) {
+                    ShCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Notes,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = "Notes",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        BasicTextField(
-                            value = note,
-                            onValueChange = { if (it.length <= 300) viewModel.note.value = it },
+                        // Repeat Option
+                        FormRow(
+                            icon = Icons.Outlined.Repeat,
+                            label = "Repeat Transaction",
+                            value = recurringPattern,
+                            onClick = { showRepeatPicker = true }
+                        )
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                        // Notes Field
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onBackground
-                            ),
-                            decorationBox = { innerTextField ->
-                                if (note.isEmpty()) {
-                                    Text(
-                                        text = "Add notes about this transaction...",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                        )
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        )
-                        if (note.isNotEmpty()) {
-                            Text(
-                                text = "${note.length}/300",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.align(Alignment.End)
-                            )
-                        }
-                    }
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-                    // Row 6: Location Field
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Place,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = "Location / Merchant",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        BasicTextField(
-                            value = location,
-                            onValueChange = { viewModel.location.value = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onBackground
-                            ),
-                            decorationBox = { innerTextField ->
-                                if (location.isEmpty()) {
-                                    Text(
-                                        text = "Add merchant or location",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                        )
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        )
-                        
-                        // Suggestion list
-                        if (location.isEmpty()) {
                             Row(
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.padding(top = 4.dp)
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                listOf("Starbucks", "Amazon", "Netflix", "Uber").forEach { sug ->
-                                    Box(
-                                        modifier = Modifier
-                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
-                                            .clickable { viewModel.location.value = sug }
-                                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                                    ) {
-                                        Text(sug, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Icon(
+                                    imageVector = Icons.Outlined.Notes,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "Notes",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            BasicTextField(
+                                value = note,
+                                onValueChange = { if (it.length <= 300) viewModel.note.value = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onBackground
+                                ),
+                                decorationBox = { innerTextField ->
+                                    if (note.isEmpty()) {
+                                        Text(
+                                            text = "Add notes about this transaction...",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                            )
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            )
+                            if (note.isNotEmpty()) {
+                                Text(
+                                    text = "${note.length}/300",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.align(Alignment.End)
+                                )
+                            }
+                        }
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                        // Location Field
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Place,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "Location / Merchant",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            BasicTextField(
+                                value = location,
+                                onValueChange = { viewModel.location.value = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onBackground
+                                ),
+                                decorationBox = { innerTextField ->
+                                    if (location.isEmpty()) {
+                                        Text(
+                                            text = "Add merchant or location",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                            )
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            )
+
+                            if (location.isEmpty()) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(top = 4.dp)
+                                ) {
+                                    listOf("Starbucks", "Amazon", "Netflix", "Uber").forEach { sug ->
+                                        Box(
+                                            modifier = Modifier
+                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                                                .clickable { viewModel.location.value = sug }
+                                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(sug, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
             // ── Sticky Save Button ──
@@ -472,11 +522,11 @@ fun AddTransactionScreen(
                             onBackClick()
                         }
                     },
-                    enabled = amount.isNotBlank() && amount.toDoubleOrNull() ?: 0.0 > 0.0,
+                    enabled = amount.isNotBlank() && (amount.replace(",", ".").toDoubleOrNull() ?: 0.0) > 0.0,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.onBackground,
                         contentColor = MaterialTheme.colorScheme.background,
@@ -700,26 +750,12 @@ fun AddTransactionScreen(
 
     // ── Date & Time Picker Bottom Sheet ──
     if (showDatePicker) {
-        var autoTimeToggle by remember { mutableStateOf(true) }
-        var hourInput by remember { mutableStateOf(Calendar.getInstance().get(Calendar.HOUR).toString()) }
-        var minInput by remember { mutableStateOf(Calendar.getInstance().get(Calendar.MINUTE).toString()) }
-        var isPm by remember { mutableStateOf(Calendar.getInstance().get(Calendar.AM_PM) == Calendar.PM) }
+        var isCustomDateTime by remember { mutableStateOf(false) }
+        var showM3DatePicker by remember { mutableStateOf(false) }
+        var showM3TimePicker by remember { mutableStateOf(false) }
 
         val calendar = remember(dateEpochMillis) {
             Calendar.getInstance().apply { timeInMillis = dateEpochMillis }
-        }
-        val datePickerDialog = remember {
-            DatePickerDialog(
-                context,
-                { _, year, month, day ->
-                    val newCal = Calendar.getInstance().apply { timeInMillis = dateEpochMillis }
-                    newCal.set(year, month, day)
-                    viewModel.dateEpochMillis.value = newCal.timeInMillis
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            )
         }
 
         ModalBottomSheet(
@@ -733,167 +769,232 @@ fun AddTransactionScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Select Date & Time",
+                    text = "Date & Time Source",
                     fontFamily = SpaceGroteskFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
-                // Quick actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                            .clickable {
-                                val newCal = Calendar.getInstance()
-                                viewModel.dateEpochMillis.value = newCal.timeInMillis
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Today", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                            .clickable {
-                                val newCal = Calendar.getInstance().apply { add(Calendar.DATE, -1) }
-                                viewModel.dateEpochMillis.value = newCal.timeInMillis
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Yesterday", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                // Native Calendar Trigger Row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-                        .clickable { datePickerDialog.show() }
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Select Custom Date", fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground)
-                    Icon(Icons.Outlined.CalendarToday, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-
-                // Time picker options
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Auto Update Current Time", fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground)
-                    Switch(
-                        checked = autoTimeToggle,
-                        onCheckedChange = { autoTimeToggle = it }
-                    )
-                }
-
-                // Manual Time Pickers
-                if (!autoTimeToggle) {
+                // Radio options: Current Time vs Custom Date & Time
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isCustomDateTime = false }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        OutlinedTextField(
-                            value = hourInput,
-                            onValueChange = { if (it.isEmpty() || (it.toIntOrNull() in 1..12)) hourInput = it },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.width(60.dp),
-                            textStyle = TextStyle(textAlign = TextAlign.Center),
-                            singleLine = true
+                        RadioButton(
+                            selected = !isCustomDateTime,
+                            onClick = { isCustomDateTime = false }
                         )
-                        Text(":", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        OutlinedTextField(
-                            value = minInput,
-                            onValueChange = { if (it.isEmpty() || (it.toIntOrNull() in 0..59)) minInput = it },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.width(60.dp),
-                            textStyle = TextStyle(textAlign = TextAlign.Center),
-                            singleLine = true
+                        Column {
+                            Text("Current Time", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Uses system current time when saving", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isCustomDateTime = true }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        RadioButton(
+                            selected = isCustomDateTime,
+                            onClick = { isCustomDateTime = true }
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        // AM/PM Buttons
-                        Row(
-                            modifier = Modifier
-                                .height(44.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(44.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (!isPm) MaterialTheme.colorScheme.surface else Color.Transparent)
-                                    .clickable { isPm = false }
-                                    .then(if (!isPm) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)) else Modifier),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("AM", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(44.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isPm) MaterialTheme.colorScheme.surface else Color.Transparent)
-                                    .clickable { isPm = true }
-                                    .then(if (isPm) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)) else Modifier),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("PM", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
+                        Column {
+                            Text("Custom Date & Time", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Specify date and time manually", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
+
+                if (isCustomDateTime) {
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                    Text("Presets", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val now = System.currentTimeMillis()
+                        val isToday = isSameDay(dateEpochMillis, now)
+                        val isYesterday = isSameDay(dateEpochMillis, now - 86400000L)
+
+                        PresetChip(
+                            label = "Today",
+                            isSelected = isToday,
+                            onClick = {
+                                val c = Calendar.getInstance()
+                                c.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY))
+                                c.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE))
+                                viewModel.dateEpochMillis.value = c.timeInMillis
+                            }
+                        )
+
+                        PresetChip(
+                            label = "Yesterday",
+                            isSelected = isYesterday,
+                            onClick = {
+                                val c = Calendar.getInstance().apply { add(Calendar.DATE, -1) }
+                                c.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY))
+                                c.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE))
+                                viewModel.dateEpochMillis.value = c.timeInMillis
+                            }
+                        )
+                    }
+
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                    // Date & Time Fields
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Date Select Field
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(52.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                                .clickable { showM3DatePicker = true }
+                                .padding(horizontal = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(dateEpochMillis)),
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Icon(Icons.Outlined.CalendarToday, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                        }
+
+                        // Time Select Field
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(52.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                                .clickable { showM3TimePicker = true }
+                                .padding(horizontal = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(dateEpochMillis)),
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Icon(Icons.Outlined.AccessTime, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Apply Button
                 Button(
                     onClick = {
-                        val newCal = Calendar.getInstance().apply { timeInMillis = dateEpochMillis }
-                        if (autoTimeToggle) {
-                            val now = Calendar.getInstance()
-                            newCal.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY))
-                            newCal.set(Calendar.MINUTE, now.get(Calendar.MINUTE))
-                        } else {
-                            val h = hourInput.toIntOrNull() ?: 12
-                            val m = minInput.toIntOrNull() ?: 0
-                            val actualHour = if (isPm) {
-                                if (h == 12) 12 else h + 12
-                            } else {
-                                if (h == 12) 0 else h
-                            }
-                            newCal.set(Calendar.HOUR_OF_DAY, actualHour)
-                            newCal.set(Calendar.MINUTE, m)
+                        if (!isCustomDateTime) {
+                            viewModel.dateEpochMillis.value = System.currentTimeMillis()
                         }
-                        viewModel.dateEpochMillis.value = newCal.timeInMillis
                         showDatePicker = false
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(26.dp)
                 ) {
                     Text("Apply Date & Time", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
                 }
             }
+        }
+
+        // Native Material 3 Date Picker Dialog
+        if (showM3DatePicker) {
+            val datePickerState = rememberDatePickerState(initialSelectedDateMillis = dateEpochMillis)
+            DatePickerDialog(
+                onDismissRequest = { showM3DatePicker = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val selectedDate = datePickerState.selectedDateMillis
+                            if (selectedDate != null) {
+                                val cSelected = Calendar.getInstance().apply { timeInMillis = selectedDate }
+                                val cCurrent = Calendar.getInstance().apply { timeInMillis = dateEpochMillis }
+                                cCurrent.set(cSelected.get(Calendar.YEAR), cSelected.get(Calendar.MONTH), cSelected.get(Calendar.DAY_OF_MONTH))
+                                viewModel.dateEpochMillis.value = cCurrent.timeInMillis
+                            }
+                            showM3DatePicker = false
+                        }
+                    ) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showM3DatePicker = false }) {
+                        Text("Cancel")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
+
+        // Native Material 3 Time Picker Dialog
+        if (showM3TimePicker) {
+            val timePickerState = rememberTimePickerState(
+                initialHour = calendar.get(Calendar.HOUR_OF_DAY),
+                initialMinute = calendar.get(Calendar.MINUTE),
+                is24Hour = false
+            )
+            var keyboardMode by remember { mutableStateOf(false) }
+
+            AlertDialog(
+                onDismissRequest = { showM3TimePicker = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val cCurrent = Calendar.getInstance().apply { timeInMillis = dateEpochMillis }
+                            cCurrent.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                            cCurrent.set(Calendar.MINUTE, timePickerState.minute)
+                            viewModel.dateEpochMillis.value = cCurrent.timeInMillis
+                            showM3TimePicker = false
+                        }
+                    ) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { keyboardMode = !keyboardMode }) {
+                            Icon(
+                                imageVector = if (keyboardMode) Icons.Outlined.AccessTime else Icons.Outlined.Keyboard,
+                                contentDescription = "Toggle Input Mode"
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(onClick = { showM3TimePicker = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                },
+                text = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        if (keyboardMode) {
+                            TimeInput(state = timePickerState)
+                        } else {
+                            TimePicker(state = timePickerState)
+                        }
+                    }
+                }
+            )
         }
     }
 
@@ -1216,5 +1317,42 @@ fun evaluateExpression(expr: String): Double {
         return result
     } catch (e: Exception) {
         return 0.0
+    }
+}
+
+fun isSameDay(t1: Long, t2: Long): Boolean {
+    val c1 = Calendar.getInstance().apply { timeInMillis = t1 }
+    val c2 = Calendar.getInstance().apply { timeInMillis = t2 }
+    return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) &&
+           c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
+}
+
+@Composable
+fun PresetChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+    val borderStroke = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    val fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+
+    Box(
+        modifier = Modifier
+            .height(36.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(containerColor)
+            .border(borderStroke, RoundedCornerShape(18.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            fontWeight = fontWeight,
+            color = contentColor
+        )
     }
 }
