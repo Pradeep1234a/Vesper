@@ -43,7 +43,7 @@ class UpdateViewModel(
         checkForUpdatesOnLaunch()
     }
 
-    private fun checkForUpdatesOnLaunch() {
+    fun checkForUpdatesOnLaunch() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _uiState.value = _uiState.value.copy(downloadState = UpdateDownloadState.CHECKING)
@@ -88,7 +88,7 @@ class UpdateViewModel(
                     errorMessage = null
                 )
 
-                val updateInfo = updateRepository.checkForUpdate()
+                val updateInfo = updateRepository.checkForUpdate(force = true)
                 if (updateInfo != null && updateInfo.updateAvailable) {
                     val downloadedApk = updateRepository.getDownloadedApkFile()
                     val state = if (downloadedApk != null) {
@@ -192,6 +192,21 @@ class UpdateViewModel(
 
     fun showDialogManually() {
         _uiState.value = _uiState.value.copy(showUpdateDialog = true)
+    }
+
+    fun getLastCheckedTimeFormatted(): String {
+        val lastChecked = updateRepository.getLastCheckedAt()
+        if (lastChecked == 0L) return "Never"
+        val df = java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
+        val nowCal = java.util.Calendar.getInstance()
+        val checkedCal = java.util.Calendar.getInstance().apply { timeInMillis = lastChecked }
+        return if (nowCal.get(java.util.Calendar.YEAR) == checkedCal.get(java.util.Calendar.YEAR) &&
+            nowCal.get(java.util.Calendar.DAY_OF_YEAR) == checkedCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+            "Today, ${df.format(java.util.Date(lastChecked))}"
+        } else {
+            val sdf = java.text.SimpleDateFormat("MMM dd, h:mm a", java.util.Locale.getDefault())
+            sdf.format(java.util.Date(lastChecked))
+        }
     }
 }
 

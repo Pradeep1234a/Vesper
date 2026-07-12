@@ -101,8 +101,24 @@ class UpdateRepository(private val context: Context) {
         return if (apkFile.exists()) apkFile else null
     }
 
+    fun getLastCheckedAt(): Long {
+        return prefs.getLong("lastCheckedAt", 0L)
+    }
+
     // ── Check for Updates ──
-    fun checkForUpdate(): AppUpdateInfo? {
+    fun checkForUpdate(force: Boolean = false): AppUpdateInfo? {
+        val lastChecked = prefs.getLong("lastCheckedAt", 0L)
+        val now = System.currentTimeMillis()
+        val cachedJson = prefs.getString("cachedReleaseJson", null)
+
+        if (!force && cachedJson != null && now - lastChecked < 86400000L) {
+            try {
+                return parseUpdateResponse(cachedJson)
+            } catch (e: Exception) {
+                // fallback to network
+            }
+        }
+
         var connection: HttpURLConnection? = null
         try {
             val url = URL("https://api.github.com/repos/Pradeep1234a/Vesper/releases/latest")
@@ -115,12 +131,24 @@ class UpdateRepository(private val context: Context) {
 
             if (connection.responseCode == 200) {
                 val responseText = connection.inputStream.bufferedReader().use { it.readText() }
+                prefs.edit()
+                    .putLong("lastCheckedAt", now)
+                    .putString("cachedReleaseJson", responseText)
+                    .apply()
                 return parseUpdateResponse(responseText)
             }
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             connection?.disconnect()
+        }
+
+        if (cachedJson != null) {
+            try {
+                return parseUpdateResponse(cachedJson)
+            } catch (e: Exception) {
+                // ignore
+            }
         }
         return null
     }

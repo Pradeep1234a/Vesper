@@ -49,6 +49,12 @@ fun SettingsScreen(
     onCurrencyClick: () -> Unit
 ) {
     val currency by viewModel.currency.collectAsState()
+    val updateUiState by updateViewModel.uiState.collectAsState()
+    val isUpdateAvailable = updateUiState.updateInfo != null && updateUiState.updateInfo!!.updateAvailable
+
+    LaunchedEffect(Unit) {
+        updateViewModel.checkForUpdatesOnLaunch()
+    }
     val theme by viewModel.theme.collectAsState()
     val language by viewModel.language.collectAsState()
     val dynamicColors by viewModel.dynamicColors.collectAsState()
@@ -554,10 +560,42 @@ fun SettingsScreen(
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
-                        icon = Icons.Outlined.SystemUpdate,
+                        icon = if (isUpdateAvailable) Icons.Outlined.FileDownload else Icons.Outlined.Check,
                         title = "Application Updates",
-                        subtitle = "Check for and install updates",
-                        trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        subtitle = if (isUpdateAvailable) {
+                            "v${BuildConfig.VERSION_NAME} → v${updateUiState.updateInfo!!.latestVersionName} available"
+                        } else {
+                            "v${BuildConfig.VERSION_NAME} • Up To Date"
+                        },
+                        trailing = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                if (isUpdateAvailable) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                                shape = RoundedCornerShape(4.dp)
+                                            )
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = "NEW",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                                Icon(
+                                    imageVector = Icons.Outlined.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
                         onClick = { subView = SettingsSubView.UPDATES }
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -742,6 +780,9 @@ fun SettingsScreen(
             }
         }
         SettingsSubView.UPDATES -> {
+            LaunchedEffect(Unit) {
+                updateViewModel.checkForUpdatesOnLaunch()
+            }
             Box(modifier = Modifier.padding(innerPadding)) {
                 com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
             }
