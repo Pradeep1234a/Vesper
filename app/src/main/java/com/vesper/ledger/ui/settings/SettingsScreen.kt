@@ -33,7 +33,7 @@ import com.vesper.ledger.ui.components.ShSegmentedControl
 import com.vesper.ledger.ui.components.ShTextField
 
 enum class SettingsSubView {
-    MAIN, CATEGORIES
+    MAIN, CATEGORIES, UPDATES
 }
 
 enum class SettingsDialogType {
@@ -44,6 +44,7 @@ enum class SettingsDialogType {
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
+    updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
     onBackClick: () -> Unit,
     onCurrencyClick: () -> Unit
 ) {
@@ -228,14 +229,18 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (subView == SettingsSubView.MAIN) "Settings" else "Manage Categories",
+                        text = when (subView) {
+                            SettingsSubView.MAIN -> "Settings"
+                            SettingsSubView.CATEGORIES -> "Manage Categories"
+                            SettingsSubView.UPDATES -> "Application Updates"
+                        },
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            if (subView == SettingsSubView.CATEGORIES) {
+                            if (subView != SettingsSubView.MAIN) {
                                 subView = SettingsSubView.MAIN
                             } else {
                                 onBackClick()
@@ -251,7 +256,8 @@ fun SettingsScreen(
             )
         }
     ) { innerPadding ->
-        if (subView == SettingsSubView.MAIN) {
+        when (subView) {
+            SettingsSubView.MAIN -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -548,6 +554,14 @@ fun SettingsScreen(
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
+                        icon = Icons.Outlined.SystemUpdate,
+                        title = "Application Updates",
+                        subtitle = "Check for and install updates",
+                        trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        onClick = { subView = SettingsSubView.UPDATES }
+                    )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingsRow(
                         icon = Icons.Outlined.Policy,
                         title = "Privacy Policy",
                         trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
@@ -571,8 +585,8 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
-        } else {
-            // CATEGORIES Sub-View (In-place Category Manager)
+            SettingsSubView.CATEGORIES -> {
+                // CATEGORIES Sub-View (In-place Category Manager)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -724,6 +738,11 @@ fun SettingsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
+            }
+            SettingsSubView.UPDATES -> {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
+                }
             }
         }
     }

@@ -33,6 +33,7 @@ import com.vesper.ledger.ui.components.CurrencySelectorScreen
 fun NavGraph(
     navController: NavHostController,
     settingsViewModel: SettingsViewModel,
+    updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -124,6 +125,7 @@ fun NavGraph(
         composable("main_screen") {
             MainScreen(
                 settingsViewModel = settingsViewModel,
+                updateViewModel = updateViewModel,
                 onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) },
                 onCurrencyClick = { navController.navigate("settings_currency") }

@@ -52,6 +52,7 @@ import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
 @Composable
 fun MainScreen(
     settingsViewModel: SettingsViewModel,
+    updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
     onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSavingsClick: () -> Unit,
     onCurrencyClick: () -> Unit
@@ -209,6 +210,7 @@ fun MainScreen(
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     viewModel = settingsViewModel,
+                    updateViewModel = updateViewModel,
                     onBackClick = {
                         navController.popBackStack()
                     },
