@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
+import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import kotlinx.coroutines.launch
 
 data class OnboardingPage(
@@ -97,18 +98,26 @@ fun OnboardingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    LogoV()
-                    Spacer(modifier = Modifier.width(2.dp))
+                    // 44dp icon area
+                    Box(
+                        modifier = Modifier.width(44.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        LogoV()
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // Brand text area (Modern premium finance style)
                     Text(
-                        text = "VESPER",
-                        fontFamily = SpaceGroteskFamily,
+                        text = "Vesper",
+                        fontFamily = PlusJakartaSansFamily,
                         fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground,
-                        letterSpacing = 2.sp
+                        letterSpacing = (-0.3).sp
                     )
                 }
 

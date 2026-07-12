@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
+import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 
 enum class AuthTab {
     SIGN_IN, SIGN_UP, FORGOT_PASSWORD, PASSWORD_RESET
@@ -95,12 +96,12 @@ fun VesperLogo(modifier: Modifier = Modifier) {
         }
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "VESPER",
-            fontFamily = SpaceGroteskFamily,
-            fontSize = 11.sp,
+            text = "Vesper",
+            fontFamily = PlusJakartaSansFamily,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = onBgColor,
-            letterSpacing = 6.sp
+            letterSpacing = (-0.5).sp
         )
     }
 }
