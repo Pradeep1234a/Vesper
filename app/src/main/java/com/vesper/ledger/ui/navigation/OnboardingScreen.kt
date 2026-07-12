@@ -12,6 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.material.icons.outlined.TrendingDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -135,30 +138,21 @@ fun OnboardingScreen(
                                 .fillMaxSize()
                                 .padding(horizontal = 8.dp)
                         ) {
-                            // Shadcn-style minimal outline icon container
+                            // Dynamic native UI visual anchors explaining the feature
                             Box(
                                 modifier = Modifier
-                                    .size(72.dp)
-                                    .background(
-                                        color = Color(0xFF18181B), // Zinc-900
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .border(
-                                        width = 1.dp,
-                                        color = Color(0xFF27272A), // Zinc-800
-                                        shape = RoundedCornerShape(8.dp)
-                                    ),
+                                    .fillMaxWidth()
+                                    .height(130.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = onboardingPage.icon,
-                                    contentDescription = null,
-                                    tint = Color(0xFFFAFAFA), // Zinc-50
-                                    modifier = Modifier.size(28.dp)
-                                )
+                                when (page) {
+                                    0 -> TrackingVisual()
+                                    1 -> RetrievalVisual()
+                                    2 -> HistoryVisual()
+                                }
                             }
 
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(28.dp))
 
                             Text(
                                 text = onboardingPage.title,
@@ -240,6 +234,203 @@ fun OnboardingScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun TrackingVisual() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .padding(vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Card 1 (Expense)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
+                .background(Color(0xFF09090B), RoundedCornerShape(8.dp))
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
+                        .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.TrendingDown,
+                        contentDescription = null,
+                        tint = Color(0xFFFAFAFA),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text("Grocery Store", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Food & Dining", fontSize = 10.sp, color = Color(0xFFA1A1AA))
+                }
+            }
+            Text("-$42.50", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        }
+
+        // Card 2 (Income)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
+                .background(Color(0xFF09090B), RoundedCornerShape(8.dp))
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
+                        .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.TrendingUp,
+                        contentDescription = null,
+                        tint = Color(0xFFFAFAFA),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text("Freelance Client", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Salary", fontSize = 10.sp, color = Color(0xFFA1A1AA))
+                }
+            }
+            Text("+$450.00", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun RetrievalVisual() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .padding(vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Mini Search Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(38.dp)
+                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
+                .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = null,
+                tint = Color(0xFF71717A),
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Search transactions...", fontSize = 11.sp, color = Color(0xFF71717A))
+        }
+
+        // Mini Filter Chips
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            listOf("All", "Expense", "Income").forEachIndexed { idx, label ->
+                val isActive = idx == 1 // Expense is active
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(30.dp)
+                        .background(
+                            color = if (isActive) Color.White else Color(0xFF09090B),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = if (isActive) Color.White else Color(0xFF27272A),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isActive) Color(0xFF09090B) else Color(0xFFA1A1AA)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HistoryVisual() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .height(105.dp)
+            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
+            .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            // Mini Bar Chart comparing Income, Expense, Savings
+            // Bar 1: Income (taller, outline)
+            Box(
+                modifier = Modifier
+                    .width(20.dp)
+                    .fillMaxHeight(0.85f)
+                    .border(1.5.dp, Color.White, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+            )
+            // Bar 2: Expense (filled)
+            Box(
+                modifier = Modifier
+                    .width(20.dp)
+                    .fillMaxHeight(0.55f)
+                    .background(Color.White, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+            )
+            // Bar 3: Savings (outlined)
+            Box(
+                modifier = Modifier
+                    .width(20.dp)
+                    .fillMaxHeight(0.35f)
+                    .border(1.5.dp, Color(0xFFA1A1AA), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        // Timeline Axis Labels
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text("Income", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Expense", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Savings", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
         }
     }
 }
