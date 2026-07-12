@@ -39,6 +39,13 @@ class SettingsViewModel(
     val userName = MutableStateFlow(sharedPrefs.getString("userName", "User") ?: "User")
     val isFirstLaunch = MutableStateFlow(sharedPrefs.getBoolean("isFirstLaunch", true))
 
+    // High Fidelity Personalization parameters
+    val accentColor = MutableStateFlow(sharedPrefs.getString("accentColor", "rose") ?: "rose")
+    val appStyle = MutableStateFlow(sharedPrefs.getString("appStyle", "comfortable") ?: "comfortable")
+    val startScreen = MutableStateFlow(sharedPrefs.getString("startScreen", "dashboard") ?: "dashboard")
+    val weeklySummaryReminder = MutableStateFlow(sharedPrefs.getBoolean("weeklySummaryReminder", false))
+    val monthlySummaryReminder = MutableStateFlow(sharedPrefs.getBoolean("monthlySummaryReminder", false))
+
     val categories: StateFlow<List<Category>> = transactionRepository.allCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -120,6 +127,31 @@ class SettingsViewModel(
     fun saveFirstLaunch(newValue: Boolean) {
         isFirstLaunch.value = newValue
         sharedPrefs.edit().putBoolean("isFirstLaunch", newValue).apply()
+    }
+
+    fun saveAccentColor(newValue: String) {
+        accentColor.value = newValue
+        sharedPrefs.edit().putString("accentColor", newValue).apply()
+    }
+
+    fun saveAppStyle(newValue: String) {
+        appStyle.value = newValue
+        sharedPrefs.edit().putString("appStyle", newValue).apply()
+    }
+
+    fun saveStartScreen(newValue: String) {
+        startScreen.value = newValue
+        sharedPrefs.edit().putString("startScreen", newValue).apply()
+    }
+
+    fun saveWeeklySummaryReminder(newValue: Boolean) {
+        weeklySummaryReminder.value = newValue
+        sharedPrefs.edit().putBoolean("weeklySummaryReminder", newValue).apply()
+    }
+
+    fun saveMonthlySummaryReminder(newValue: Boolean) {
+        monthlySummaryReminder.value = newValue
+        sharedPrefs.edit().putBoolean("monthlySummaryReminder", newValue).apply()
     }
 
     fun addCategory(name: String, type: TransactionType, colorHex: String) {

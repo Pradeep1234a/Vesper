@@ -23,6 +23,9 @@ import androidx.navigation.NavType
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.settings.SettingsViewModelFactory
+import com.vesper.ledger.ui.auth.AuthScreen
+import com.vesper.ledger.ui.auth.AuthViewModel
+import com.vesper.ledger.ui.auth.AuthViewModelFactory
 
 @Composable
 fun NavGraph(
@@ -35,6 +38,9 @@ fun NavGraph(
 
     val addTransactionFactory = AddTransactionViewModelFactory(app.transactionRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
+    val authFactory = AuthViewModelFactory(app, app.database.userDao())
+
+    val authViewModel: AuthViewModel = viewModel(factory = authFactory)
 
     val currencySymbol by settingsViewModel.currency.collectAsState()
     val isFirstLaunch by settingsViewModel.isFirstLaunch.collectAsState()
@@ -45,8 +51,10 @@ fun NavGraph(
         modifier = modifier.fillMaxSize()
     ) {
         composable("splash") {
+            val sessionActive by authViewModel.sessionActive.collectAsState()
             SplashScreen(
                 isFirstLaunch = isFirstLaunch,
+                isSessionActive = sessionActive,
                 onNavigateNext = { route ->
                     navController.navigate(route) {
                         popUpTo("splash") { inclusive = true }
@@ -58,8 +66,30 @@ fun NavGraph(
         composable("onboarding") {
             OnboardingScreen(
                 onNavigateNext = {
-                    navController.navigate("personalization") {
+                    navController.navigate("auth") {
                         popUpTo("onboarding") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("auth") {
+            AuthScreen(
+                viewModel = authViewModel,
+                onAuthSuccess = { isNewUser ->
+                    if (isNewUser) {
+                        navController.navigate("personalization") {
+                            popUpTo("auth") { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate("main_screen") {
+                            popUpTo("auth") { inclusive = true }
+                        }
+                    }
+                },
+                onContinueAsGuest = {
+                    navController.navigate("main_screen") {
+                        popUpTo("auth") { inclusive = true }
                     }
                 }
             )

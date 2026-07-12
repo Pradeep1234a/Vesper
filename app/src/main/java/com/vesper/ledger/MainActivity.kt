@@ -25,6 +25,7 @@ class MainActivity : ComponentActivity() {
             val settingsFactory = SettingsViewModelFactory(app, app.transactionRepository)
             val settingsViewModel: SettingsViewModel = viewModel(factory = settingsFactory)
             val themeState by settingsViewModel.theme.collectAsState()
+            val accentColorState by settingsViewModel.accentColor.collectAsState()
 
             val darkTheme = when (themeState) {
                 "light" -> false
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
                 else -> isSystemInDarkTheme()
             }
 
-            VesperLedgerTheme(darkTheme = darkTheme) {
+            VesperLedgerTheme(darkTheme = darkTheme, accentColor = accentColorState) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
