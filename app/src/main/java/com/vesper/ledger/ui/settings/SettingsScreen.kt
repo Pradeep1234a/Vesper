@@ -748,6 +748,7 @@ fun SettingsScreen(
         }
     }
 }
+}
 
 @Composable
 fun SettingsGroup(
