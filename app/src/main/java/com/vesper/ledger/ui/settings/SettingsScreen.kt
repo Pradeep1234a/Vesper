@@ -36,7 +36,7 @@ enum class SettingsSubView {
 }
 
 enum class SettingsDialogType {
-    THEME, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE, EDIT_NAME
+    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE, EDIT_NAME
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,6 +93,15 @@ fun SettingsScreen(
                 onOptionSelected = { viewModel.saveTheme(it) },
                 onDismissRequest = { activeDialog = null },
                 labelProvider = { it.replaceFirstChar { char -> char.uppercase() } }
+            )
+        }
+        SettingsDialogType.CURRENCY -> {
+            SettingsSelectionDialog(
+                title = "Select Currency",
+                options = listOf("$", "€", "£", "¥"),
+                selectedOption = currency,
+                onOptionSelected = { viewModel.saveCurrency(it) },
+                onDismissRequest = { activeDialog = null }
             )
         }
         SettingsDialogType.LANGUAGE -> {
