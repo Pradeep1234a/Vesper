@@ -15,7 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Transaction::class, Category::class, SavingsGoal::class, UserAccount::class], version = 3, exportSchema = false)
+@Database(entities = [Transaction::class, Category::class, SavingsGoal::class, UserAccount::class], version = 4, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
