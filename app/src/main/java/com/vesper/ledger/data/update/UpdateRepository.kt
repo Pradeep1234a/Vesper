@@ -28,10 +28,23 @@ class UpdateRepository(private val context: Context) {
     }
 
     // ── Preference Management ──
-    fun shouldShowPopup(): Boolean {
+    fun shouldShowPopup(latestCode: Int): Boolean {
         val lastShown = prefs.getLong("lastUpdatePopupShownAt", 0L)
-        val now = System.currentTimeMillis()
+        val lastSeenCode = prefs.getInt("lastSeenLatestVersionCode", -1)
         val ignoredCode = prefs.getInt("ignoredVersionCode", -1)
+        val now = System.currentTimeMillis()
+        
+        if (latestCode == ignoredCode) {
+            return false
+        }
+        
+        if (latestCode > lastSeenCode) {
+            prefs.edit()
+                .putInt("lastSeenLatestVersionCode", latestCode)
+                .putLong("lastUpdatePopupShownAt", 0L)
+                .apply()
+            return true
+        }
         
         // Don't show if shown in the last 24 hours (86400000 ms)
         if (now - lastShown < 86400000L) {
@@ -174,7 +187,9 @@ class UpdateRepository(private val context: Context) {
         val currentName = BuildConfig.VERSION_NAME
 
         val extractedCode = extractVersionCodeFromBody(body)
-        val updateAvailable = if (extractedCode != null) {
+        val updateAvailable = if (latestName.equals(currentName, ignoreCase = true)) {
+            false
+        } else if (extractedCode != null) {
             extractedCode > BuildConfig.VERSION_CODE
         } else {
             isNewerVersionName(currentName, latestName)

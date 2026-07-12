@@ -61,7 +61,7 @@ class UpdateViewModel(
                     _uiState.value = _uiState.value.copy(
                         downloadState = state,
                         updateInfo = updateInfo,
-                        showUpdateDialog = updateRepository.shouldShowPopup()
+                        showUpdateDialog = updateRepository.shouldShowPopup(updateInfo.latestVersionCode)
                     )
                 } else {
                     _uiState.value = _uiState.value.copy(
