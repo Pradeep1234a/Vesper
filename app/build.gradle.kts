@@ -4,9 +4,11 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+import java.util.Properties
+
 // ── Read version from version.properties ──
 val versionPropsFile = rootProject.file("version.properties")
-val versionProps = java.util.Properties().apply {
+val versionProps = Properties().apply {
     if (versionPropsFile.exists()) {
         versionPropsFile.inputStream().use { this@apply.load(it) }
     }
