@@ -9,12 +9,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.TrendingUp
-import androidx.compose.material.icons.outlined.TrendingDown
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,19 +38,19 @@ fun OnboardingScreen(
 ) {
     val pages = listOf(
         OnboardingPage(
-            title = "Minimalist Tracking",
-            description = "Track income, expenses, and savings with a shadcn-inspired interface that prioritizes clarity, whitespace, and visual balance.",
+            title = "Fast Transaction Entry",
+            description = "Quickly log your expenses and income inside a clean, keyboard-first entry form designed for speed.",
             icon = Icons.Outlined.AccountBalanceWallet
         ),
         OnboardingPage(
-            title = "Deep Analytics",
-            description = "Analyze your spending rhythms and income sources with clean typographic hierarchy and highly responsive reports.",
+            title = "Organized Transactions",
+            description = "Search, filter, and group transactions chronologically. Retrieve financial logs instantly without hassle.",
             icon = Icons.Outlined.BarChart
         ),
         OnboardingPage(
-            title = "100% Private & Local",
-            description = "Your financial data never leaves your device. No cloud storage, no account creation, and absolute security by default.",
-            icon = Icons.Outlined.Security
+            title = "Financial Bento Overview",
+            description = "Gain complete financial clarity with a modular bento dashboard displaying balances, goals, and savings progress.",
+            icon = Icons.Outlined.Dashboard
         )
     )
 
@@ -101,100 +96,55 @@ fun OnboardingScreen(
                 }
             }
 
-            // Shadcn Strict Card Container
-            Card(
+            // Onboarding Pager Container (No outer card/border layout)
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            ) {
+            ) { page ->
+                val onboardingPage = pages[page]
                 Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                        .padding(horizontal = 8.dp)
                 ) {
-                    HorizontalPager(
-                        state = pagerState,
+                    // Visual Anchor Mockup (occupying 40-50% height, approx 260dp)
+                    Box(
                         modifier = Modifier
-                            .weight(1f)
                             .fillMaxWidth()
-                    ) { page ->
-                        val onboardingPage = pages[page]
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            // Dynamic visual anchors explaining features
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(130.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                when (page) {
-                                    0 -> TrackingVisual()
-                                    1 -> RetrievalVisual()
-                                    2 -> HistoryVisual()
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(28.dp))
-
-                            Text(
-                                text = onboardingPage.title,
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                textAlign = TextAlign.Center
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Text(
-                                text = onboardingPage.description,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 20.sp
-                            )
-                        }
-                    }
-
-                    // Dot indicators inside the card
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 12.dp)
+                            .height(260.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        repeat(pages.size) { index ->
-                            val isSelected = pagerState.currentPage == index
-                            Box(
-                                modifier = Modifier
-                                    .height(4.dp)
-                                    .width(if (isSelected) 16.dp else 4.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.onBackground 
-                                        else MaterialTheme.colorScheme.outline
-                                    )
-                            )
+                        when (page) {
+                            0 -> AddTransactionPreview()
+                            1 -> TransactionLogPreview()
+                            2 -> BentoDashboardPreview()
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = onboardingPage.title,
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = onboardingPage.description,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp
+                    )
                 }
             }
 
@@ -203,8 +153,30 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                // Page Indicator Dots
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(pages.size) { index ->
+                        val isSelected = pagerState.currentPage == index
+                        Box(
+                            modifier = Modifier
+                                .height(4.dp)
+                                .width(if (isSelected) 16.dp else 4.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.onBackground 
+                                    else MaterialTheme.colorScheme.outline
+                                )
+                        )
+                    }
+                }
+
                 Button(
                     onClick = {
                         if (pagerState.currentPage < pages.size - 1) {
@@ -242,160 +214,303 @@ fun OnboardingScreen(
 }
 
 @Composable
-fun TrackingVisual() {
+fun AddTransactionPreview() {
     val outlineColor = MaterialTheme.colorScheme.outline
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
     val onBgColor = MaterialTheme.colorScheme.onBackground
     val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
 
-    Column(
+    Card(
         modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .padding(vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .width(260.dp)
+            .fillMaxHeight(0.95f)
+            .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )
     ) {
-        // Card 1 (Expense)
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
-                .padding(10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(surfaceColor, RoundedCornerShape(8.dp))
-                        .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.TrendingDown,
-                        contentDescription = null,
-                        tint = onBgColor,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text("Grocery Store", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                    Text("Food & Dining", fontSize = 10.sp, color = secTextColor)
-                }
+            // Mini Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "New Entry",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = onBgColor
+                )
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = null,
+                    tint = secTextColor,
+                    modifier = Modifier.size(14.dp)
+                )
             }
-            Text("-$42.50", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-        }
 
-        // Card 2 (Income)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
-                .padding(10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(surfaceColor, RoundedCornerShape(8.dp))
-                        .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.TrendingUp,
-                        contentDescription = null,
-                        tint = onBgColor,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text("Freelance Client", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                    Text("Salary", fontSize = 10.sp, color = secTextColor)
-                }
+            // Big Amount Display
+            Column(horizontalAlignment = Alignment.Start) {
+                Text(
+                    text = "Amount",
+                    fontSize = 10.sp,
+                    color = secTextColor,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "$ 250.00",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = onBgColor
+                )
             }
-            Text("+$450.00", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-        }
-    }
-}
 
-@Composable
-fun RetrievalVisual() {
-    val outlineColor = MaterialTheme.colorScheme.outline
-    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
-    val onBgColor = MaterialTheme.colorScheme.onBackground
-    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .padding(vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Mini Search Bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(38.dp)
-                .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                .background(surfaceColor, RoundedCornerShape(8.dp))
-                .padding(horizontal = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = null,
-                tint = secTextColor,
-                modifier = Modifier.size(14.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Search transactions...", fontSize = 11.sp, color = secTextColor)
-        }
-
-        // Mini Filter Chips
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            listOf("All", "Expense", "Income").forEachIndexed { idx, label ->
-                val isActive = idx == 1 // Expense is active
+            // Type Selector (Segmented)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(30.dp)
-                        .background(
-                            color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = if (isActive) MaterialTheme.colorScheme.primary else outlineColor,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 4.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .height(28.dp)
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
+                        .clip(RoundedCornerShape(6.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = label,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isActive) MaterialTheme.colorScheme.onPrimary else secTextColor
-                    )
+                    Text("Expense", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(28.dp)
+                        .border(1.dp, outlineColor, RoundedCornerShape(6.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Income", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = secTextColor)
+                }
+            }
+
+            // Category tag badges row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .height(24.dp)
+                        .border(1.dp, outlineColor, RoundedCornerShape(6.dp))
+                        .background(surfaceColor, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Utilities", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                }
+                Box(
+                    modifier = Modifier
+                        .height(24.dp)
+                        .border(1.dp, outlineColor, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Food", fontSize = 9.sp, color = secTextColor)
+                }
+                Box(
+                    modifier = Modifier
+                        .height(24.dp)
+                        .border(1.dp, outlineColor, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Rent", fontSize = 9.sp, color = secTextColor)
+                }
+            }
+
+            // Mini Note Text Input Preview
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(28.dp)
+                    .border(1.dp, outlineColor, RoundedCornerShape(6.dp))
+                    .background(surfaceColor, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Electricity Bill", fontSize = 10.sp, color = onBgColor)
+            }
+
+            // Submit Button
+            Button(
+                onClick = {},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp),
+                shape = RoundedCornerShape(6.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text("Add Entry", fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
 
 @Composable
-fun HistoryVisual() {
+fun TransactionLogPreview() {
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val onBgColor = MaterialTheme.colorScheme.onBackground
+    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+    Card(
+        modifier = Modifier
+            .width(260.dp)
+            .fillMaxHeight(0.95f)
+            .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Mini Search Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(30.dp)
+                    .border(1.dp, outlineColor, RoundedCornerShape(6.dp))
+                    .background(surfaceColor, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = null,
+                    tint = secTextColor,
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Search...", fontSize = 10.sp, color = secTextColor)
+            }
+
+            // Mini filter chips
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                listOf("All", "Expense", "Income").forEachIndexed { idx, label ->
+                    val isActive = idx == 1
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(24.dp)
+                            .background(
+                                color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = if (isActive) MaterialTheme.colorScheme.primary else outlineColor,
+                                shape = RoundedCornerShape(6.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isActive) MaterialTheme.colorScheme.onPrimary else secTextColor
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            // Timeline header group
+            Text(
+                text = "Today, 12 July",
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                color = secTextColor
+            )
+
+            // Mini transaction stacked list cards
+            // Item 1
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, outlineColor, RoundedCornerShape(6.dp))
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(surfaceColor, RoundedCornerShape(4.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Outlined.TrendingDown, null, tint = onBgColor, modifier = Modifier.size(12.dp))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text("Netflix", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                        Text("Utilities", fontSize = 8.sp, color = secTextColor)
+                    }
+                }
+                Text("-$15.99", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+            }
+
+            // Item 2
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, outlineColor, RoundedCornerShape(6.dp))
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(surfaceColor, RoundedCornerShape(4.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Outlined.TrendingUp, null, tint = onBgColor, modifier = Modifier.size(12.dp))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text("Salary", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                        Text("Work", fontSize = 8.sp, color = secTextColor)
+                    }
+                }
+                Text("+$2,450", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+            }
+        }
+    }
+}
+
+@Composable
+fun BentoDashboardPreview() {
     val outlineColor = MaterialTheme.colorScheme.outline
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
     val onBgColor = MaterialTheme.colorScheme.onBackground
@@ -403,49 +518,138 @@ fun HistoryVisual() {
 
     Column(
         modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .height(105.dp)
-            .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-            .background(surfaceColor, RoundedCornerShape(8.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .width(260.dp)
+            .fillMaxHeight(0.95f),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // Bento Row 1: Total Balance & Savings Goal
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.Bottom
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Mini Bar Chart
-            Box(
+            // Card A: Total Balance
+            Card(
                 modifier = Modifier
-                    .width(20.dp)
-                    .fillMaxHeight(0.85f)
-                    .border(1.5.dp, onBgColor, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-            )
-            Box(
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Total Balance", fontSize = 9.sp, color = secTextColor, fontWeight = FontWeight.Medium)
+                    Text("$5,840.20", fontFamily = SpaceGroteskFamily, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                }
+            }
+
+            // Card B: Savings Goal Progress
+            Card(
                 modifier = Modifier
-                    .width(20.dp)
-                    .fillMaxHeight(0.55f)
-                    .background(onBgColor, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-            )
-            Box(
-                modifier = Modifier
-                    .width(20.dp)
-                    .fillMaxHeight(0.35f)
-                    .border(1.5.dp, secTextColor, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-            )
+                    .weight(1.1f)
+                    .fillMaxHeight()
+                    .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Savings Goal", fontSize = 9.sp, color = secTextColor, fontWeight = FontWeight.Medium)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Target", fontSize = 8.sp, color = secTextColor)
+                            Text("70%", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                        }
+                        // Progress bar indicator
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .background(surfaceColor, RoundedCornerShape(2.dp))
+                                .clip(RoundedCornerShape(2.dp))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.7f)
+                                    .fillMaxHeight()
+                                    .background(onBgColor)
+                            )
+                        }
+                    }
+                }
+            }
         }
-        Spacer(modifier = Modifier.height(6.dp))
+
+        // Bento Row 2: Income & Expense cards
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Income", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-            Text("Expense", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-            Text("Savings", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = secTextColor)
+            // Card C: Income mini summary
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Income", fontSize = 9.sp, color = secTextColor)
+                        Icon(Icons.Outlined.ArrowUpward, null, tint = onBgColor, modifier = Modifier.size(10.dp))
+                    }
+                    Text("+$3,200", fontFamily = SpaceGroteskFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                }
+            }
+
+            // Card D: Expense mini summary
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Expenses", fontSize = 9.sp, color = secTextColor)
+                        Icon(Icons.Outlined.ArrowDownward, null, tint = onBgColor, modifier = Modifier.size(10.dp))
+                    }
+                    Text("-$840.10", fontFamily = SpaceGroteskFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                }
+            }
         }
     }
 }
