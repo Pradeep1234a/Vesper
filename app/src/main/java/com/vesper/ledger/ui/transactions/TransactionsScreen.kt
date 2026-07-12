@@ -954,7 +954,7 @@ fun TransactionsScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         categories.forEach { cat ->
-                            val catColor = Color(android.graphics.Color.parseColor(cat.colorHex.ifBlank { "#71717A" }))
+                            val catColor = com.vesper.ledger.ui.components.safeParseColor(cat.colorHex, Color(0xFF71717A))
                             val isSelected = selectedCategories.contains(cat.id)
 
                             Row(

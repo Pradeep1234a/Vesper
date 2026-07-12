@@ -65,7 +65,7 @@ fun AddTransactionScreen(
     val categories by viewModel.categories.collectAsState()
     val filteredCategories by viewModel.filteredCategories.collectAsState()
     val selectedCategory = categories.find { it.id == categoryId }
-    val catColor = selectedCategory?.colorHex?.let { Color(android.graphics.Color.parseColor(it)) } ?: MaterialTheme.colorScheme.primary
+    val catColor = com.vesper.ledger.ui.components.safeParseColor(selectedCategory?.colorHex, MaterialTheme.colorScheme.primary)
 
     val context = LocalContext.current
     val sdfDate = remember { SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault()) }
@@ -654,7 +654,7 @@ fun AddTransactionScreen(
                 ) {
                     items(filteredCategories) { cat ->
                         val isSelected = categoryId == cat.id
-                        val cColor = Color(android.graphics.Color.parseColor(cat.colorHex))
+                        val cColor = com.vesper.ledger.ui.components.safeParseColor(cat.colorHex)
 
                         Box(
                             modifier = Modifier

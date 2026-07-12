@@ -3,6 +3,7 @@ package com.vesper.ledger.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 
 fun getIconByName(name: String): ImageVector {
     return when (name) {
@@ -26,5 +27,15 @@ fun getIconByName(name: String): ImageVector {
         "calendar_today" -> Icons.Default.CalendarToday
         "arrow_back" -> Icons.Default.ArrowBack
         else -> Icons.Default.Category
+    }
+}
+
+fun safeParseColor(hex: String?, fallback: Color = Color(0xFF71717A)): Color {
+    if (hex.isNullOrBlank()) return fallback
+    return try {
+        val formattedHex = if (hex.startsWith("#")) hex else "#$hex"
+        Color(android.graphics.Color.parseColor(formattedHex))
+    } catch (e: Exception) {
+        fallback
     }
 }

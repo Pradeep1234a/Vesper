@@ -640,7 +640,7 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         colorOptions.forEach { hex ->
-                            val color = Color(android.graphics.Color.parseColor(hex))
+                            val color = com.vesper.ledger.ui.components.safeParseColor(hex)
                             val isSelected = hex == newCatColor
                             Box(
                                 modifier = Modifier
@@ -695,7 +695,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         categories.forEachIndexed { index, cat ->
-                            val catColor = Color(android.graphics.Color.parseColor(cat.colorHex))
+                            val catColor = com.vesper.ledger.ui.components.safeParseColor(cat.colorHex)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()

@@ -469,9 +469,10 @@ fun DashboardScreen(
                         when (topCats.size) {
                             1 -> {
                                 val cat = topCats[0]
-                                val catColor = uiState.categories.find { it.name == cat.categoryName }?.colorHex?.let {
-                                    Color(android.graphics.Color.parseColor(it))
-                                } ?: MaterialTheme.colorScheme.onSurfaceVariant
+                                val catColor = com.vesper.ledger.ui.components.safeParseColor(
+                                    uiState.categories.find { it.name == cat.categoryName }?.colorHex,
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                )
 
                                 ShCard(
                                     modifier = Modifier.fillMaxWidth(),
