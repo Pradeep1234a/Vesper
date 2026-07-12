@@ -43,7 +43,8 @@ enum class SettingsDialogType {
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onCurrencyClick: () -> Unit
 ) {
     val currency by viewModel.currency.collectAsState()
     val theme by viewModel.theme.collectAsState()
@@ -92,15 +93,6 @@ fun SettingsScreen(
                 onOptionSelected = { viewModel.saveTheme(it) },
                 onDismissRequest = { activeDialog = null },
                 labelProvider = { it.replaceFirstChar { char -> char.uppercase() } }
-            )
-        }
-        SettingsDialogType.CURRENCY -> {
-            SettingsSelectionDialog(
-                title = "Select Currency",
-                options = listOf("$", "€", "£", "¥"),
-                selectedOption = currency,
-                onOptionSelected = { viewModel.saveCurrency(it) },
-                onDismissRequest = { activeDialog = null }
             )
         }
         SettingsDialogType.LANGUAGE -> {
@@ -328,7 +320,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.AttachMoney,
                         title = "Currency",
                         trailing = { Text(currency, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = { activeDialog = SettingsDialogType.CURRENCY }
+                        onClick = onCurrencyClick
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(

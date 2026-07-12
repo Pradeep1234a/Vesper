@@ -19,7 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vesper.ledger.ui.components.CurrencySelector
+import com.vesper.ledger.ui.components.CurrencySelectorMode
+import com.vesper.ledger.ui.components.CurrencySelectorScreen
 import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
@@ -32,7 +33,7 @@ fun PersonalizationScreen(
     var currentStep by remember { mutableStateOf(1) }
 
     // Temporary variables matching steps to update view model on finish
-    var selectedCurrency by remember { mutableStateOf("$") }
+    var selectedCurrency by remember { mutableStateOf<String?>(null) } // Mode 1: No currency pre-selected
     var selectedTheme by remember { mutableStateOf("system") }
     var selectedAccent by remember { mutableStateOf("rose") }
     var selectedStyle by remember { mutableStateOf("comfortable") }
@@ -51,96 +52,109 @@ fun PersonalizationScreen(
     val outlineColor = MaterialTheme.colorScheme.outline
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Column(
+    if (currentStep == 1) {
+        // Mode 1: Onboarding Personalization Currency Selection
+        CurrencySelectorScreen(
+            mode = CurrencySelectorMode.PERSONALIZATION,
+            currentSelection = selectedCurrency,
+            onCurrencySelected = {}, // Not used in Mode 1
+            onContinueClick = { code ->
+                selectedCurrency = code
+                currentStep = 2
+            },
+            onBackClick = {
+                // First step has no back target, keep as no-op or trigger skip
+            }
+        )
+    } else {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .systemBarsPadding(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // Header with steps
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp)
+                    .systemBarsPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "VESPER",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        letterSpacing = 3.sp
-                    )
-                    Text(
-                        text = "Step $currentStep of $totalSteps",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                // Progress Bar
-                Box(
+                // Header with steps
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(3.dp)
-                        .background(surfaceColor, RoundedCornerShape(1.5.dp))
+                        .padding(vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "VESPER",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            letterSpacing = 3.sp
+                        )
+                        Text(
+                            text = "Step $currentStep of $totalSteps",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    // Progress Bar
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(currentStep.toFloat() / totalSteps)
-                            .fillMaxHeight()
-                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(1.5.dp))
-                    )
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(surfaceColor, RoundedCornerShape(1.5.dp))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(currentStep.toFloat() / totalSteps)
+                                .fillMaxHeight()
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(1.5.dp))
+                        )
+                    }
                 }
-            }
 
-            // Step Content
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                when (currentStep) {
-                    1 -> StepCurrency(selectedCurrency) { selectedCurrency = it }
-                    2 -> StepTheme(selectedTheme) { selectedTheme = it }
-                    3 -> StepAccentColor(selectedAccent) { selectedAccent = it }
-                    4 -> StepStyle(selectedStyle) { selectedStyle = it }
-                    5 -> StepStartScreen(selectedStartScreen) { selectedStartScreen = it }
-                    6 -> StepNotifications(
-                        dailyRem, { dailyRem = it },
-                        missedEntryRem, { missedEntryRem = it },
-                        weeklySummaryRem, { weeklySummaryRem = it },
-                        monthlySummaryRem, { monthlySummaryRem = it }
-                    )
-                    7 -> StepSecurity(biometricUnlock) { biometricUnlock = it }
+                // Step Content
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    when (currentStep) {
+                        2 -> StepTheme(selectedTheme) { selectedTheme = it }
+                        3 -> StepAccentColor(selectedAccent) { selectedAccent = it }
+                        4 -> StepStyle(selectedStyle) { selectedStyle = it }
+                        5 -> StepStartScreen(selectedStartScreen) { selectedStartScreen = it }
+                        6 -> StepNotifications(
+                            dailyRem, { dailyRem = it },
+                            missedEntryRem, { missedEntryRem = it },
+                            weeklySummaryRem, { weeklySummaryRem = it },
+                            monthlySummaryRem, { monthlySummaryRem = it }
+                        )
+                        7 -> StepSecurity(biometricUnlock) { biometricUnlock = it }
+                    }
                 }
-            }
 
-            // Bottom Actions (Navigation)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                if (currentStep > 1) {
+                // Bottom Actions (Navigation)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(bottom = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Button(
                         onClick = { currentStep-- },
                         modifier = Modifier
@@ -155,61 +169,47 @@ fun PersonalizationScreen(
                     ) {
                         Text("Back", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
                     }
-                }
 
-                Button(
-                    onClick = {
-                        if (currentStep < totalSteps) {
-                            currentStep++
-                        } else {
-                            // Persist all choices to settings view model
-                            viewModel.saveCurrency(selectedCurrency)
-                            viewModel.saveTheme(selectedTheme)
-                            viewModel.saveAccentColor(selectedAccent)
-                            viewModel.saveAppStyle(selectedStyle)
-                            viewModel.saveStartScreen(selectedStartScreen)
-                            viewModel.saveDailyReminder(dailyRem)
-                            viewModel.saveMissedEntryReminder(missedEntryRem)
-                            viewModel.saveWeeklySummaryReminder(weeklySummaryRem)
-                            viewModel.saveMonthlySummaryReminder(monthlySummaryRem)
-                            viewModel.saveBiometricAuth(biometricUnlock)
-                            viewModel.saveFirstLaunch(false)
+                    Button(
+                        onClick = {
+                            if (currentStep < totalSteps) {
+                                currentStep++
+                            } else {
+                                // Persist all choices to settings view model
+                                selectedCurrency?.let { viewModel.saveCurrency(it) }
+                                viewModel.saveTheme(selectedTheme)
+                                viewModel.saveAccentColor(selectedAccent)
+                                viewModel.saveAppStyle(selectedStyle)
+                                viewModel.saveStartScreen(selectedStartScreen)
+                                viewModel.saveDailyReminder(dailyRem)
+                                viewModel.saveMissedEntryReminder(missedEntryRem)
+                                viewModel.saveWeeklySummaryReminder(weeklySummaryRem)
+                                viewModel.saveMonthlySummaryReminder(monthlySummaryRem)
+                                viewModel.saveBiometricAuth(biometricUnlock)
+                                viewModel.saveFirstLaunch(false)
 
-                            onSetupComplete()
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(2f)
-                        .height(48.dp)
-                        .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(
-                        text = if (currentStep == totalSteps) "Complete Setup" else "Continue",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold
-                    )
+                                onSetupComplete()
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(2f)
+                            .height(48.dp)
+                            .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Text(
+                            text = if (currentStep == totalSteps) "Complete Setup" else "Continue",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun StepCurrency(selected: String, onSelect: (String) -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Choose Currency", fontFamily = SpaceGroteskFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text("Set the primary base monetary symbol for ledger balance valuations.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        CurrencySelector(selectedCode = selected, onCurrencySelected = onSelect)
     }
 }
 

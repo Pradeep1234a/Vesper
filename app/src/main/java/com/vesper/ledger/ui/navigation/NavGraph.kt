@@ -26,6 +26,8 @@ import com.vesper.ledger.ui.settings.SettingsViewModelFactory
 import com.vesper.ledger.ui.auth.AuthScreen
 import com.vesper.ledger.ui.auth.AuthViewModel
 import com.vesper.ledger.ui.auth.AuthViewModelFactory
+import com.vesper.ledger.ui.components.CurrencySelectorMode
+import com.vesper.ledger.ui.components.CurrencySelectorScreen
 
 @Composable
 fun NavGraph(
@@ -106,11 +108,25 @@ fun NavGraph(
             )
         }
 
+        composable("settings_currency") {
+            val currentCurrency by settingsViewModel.currency.collectAsState()
+            CurrencySelectorScreen(
+                mode = CurrencySelectorMode.SETTINGS,
+                currentSelection = currentCurrency,
+                onCurrencySelected = { code ->
+                    settingsViewModel.saveCurrency(code)
+                },
+                onContinueClick = {},
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
         composable("main_screen") {
             MainScreen(
                 settingsViewModel = settingsViewModel,
                 onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
-                onSavingsClick = { navController.navigate(Screen.Savings.route) }
+                onSavingsClick = { navController.navigate(Screen.Savings.route) },
+                onCurrencyClick = { navController.navigate("settings_currency") }
             )
         }
 
