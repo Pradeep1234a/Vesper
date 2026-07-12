@@ -24,6 +24,18 @@ class SettingsViewModel(
 
     val currency = MutableStateFlow(sharedPrefs.getString("currency", "$") ?: "$")
     val theme = MutableStateFlow(sharedPrefs.getString("theme", "system") ?: "system")
+    val language = MutableStateFlow(sharedPrefs.getString("language", "English") ?: "English")
+    val dynamicColors = MutableStateFlow(sharedPrefs.getBoolean("dynamicColors", true))
+    val defaultTransactionType = MutableStateFlow(sharedPrefs.getString("defaultTransactionType", "Expense") ?: "Expense")
+    val quickAddPreferences = MutableStateFlow(sharedPrefs.getBoolean("quickAddPreferences", true))
+    val defaultAccount = MutableStateFlow(sharedPrefs.getString("defaultAccount", "Cash") ?: "Cash")
+    val dailyReminder = MutableStateFlow(sharedPrefs.getBoolean("dailyReminder", false))
+    val missedEntryReminder = MutableStateFlow(sharedPrefs.getBoolean("missedEntryReminder", false))
+    val budgetReminder = MutableStateFlow(sharedPrefs.getBoolean("budgetReminder", false))
+    val recurringReminder = MutableStateFlow(sharedPrefs.getBoolean("recurringReminder", false))
+    val appLock = MutableStateFlow(sharedPrefs.getBoolean("appLock", false))
+    val biometricAuth = MutableStateFlow(sharedPrefs.getBoolean("biometricAuth", false))
+    val isProUser = MutableStateFlow(sharedPrefs.getBoolean("isProUser", false))
 
     val categories: StateFlow<List<Category>> = transactionRepository.allCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -36,6 +48,66 @@ class SettingsViewModel(
     fun saveTheme(newTheme: String) {
         theme.value = newTheme
         sharedPrefs.edit().putString("theme", newTheme).apply()
+    }
+
+    fun saveLanguage(newValue: String) {
+        language.value = newValue
+        sharedPrefs.edit().putString("language", newValue).apply()
+    }
+
+    fun saveDynamicColors(newValue: Boolean) {
+        dynamicColors.value = newValue
+        sharedPrefs.edit().putBoolean("dynamicColors", newValue).apply()
+    }
+
+    fun saveDefaultTransactionType(newValue: String) {
+        defaultTransactionType.value = newValue
+        sharedPrefs.edit().putString("defaultTransactionType", newValue).apply()
+    }
+
+    fun saveQuickAddPreferences(newValue: Boolean) {
+        quickAddPreferences.value = newValue
+        sharedPrefs.edit().putBoolean("quickAddPreferences", newValue).apply()
+    }
+
+    fun saveDefaultAccount(newValue: String) {
+        defaultAccount.value = newValue
+        sharedPrefs.edit().putString("defaultAccount", newValue).apply()
+    }
+
+    fun saveDailyReminder(newValue: Boolean) {
+        dailyReminder.value = newValue
+        sharedPrefs.edit().putBoolean("dailyReminder", newValue).apply()
+    }
+
+    fun saveMissedEntryReminder(newValue: Boolean) {
+        missedEntryReminder.value = newValue
+        sharedPrefs.edit().putBoolean("missedEntryReminder", newValue).apply()
+    }
+
+    fun saveBudgetReminder(newValue: Boolean) {
+        budgetReminder.value = newValue
+        sharedPrefs.edit().putBoolean("budgetReminder", newValue).apply()
+    }
+
+    fun saveRecurringReminder(newValue: Boolean) {
+        recurringReminder.value = newValue
+        sharedPrefs.edit().putBoolean("recurringReminder", newValue).apply()
+    }
+
+    fun saveAppLock(newValue: Boolean) {
+        appLock.value = newValue
+        sharedPrefs.edit().putBoolean("appLock", newValue).apply()
+    }
+
+    fun saveBiometricAuth(newValue: Boolean) {
+        biometricAuth.value = newValue
+        sharedPrefs.edit().putBoolean("biometricAuth", newValue).apply()
+    }
+
+    fun saveIsProUser(newValue: Boolean) {
+        isProUser.value = newValue
+        sharedPrefs.edit().putBoolean("isProUser", newValue).apply()
     }
 
     fun addCategory(name: String, type: TransactionType, colorHex: String) {
