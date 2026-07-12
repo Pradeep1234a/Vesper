@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
+import com.vesper.ledger.ui.components.ShCard
 import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,8 +57,8 @@ fun ReportsScreen(
             .fillMaxSize()
             .background(bgColor)
             .systemBarsPadding()
-            .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
         contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp)
     ) {
         // ── Header ──
@@ -145,7 +146,7 @@ fun ReportsScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 BentoCard(
-                    modifier = Modifier.weight(1.4f),
+                    modifier = Modifier.weight(1f),
                     icon = Icons.Outlined.TrendingUp,
                     title = "Total Spending",
                     value = "$currencySymbol${df.format(uiState.totalSpending.toLong())}",
@@ -228,84 +229,79 @@ fun ReportsScreen(
             }
         }
 
-        // ── Monthly Comparison + Spending Activity side-by-side ──
+        // ── Monthly Comparison ──
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Monthly Comparison
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                        .padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+            ShCard(modifier = Modifier.fillMaxWidth()) {
+                Text("Monthly Comparison", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Monthly Comparison", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("This Period", fontSize = 11.sp, color = secTextColor)
-                    Text("$currencySymbol${df.format(uiState.totalSpending.toLong())}", fontFamily = SpaceGroteskFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                    Text("Last Period", fontSize = 11.sp, color = secTextColor)
-                    Text("$currencySymbol${df.format(uiState.previousPeriodSpending.toLong())}", fontFamily = SpaceGroteskFamily, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("Difference", fontSize = 11.sp, color = secTextColor)
-                    val diff = uiState.totalSpending - uiState.previousPeriodSpending
-                    val diffSign = if (diff >= 0) "+" else ""
-                    val diffPctText = if (uiState.spendingChangePercent >= 0) "↑ ${df.format(uiState.spendingChangePercent.toDouble())}%" else "↓ ${df.format((-uiState.spendingChangePercent).toDouble())}%"
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            diffPctText,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (diff >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
-                        )
-                        Text(
-                            "$diffSign$currencySymbol${df.format(kotlin.math.abs(diff).toLong())}",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (diff >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
-                        )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("This Period", fontSize = 11.sp, color = secTextColor)
+                        Text("$currencySymbol${df.format(uiState.totalSpending.toLong())}", fontFamily = SpaceGroteskFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = onBgColor)
                     }
-                }
-
-                // Spending Activity Heatmap
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                        .padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text("Spending Activity", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    HeatmapGrid(
-                        heatmapDays = uiState.heatmapDays,
-                        accentColor = MaterialTheme.colorScheme.primary,
-                        outlineColor = outlineColor
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    // Legend
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Less", fontSize = 9.sp, color = secTextColor)
-                        for (i in 0..4) {
-                            val alpha = i * 0.25f
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .background(
-                                        if (i == 0) outlineColor.copy(alpha = 0.3f)
-                                        else MaterialTheme.colorScheme.primary.copy(alpha = alpha),
-                                        RoundedCornerShape(2.dp)
-                                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Last Period", fontSize = 11.sp, color = secTextColor)
+                        Text("$currencySymbol${df.format(uiState.previousPeriodSpending.toLong())}", fontFamily = SpaceGroteskFamily, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Difference", fontSize = 11.sp, color = secTextColor)
+                        val diff = uiState.totalSpending - uiState.previousPeriodSpending
+                        val diffSign = if (diff >= 0) "+" else ""
+                        val diffPctText = if (uiState.spendingChangePercent >= 0) "↑ ${df.format(uiState.spendingChangePercent.toDouble())}%" else "↓ ${df.format((-uiState.spendingChangePercent).toDouble())}%"
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                diffPctText,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (diff >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
+                            )
+                            Text(
+                                "$diffSign$currencySymbol${df.format(kotlin.math.abs(diff).toLong())}",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (diff >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
                             )
                         }
-                        Text("More", fontSize = 9.sp, color = secTextColor)
                     }
+                }
+            }
+        }
+
+        // ── Spending Activity Heatmap ──
+        item {
+            ShCard(modifier = Modifier.fillMaxWidth()) {
+                Text("Spending Activity", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
+                Spacer(modifier = Modifier.height(12.dp))
+                HeatmapGrid(
+                    heatmapDays = uiState.heatmapDays,
+                    accentColor = MaterialTheme.colorScheme.primary,
+                    outlineColor = outlineColor
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                // Legend
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Less", fontSize = 9.sp, color = secTextColor)
+                    for (i in 0..4) {
+                        val alpha = i * 0.25f
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .background(
+                                    if (i == 0) outlineColor.copy(alpha = 0.3f)
+                                    else MaterialTheme.colorScheme.primary.copy(alpha = alpha),
+                                    RoundedCornerShape(2.dp)
+                                )
+                        )
+                    }
+                    Text("More", fontSize = 9.sp, color = secTextColor)
                 }
             }
         }
@@ -351,16 +347,10 @@ fun BentoCard(
     subtitle: String,
     subtitleColor: Color
 ) {
-    val outlineColor = MaterialTheme.colorScheme.outline
     val onBgColor = MaterialTheme.colorScheme.onBackground
     val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
 
-    Column(
-        modifier = modifier
-            .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
+    ShCard(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -369,6 +359,7 @@ fun BentoCard(
             Text(title, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = secTextColor)
             Icon(icon, null, tint = secTextColor, modifier = Modifier.size(14.dp))
         }
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             value,
             fontFamily = SpaceGroteskFamily,
@@ -376,6 +367,7 @@ fun BentoCard(
             fontWeight = FontWeight.Bold,
             color = onBgColor
         )
+        Spacer(modifier = Modifier.height(4.dp))
         Text(subtitle, fontSize = 10.sp, color = subtitleColor)
     }
 }
@@ -403,24 +395,23 @@ fun SpendingTrendSection(
             Text("Spending Trend", fontFamily = SpaceGroteskFamily, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = onBgColor)
         }
 
-        if (trendPoints.isEmpty() || trendPoints.all { it.amount == 0.0 }) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No trend data for this period.", fontSize = 13.sp, color = secTextColor.copy(alpha = 0.6f))
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-                    .padding(top = 16.dp, bottom = 8.dp, start = 8.dp, end = 8.dp)
-            ) {
+        ShCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
+            if (trendPoints.isEmpty() || trendPoints.all { it.amount == 0.0 }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No trend data for this period.", fontSize = 13.sp, color = secTextColor.copy(alpha = 0.6f))
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(top = 16.dp, bottom = 8.dp, start = 8.dp, end = 8.dp)
+                ) {
                 val maxVal = trendPoints.maxOf { it.amount }.coerceAtLeast(1.0)
                 val chartLeftPad = 48f
                 val chartTopPad = 8f
@@ -518,6 +509,7 @@ fun SpendingTrendSection(
             }
         }
     }
+}
 }
 
 // ────────────────────────────────────

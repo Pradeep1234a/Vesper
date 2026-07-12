@@ -148,57 +148,59 @@ fun UpdateDialog(
                 }
 
                 // What's New Section (Scrollable list if long)
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "What's New",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 160.dp)
-                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
-                            .padding(10.dp)
+                if (updateInfo.changelog.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        Text(
+                            text = "What's New",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 160.dp)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                                .padding(10.dp)
                         ) {
-                            val grouped = updateInfo.changelog.groupBy { it.type }
-                            ChangeType.values().forEach { type ->
-                                val list = grouped[type]
-                                if (!list.isNullOrEmpty()) {
-                                    item {
-                                        Text(
-                                            text = "${type.icon} ${type.label}",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    items(list) { entry ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                        ) {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                val grouped = updateInfo.changelog.groupBy { it.type }
+                                ChangeType.values().forEach { type ->
+                                    val list = grouped[type]
+                                    if (!list.isNullOrEmpty()) {
+                                        item {
                                             Text(
-                                                text = "•",
+                                                text = "${type.icon} ${type.label}",
                                                 fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
-                                            Text(
-                                                text = entry.description,
-                                                fontSize = 11.sp,
-                                                color = MaterialTheme.colorScheme.onBackground,
-                                                lineHeight = 15.sp
-                                            )
+                                        }
+                                        items(list) { entry ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                Text(
+                                                    text = "•",
+                                                    fontSize = 11.sp,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                Text(
+                                                    text = entry.description,
+                                                    fontSize = 11.sp,
+                                                    color = MaterialTheme.colorScheme.onBackground,
+                                                    lineHeight = 15.sp
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -270,36 +272,38 @@ fun UpdateBottomSheet(
             }
 
             // Changelog Box
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.4f)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
-                    .padding(12.dp)
-            ) {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+            if (updateInfo.changelog.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.4f)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                        .padding(12.dp)
                 ) {
-                    val grouped = updateInfo.changelog.groupBy { it.type }
-                    ChangeType.values().forEach { type ->
-                        val list = grouped[type]
-                        if (!list.isNullOrEmpty()) {
-                            item {
-                                Text(
-                                    text = "${type.icon} ${type.label}",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            items(list) { entry ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Text("•", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text(entry.description, fontSize = 11.sp, color = MaterialTheme.colorScheme.onBackground, lineHeight = 15.sp)
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val grouped = updateInfo.changelog.groupBy { it.type }
+                        ChangeType.values().forEach { type ->
+                            val list = grouped[type]
+                            if (!list.isNullOrEmpty()) {
+                                item {
+                                    Text(
+                                        text = "${type.icon} ${type.label}",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                items(list) { entry ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text("•", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(entry.description, fontSize = 11.sp, color = MaterialTheme.colorScheme.onBackground, lineHeight = 15.sp)
+                                    }
                                 }
                             }
                         }
@@ -333,6 +337,53 @@ fun SettingsUpdatesScreen(
         }
     }
 
+    // Status Header Block
+    val statusText: String
+    val statusDesc: String
+    val statusColor: Color
+    
+    when {
+        uiState.downloadState == UpdateDownloadState.CHECKING -> {
+            statusText = "Checking for updates..."
+            statusDesc = "Connecting to the update server."
+            statusColor = MaterialTheme.colorScheme.primary
+        }
+        uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable -> {
+            when (uiState.downloadState) {
+                UpdateDownloadState.DOWNLOADED -> {
+                    statusText = "Install Update"
+                    statusDesc = "Downloaded and ready to install."
+                    statusColor = MaterialTheme.colorScheme.primary
+                }
+                UpdateDownloadState.DOWNLOADING -> {
+                    statusText = "Downloading..."
+                    statusDesc = "Fetching update files."
+                    statusColor = MaterialTheme.colorScheme.primary
+                }
+                UpdateDownloadState.INSTALLING -> {
+                    statusText = "Installing..."
+                    statusDesc = "Applying update files."
+                    statusColor = MaterialTheme.colorScheme.primary
+                }
+                UpdateDownloadState.ERROR -> {
+                    statusText = "Download Failed"
+                    statusDesc = uiState.errorMessage ?: "An error occurred during download."
+                    statusColor = MaterialTheme.colorScheme.error
+                }
+                else -> {
+                    statusText = "Update Available"
+                    statusDesc = "A new version of Vesper Ledger is available."
+                    statusColor = MaterialTheme.colorScheme.primary
+                }
+            }
+        }
+        else -> {
+            statusText = "✓ Up To Date"
+            statusDesc = "You are running the latest stable version."
+            statusColor = Color(0xFF16A34A) // Green
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -340,97 +391,110 @@ fun SettingsUpdatesScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Current Version Info Card
+        // Status Card
         ShCard {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(statusColor.copy(alpha = 0.1f), CircleShape)
+                        .border(1.dp, statusColor.copy(alpha = 0.3f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val icon = if (statusText.contains("Up To Date") || statusText.contains("✓")) Icons.Outlined.Check else Icons.Outlined.Info
+                    Icon(icon, null, tint = statusColor, modifier = Modifier.size(16.dp))
+                }
                 Column {
                     Text(
-                        text = "Vesper Ledger",
+                        text = statusText,
                         fontFamily = SpaceGroteskFamily,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "Offline Personal Ledger",
-                        fontSize = 11.sp,
+                        text = statusDesc,
+                        fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                LogoBadge()
+            }
+        }
+
+        // Version Details Card
+        ShCard {
+            val latestName = uiState.updateInfo?.latestVersionName ?: BuildConfig.VERSION_NAME
+            val latestCode = uiState.updateInfo?.latestVersionCode ?: BuildConfig.VERSION_CODE
+            
+            val statusLabel = when {
+                uiState.downloadState == UpdateDownloadState.CHECKING -> "Checking..."
+                uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable -> {
+                    when (uiState.downloadState) {
+                        UpdateDownloadState.DOWNLOADED -> "Downloaded"
+                        UpdateDownloadState.DOWNLOADING -> "Downloading"
+                        UpdateDownloadState.INSTALLING -> "Installing"
+                        UpdateDownloadState.ERROR -> "Error"
+                        else -> "Update Available"
+                    }
+                }
+                else -> "Up To Date"
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Metadata grid
-            MetadataRow(label = "Current Version", value = "v${BuildConfig.VERSION_NAME}")
-            MetadataRow(label = "Build Number", value = "${BuildConfig.VERSION_CODE}")
-            MetadataRow(label = "Update Channel", value = "Stable")
+            MetadataRow(label = "Current Version", value = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+            MetadataRow(label = "Latest Version", value = "v$latestName ($latestCode)")
+            MetadataRow(label = "Status", value = statusLabel)
             MetadataRow(label = "Last Checked", value = lastCheckedText)
         }
 
-        // Action or Update Info Panel
-        if (uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable) {
-            val info = uiState.updateInfo!!
-            val badgeColor = when (info.updateType) {
-                UpdateType.MAJOR -> Color(0xFFDC2626)
-                UpdateType.FEATURE -> Color(0xFF2563EB)
-                UpdateType.STABILITY -> Color(0xFF71717A)
-                UpdateType.SECURITY -> Color(0xFFD97706)
-                UpdateType.HOTFIX -> Color(0xFF16A34A)
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
+        // Changelog / What's New section inside SettingsUpdatesScreen if update available
+        if (uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable && uiState.updateInfo!!.changelog.isNotEmpty()) {
+            Text(
+                text = "What's New",
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            
+            ShCard {
+                val grouped = uiState.updateInfo!!.changelog.groupBy { it.type }
+                ChangeType.values().forEach { type ->
+                    val list = grouped[type]
+                    if (!list.isNullOrEmpty()) {
                         Text(
-                            text = "Update Available",
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "v${info.latestVersionName} is ready to download",
+                            text = "${type.icon} ${type.label}",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .background(badgeColor.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
-                            .border(1.dp, badgeColor.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = info.updateType.label,
-                            fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
-                            color = badgeColor
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 4.dp)
                         )
+                        list.forEach { entry ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text("•", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = entry.description,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    lineHeight = 16.sp
+                                )
+                            }
+                        }
                     }
                 }
+            }
+        }
 
-                Divider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                // Inline action area
+        // Action Panel
+        if (uiState.updateInfo != null && uiState.updateInfo!!.updateAvailable) {
+            ShCard {
                 UpdateActionArea(
                     downloadState = uiState.downloadState,
                     progress = uiState.downloadProgress,
@@ -470,11 +534,6 @@ fun SettingsUpdatesScreen(
                         text = "Check for Updates",
                         onClick = { viewModel.checkForUpdates() },
                         modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = "Your application is currently up to date.",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

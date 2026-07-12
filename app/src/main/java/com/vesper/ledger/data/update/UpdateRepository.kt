@@ -17,6 +17,14 @@ class UpdateRepository(private val context: Context) {
         if (!updatesDir.exists()) {
             updatesDir.mkdirs()
         }
+        performInstalledUpdateCleanup()
+    }
+
+    fun performInstalledUpdateCleanup() {
+        val downloadedCode = getDownloadedVersionCode()
+        if (downloadedCode != -1 && BuildConfig.VERSION_CODE >= downloadedCode) {
+            clearDownloadedVersion()
+        }
     }
 
     // ── Preference Management ──

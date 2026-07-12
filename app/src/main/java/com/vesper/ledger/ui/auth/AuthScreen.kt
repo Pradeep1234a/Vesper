@@ -96,7 +96,7 @@ fun AuthScreen(
                 .padding(horizontal = 24.dp)
                 .systemBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.Top
         ) {
             // Header Bar (Contains back arrow if in Sign Up / Forgot Password)
             Row(
@@ -108,6 +108,16 @@ fun AuthScreen(
                 if (activeTab != AuthTab.SIGN_IN) {
                     IconButton(onClick = { activeTab = AuthTab.SIGN_IN }) {
                         Icon(Icons.Outlined.ArrowBack, null, tint = onBgColor)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    if (activeTab == AuthTab.SIGN_UP) {
+                        Text(
+                            text = "Vesper Ledger",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = onBgColor
+                        )
                     }
                 }
             }
@@ -429,12 +439,11 @@ fun SignUpView(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(top = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        VesperLogo(modifier = Modifier.padding(bottom = 12.dp))
-
         // Titles
         Column(
             modifier = Modifier.fillMaxWidth(),
