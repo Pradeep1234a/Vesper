@@ -153,31 +153,45 @@ class UpdateRepository(private val context: Context) {
         return null
     }
 
+    private fun isNewerVersionName(current: String, latest: String): Boolean {
+        val curParts = current.split(".")
+        val latParts = latest.split(".")
+        val maxLen = maxOf(curParts.size, latParts.size)
+        for (i in 0 until maxLen) {
+            val curPart = curParts.getOrNull(i)?.toIntOrNull() ?: 0
+            val latPart = latParts.getOrNull(i)?.toIntOrNull() ?: 0
+            if (latPart > curPart) return true
+            if (curPart > latPart) return false
+        }
+        return false
+    }
+
     private fun parseUpdateResponse(json: String): AppUpdateInfo {
         val tagName = extractJsonString(json, "tag_name") ?: "1.0.0"
         val body = extractJsonString(json, "body") ?: ""
         
-        // Clean release name tag ("v1.1.0" -> "1.1.0")
         val latestName = tagName.removePrefix("v").trim()
         val currentName = BuildConfig.VERSION_NAME
 
-        // Extract versionCode from body or fallback to latest tag calculation or asset size
-        // We look for a pattern like "versionCode = 285" or "Code: 285" in the body, otherwise fallback
-        val latestCode = extractVersionCodeFromBody(body) ?: (BuildConfig.VERSION_CODE + 1) // default to current + 1 if check succeeded
+        val extractedCode = extractVersionCodeFromBody(body)
+        val updateAvailable = if (extractedCode != null) {
+            extractedCode > BuildConfig.VERSION_CODE
+        } else {
+            isNewerVersionName(currentName, latestName)
+        }
 
-        // Find browser_download_url for VesperLedger.apk
+        val latestCode = extractedCode ?: if (updateAvailable) {
+            BuildConfig.VERSION_CODE + 1
+        } else {
+            BuildConfig.VERSION_CODE
+        }
+
         val downloadUrl = extractBrowserDownloadUrl(json) ?: ""
         val fileSizeBytes = extractAssetSize(json)
 
-        val updateAvailable = latestCode > BuildConfig.VERSION_CODE
-
-        // Automatic update type detection
         val updateType = determineUpdateType(currentName, latestName, body)
-
-        // Generate changelog
         val changelog = parseChangelog(body)
 
-        // Automatically clean up old APKs if update is already installed
         if (!updateAvailable) {
             cleanupOldApks()
         }
@@ -290,13 +304,25 @@ class UpdateRepository(private val context: Context) {
     }
 
     private fun extractVersionCodeFromBody(body: String): Int? {
+        val lines = body.split("\n")
+        val pattern = Pattern.compile("Version\\s+Code.*?(\\d+)", Pattern.CASE_INSENSITIVE)
+        for (line in lines) {
+            val matcher = pattern.matcher(line)
+            if (matcher.find()) {
+                try {
+                    return matcher.group(1)?.toInt()
+                } catch (e: Exception) {
+                    // ignore
+                }
+            }
+        }
         val patterns = listOf(
             Pattern.compile("versionCode\\s*=\\s*(\\d+)"),
             Pattern.compile("code\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE),
             Pattern.compile("\\((\\d+)\\)")
         )
-        for (pattern in patterns) {
-            val matcher = pattern.matcher(body)
+        for (p in patterns) {
+            val matcher = p.matcher(body)
             if (matcher.find()) {
                 try {
                     return matcher.group(1)?.toInt()
