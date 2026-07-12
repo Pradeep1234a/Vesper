@@ -37,12 +37,45 @@ fun NavGraph(
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
 
     val currencySymbol by settingsViewModel.currency.collectAsState()
+    val isFirstLaunch by settingsViewModel.isFirstLaunch.collectAsState()
 
     NavHost(
         navController = navController,
-        startDestination = "main_screen",
+        startDestination = "splash",
         modifier = modifier.fillMaxSize()
     ) {
+        composable("splash") {
+            SplashScreen(
+                isFirstLaunch = isFirstLaunch,
+                onNavigateNext = { route ->
+                    navController.navigate(route) {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("onboarding") {
+            OnboardingScreen(
+                onNavigateNext = {
+                    navController.navigate("personalization") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("personalization") {
+            PersonalizationScreen(
+                viewModel = settingsViewModel,
+                onSetupComplete = {
+                    navController.navigate("main_screen") {
+                        popUpTo("personalization") { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable("main_screen") {
             MainScreen(
                 settingsViewModel = settingsViewModel,

@@ -67,6 +67,7 @@ fun MainScreen(
     val reportsFactory = ReportsViewModelFactory(app.transactionRepository)
 
     val currencySymbol by settingsViewModel.currency.collectAsState()
+    val userName by settingsViewModel.userName.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -157,6 +158,7 @@ fun MainScreen(
                 DashboardScreen(
                     viewModel = dashboardViewModel,
                     currencySymbol = currencySymbol,
+                    userName = userName,
                     onAddTransactionClick = onAddTransactionClick,
                     onSeeAllTransactionsClick = {
                         navController.navigate(Screen.Transactions.route) {

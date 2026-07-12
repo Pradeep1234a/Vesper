@@ -57,6 +57,7 @@ import java.util.Locale
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     currencySymbol: String,
+    userName: String,
     onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -67,16 +68,25 @@ fun DashboardScreen(
     val df = DecimalFormat("#,##0.00")
     val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
 
+    val greeting = remember {
+        val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        when (hour) {
+            in 0..11 -> "Good morning"
+            in 12..16 -> "Good afternoon"
+            else -> "Good evening"
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Vesper Ledger",
+                        text = "$greeting, $userName",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontFamily = SpaceGroteskFamily,
-                            fontSize = 20.sp
+                            fontSize = 18.sp
                         )
                     )
                 },
@@ -99,14 +109,24 @@ fun DashboardScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     }
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = Icons.Outlined.Person,
-                            contentDescription = "Profile",
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.size(24.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                            .clickable { onSettingsClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = userName.take(1).uppercase(),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         )
                     }
+                    Spacer(modifier = Modifier.width(8.dp))
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background

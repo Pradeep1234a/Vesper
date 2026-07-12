@@ -36,7 +36,7 @@ enum class SettingsSubView {
 }
 
 enum class SettingsDialogType {
-    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE
+    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE, EDIT_NAME
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +59,7 @@ fun SettingsScreen(
     val appLock by viewModel.appLock.collectAsState()
     val biometricAuth by viewModel.biometricAuth.collectAsState()
     val isProUser by viewModel.isProUser.collectAsState()
+    val userName by viewModel.userName.collectAsState()
     val categories by viewModel.categories.collectAsState()
 
     var subView by remember { mutableStateOf(SettingsSubView.MAIN) }
@@ -179,6 +180,44 @@ fun SettingsScreen(
                 }
             )
         }
+        SettingsDialogType.EDIT_NAME -> {
+            var tempName by remember { mutableStateOf(userName) }
+            AlertDialog(
+                onDismissRequest = { activeDialog = null },
+                title = { Text("Edit Name", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("What should we call you?")
+                        OutlinedTextField(
+                            value = tempName,
+                            onValueChange = { tempName = it },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val trimmed = tempName.trim()
+                            if (trimmed.isNotBlank()) {
+                                viewModel.saveUserName(trimmed)
+                                activeDialog = null
+                            } else {
+                                Toast.makeText(context, "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    ) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { activeDialog = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
         null -> {}
     }
 
@@ -223,6 +262,13 @@ fun SettingsScreen(
 
                 // Preferences Section
                 SettingsGroup(title = "Preferences") {
+                    SettingsRow(
+                        icon = Icons.Outlined.Person,
+                        title = "Name",
+                        trailing = { Text(userName, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                        onClick = { activeDialog = SettingsDialogType.EDIT_NAME }
+                    )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
                         icon = Icons.Outlined.Palette,
                         title = "Theme",

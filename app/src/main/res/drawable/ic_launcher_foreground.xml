@@ -3,10 +3,30 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    
+    <!-- Glassmorphic Card Background (Realme UI style) -->
+    <path
+        android:fillColor="#15FFFFFF"
+        android:strokeColor="#35FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M 28,28 h 52 a 12,12 0 0 1 12,12 v 52 a 12,12 0 0 1 -12,12 h -52 a 12,12 0 0 1 -12,-12 v -52 a 12,12 0 0 1 12,-12 z" />
+
+    <!-- Frosted Glass Gradient Accent (Subtle inner glow) -->
+    <path
+        android:fillColor="#0D10B981"
+        android:pathData="M 36,36 h 36 v 36 h -36 z" />
+
+    <!-- Geometric Balance Scale Logo (Frosted white contrast) -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="4"
+        android:strokeWidth="3.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M 38,42 L 54,68 L 70,42 M 54,68 L 54,78 M 44,78 L 64,78" />
+        android:pathData="M 38,44 L 54,68 L 70,44 M 54,68 L 54,78 M 44,78 L 64,78" />
+
+    <!-- Glowing Emerald Balance Pivot Indicator -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M 54,42 A 2.5,2.5 0 1,0 54,37 A 2.5,2.5 0 1,0 54,42" />
+
 </vector>

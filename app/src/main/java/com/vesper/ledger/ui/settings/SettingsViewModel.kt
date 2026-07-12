@@ -36,6 +36,8 @@ class SettingsViewModel(
     val appLock = MutableStateFlow(sharedPrefs.getBoolean("appLock", false))
     val biometricAuth = MutableStateFlow(sharedPrefs.getBoolean("biometricAuth", false))
     val isProUser = MutableStateFlow(sharedPrefs.getBoolean("isProUser", false))
+    val userName = MutableStateFlow(sharedPrefs.getString("userName", "User") ?: "User")
+    val isFirstLaunch = MutableStateFlow(sharedPrefs.getBoolean("isFirstLaunch", true))
 
     val categories: StateFlow<List<Category>> = transactionRepository.allCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -108,6 +110,16 @@ class SettingsViewModel(
     fun saveIsProUser(newValue: Boolean) {
         isProUser.value = newValue
         sharedPrefs.edit().putBoolean("isProUser", newValue).apply()
+    }
+
+    fun saveUserName(newValue: String) {
+        userName.value = newValue
+        sharedPrefs.edit().putString("userName", newValue).apply()
+    }
+
+    fun saveFirstLaunch(newValue: Boolean) {
+        isFirstLaunch.value = newValue
+        sharedPrefs.edit().putBoolean("isFirstLaunch", newValue).apply()
     }
 
     fun addCategory(name: String, type: TransactionType, colorHex: String) {
