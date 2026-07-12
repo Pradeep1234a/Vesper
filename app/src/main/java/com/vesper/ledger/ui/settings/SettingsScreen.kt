@@ -585,8 +585,9 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
-            SettingsSubView.CATEGORIES -> {
-                // CATEGORIES Sub-View (In-place Category Manager)
+        }
+        SettingsSubView.CATEGORIES -> {
+            // CATEGORIES Sub-View (In-place Category Manager)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -739,10 +740,10 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
-            SettingsSubView.UPDATES -> {
-                Box(modifier = Modifier.padding(innerPadding)) {
-                    com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
-                }
+        }
+        SettingsSubView.UPDATES -> {
+            Box(modifier = Modifier.padding(innerPadding)) {
+                com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
             }
         }
     }
