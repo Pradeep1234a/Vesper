@@ -1,6 +1,9 @@
 name: Android CI/CD Release
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       bump_type:
@@ -48,7 +51,18 @@ jobs:
         run: |
           OLD_CODE=${{ steps.current_version.outputs.old_code }}
           OLD_NAME=${{ steps.current_version.outputs.old_name }}
-          BUMP_TYPE=${{ github.event.inputs.bump_type }}
+          BUMP_TYPE="${{ github.event.inputs.bump_type }}"
+          if [ -z "$BUMP_TYPE" ]; then
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            echo "Commit message: $COMMIT_MSG"
+            if echo "$COMMIT_MSG" | grep -iqE "\[major\]|\[breaking\]"; then
+              BUMP_TYPE="major"
+            elif echo "$COMMIT_MSG" | grep -iqE "\[minor\]|feat:|\[feature\]"; then
+              BUMP_TYPE="minor"
+            else
+              BUMP_TYPE="patch"
+            fi
+          fi
 
           # Increment versionCode
           NEW_CODE=$((OLD_CODE + 1))
