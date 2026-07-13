@@ -1,8 +1,10 @@
 package com.vesper.ledger.ui.navigation
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -14,32 +16,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vesper.ledger.ui.components.DynamicLogo
+import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     onNavigateNext: (String) -> Unit
 ) {
-    val scale = remember { Animatable(0.5f) }
+    val scale = remember { Animatable(0.7f) }
     val alpha = remember { Animatable(0f) }
 
     LaunchedEffect(key1 = true) {
+        // 1. Entry Animation: Scale and fade in
         scale.animateTo(
             targetValue = 1f,
-            animationSpec = tween(durationMillis = 1000)
+            animationSpec = tween(durationMillis = 800, easing = LinearOutSlowInEasing)
         )
         alpha.animateTo(
             targetValue = 1f,
-            animationSpec = tween(durationMillis = 1000)
+            animationSpec = tween(durationMillis = 800)
         )
-        delay(1000)
         
+        // 2. Display Hold State
+        delay(1200)
+        
+        // 3. Exit Animation: Scale down slightly and fade out
+        scale.animateTo(
+            targetValue = 0.85f,
+            animationSpec = tween(durationMillis = 500, easing = FastOutLinearInEasing)
+        )
+        alpha.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(durationMillis = 500)
+        )
+        
+        // 4. Navigation
         onNavigateNext("main_screen")
     }
 
@@ -56,29 +72,23 @@ fun SplashScreen(
                 .scale(scale.value)
                 .alpha(alpha.value)
         ) {
-            DynamicLogo(
-                size = 120.dp,
-                cornerRadius = 28.dp
+            // Monochrome minimal vector logo
+            Image(
+                painter = painterResource(id = com.vesper.ledger.R.drawable.ic_launcher_foreground),
+                contentDescription = "Vesper Logo",
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier.size(120.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "VESPER",
-                fontSize = 28.sp,
+                text = "WE ARE REFINING OUR APP",
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                letterSpacing = 4.sp
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "LEDGER",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                letterSpacing = 8.sp
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                letterSpacing = 2.5.sp
             )
         }
     }
