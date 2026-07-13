@@ -337,7 +337,6 @@ fun SettingsScreen(
                 SettingsSubView.MAIN -> {
                     RootHeader(
                         title = "Settings",
-                        subtitle = "Active Visual Identity • v${BuildConfig.VERSION_NAME}",
                         actions = {
                             DynamicLogo(size = 48.dp, cornerRadius = 12.dp)
                         }

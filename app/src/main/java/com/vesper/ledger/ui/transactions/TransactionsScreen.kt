@@ -154,7 +154,6 @@ fun TransactionsScreen(
         ) {
             RootHeader(
                 title = "Transactions",
-                subtitle = "${transactions.size} transactions logged",
                 actions = {
                     IconButton(onClick = onCategoryManagementClick) {
                         Icon(imageVector = Icons.Default.Category, contentDescription = "Manage Categories", tint = MaterialTheme.colorScheme.onBackground)

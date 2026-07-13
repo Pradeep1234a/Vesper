@@ -85,8 +85,7 @@ fun DashboardScreen(
                 .padding(innerPadding)
         ) {
             RootHeader(
-                title = "Dashboard",
-                subtitle = "$greeting, $userName!",
+                title = "Vesper Ledger",
                 actions = {
                     IconButton(onClick = { /* Notification click */ }) {
                         Icon(
@@ -123,8 +122,25 @@ fun DashboardScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
+                item {
+                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                        Text(
+                            text = "$greeting, $userName!",
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp
+                            )
+                        )
+                        Text(
+                            text = "Here is your money summary.",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                }
 
-            item {
+                item {
                 ShCard {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

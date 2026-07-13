@@ -60,7 +60,6 @@ fun ReportsScreen(
     ) {
         RootHeader(
             title = "Analytics",
-            subtitle = "Understand your spending patterns and financial activity.",
             actions = {
                 IconButton(onClick = { /* Help click */ }) {
                     Icon(
