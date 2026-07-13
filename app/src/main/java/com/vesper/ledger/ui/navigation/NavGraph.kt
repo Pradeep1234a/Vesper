@@ -67,43 +67,33 @@ fun NavGraph(
         }
 
         composable("onboarding") {
-            OnboardingScreen(
-                onNavigateNext = {
+            val currentCurrency by settingsViewModel.currency.collectAsState()
+            CurrencySelectorScreen(
+                mode = CurrencySelectorMode.PERSONALIZATION,
+                currentSelection = currentCurrency,
+                onCurrencySelected = {},
+                onContinueClick = { code ->
+                    settingsViewModel.saveCurrency(code)
+                    settingsViewModel.saveFirstLaunch(false)
                     navController.navigate("auth") {
                         popUpTo("onboarding") { inclusive = true }
                     }
-                }
+                },
+                onBackClick = {}
             )
         }
 
         composable("auth") {
             AuthScreen(
                 viewModel = authViewModel,
-                onAuthSuccess = { isNewUser ->
-                    if (isNewUser) {
-                        navController.navigate("personalization") {
-                            popUpTo("auth") { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate("main_screen") {
-                            popUpTo("auth") { inclusive = true }
-                        }
+                onAuthSuccess = { _ ->
+                    navController.navigate("main_screen") {
+                        popUpTo("auth") { inclusive = true }
                     }
                 },
                 onContinueAsGuest = {
                     navController.navigate("main_screen") {
                         popUpTo("auth") { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable("personalization") {
-            PersonalizationScreen(
-                viewModel = settingsViewModel,
-                onSetupComplete = {
-                    navController.navigate("main_screen") {
-                        popUpTo("personalization") { inclusive = true }
                     }
                 }
             )
