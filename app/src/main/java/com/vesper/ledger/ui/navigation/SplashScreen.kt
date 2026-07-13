@@ -1,5 +1,6 @@
 package com.vesper.ledger.ui.navigation
 
+import android.content.Context
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ fun SplashScreen(
 ) {
     val scale = remember { Animatable(0.7f) }
     val alpha = remember { Animatable(0f) }
+    val context = LocalContext.current
 
     LaunchedEffect(key1 = true) {
         // 1. Entry Animation: Scale and fade in
@@ -55,8 +58,10 @@ fun SplashScreen(
             animationSpec = tween(durationMillis = 500)
         )
         
-        // 4. Navigation
-        onNavigateNext("main_screen")
+        // 4. Navigation: Check if onboarding is completed
+        val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+        val isOnboardingCompleted = sharedPrefs.getBoolean("isOnboardingCompleted", false)
+        onNavigateNext(if (isOnboardingCompleted) "main_screen" else "onboarding")
     }
 
     Box(

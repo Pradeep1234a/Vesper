@@ -8,10 +8,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.content.Context
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.vesper.ledger.VesperApplication
+import com.vesper.ledger.ui.onboarding.OnboardingScreen
 import com.vesper.ledger.ui.addtransaction.AddTransactionScreen
 import com.vesper.ledger.ui.addtransaction.AddTransactionViewModel
 import com.vesper.ledger.ui.addtransaction.AddTransactionViewModelFactory
@@ -55,6 +57,18 @@ fun NavGraph(
                 onNavigateNext = { route ->
                     navController.navigate(route) {
                         popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("onboarding") {
+            OnboardingScreen(
+                onFinish = {
+                    val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                    sharedPrefs.edit().putBoolean("isOnboardingCompleted", true).apply()
+                    navController.navigate("main_screen") {
+                        popUpTo("onboarding") { inclusive = true }
                     }
                 }
             )
