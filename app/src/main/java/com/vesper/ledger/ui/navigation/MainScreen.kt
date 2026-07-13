@@ -25,6 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -155,7 +158,11 @@ fun MainScreen(
             startDestination = Screen.Dashboard.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Dashboard.route) {
+            composable(
+                route = Screen.Dashboard.route,
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) }
+            ) {
                 val dashboardViewModel: DashboardViewModel = viewModel(factory = dashboardFactory)
                 DashboardScreen(
                     viewModel = dashboardViewModel,
@@ -187,7 +194,11 @@ fun MainScreen(
                 )
             }
 
-            composable(Screen.Transactions.route) {
+            composable(
+                route = Screen.Transactions.route,
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) }
+            ) {
                 val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
                 TransactionsScreen(
                     viewModel = transactionsViewModel,
@@ -200,7 +211,11 @@ fun MainScreen(
                 )
             }
 
-            composable(Screen.Reports.route) {
+            composable(
+                route = Screen.Reports.route,
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) }
+            ) {
                 val reportsViewModel: ReportsViewModel = viewModel(factory = reportsFactory)
                 ReportsScreen(
                     viewModel = reportsViewModel,
@@ -208,7 +223,11 @@ fun MainScreen(
                 )
             }
 
-            composable(Screen.Settings.route) {
+            composable(
+                route = Screen.Settings.route,
+                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                exitTransition = { fadeOut(animationSpec = tween(150)) }
+            ) {
                 SettingsScreen(
                     viewModel = settingsViewModel,
                     updateViewModel = updateViewModel,
