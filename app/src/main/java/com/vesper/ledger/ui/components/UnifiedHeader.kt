@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,13 +44,18 @@ fun RootHeader(
                 modifier = Modifier.size(24.dp)
             )
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = title,
-            fontFamily = SpaceGroteskFamily,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = TextStyle(
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = false
+                )
+            ),
             modifier = Modifier.weight(1f)
         )
         if (actions != null) {
@@ -87,13 +94,18 @@ fun ChildHeader(
                 modifier = Modifier.size(24.dp)
             )
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = title,
-            fontFamily = SpaceGroteskFamily,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = TextStyle(
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = false
+                )
+            ),
             modifier = Modifier.weight(1f)
         )
         if (actions != null) {
@@ -113,10 +125,15 @@ fun SectionHeader(
 ) {
     Text(
         text = title.uppercase(),
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 1.2.sp,
-        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+        style = TextStyle(
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.2.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            platformStyle = PlatformTextStyle(
+                includeFontPadding = false
+            )
+        ),
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
