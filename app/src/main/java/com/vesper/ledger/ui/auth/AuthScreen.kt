@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
+import com.vesper.ledger.ui.components.DynamicLogo
 
 enum class AuthTab {
     SIGN_IN, SIGN_UP, FORGOT_PASSWORD, PASSWORD_RESET
@@ -38,62 +39,10 @@ fun VesperLogo(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFF0D0E11))
-                .padding(12.dp)
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val w = size.width
-                val h = size.height
-                val strokeWidth = 3.5.dp.toPx()
-
-                // Left branch of Y
-                drawLine(
-                    color = Color.White,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.18f, h * 0.18f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
-                    strokeWidth = strokeWidth,
-                    cap = androidx.compose.ui.graphics.StrokeCap.Round
-                )
-
-                // Right branch of Y
-                drawLine(
-                    color = Color.White,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.82f, h * 0.18f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
-                    strokeWidth = strokeWidth,
-                    cap = androidx.compose.ui.graphics.StrokeCap.Round
-                )
-
-                // Stem of Y
-                drawLine(
-                    color = Color.White,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.58f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.82f),
-                    strokeWidth = strokeWidth,
-                    cap = androidx.compose.ui.graphics.StrokeCap.Round
-                )
-
-                // Horizontal baseline
-                drawLine(
-                    color = Color.White,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.22f, h * 0.82f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.78f, h * 0.82f),
-                    strokeWidth = strokeWidth,
-                    cap = androidx.compose.ui.graphics.StrokeCap.Round
-                )
-
-                // White dot
-                drawCircle(
-                    color = Color.White,
-                    radius = 3.5.dp.toPx(),
-                    center = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.28f)
-                )
-            }
-        }
+        DynamicLogo(
+            size = 64.dp,
+            cornerRadius = 16.dp
+        )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = "Vesper",
@@ -117,7 +66,6 @@ fun AuthScreen(
     var resetEmailTarget by remember { mutableStateOf("") }
 
     val onBgColor = MaterialTheme.colorScheme.onBackground
-    val outlineColor = MaterialTheme.colorScheme.outline
 
     Box(
         modifier = Modifier

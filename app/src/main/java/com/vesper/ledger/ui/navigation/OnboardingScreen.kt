@@ -217,68 +217,19 @@ fun OnboardingScreen(
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun LogoV(
     color: Color,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
-            .size(36.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(color.copy(alpha = 0.08f))
-            .padding(8.dp)
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val w = size.width
-            val h = size.height
-            val strokeWidth = 2.dp.toPx()
-
-            // Left branch of Y/V
-            drawLine(
-                color = color,
-                start = Offset(w * 0.18f, h * 0.18f),
-                end = Offset(w * 0.5f, h * 0.58f),
-                strokeWidth = strokeWidth,
-                cap = StrokeCap.Round
-            )
-
-            // Right branch of Y/V
-            drawLine(
-                color = color,
-                start = Offset(w * 0.82f, h * 0.18f),
-                end = Offset(w * 0.5f, h * 0.58f),
-                strokeWidth = strokeWidth,
-                cap = StrokeCap.Round
-            )
-
-            // Stem of Y/V
-            drawLine(
-                color = color,
-                start = Offset(w * 0.5f, h * 0.58f),
-                end = Offset(w * 0.5f, h * 0.82f),
-                strokeWidth = strokeWidth,
-                cap = StrokeCap.Round
-            )
-
-            // Horizontal baseline
-            drawLine(
-                color = color,
-                start = Offset(w * 0.22f, h * 0.82f),
-                end = Offset(w * 0.78f, h * 0.82f),
-                strokeWidth = strokeWidth,
-                cap = StrokeCap.Round
-            )
-
-            // Dot
-            drawCircle(
-                color = color,
-                radius = 2.dp.toPx(),
-                center = Offset(w * 0.5f, h * 0.28f)
-            )
-        }
-    }
+    com.vesper.ledger.ui.components.DynamicLogo(
+        modifier = modifier,
+        size = 36.dp,
+        cornerRadius = 8.dp
+    )
 }
+
 
 @Composable
 fun TransactionManagementIllustration(

@@ -33,9 +33,13 @@ import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShSegmentedControl
 import com.vesper.ledger.ui.components.ShTextField
+import com.vesper.ledger.ui.components.DynamicLogo
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 
 enum class SettingsSubView {
-    MAIN, CATEGORIES, UPDATES
+    MAIN, CATEGORIES, UPDATES, APP_ICON
 }
 
 enum class SettingsDialogType {
@@ -71,6 +75,7 @@ fun SettingsScreen(
     val biometricAuth by viewModel.biometricAuth.collectAsState()
     val lockTimeout by viewModel.lockTimeout.collectAsState()
     val hideAppPreview by viewModel.hideAppPreview.collectAsState()
+    val appIcon by viewModel.appIcon.collectAsState()
     val biometricSupport by viewModel.biometricSupport.collectAsState()
     val isProUser by viewModel.isProUser.collectAsState()
     val userName by viewModel.userName.collectAsState()
@@ -314,6 +319,7 @@ fun SettingsScreen(
                             SettingsSubView.MAIN -> "Settings"
                             SettingsSubView.CATEGORIES -> "Manage Categories"
                             SettingsSubView.UPDATES -> "Application Updates"
+                            SettingsSubView.APP_ICON -> "App Icon"
                         },
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
@@ -348,6 +354,27 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // App Branding Header
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DynamicLogo(size = 48.dp, cornerRadius = 12.dp)
+                    Column {
+                        Text(
+                            text = "Vesper Ledger",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            text = "Active Visual Identity • v${BuildConfig.VERSION_NAME}",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                    }
+                }
 
                 // Dedicated Premium Profile Card
                 Card(
@@ -436,6 +463,18 @@ fun SettingsScreen(
                                 onCheckedChange = { viewModel.saveDynamicColors(it) }
                             )
                         }
+                    )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingsRow(
+                        icon = Icons.Outlined.Layers,
+                        title = "App Icon",
+                        trailing = {
+                            Text(
+                                text = appIcon.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
+                                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
+                        },
+                        onClick = { subView = SettingsSubView.APP_ICON }
                     )
                 }
 
@@ -951,6 +990,13 @@ fun SettingsScreen(
                 com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
             }
         }
+        SettingsSubView.APP_ICON -> {
+            Box(modifier = Modifier.padding(innerPadding)) {
+                AppIconSelectionScreen(
+                    viewModel = viewModel
+                )
+            }
+        }
     }
 }
 }
@@ -965,7 +1011,7 @@ fun SettingsGroup(
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = title.toUpperCase(),
+            text = title.uppercase(),
             style = MaterialTheme.typography.labelMedium.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
@@ -1123,12 +1169,344 @@ fun SettingsInfoDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
-        text = { Text(text, style = MaterialTheme.typography.bodyMedium) },
+        title = { 
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) 
+            }
+        },
+        text = { 
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (title == "About Vesper Ledger") {
+                    DynamicLogo(size = 56.dp, cornerRadius = 12.dp)
+                }
+                Text(
+                    text = text, 
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = if (title == "About Vesper Ledger") TextAlign.Center else TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
         confirmButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Close")
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                TextButton(onClick = onDismissRequest) {
+                    Text("Close")
+                }
             }
         }
     )
+}
+
+@Composable
+fun AppIconSelectionScreen(
+    viewModel: SettingsViewModel
+) {
+    val activeIcon by viewModel.appIcon.collectAsState()
+    val context = LocalContext.current
+    
+    // Icon Variant definition helper
+    data class IconVariantItem(
+        val key: String,
+        val name: String,
+        val desc: String,
+        val bgRes: Int,
+        val fgRes: Int
+    )
+
+    val variants = remember {
+        listOf(
+            IconVariantItem("default", "Official", "Default installation balance scale logo", com.vesper.ledger.R.drawable.ic_launcher_background, com.vesper.ledger.R.drawable.ic_launcher_foreground),
+            IconVariantItem("flux", "Flux", "Smooth violet-pink gradient cashflow wave", com.vesper.ledger.R.drawable.ic_flux_background, com.vesper.ledger.R.drawable.ic_flux_foreground),
+            IconVariantItem("material", "Material 3", "Teal adaptive geometric wallet outline", com.vesper.ledger.R.drawable.ic_material_background, com.vesper.ledger.R.drawable.ic_material_foreground),
+            IconVariantItem("glass", "iOS Glass", "Translucent glass diamond prism highlights", com.vesper.ledger.R.drawable.ic_glass_background, com.vesper.ledger.R.drawable.ic_glass_foreground),
+            IconVariantItem("coin", "Coin", "Premium gold rupee coin branding", com.vesper.ledger.R.drawable.ic_coin_background, com.vesper.ledger.R.drawable.ic_coin_foreground),
+            IconVariantItem("analytics", "Analytics", "Deep royal blue trending growth chart", com.vesper.ledger.R.drawable.ic_analytics_background, com.vesper.ledger.R.drawable.ic_analytics_foreground),
+            IconVariantItem("vault", "Vault", "Charcoal secure lock & privacy shield", com.vesper.ledger.R.drawable.ic_vault_background, com.vesper.ledger.R.drawable.ic_vault_foreground),
+            IconVariantItem("ledger", "Ledger", "Forest green open book bookkeeping mark", com.vesper.ledger.R.drawable.ic_ledger_background, com.vesper.ledger.R.drawable.ic_ledger_foreground)
+        )
+    }
+
+    var previewKey by remember(activeIcon) { mutableStateOf(activeIcon) }
+    val previewVariant = variants.find { it.key == previewKey } ?: variants[0]
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        // 1. Home Screen Preview (Premium Mockup)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp)),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Black // dark workspace mockup
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Header (Mockup status)
+                Text(
+                    text = "HOME SCREEN PREVIEW",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray,
+                        letterSpacing = 1.5.sp
+                    )
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Clock Widget Mockup
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "10:42",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            letterSpacing = (-1).sp
+                        )
+                    )
+                    Text(
+                        text = "Monday, July 13",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium,
+                            color = Color.LightGray
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(36.dp))
+
+                // Dock / App placement mockup
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Mock App 1: Phone
+                    MockAppIcon(name = "Phone", icon = Icons.Outlined.Phone, color = Color(0xFF10B981))
+                    
+                    // The main Vesper App Icon under preview
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(14.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = previewVariant.bgRes),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            Image(
+                                painter = painterResource(id = previewVariant.fgRes),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        Text(
+                            text = "Vesper",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        )
+                    }
+
+                    // Mock App 3: Messages
+                    MockAppIcon(name = "Messages", icon = Icons.Outlined.ChatBubbleOutline, color = Color(0xFF3B82F6))
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Active status badge
+                val isActive = previewKey == activeIcon
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.DarkGray.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = if (isActive) "● Active Identity" else "Previewing Selection",
+                        color = if (isActive) MaterialTheme.colorScheme.primary else Color.LightGray,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+            }
+        }
+
+        // 2. Grid header
+        Text(
+            text = "Choose App Identity",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
+
+        // 3. 2-Column Responsive Layout
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val rows = variants.chunked(2)
+            rows.forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    rowItems.forEach { item ->
+                        val isSelected = item.key == previewKey
+                        Card(
+                            modifier = Modifier
+                                .weight(1f)
+                                .border(
+                                    width = if (isSelected) 2.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .clickable { previewKey = item.key },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) {
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.05f)
+                                } else {
+                                    MaterialTheme.colorScheme.surface
+                                }
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Layered App Icon Preview in Card
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(11.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = item.bgRes),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                    Image(
+                                        painter = painterResource(id = item.fgRes),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                                
+                                Text(
+                                    text = item.name,
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                    textAlign = TextAlign.Center
+                                )
+                                
+                                Text(
+                                    text = item.desc,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 11.sp
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 2,
+                                    minLines = 2
+                                )
+                            }
+                        }
+                    }
+                    if (rowItems.size < 2) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 4. Action Buttons
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            ShButton(
+                text = "Apply Identity",
+                onClick = {
+                    viewModel.saveAppIcon(previewKey)
+                    Toast.makeText(context, "App icon updated successfully!", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = previewKey != activeIcon
+            )
+
+            TextButton(
+                onClick = {
+                    viewModel.saveAppIcon("default")
+                    previewKey = "default"
+                    Toast.makeText(context, "Official Vesper icon restored", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Text("Restore Default")
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun MockAppIcon(
+    name: String,
+    icon: ImageVector,
+    color: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .background(color.copy(alpha = 0.15f), RoundedCornerShape(14.dp))
+                .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(14.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        Text(
+            text = name,
+            style = MaterialTheme.typography.labelMedium.copy(color = Color.LightGray)
+        )
+    }
 }

@@ -48,6 +48,7 @@ import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.settings.SettingsViewModelFactory
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import com.vesper.ledger.ui.theme.VesperLedgerTheme
+import com.vesper.ledger.ui.components.DynamicLogo
 import com.vesper.ledger.ui.update.UpdateBottomSheet
 import com.vesper.ledger.ui.update.UpdateDialog
 import com.vesper.ledger.ui.update.UpdateViewModel
@@ -163,22 +164,10 @@ class MainActivity : FragmentActivity() {
                                 verticalArrangement = Arrangement.Center,
                                 modifier = Modifier.padding(32.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(72.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceVariant,
-                                            RoundedCornerShape(20.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Lock,
-                                        contentDescription = "App Locked",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(36.dp)
-                                    )
-                                }
+                                DynamicLogo(
+                                    size = 72.dp,
+                                    cornerRadius = 20.dp
+                                )
                                 
                                 Spacer(modifier = Modifier.height(24.dp))
                                 

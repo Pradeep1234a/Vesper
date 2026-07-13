@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vesper.ledger.ui.components.DynamicLogo
 import kotlinx.coroutines.delay
 
 @Composable
@@ -50,8 +51,6 @@ fun SplashScreen(
         }
     }
 
-    val onBgColor = MaterialTheme.colorScheme.onBackground
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -65,59 +64,10 @@ fun SplashScreen(
                 .scale(scale.value)
                 .alpha(alpha.value)
         ) {
-            Canvas(
-                modifier = Modifier
-                    .size(120.dp)
-                    .padding(16.dp)
-            ) {
-                val width = size.width
-                val height = size.height
-
-                // Monochromatic background circle based on theme
-                drawCircle(
-                    color = onBgColor.copy(alpha = 0.06f),
-                    radius = width / 2f
-                )
-
-                // 1. Balance post and base
-                drawLine(
-                    color = onBgColor,
-                    start = Offset(width / 2f, height * 0.65f),
-                    end = Offset(width / 2f, height * 0.85f),
-                    strokeWidth = 5.dp.toPx(),
-                    cap = StrokeCap.Round
-                )
-                drawLine(
-                    color = onBgColor,
-                    start = Offset(width * 0.35f, height * 0.85f),
-                    end = Offset(width * 0.65f, height * 0.85f),
-                    strokeWidth = 5.dp.toPx(),
-                    cap = StrokeCap.Round
-                )
-
-                // 2. V-shaped balance beam
-                drawLine(
-                    color = onBgColor,
-                    start = Offset(width * 0.25f, height * 0.35f),
-                    end = Offset(width / 2f, height * 0.65f),
-                    strokeWidth = 5.dp.toPx(),
-                    cap = StrokeCap.Round
-                )
-                drawLine(
-                    color = onBgColor,
-                    start = Offset(width / 2f, height * 0.65f),
-                    end = Offset(width * 0.75f, height * 0.35f),
-                    strokeWidth = 5.dp.toPx(),
-                    cap = StrokeCap.Round
-                )
-
-                // 3. Monochromatic Pivot indicator
-                drawCircle(
-                    color = onBgColor,
-                    radius = 6.dp.toPx(),
-                    center = Offset(width / 2f, height * 0.35f)
-                )
-            }
+            DynamicLogo(
+                size = 120.dp,
+                cornerRadius = 28.dp
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 

@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Outer gold coin rim -->
+    <path
+        android:strokeColor="#F59E0B"
+        android:strokeWidth="4.5"
+        android:pathData="M 54,28 A 26,26 0 1,0 54,80 A 26,26 0 1,0 54,28 Z" />
+        
+    <!-- Rupee symbol in gold -->
+    <path
+        android:strokeColor="#F59E0B"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 44,41 H 64 M 44,48 H 60 M 44,41 C 56,41 56,60 44,60 L 58,74" />
+        
+</vector>

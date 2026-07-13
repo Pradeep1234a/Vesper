@@ -77,6 +77,7 @@ class SettingsViewModel(
     val biometricAuth = MutableStateFlow(secureStorage.isBiometricEnabled)
     val lockTimeout = MutableStateFlow(secureStorage.lockTimeoutMs)
     val hideAppPreview = MutableStateFlow(secureStorage.hideAppPreview)
+    val appIcon = MutableStateFlow(sharedPrefs.getString("appIcon", "default") ?: "default")
     val biometricSupport = MutableStateFlow(BiometricSupportType.UNAVAILABLE)
 
     val isProUser = MutableStateFlow(sharedPrefs.getBoolean("isProUser", false))
@@ -186,6 +187,12 @@ class SettingsViewModel(
         hideAppPreview.value = newValue
         // Notify window parameter update immediately
         com.vesper.ledger.PreviewProtectionNotifier.notifyChanged()
+    }
+
+    fun saveAppIcon(newValue: String) {
+        appIcon.value = newValue
+        sharedPrefs.edit().putString("appIcon", newValue).apply()
+        com.vesper.ledger.data.secure.AppIconManager.setAppIcon(getApplication(), newValue)
     }
 
     fun saveIsProUser(newValue: Boolean) {
