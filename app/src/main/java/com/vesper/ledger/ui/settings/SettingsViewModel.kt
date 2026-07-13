@@ -145,21 +145,25 @@ class SettingsViewModel(
     fun saveDailyReminder(newValue: Boolean) {
         dailyReminder.value = newValue
         sharedPrefs.edit().putBoolean("dailyReminder", newValue).apply()
+        updateNotificationSchedule()
     }
 
     fun saveMissedEntryReminder(newValue: Boolean) {
         missedEntryReminder.value = newValue
         sharedPrefs.edit().putBoolean("missedEntryReminder", newValue).apply()
+        updateNotificationSchedule()
     }
 
     fun saveBudgetReminder(newValue: Boolean) {
         budgetReminder.value = newValue
         sharedPrefs.edit().putBoolean("budgetReminder", newValue).apply()
+        updateNotificationSchedule()
     }
 
     fun saveRecurringReminder(newValue: Boolean) {
         recurringReminder.value = newValue
         sharedPrefs.edit().putBoolean("recurringReminder", newValue).apply()
+        updateNotificationSchedule()
     }
 
     fun saveAppLock(newValue: Boolean) {
@@ -217,11 +221,46 @@ class SettingsViewModel(
     fun saveWeeklySummaryReminder(newValue: Boolean) {
         weeklySummaryReminder.value = newValue
         sharedPrefs.edit().putBoolean("weeklySummaryReminder", newValue).apply()
+        updateNotificationSchedule()
     }
 
     fun saveMonthlySummaryReminder(newValue: Boolean) {
         monthlySummaryReminder.value = newValue
         sharedPrefs.edit().putBoolean("monthlySummaryReminder", newValue).apply()
+        updateNotificationSchedule()
+    }
+
+    private fun updateNotificationSchedule() {
+        val anyEnabled = dailyReminder.value || 
+                         missedEntryReminder.value || 
+                         budgetReminder.value || 
+                         recurringReminder.value || 
+                         weeklySummaryReminder.value || 
+                         monthlySummaryReminder.value
+
+        val context = getApplication<Application>()
+        if (anyEnabled) {
+            val workManager = androidx.work.WorkManager.getInstance(context)
+            val request = androidx.work.PeriodicWorkRequestBuilder<com.vesper.ledger.data.notification.IntelligentNotificationWorker>(
+                4, java.util.concurrent.TimeUnit.HOURS
+            ).setConstraints(
+                androidx.work.Constraints.Builder()
+                    .setRequiresBatteryNotLow(true)
+                    .build()
+            ).build()
+            
+            workManager.enqueueUniquePeriodicWork(
+                "vesper_intelligent_notifications",
+                androidx.work.ExistingPeriodicWorkPolicy.UPDATE,
+                request
+            )
+            android.util.Log.d("SettingsViewModel", "Enqueued intelligent notifications worker.")
+        } else {
+            val workManager = androidx.work.WorkManager.getInstance(context)
+            workManager.cancelUniqueWork("vesper_intelligent_notifications")
+            com.vesper.ledger.data.notification.NotificationHelper.cancelAllBudgetAlerts(context)
+            android.util.Log.d("SettingsViewModel", "Cancelled intelligent notifications worker.")
+        }
     }
 
     fun addCategory(name: String, type: TransactionType, colorHex: String) {
