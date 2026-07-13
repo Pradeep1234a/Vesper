@@ -51,8 +51,7 @@ enum class SettingsDialogType {
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
-    onBackClick: () -> Unit,
-    onCurrencyClick: () -> Unit
+    onBackClick: () -> Unit
 ) {
     val currency by viewModel.currency.collectAsState()
     val updateUiState by updateViewModel.uiState.collectAsState()
@@ -116,10 +115,26 @@ fun SettingsScreen(
         SettingsDialogType.CURRENCY -> {
             SettingsSelectionDialog(
                 title = "Select Currency",
-                options = listOf("$", "€", "£", "¥"),
+                options = listOf("USD", "EUR", "GBP", "INR", "JPY", "AUD", "CAD", "SGD", "AED", "CNY", "BRL"),
                 selectedOption = currency,
                 onOptionSelected = { viewModel.saveCurrency(it) },
-                onDismissRequest = { activeDialog = null }
+                onDismissRequest = { activeDialog = null },
+                labelProvider = { code ->
+                    when (code) {
+                        "USD" -> "USD ($)"
+                        "EUR" -> "EUR (€)"
+                        "GBP" -> "GBP (£)"
+                        "INR" -> "INR (₹)"
+                        "JPY" -> "JPY (¥)"
+                        "AUD" -> "AUD ($)"
+                        "CAD" -> "CAD (CA$)"
+                        "SGD" -> "SGD ($)"
+                        "AED" -> "AED (د.إ)"
+                        "CNY" -> "CNY (¥)"
+                        "BRL" -> "BRL (R$)"
+                        else -> code
+                    }
+                }
             )
         }
         SettingsDialogType.LANGUAGE -> {
@@ -444,7 +459,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.AttachMoney,
                         title = "Currency",
                         trailing = { Text(currency, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = onCurrencyClick
+                        onClick = { activeDialog = SettingsDialogType.CURRENCY }
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(

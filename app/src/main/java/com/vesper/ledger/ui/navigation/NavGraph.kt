@@ -23,11 +23,6 @@ import androidx.navigation.NavType
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.settings.SettingsViewModelFactory
-import com.vesper.ledger.ui.auth.AuthScreen
-import com.vesper.ledger.ui.auth.AuthViewModel
-import com.vesper.ledger.ui.auth.AuthViewModelFactory
-import com.vesper.ledger.ui.components.CurrencySelectorMode
-import com.vesper.ledger.ui.components.CurrencySelectorScreen
 import com.vesper.ledger.ui.category.CategoriesScreen
 import com.vesper.ledger.ui.category.AddCategoryScreen
 import com.vesper.ledger.ui.category.CategoryViewModel
@@ -45,14 +40,10 @@ fun NavGraph(
 
     val addTransactionFactory = AddTransactionViewModelFactory(app.transactionRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
-    val authFactory = AuthViewModelFactory(app, app.database.userDao())
-
-    val authViewModel: AuthViewModel = viewModel(factory = authFactory)
     val categoryFactory = CategoryViewModelFactory(app, app.transactionRepository)
     val categoryViewModel: CategoryViewModel = viewModel(factory = categoryFactory)
 
     val currencySymbol by settingsViewModel.currencySymbol.collectAsState()
-    val isFirstLaunch by settingsViewModel.isFirstLaunch.collectAsState()
 
     NavHost(
         navController = navController,
@@ -60,71 +51,12 @@ fun NavGraph(
         modifier = modifier.fillMaxSize()
     ) {
         composable("splash") {
-            val sessionActive by authViewModel.sessionActive.collectAsState()
             SplashScreen(
-                isFirstLaunch = isFirstLaunch,
-                isSessionActive = sessionActive,
                 onNavigateNext = { route ->
                     navController.navigate(route) {
                         popUpTo("splash") { inclusive = true }
                     }
                 }
-            )
-        }
-
-        composable("onboarding") {
-            OnboardingScreen(
-                onNavigateNext = {
-                    navController.navigate("currency_setup") {
-                        popUpTo("onboarding") { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable("currency_setup") {
-            val currentCurrency by settingsViewModel.currency.collectAsState()
-            CurrencySelectorScreen(
-                mode = CurrencySelectorMode.PERSONALIZATION,
-                currentSelection = currentCurrency,
-                onCurrencySelected = {},
-                onContinueClick = { code ->
-                    settingsViewModel.saveCurrency(code)
-                    settingsViewModel.saveFirstLaunch(false)
-                    navController.navigate("auth") {
-                        popUpTo("currency_setup") { inclusive = true }
-                    }
-                },
-                onBackClick = {}
-            )
-        }
-
-        composable("auth") {
-            AuthScreen(
-                viewModel = authViewModel,
-                onAuthSuccess = { _ ->
-                    navController.navigate("main_screen") {
-                        popUpTo("auth") { inclusive = true }
-                    }
-                },
-                onContinueAsGuest = {
-                    navController.navigate("main_screen") {
-                        popUpTo("auth") { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable("settings_currency") {
-            val currentCurrency by settingsViewModel.currency.collectAsState()
-            CurrencySelectorScreen(
-                mode = CurrencySelectorMode.SETTINGS,
-                currentSelection = currentCurrency,
-                onCurrencySelected = { code ->
-                    settingsViewModel.saveCurrency(code)
-                },
-                onContinueClick = {},
-                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -134,7 +66,6 @@ fun NavGraph(
                 updateViewModel = updateViewModel,
                 onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) },
-                onCurrencyClick = { navController.navigate("settings_currency") },
                 onCategoryManagementClick = { navController.navigate("categories") }
             )
         }

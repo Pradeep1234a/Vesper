@@ -24,8 +24,6 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    isFirstLaunch: Boolean,
-    isSessionActive: Boolean,
     onNavigateNext: (String) -> Unit
 ) {
     val scale = remember { Animatable(0.5f) }
@@ -42,13 +40,7 @@ fun SplashScreen(
         )
         delay(1000)
         
-        if (isFirstLaunch) {
-            onNavigateNext("onboarding")
-        } else if (isSessionActive) {
-            onNavigateNext("main_screen")
-        } else {
-            onNavigateNext("auth")
-        }
+        onNavigateNext("main_screen")
     }
 
     Box(
