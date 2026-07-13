@@ -72,16 +72,11 @@ fun ReportsScreen(
             }
         )
 
-        LazyColumn(
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            contentPadding = PaddingValues(bottom = 100.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-
-        // ── Period Selector ──
-        item {
             ExposedDropdownMenuBox(
                 expanded = periodMenuExpanded,
                 onExpandedChange = { periodMenuExpanded = it }
@@ -120,6 +115,15 @@ fun ReportsScreen(
                 }
             }
         }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            contentPadding = PaddingValues(bottom = 100.dp)
+        ) {
 
         // ── Summary Bento Grid ──
         item {

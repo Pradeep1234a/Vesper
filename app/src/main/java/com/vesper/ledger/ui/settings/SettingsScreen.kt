@@ -336,10 +336,7 @@ fun SettingsScreen(
             when (subView) {
                 SettingsSubView.MAIN -> {
                     RootHeader(
-                        title = "Settings",
-                        actions = {
-                            DynamicLogo(size = 48.dp, cornerRadius = 12.dp)
-                        }
+                        title = "Settings"
                     )
                     Column(
                         modifier = Modifier
