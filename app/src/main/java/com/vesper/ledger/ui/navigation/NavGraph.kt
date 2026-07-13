@@ -28,6 +28,10 @@ import com.vesper.ledger.ui.auth.AuthViewModel
 import com.vesper.ledger.ui.auth.AuthViewModelFactory
 import com.vesper.ledger.ui.components.CurrencySelectorMode
 import com.vesper.ledger.ui.components.CurrencySelectorScreen
+import com.vesper.ledger.ui.category.CategoriesScreen
+import com.vesper.ledger.ui.category.AddCategoryScreen
+import com.vesper.ledger.ui.category.CategoryViewModel
+import com.vesper.ledger.ui.category.CategoryViewModelFactory
 
 @Composable
 fun NavGraph(
@@ -44,6 +48,8 @@ fun NavGraph(
     val authFactory = AuthViewModelFactory(app, app.database.userDao())
 
     val authViewModel: AuthViewModel = viewModel(factory = authFactory)
+    val categoryFactory = CategoryViewModelFactory(app, app.transactionRepository)
+    val categoryViewModel: CategoryViewModel = viewModel(factory = categoryFactory)
 
     val currencySymbol by settingsViewModel.currencySymbol.collectAsState()
     val isFirstLaunch by settingsViewModel.isFirstLaunch.collectAsState()
@@ -128,7 +134,40 @@ fun NavGraph(
                 updateViewModel = updateViewModel,
                 onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) },
-                onCurrencyClick = { navController.navigate("settings_currency") }
+                onCurrencyClick = { navController.navigate("settings_currency") },
+                onCategoryManagementClick = { navController.navigate("categories") }
+            )
+        }
+
+        composable("categories") {
+            CategoriesScreen(
+                viewModel = categoryViewModel,
+                onBackClick = { navController.popBackStack() },
+                onAddCategoryClick = { id ->
+                    if (id != null) {
+                        navController.navigate("add_category?id=$id")
+                    } else {
+                        navController.navigate("add_category")
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = "add_category?id={id}",
+            arguments = listOf(
+                navArgument("id") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) { backStackEntry ->
+            val catId = backStackEntry.arguments?.getLong("id") ?: -1L
+            val finalId = if (catId == -1L) null else catId
+            AddCategoryScreen(
+                viewModel = categoryViewModel,
+                categoryId = finalId,
+                onBackClick = { navController.popBackStack() }
             )
         }
 

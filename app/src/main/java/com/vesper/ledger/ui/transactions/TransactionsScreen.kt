@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.ui.platform.LocalContext
 import android.app.DatePickerDialog
 import java.util.Calendar
@@ -71,7 +72,8 @@ fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
     onBackClick: () -> Unit,
-    onAddTransactionClick: (type: String?, id: Long?) -> Unit
+    onAddTransactionClick: (type: String?, id: Long?) -> Unit,
+    onCategoryManagementClick: () -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategories by viewModel.selectedCategories.collectAsState()
@@ -142,7 +144,12 @@ fun TransactionsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
-                )
+                ),
+                actions = {
+                    IconButton(onClick = onCategoryManagementClick) {
+                        Icon(imageVector = Icons.Default.Category, contentDescription = "Manage Categories")
+                    }
+                }
             )
         },
         floatingActionButton = {

@@ -36,4 +36,8 @@ class TransactionRepository(private val transactionDao: TransactionDao) {
     suspend fun deleteCategory(category: Category) {
         transactionDao.deleteCategory(category)
     }
+
+    suspend fun getCategoryById(id: Long): Category? {
+        return transactionDao.getCategoryById(id)
+    }
 }
