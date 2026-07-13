@@ -33,6 +33,7 @@ import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -134,24 +135,6 @@ fun TransactionsScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Transactions") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                actions = {
-                    IconButton(onClick = onCategoryManagementClick) {
-                        Icon(imageVector = Icons.Default.Category, contentDescription = "Manage Categories")
-                    }
-                }
-            )
-        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { onAddTransactionClick(null, null) },
@@ -169,6 +152,15 @@ fun TransactionsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            RootHeader(
+                title = "Transactions",
+                subtitle = "${transactions.size} transactions logged",
+                actions = {
+                    IconButton(onClick = onCategoryManagementClick) {
+                        Icon(imageVector = Icons.Default.Category, contentDescription = "Manage Categories", tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+            )
             // Search Input Field & Filter Menu Button Row
             Row(
                 modifier = Modifier

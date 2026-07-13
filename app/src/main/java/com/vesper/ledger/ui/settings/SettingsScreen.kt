@@ -34,6 +34,8 @@ import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShSegmentedControl
 import com.vesper.ledger.ui.components.ShTextField
 import com.vesper.ledger.ui.components.DynamicLogo
+import com.vesper.ledger.ui.components.RootHeader
+import com.vesper.ledger.ui.components.ChildHeader
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
@@ -325,71 +327,28 @@ fun SettingsScreen(
         null -> {}
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = when (subView) {
-                            SettingsSubView.MAIN -> "Settings"
-                            SettingsSubView.CATEGORIES -> "Manage Categories"
-                            SettingsSubView.UPDATES -> "Application Updates"
-                            SettingsSubView.APP_ICON -> "App Icon"
-                        },
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (subView != SettingsSubView.MAIN) {
-                                subView = SettingsSubView.MAIN
-                            } else {
-                                onBackClick()
-                            }
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            when (subView) {
+                SettingsSubView.MAIN -> {
+                    RootHeader(
+                        title = "Settings",
+                        subtitle = "Active Visual Identity • v${BuildConfig.VERSION_NAME}",
+                        actions = {
+                            DynamicLogo(size = 48.dp, cornerRadius = 12.dp)
                         }
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-    ) { innerPadding ->
-        when (subView) {
-            SettingsSubView.MAIN -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // App Branding Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    DynamicLogo(size = 48.dp, cornerRadius = 12.dp)
-                    Column {
-                        Text(
-                            text = "Vesper Ledger",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            text = "Active Visual Identity • v${BuildConfig.VERSION_NAME}",
-                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        )
-                    }
-                }
 
                 // Dedicated Premium Profile Card
                 Card(
@@ -843,16 +802,17 @@ fun SettingsScreen(
             }
         }
         SettingsSubView.CATEGORIES -> {
-            // CATEGORIES Sub-View (In-place Category Manager)
+            ChildHeader(
+                title = "Categories",
+                onBackClick = { subView = SettingsSubView.MAIN }
+            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
                     .padding(horizontal = 16.dp)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
 
                 ShCard {
                     Text(
@@ -1001,18 +961,29 @@ fun SettingsScreen(
             LaunchedEffect(Unit) {
                 updateViewModel.checkForUpdatesOnLaunch()
             }
-            Box(modifier = Modifier.padding(innerPadding)) {
-                com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
+            Column(modifier = Modifier.fillMaxSize()) {
+                ChildHeader(
+                    title = "Updates",
+                    onBackClick = { subView = SettingsSubView.MAIN }
+                )
+                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                    com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
+                }
             }
         }
         SettingsSubView.APP_ICON -> {
-            Box(modifier = Modifier.padding(innerPadding)) {
-                AppIconSelectionScreen(
-                    viewModel = viewModel
+            Column(modifier = Modifier.fillMaxSize()) {
+                ChildHeader(
+                    title = "App Icon",
+                    onBackClick = { subView = SettingsSubView.MAIN }
                 )
+                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                    AppIconSelectionScreen(viewModel = viewModel)
+                }
             }
         }
     }
+}
 }
 }
 
@@ -1029,8 +1000,8 @@ fun SettingsGroup(
             text = title.uppercase(),
             style = MaterialTheme.typography.labelMedium.copy(
                 fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
-                letterSpacing = 0.8.sp,
+                fontSize = 12.sp,
+                letterSpacing = 1.2.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             ),
             modifier = Modifier.padding(horizontal = 4.dp)

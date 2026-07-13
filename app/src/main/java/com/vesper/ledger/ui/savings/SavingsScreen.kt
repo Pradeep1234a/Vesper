@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.SavingsGoal
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShTextField
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -160,62 +161,57 @@ fun SavingsScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Savings Goals") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            ChildHeader(
+                title = "Savings Goals",
+                onBackClick = onBackClick,
                 actions = {
                     IconButton(onClick = { showAddDialog = true }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Goal")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-    ) { innerPadding ->
-        if (goals.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Savings,
-                        contentDescription = "Savings",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "No savings goals created yet.",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(onClick = { showAddDialog = true }) {
-                        Text("Create a Goal")
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Goal", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 32.dp)
-            ) {
+            )
+            if (goals.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Savings,
+                            contentDescription = "Savings",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "No savings goals created yet.",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(onClick = { showAddDialog = true }) {
+                            Text("Create a Goal")
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
                 items(goals) { goal ->
                     ShCard {
                         Row(
@@ -316,4 +312,5 @@ fun SavingsScreen(
             }
         }
     }
+}
 }

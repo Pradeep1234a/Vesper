@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.theme.Slate200
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
@@ -77,29 +78,15 @@ fun DashboardScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Vesper Ledger",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 20.sp
-                        )
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { /* Drawer or menu click */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Menu",
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            RootHeader(
+                title = "Dashboard",
+                subtitle = "$greeting, $userName!",
                 actions = {
                     IconButton(onClick = { /* Notification click */ }) {
                         Icon(
@@ -126,44 +113,16 @@ fun DashboardScreen(
                             )
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 32.dp)
-        ) {
-            item {
-                val greeting = when (java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)) {
-                    in 0..11 -> "Good morning"
-                    in 12..16 -> "Good afternoon"
-                    else -> "Good evening"
-                }
-                Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                    Text(
-                        text = "$greeting, $userName!",
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        )
-                    )
-                    Text(
-                        text = "Here is your money summary.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                }
-            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 32.dp)
+            ) {
 
             item {
                 ShCard {
@@ -956,6 +915,7 @@ fun DashboardScreen(
             }
         }
     }
+}
 }
 
 @Composable

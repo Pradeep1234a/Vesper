@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
@@ -100,59 +101,30 @@ fun AddTransactionScreen(
     var showRepeatPicker by remember { mutableStateOf(false) }
     var showAdditionalDetails by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = if (viewModel.isEditMode) "Edit Transaction" else "Add Transaction",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 17.sp,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Outlined.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* Attachment action placeholder */ }) {
-                        Icon(
-                            imageVector = Icons.Outlined.AttachFile,
-                            contentDescription = "Attachment",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-    ) { innerPadding ->
-        Box(
+    Scaffold { innerPadding ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
-            Column(
+            ChildHeader(
+                title = if (viewModel.isEditMode) "Edit Transaction" else "Add Transaction",
+                onBackClick = onBackClick
+            )
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 100.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                    .weight(1f)
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 100.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
                 // ── Transaction Type Segmented Control ──
                 ShadcnSegmentedControl(
                     items = listOf("Expense", "Income", "Transfer"),
@@ -544,6 +516,7 @@ fun AddTransactionScreen(
             }
         }
     }
+}
 
     // ── Calculator Bottom Sheet ──
     if (showCalculator) {

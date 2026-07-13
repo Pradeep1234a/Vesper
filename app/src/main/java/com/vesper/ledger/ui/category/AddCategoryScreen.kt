@@ -36,6 +36,7 @@ import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
+import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.util.Locale
@@ -98,21 +99,16 @@ fun AddCategoryScreen(
 
     val scrollState = rememberScrollState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (categoryId == null) "Add Category" else "Edit Category",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
+    Scaffold { innerPadding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            ChildHeader(
+                title = if (categoryId == null) "Add Category" else "Edit Category",
+                onBackClick = onBackClick,
                 actions = {
                     TextButton(
                         onClick = {
@@ -146,30 +142,25 @@ fun AddCategoryScreen(
                             color = if (nameText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
-        }
-    ) { innerPadding ->
-        if (!isInitialized) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(MaterialTheme.colorScheme.background)
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
+
+            if (!isInitialized) {
+                Box(
+                    modifier = Modifier.fillMaxSize().weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                        .verticalScroll(scrollState)
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
                 // 1. Category Type Selection
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -619,6 +610,7 @@ fun AddCategoryScreen(
             }
         }
     }
+}
 }
 
 // Helper functions for HEX/RGB translation

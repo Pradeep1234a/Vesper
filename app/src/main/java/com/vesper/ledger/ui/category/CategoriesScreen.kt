@@ -29,6 +29,7 @@ import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
+import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
@@ -133,48 +134,32 @@ fun CategoriesScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Categories", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showSearch = !showSearch }) {
-                        Icon(
-                            imageVector = if (showSearch) Icons.Default.Close else Icons.Default.Search,
-                            contentDescription = "Search"
-                        )
-                    }
-                    IconButton(onClick = { showSortSheet = true }) {
-                        Icon(imageVector = Icons.Outlined.Sort, contentDescription = "Sort")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onAddCategoryClick(null) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Category")
-            }
-        }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            ChildHeader(
+                title = "Categories",
+                onBackClick = onBackClick,
+                actions = {
+                    IconButton(onClick = { showSearch = !showSearch }) {
+                        Icon(
+                            imageVector = if (showSearch) Icons.Default.Close else Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    IconButton(onClick = { showSortSheet = true }) {
+                        Icon(imageVector = Icons.Outlined.Sort, contentDescription = "Sort", tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                    IconButton(onClick = { onAddCategoryClick(null) }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Category", tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+            )
             // Search Bar (if visible)
             if (showSearch) {
                 OutlinedTextField(

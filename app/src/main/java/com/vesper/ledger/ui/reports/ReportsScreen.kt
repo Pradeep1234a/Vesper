@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.RootHeader
 import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,46 +53,33 @@ fun ReportsScreen(
 
     var periodMenuExpanded by remember { mutableStateOf(false) }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(bgColor)
-            .systemBarsPadding()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp)
     ) {
-        // ── Header ──
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Analytics",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = onBgColor
-                    )
-                    Text(
-                        text = "Understand your spending patterns and financial activity.",
-                        fontSize = 13.sp,
-                        color = secTextColor,
-                        lineHeight = 18.sp,
-                        modifier = Modifier.padding(top = 4.dp)
+        RootHeader(
+            title = "Analytics",
+            subtitle = "Understand your spending patterns and financial activity.",
+            actions = {
+                IconButton(onClick = { /* Help click */ }) {
+                    Icon(
+                        imageVector = Icons.Outlined.HelpOutline,
+                        contentDescription = "Help",
+                        tint = secTextColor,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
-                Icon(
-                    Icons.Outlined.HelpOutline,
-                    contentDescription = null,
-                    tint = secTextColor,
-                    modifier = Modifier.size(20.dp)
-                )
             }
-        }
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            contentPadding = PaddingValues(bottom = 100.dp)
+        ) {
 
         // ── Period Selector ──
         item {
@@ -333,6 +321,7 @@ fun ReportsScreen(
             }
         }
     }
+}
 }
 
 // ────────────────────────────────────
