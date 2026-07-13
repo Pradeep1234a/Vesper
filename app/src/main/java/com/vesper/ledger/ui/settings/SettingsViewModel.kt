@@ -2,6 +2,7 @@ package com.vesper.ledger.ui.settings
 
 import android.app.Application
 import android.content.Context
+import androidx.biometric.BiometricManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,11 +10,19 @@ import androidx.lifecycle.viewModelScope
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.data.repository.TransactionRepository
+import com.vesper.ledger.data.secure.SecureStorageHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+enum class BiometricSupportType {
+    AVAILABLE,
+    NO_HARDWARE,
+    UNAVAILABLE,
+    NONE_ENROLLED
+}
 
 class SettingsViewModel(
     application: Application,
@@ -21,6 +30,7 @@ class SettingsViewModel(
 ) : AndroidViewModel(application) {
 
     private val sharedPrefs = application.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+    private val secureStorage = SecureStorageHelper.getInstance(application)
 
     private fun getCurrencySymbol(code: String): String {
         return when (code) {
@@ -61,8 +71,14 @@ class SettingsViewModel(
     val missedEntryReminder = MutableStateFlow(sharedPrefs.getBoolean("missedEntryReminder", false))
     val budgetReminder = MutableStateFlow(sharedPrefs.getBoolean("budgetReminder", false))
     val recurringReminder = MutableStateFlow(sharedPrefs.getBoolean("recurringReminder", false))
-    val appLock = MutableStateFlow(sharedPrefs.getBoolean("appLock", false))
-    val biometricAuth = MutableStateFlow(sharedPrefs.getBoolean("biometricAuth", false))
+
+    // Secure App Lock & Biometrics states
+    val appLock = MutableStateFlow(secureStorage.isAppLockEnabled)
+    val biometricAuth = MutableStateFlow(secureStorage.isBiometricEnabled)
+    val lockTimeout = MutableStateFlow(secureStorage.lockTimeoutMs)
+    val hideAppPreview = MutableStateFlow(secureStorage.hideAppPreview)
+    val biometricSupport = MutableStateFlow(BiometricSupportType.UNAVAILABLE)
+
     val isProUser = MutableStateFlow(sharedPrefs.getBoolean("isProUser", false))
     val userName = MutableStateFlow(sharedPrefs.getString("userName", "User") ?: "User")
     val isFirstLaunch = MutableStateFlow(sharedPrefs.getBoolean("isFirstLaunch", true))
@@ -76,6 +92,19 @@ class SettingsViewModel(
 
     val categories: StateFlow<List<Category>> = transactionRepository.allCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        // Detect biometric hardware capabilities
+        val biometricManager = BiometricManager.from(application)
+        val status = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        biometricSupport.value = when (status) {
+            BiometricManager.BIOMETRIC_SUCCESS -> BiometricSupportType.AVAILABLE
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> BiometricSupportType.NO_HARDWARE
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> BiometricSupportType.UNAVAILABLE
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> BiometricSupportType.NONE_ENROLLED
+            else -> BiometricSupportType.UNAVAILABLE
+        }
+    }
 
     fun saveCurrency(newCurrency: String) {
         currency.value = newCurrency
@@ -134,13 +163,25 @@ class SettingsViewModel(
     }
 
     fun saveAppLock(newValue: Boolean) {
+        secureStorage.isAppLockEnabled = newValue
         appLock.value = newValue
-        sharedPrefs.edit().putBoolean("appLock", newValue).apply()
     }
 
     fun saveBiometricAuth(newValue: Boolean) {
+        secureStorage.isBiometricEnabled = newValue
         biometricAuth.value = newValue
-        sharedPrefs.edit().putBoolean("biometricAuth", newValue).apply()
+    }
+
+    fun saveLockTimeout(newValue: Long) {
+        secureStorage.lockTimeoutMs = newValue
+        lockTimeout.value = newValue
+    }
+
+    fun saveHideAppPreview(newValue: Boolean) {
+        secureStorage.hideAppPreview = newValue
+        hideAppPreview.value = newValue
+        // Notify window parameter update immediately
+        com.vesper.ledger.PreviewProtectionNotifier.notifyChanged()
     }
 
     fun saveIsProUser(newValue: Boolean) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.BuildConfig
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
+import com.vesper.ledger.data.secure.SensitiveActionAuthenticator
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShSegmentedControl
@@ -37,7 +39,7 @@ enum class SettingsSubView {
 }
 
 enum class SettingsDialogType {
-    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE, EDIT_NAME
+    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE, EDIT_NAME, CONFIRM_DELETE_ALL, TIMEOUT_SELECTION
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,6 +69,9 @@ fun SettingsScreen(
     val recurringReminder by viewModel.recurringReminder.collectAsState()
     val appLock by viewModel.appLock.collectAsState()
     val biometricAuth by viewModel.biometricAuth.collectAsState()
+    val lockTimeout by viewModel.lockTimeout.collectAsState()
+    val hideAppPreview by viewModel.hideAppPreview.collectAsState()
+    val biometricSupport by viewModel.biometricSupport.collectAsState()
     val isProUser by viewModel.isProUser.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val categories by viewModel.categories.collectAsState()
@@ -175,8 +180,10 @@ fun SettingsScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            activeDialog = null
-                            Toast.makeText(context, "Data restored successfully", Toast.LENGTH_SHORT).show()
+                            SensitiveActionAuthenticator.authenticateAction {
+                                activeDialog = null
+                                Toast.makeText(context, "Data restored successfully", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     ) {
                         Text("Restore", color = MaterialTheme.colorScheme.error)
@@ -187,6 +194,74 @@ fun SettingsScreen(
                         Text("Cancel")
                     }
                 }
+            )
+        }
+        SettingsDialogType.CONFIRM_DELETE_ALL -> {
+            AlertDialog(
+                onDismissRequest = { activeDialog = null },
+                title = { Text("Delete All Data", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
+                text = { Text("Are you sure you want to delete all transaction history and settings? This action cannot be undone.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            SensitiveActionAuthenticator.authenticateAction {
+                                activeDialog = null
+                                Toast.makeText(context, "All data deleted. Please restart app.", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    ) {
+                        Text("Delete Everything", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { activeDialog = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+        SettingsDialogType.TIMEOUT_SELECTION -> {
+            val timeoutOptions = listOf(
+                "Immediately" to 0L,
+                "30 seconds" to 30000L,
+                "1 minute" to 60000L,
+                "5 minutes" to 300000L,
+                "15 minutes" to 900000L,
+                "30 minutes" to 1800000L,
+                "Never" to -1L
+            )
+            AlertDialog(
+                onDismissRequest = { activeDialog = null },
+                title = { Text("Lock Timeout", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        timeoutOptions.forEach { (label, value) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        SensitiveActionAuthenticator.authenticateAction {
+                                            viewModel.saveLockTimeout(value)
+                                            activeDialog = null
+                                        }
+                                    }
+                                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(label)
+                                if (lockTimeout == value) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {}
             )
         }
         SettingsDialogType.EDIT_NAME -> {
@@ -453,68 +528,157 @@ fun SettingsScreen(
                         icon = Icons.Outlined.CloudUpload,
                         title = "Backup",
                         subtitle = "Back up current local data to device store",
-                        onClick = { Toast.makeText(context, "Backup created successfully", Toast.LENGTH_SHORT).show() }
+                        onClick = {
+                            SensitiveActionAuthenticator.authenticateAction {
+                                Toast.makeText(context, "Backup created successfully", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
                         icon = Icons.Outlined.CloudDownload,
                         title = "Restore",
                         subtitle = "Restore database from existing backup store",
-                        onClick = { activeDialog = SettingsDialogType.CONFIRM_RESTORE }
+                        onClick = {
+                            SensitiveActionAuthenticator.authenticateAction {
+                                activeDialog = SettingsDialogType.CONFIRM_RESTORE
+                            }
+                        }
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
                         icon = Icons.Outlined.Description,
                         title = "Export CSV",
                         subtitle = "Export transactions as clean table files",
-                        onClick = { Toast.makeText(context, "CSV exported successfully to Downloads folder", Toast.LENGTH_SHORT).show() }
+                        onClick = {
+                            SensitiveActionAuthenticator.authenticateAction {
+                                Toast.makeText(context, "CSV exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
                         icon = Icons.Outlined.Code,
                         title = "Export JSON",
                         subtitle = "Export transactions in structured developer format",
-                        onClick = { Toast.makeText(context, "JSON exported successfully to Downloads folder", Toast.LENGTH_SHORT).show() }
+                        onClick = {
+                            SensitiveActionAuthenticator.authenticateAction {
+                                Toast.makeText(context, "JSON exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
                         icon = Icons.Outlined.Input,
                         title = "Import Data",
                         subtitle = "Load transaction dataset from JSON or CSV",
-                        onClick = { Toast.makeText(context, "Data imported successfully", Toast.LENGTH_SHORT).show() }
+                        onClick = {
+                            SensitiveActionAuthenticator.authenticateAction {
+                                Toast.makeText(context, "Data imported successfully", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingsRow(
+                        icon = Icons.Outlined.DeleteForever,
+                        title = "Delete All Data",
+                        subtitle = "Irreversibly delete all transaction history and settings",
+                        titleColor = MaterialTheme.colorScheme.error,
+                        onClick = {
+                            SensitiveActionAuthenticator.authenticateAction {
+                                activeDialog = SettingsDialogType.CONFIRM_DELETE_ALL
+                            }
+                        }
                     )
                 }
 
-                // Security Section
-                SettingsGroup(title = "Security") {
+                // Privacy & Security Section
+                SettingsGroup(title = "Privacy & Security") {
                     SettingsRow(
                         icon = Icons.Outlined.Lock,
                         title = "App Lock",
+                        subtitle = "Lock application contents when idle",
                         trailing = {
                             Switch(
                                 checked = appLock,
-                                onCheckedChange = { viewModel.saveAppLock(it) }
+                                onCheckedChange = { isEnabled ->
+                                    SensitiveActionAuthenticator.authenticateAction {
+                                        viewModel.saveAppLock(isEnabled)
+                                    }
+                                }
                             )
                         }
                     )
+                    
+                    if (appLock) {
+                        if (biometricSupport == BiometricSupportType.AVAILABLE || biometricSupport == BiometricSupportType.NONE_ENROLLED) {
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Fingerprint,
+                                title = "Biometric Authentication",
+                                subtitle = if (biometricSupport == BiometricSupportType.NONE_ENROLLED) "No biometrics registered in settings" else "Unlock app using biometric hardware",
+                                trailing = {
+                                    Switch(
+                                        checked = biometricAuth,
+                                        enabled = biometricSupport == BiometricSupportType.AVAILABLE,
+                                        onCheckedChange = { isEnabled ->
+                                            SensitiveActionAuthenticator.authenticateAction {
+                                                viewModel.saveBiometricAuth(isEnabled)
+                                            }
+                                        }
+                                    )
+                                }
+                            )
+                        } else {
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Fingerprint,
+                                title = "Biometric Authentication",
+                                subtitle = "Biometric hardware is not available on this device",
+                                trailing = {
+                                    Text("Unavailable", style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
+                                }
+                            )
+                        }
+                        
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                        val timeoutLabel = when (lockTimeout) {
+                            0L -> "Immediately"
+                            30000L -> "30 seconds"
+                            60000L -> "1 minute"
+                            300000L -> "5 minutes"
+                            900000L -> "15 minutes"
+                            1800000L -> "30 minutes"
+                            else -> "Never"
+                        }
+                        SettingsRow(
+                            icon = Icons.Outlined.HourglassEmpty,
+                            title = "Lock Timeout",
+                            subtitle = "Require credentials after inactivity",
+                            trailing = {
+                                Text(timeoutLabel, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold))
+                            },
+                            onClick = {
+                                activeDialog = SettingsDialogType.TIMEOUT_SELECTION
+                            }
+                        )
+                    }
+
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
-                        icon = Icons.Outlined.Fingerprint,
-                        title = "Biometric Authentication",
-                        subtitle = "Unlock app with secure biometric fingerprint scanner",
+                        icon = Icons.Outlined.VisibilityOff,
+                        title = "Hide App Preview",
+                        subtitle = "Obscure ledger contents in recent apps switcher",
                         trailing = {
                             Switch(
-                                checked = biometricAuth,
-                                onCheckedChange = { viewModel.saveBiometricAuth(it) }
+                                checked = hideAppPreview,
+                                onCheckedChange = { isEnabled ->
+                                    SensitiveActionAuthenticator.authenticateAction {
+                                        viewModel.saveHideAppPreview(isEnabled)
+                                    }
+                                }
                             )
                         }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Security,
-                        title = "Privacy Settings",
-                        trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                        onClick = { Toast.makeText(context, "Privacy settings are up to date", Toast.LENGTH_SHORT).show() }
                     )
                 }
 
@@ -833,6 +997,7 @@ fun SettingsRow(
     icon: ImageVector,
     title: String,
     subtitle: String? = null,
+    titleColor: Color = Color.Unspecified,
     trailing: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
@@ -869,6 +1034,7 @@ fun SettingsRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
+                color = titleColor,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
