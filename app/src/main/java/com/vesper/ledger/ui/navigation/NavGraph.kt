@@ -67,6 +67,16 @@ fun NavGraph(
         }
 
         composable("onboarding") {
+            OnboardingScreen(
+                onNavigateNext = {
+                    navController.navigate("currency_setup") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("currency_setup") {
             val currentCurrency by settingsViewModel.currency.collectAsState()
             CurrencySelectorScreen(
                 mode = CurrencySelectorMode.PERSONALIZATION,
@@ -76,7 +86,7 @@ fun NavGraph(
                     settingsViewModel.saveCurrency(code)
                     settingsViewModel.saveFirstLaunch(false)
                     navController.navigate("auth") {
-                        popUpTo("onboarding") { inclusive = true }
+                        popUpTo("currency_setup") { inclusive = true }
                     }
                 },
                 onBackClick = {}
