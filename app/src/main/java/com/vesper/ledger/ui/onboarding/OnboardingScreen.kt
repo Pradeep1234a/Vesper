@@ -113,11 +113,12 @@ fun OnboardingScreen(
             ) { page ->
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 24.dp),
+                        .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Top
                 ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     val illustrationRes = when (page) {
                         0 -> com.vesper.ledger.R.drawable.ill_onboarding_1
                         1 -> com.vesper.ledger.R.drawable.ill_onboarding_2
@@ -125,27 +126,26 @@ fun OnboardingScreen(
                         else -> com.vesper.ledger.R.drawable.ill_onboarding_4
                     }
 
-                    // Illustration (flexible height, locked in center position)
-                    Box(
+                    // Illustration (larger size, responsive scaling up to 340dp, minimal margins)
+                    Image(
+                        painter = painterResource(id = illustrationRes),
+                        contentDescription = pages[page].title,
+                        contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1.2f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = illustrationRes),
-                            contentDescription = pages[page].title,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                            .weight(1f)
+                            .heightIn(max = 340.dp)
+                            .padding(horizontal = 8.dp)
+                    )
 
-                    Spacer(modifier = Modifier.height(10.dp)) // Push text upward closer to illustration
+                    Spacer(modifier = Modifier.height(24.dp)) // Clean premium gap
 
-                    // Text Content (wrapped, never cropped)
+                    // Text Content (wrapped, standard readable margins)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
                     ) {
                         Text(
                             text = pages[page].title,
@@ -166,6 +166,8 @@ fun OnboardingScreen(
                             lineHeight = 22.sp
                         )
                     }
+                    
+                    Spacer(modifier = Modifier.height(16.dp)) // Padding before controls
                 }
             }
 
