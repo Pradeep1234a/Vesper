@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -67,60 +66,16 @@ fun OnboardingScreen(
     val coroutineScope = rememberCoroutineScope()
     val currentPage by remember { derivedStateOf { pagerState.currentPage } }
 
-    val bgColor = Color.White
-    val onBgColor = Color(0xFF111111)
-    val onSurfaceVar = Color(0xFF777777)
+    val bgColor = MaterialTheme.colorScheme.background
+    val onBgColor = MaterialTheme.colorScheme.onBackground
+    val onSurfaceVar = MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(bgColor)
     ) {
-        // ── 1. Full-screen swipeable pager (illustrations) ──
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                val illustrationRes = when (page) {
-                    0 -> com.vesper.ledger.R.drawable.ill_onboarding_1
-                    1 -> com.vesper.ledger.R.drawable.ill_onboarding_2
-                    2 -> com.vesper.ledger.R.drawable.ill_onboarding_3
-                    else -> com.vesper.ledger.R.drawable.ill_onboarding_4
-                }
-
-                Image(
-                    painter = painterResource(id = illustrationRes),
-                    contentDescription = pages[page].title,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.48f)
-                        .align(Alignment.TopCenter)
-                        .padding(top = 40.dp, start = 24.dp, end = 24.dp)
-                )
-            }
-        }
-
-        // ── 2. Gradient scrim blending illustration into UI ──
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.56f)
-                .align(Alignment.BottomCenter)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            bgColor.copy(alpha = 0f),
-                            bgColor.copy(alpha = 0.7f),
-                            bgColor,
-                            bgColor
-                        )
-                    )
-                )
-        )
-
-        // ── 3. Skip button (fixed top-right) ──
+        // ── 1. Skip button (fixed top-right) ──
         if (currentPage < 3) {
             Text(
                 text = "Skip",
@@ -139,116 +94,150 @@ fun OnboardingScreen(
             )
         }
 
-        // ── 4. Bottom content block (fixed vertical position) ──
+        // ── 2. Combined Content Column (Illustration + Text) to reduce gap and ensure visual connection ──
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
+                .fillMaxSize()
+                .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Text crossfade (fixed-height container)
-            Crossfade(
-                targetState = currentPage,
-                animationSpec = tween(300),
-                label = "text"
-            ) { page ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp)
-                ) {
-                    Text(
-                        text = pages[page].title,
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = onBgColor,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 34.sp
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = pages[page].description,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = onSurfaceVar.copy(alpha = 0.6f),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 24.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Pagination — expanding capsule dot
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                repeat(4) { i ->
-                    val active = i == currentPage
-                    val width by animateDpAsState(
-                        if (active) 24.dp else 8.dp,
-                        animationSpec = tween(250),
-                        label = "dot"
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(height = 8.dp, width = width)
-                            .clip(CircleShape)
-                            .background(
-                                if (active) onBgColor
-                                else onSurfaceVar.copy(alpha = 0.2f)
-                            )
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // CTA Button — tactile press, fixed position
-            val interactionSource = remember { MutableInteractionSource() }
-            val isPressed by interactionSource.collectIsPressedAsState()
-            val buttonScale by animateFloatAsState(
-                if (isPressed) 0.98f else 1f,
-                animationSpec = tween(120),
-                label = "btnScale"
-            )
-
-            Button(
-                onClick = {
-                    if (currentPage < 3) {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(
-                                currentPage + 1,
-                                animationSpec = tween(350, easing = FastOutSlowInEasing)
-                            )
-                        }
-                    } else {
-                        onFinish()
-                    }
-                },
-                interactionSource = interactionSource,
+            // Pager for Illustration and Text
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .scale(buttonScale),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = onBgColor,
-                    contentColor = bgColor
-                )
+                    .weight(1f)
+            ) { page ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    val illustrationRes = when (page) {
+                        0 -> com.vesper.ledger.R.drawable.ill_onboarding_1
+                        1 -> com.vesper.ledger.R.drawable.ill_onboarding_2
+                        2 -> com.vesper.ledger.R.drawable.ill_onboarding_3
+                        else -> com.vesper.ledger.R.drawable.ill_onboarding_4
+                    }
+
+                    // Illustration
+                    Image(
+                        painter = painterResource(id = illustrationRes),
+                        contentDescription = pages[page].title,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(320.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(28.dp)) // Reduced gap between illustration and text
+
+                    // Text Content (fixed-height container to prevent layout shift)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(130.dp)
+                    ) {
+                        Text(
+                            text = pages[page].title,
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = onBgColor,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 34.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = pages[page].description,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = onSurfaceVar.copy(alpha = 0.6f),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 22.sp
+                        )
+                    }
+                }
+            }
+
+            // ── 3. Bottom controls (Pagination + CTA) ──
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = if (currentPage == 3) "Get Started" else "Continue",
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                // Pagination
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(4) { i ->
+                        val active = i == currentPage
+                        val width by animateDpAsState(
+                            if (active) 24.dp else 8.dp,
+                            animationSpec = tween(250),
+                            label = "dot"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(height = 8.dp, width = width)
+                                .clip(CircleShape)
+                                .background(
+                                    if (active) onBgColor
+                                    else onSurfaceVar.copy(alpha = 0.2f)
+                                )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // CTA Button with tactile scale press effect
+                val interactionSource = remember { MutableInteractionSource() }
+                val isPressed by interactionSource.collectIsPressedAsState()
+                val buttonScale by animateFloatAsState(
+                    if (isPressed) 0.98f else 1f,
+                    animationSpec = tween(120),
+                    label = "btnScale"
                 )
+
+                Button(
+                    onClick = {
+                        if (currentPage < 3) {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(
+                                    currentPage + 1,
+                                    animationSpec = tween(350, easing = FastOutSlowInEasing)
+                                )
+                            }
+                        } else {
+                            onFinish()
+                        }
+                    },
+                    interactionSource = interactionSource,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .scale(buttonScale),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = onBgColor,
+                        contentColor = bgColor
+                    )
+                ) {
+                    Text(
+                        text = if (currentPage == 3) "Get Started" else "Continue",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }
