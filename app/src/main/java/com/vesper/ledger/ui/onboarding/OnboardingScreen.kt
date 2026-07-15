@@ -128,17 +128,18 @@ fun OnboardingScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1.2f),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.BottomCenter
                     ) {
                         Image(
                             painter = painterResource(id = illustrationRes),
                             contentDescription = pages[page].title,
                             contentScale = ContentScale.Fit,
+                            alignment = Alignment.BottomCenter,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(28.dp)) // Spacious premium gap
+                    Spacer(modifier = Modifier.height(12.dp)) // Pull texts up into yellow area
 
                     // Text Content (wrapped, never cropped)
                     Column(
