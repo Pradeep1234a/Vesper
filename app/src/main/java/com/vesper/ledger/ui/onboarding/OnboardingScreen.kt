@@ -3,11 +3,14 @@ package com.vesper.ledger.ui.onboarding
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -30,35 +33,52 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
+import kotlinx.coroutines.launch
+
+// ─── Data ────────────────────────────────────────────────────────────────────
 
 data class OnboardingPage(
     val title: String,
     val description: String
 )
 
-@OptIn(ExperimentalAnimationApi::class)
+// ─── Fixed Illustration Palette (theme-independent) ──────────────────────────
+
+private val IllPrimary = Color(0xFF1A1A1A)
+private val IllSecondary = Color(0xFF444444)
+private val IllNeutral = Color(0xFF888888)
+private val IllHighlight = Color(0xFFD9D9D9)
+private val IllAccent = Color(0xFF333333)
+
+// ─── Main Screen ─────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
     onFinish: () -> Unit
 ) {
-    var pageIndex by remember { mutableStateOf(0) }
-
     val pages = listOf(
         OnboardingPage(
-            title = "Spending becomes\npart of living",
-            description = "Your purchases organize themselves quietly. No scanning, no manual entry. Just life."
+            title = "Track Every\nTransaction",
+            description = "Add expenses and income effortlessly. Categorize, organize, and watch your financial picture form."
         ),
         OnboardingPage(
-            title = "Clarity replaces\nfinancial stress",
-            description = "Understanding where your money goes happens naturally, during a calm moment at your desk."
+            title = "Stay on Track\nAutomatically",
+            description = "Smart reminders and milestones keep you motivated. Build better money habits without thinking about it."
         ),
         OnboardingPage(
-            title = "Splitting feels\nlike friendship",
-            description = "Sharing expenses with people you love should never feel like a transaction."
+            title = "Split With\nFriends",
+            description = "Share expenses naturally. Dinners, trips, and monthly bills settled without awkward conversations."
+        ),
+        OnboardingPage(
+            title = "Your Data\nStays Yours",
+            description = "Bank-grade encryption and biometric lock protect everything. Your finances remain completely private."
         )
     )
 
-    val transitionEasing = CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
+    val pagerState = rememberPagerState(pageCount = { 4 })
+    val coroutineScope = rememberCoroutineScope()
+    val currentPage by remember { derivedStateOf { pagerState.currentPage } }
 
     val bgColor = MaterialTheme.colorScheme.background
     val onBgColor = MaterialTheme.colorScheme.onBackground
@@ -69,35 +89,39 @@ fun OnboardingScreen(
             .fillMaxSize()
             .background(bgColor)
     ) {
-        // 1. Full-screen illustration with cinematic scene transition
-        AnimatedContent(
-            targetState = pageIndex,
-            transitionSpec = {
-                (slideInHorizontally(
-                    initialOffsetX = { it / 5 },
-                    animationSpec = tween(450, easing = transitionEasing)
-                ) + fadeIn(tween(350))) togetherWith
-                (slideOutHorizontally(
-                    targetOffsetX = { -it / 5 },
-                    animationSpec = tween(450, easing = transitionEasing)
-                ) + fadeOut(tween(250)))
-            },
-            label = "scene"
-        ) { targetPage ->
-            SceneIllustration(pageIndex = targetPage)
+        // ── 1. Full-screen swipeable pager (illustration in top ~48%) ──
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.48f)
+                        .align(Alignment.TopCenter)
+                ) {
+                    when (page) {
+                        0 -> drawTransactionsScene()
+                        1 -> drawNotificationsScene()
+                        2 -> drawSplitScene()
+                        3 -> drawSecurityScene()
+                    }
+                }
+            }
         }
 
-        // 2. Bottom gradient scrim for text readability
+        // ── 2. Gradient scrim blending illustration into UI ──
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.52f)
+                .fillMaxHeight(0.56f)
                 .align(Alignment.BottomCenter)
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             bgColor.copy(alpha = 0f),
-                            bgColor.copy(alpha = 0.6f),
+                            bgColor.copy(alpha = 0.7f),
                             bgColor,
                             bgColor
                         )
@@ -105,8 +129,8 @@ fun OnboardingScreen(
                 )
         )
 
-        // 3. Skip — top right, fixed position
-        if (pageIndex < 2) {
+        // ── 3. Skip button (fixed top-right) ──
+        if (currentPage < 3) {
             Text(
                 text = "Skip",
                 fontFamily = SpaceGroteskFamily,
@@ -124,7 +148,7 @@ fun OnboardingScreen(
             )
         }
 
-        // 4. Bottom content — text, pagination, CTA (fixed vertical position)
+        // ── 4. Bottom content block (fixed vertical position) ──
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -134,30 +158,30 @@ fun OnboardingScreen(
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Text crossfade (fixed-height container — no layout shift)
+            // Text crossfade (fixed-height container)
             Crossfade(
-                targetState = pages[pageIndex],
-                animationSpec = tween(350),
+                targetState = currentPage,
+                animationSpec = tween(300),
                 label = "text"
             ) { page ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(150.dp)
+                        .height(140.dp)
                 ) {
                     Text(
-                        text = page.title,
+                        text = pages[page].title,
                         fontFamily = SpaceGroteskFamily,
-                        fontSize = 32.sp,
+                        fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         color = onBgColor,
                         textAlign = TextAlign.Center,
-                        lineHeight = 36.sp
+                        lineHeight = 34.sp
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = page.description,
+                        text = pages[page].description,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
                         color = onSurfaceVar.copy(alpha = 0.6f),
@@ -167,15 +191,15 @@ fun OnboardingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Pagination — capsule expands for active
+            // Pagination — expanding capsule dot
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                repeat(3) { i ->
-                    val active = i == pageIndex
+                repeat(4) { i ->
+                    val active = i == currentPage
                     val width by animateDpAsState(
                         if (active) 24.dp else 8.dp,
                         animationSpec = tween(250),
@@ -193,7 +217,7 @@ fun OnboardingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // CTA Button — tactile press, fixed position
             val interactionSource = remember { MutableInteractionSource() }
@@ -206,7 +230,16 @@ fun OnboardingScreen(
 
             Button(
                 onClick = {
-                    if (pageIndex < 2) pageIndex++ else onFinish()
+                    if (currentPage < 3) {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(
+                                currentPage + 1,
+                                animationSpec = tween(350, easing = FastOutSlowInEasing)
+                            )
+                        }
+                    } else {
+                        onFinish()
+                    }
                 },
                 interactionSource = interactionSource,
                 modifier = Modifier
@@ -220,7 +253,7 @@ fun OnboardingScreen(
                 )
             ) {
                 Text(
-                    text = if (pageIndex == 2) "Get Started" else "Continue",
+                    text = if (currentPage == 3) "Get Started" else "Continue",
                     fontFamily = SpaceGroteskFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
@@ -230,354 +263,408 @@ fun OnboardingScreen(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Illustrations — editorial scenes, not feature diagrams
-// ---------------------------------------------------------------------------
+// ═════════════════════════════════════════════════════════════════════════════
+// ILLUSTRATIONS — Theme-independent, fixed palette, editorial fintech style
+// ═════════════════════════════════════════════════════════════════════════════
 
-@Composable
-fun SceneIllustration(pageIndex: Int) {
-    val infiniteTransition = rememberInfiniteTransition(label = "env")
+// ─── Screen 1: Add & Manage Transactions ─────────────────────────────────────
 
-    // Steam drift for Scene 1
-    val steamPhase by infiniteTransition.animateFloat(
-        initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(3500, easing = LinearEasing), RepeatMode.Restart),
-        label = "steam"
-    )
-
-    // Lamp glow pulse for Scene 2
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.04f, targetValue = 0.12f,
-        animationSpec = infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "glow"
-    )
-
-    val fg = MaterialTheme.colorScheme.onBackground
-    val sv = MaterialTheme.colorScheme.onSurfaceVariant
-    val bg = MaterialTheme.colorScheme.background
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        when (pageIndex) {
-            0 -> drawCafeScene(fg, sv, bg, steamPhase)
-            1 -> drawDeskScene(fg, sv, bg, glowAlpha)
-            2 -> drawDinnerScene(fg, sv, bg)
-        }
-    }
-}
-
-// ---- Scene 1: Café — after purchasing coffee ----
-
-private fun DrawScope.drawCafeScene(
-    fg: Color, sv: Color, bg: Color, steamPhase: Float
-) {
+private fun DrawScope.drawTransactionsScene() {
     val w = size.width
     val h = size.height
-    val tableY = h * 0.48f
 
-    // --- Window (upper-left, partially cropped at top) ---
-    val winL = w * 0.06f
-    val winT = h * 0.04f
-    val winW = w * 0.40f
-    val winH = h * 0.38f
-    drawRect(sv.copy(alpha = 0.06f), Offset(winL, winT), Size(winW, winH))
-    drawRect(sv.copy(alpha = 0.15f), Offset(winL, winT), Size(winW, winH), style = Stroke(1.5.dp.toPx()))
-    // Panes
-    drawLine(sv.copy(0.10f), Offset(winL + winW / 2, winT), Offset(winL + winW / 2, winT + winH), 1.dp.toPx())
-    drawLine(sv.copy(0.10f), Offset(winL, winT + winH * 0.45f), Offset(winL + winW, winT + winH * 0.45f), 1.dp.toPx())
+    // ── Ambient background shapes ──
+    drawCircle(IllHighlight.copy(alpha = 0.25f), w * 0.28f, Offset(w * 0.75f, h * 0.22f))
+    drawCircle(IllHighlight.copy(alpha = 0.15f), w * 0.18f, Offset(w * 0.15f, h * 0.65f))
 
-    // --- Table surface ---
-    drawLine(sv.copy(0.25f), Offset(0f, tableY), Offset(w, tableY), 2.dp.toPx())
-    // Table fill below the line
-    drawRect(sv.copy(alpha = 0.03f), Offset(0f, tableY), Size(w, h * 0.08f))
+    // ── Desk surface ──
+    val deskY = h * 0.62f
+    drawRoundRect(
+        IllHighlight.copy(alpha = 0.35f),
+        Offset(w * 0.08f, deskY),
+        Size(w * 0.84f, h * 0.06f),
+        CornerRadius(4.dp.toPx())
+    )
 
-    // --- Person sitting, right of center, looking away ---
-    val px = w * 0.66f
-    val headCy = tableY - 85.dp.toPx()
-    val headR = 20.dp.toPx()
-
-    // Head (slightly tilted — offset center)
-    drawCircle(sv.copy(0.10f), headR, Offset(px + 2.dp.toPx(), headCy))
-    drawCircle(sv.copy(0.30f), headR, Offset(px + 2.dp.toPx(), headCy), style = Stroke(1.5.dp.toPx()))
-
-    // Hair suggestion
-    val hairPath = Path().apply {
-        moveTo(px - 14.dp.toPx(), headCy - 12.dp.toPx())
-        quadraticBezierTo(px + 2.dp.toPx(), headCy - headR - 6.dp.toPx(), px + 18.dp.toPx(), headCy - 10.dp.toPx())
+    // ── Receipt on desk ──
+    val rcptX = w * 0.18f
+    val rcptY = deskY - 56.dp.toPx()
+    val rcptW = 38.dp.toPx()
+    val rcptH = 52.dp.toPx()
+    drawRoundRect(IllHighlight.copy(0.50f), Offset(rcptX, rcptY), Size(rcptW, rcptH), CornerRadius(3.dp.toPx()))
+    drawRoundRect(IllNeutral.copy(0.30f), Offset(rcptX, rcptY), Size(rcptW, rcptH), CornerRadius(3.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+    // Receipt lines
+    for (i in 0..5) {
+        val ly = rcptY + 8.dp.toPx() + i * 7.dp.toPx()
+        val lw = if (i == 0) 18.dp.toPx() else if (i == 5) 12.dp.toPx() else 26.dp.toPx()
+        drawLine(IllNeutral.copy(0.25f), Offset(rcptX + 6.dp.toPx(), ly), Offset(rcptX + 6.dp.toPx() + lw, ly), 1.5.dp.toPx(), cap = StrokeCap.Round)
     }
-    drawPath(hairPath, sv.copy(0.20f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
 
-    // Neck
-    drawLine(sv.copy(0.20f), Offset(px + 1.dp.toPx(), headCy + headR), Offset(px, headCy + headR + 10.dp.toPx()), 1.5.dp.toPx())
-
-    // Torso / shoulders
-    val torsoPath = Path().apply {
-        moveTo(px - 36.dp.toPx(), tableY - 6.dp.toPx())
-        quadraticBezierTo(px - 30.dp.toPx(), headCy + headR + 18.dp.toPx(), px, headCy + headR + 12.dp.toPx())
-        quadraticBezierTo(px + 30.dp.toPx(), headCy + headR + 18.dp.toPx(), px + 38.dp.toPx(), tableY - 6.dp.toPx())
+    // ── Phone showing transaction list ──
+    val phX = w * 0.42f
+    val phY = deskY - 68.dp.toPx()
+    val phW = 36.dp.toPx()
+    val phH = 64.dp.toPx()
+    drawRoundRect(IllHighlight.copy(0.60f), Offset(phX, phY), Size(phW, phH), CornerRadius(6.dp.toPx()))
+    drawRoundRect(IllSecondary.copy(0.35f), Offset(phX, phY), Size(phW, phH), CornerRadius(6.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+    // Screen content lines (transaction list)
+    for (i in 0..4) {
+        val ly = phY + 10.dp.toPx() + i * 10.dp.toPx()
+        drawLine(IllNeutral.copy(0.20f), Offset(phX + 5.dp.toPx(), ly), Offset(phX + phW - 5.dp.toPx(), ly), 1.5.dp.toPx(), cap = StrokeCap.Round)
+        // Amount on right
+        drawLine(IllSecondary.copy(0.15f), Offset(phX + phW - 14.dp.toPx(), ly), Offset(phX + phW - 5.dp.toPx(), ly), 1.5.dp.toPx(), cap = StrokeCap.Round)
     }
-    drawPath(torsoPath, sv.copy(0.06f))
-    drawPath(torsoPath, sv.copy(0.25f), style = Stroke(1.5.dp.toPx()))
 
-    // Arm resting on table toward objects
-    val armPath = Path().apply {
-        moveTo(px - 30.dp.toPx(), tableY - 10.dp.toPx())
-        quadraticBezierTo(px - 50.dp.toPx(), tableY - 6.dp.toPx(), px - 65.dp.toPx(), tableY - 3.dp.toPx())
-    }
-    drawPath(armPath, sv.copy(0.22f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
-
-    // --- Coffee cup ---
-    val cupCx = w * 0.38f
-    val cupW = 14.dp.toPx()
-    val cupH = 16.dp.toPx()
-    val cupTop = tableY - cupH
-    drawRoundRect(sv.copy(0.08f), Offset(cupCx - cupW / 2, cupTop), Size(cupW, cupH), CornerRadius(2.dp.toPx()))
-    drawRoundRect(sv.copy(0.28f), Offset(cupCx - cupW / 2, cupTop), Size(cupW, cupH), CornerRadius(2.dp.toPx()), style = Stroke(1.5.dp.toPx()))
-    // Handle (small arc on right side)
-    val handlePath = Path().apply {
-        moveTo(cupCx + cupW / 2, cupTop + 3.dp.toPx())
-        quadraticBezierTo(cupCx + cupW / 2 + 7.dp.toPx(), cupTop + cupH / 2, cupCx + cupW / 2, cupTop + cupH - 3.dp.toPx())
-    }
-    drawPath(handlePath, sv.copy(0.25f), style = Stroke(1.5.dp.toPx(), cap = StrokeCap.Round))
-
-    // Steam wisps — life in the scene
+    // ── Stacked coins ──
+    val coinX = w * 0.70f
+    val coinBaseY = deskY - 4.dp.toPx()
     for (i in 0..2) {
-        val phase = (steamPhase + i * 0.33f) % 1f
-        val alpha = (1f - phase) * 0.12f
-        val yOff = cupTop - 6.dp.toPx() - phase * 28.dp.toPx()
-        val xWobble = kotlin.math.sin((phase + i) * 3.14f) * 3.dp.toPx()
-        if (alpha > 0.01f) {
-            drawCircle(sv.copy(alpha), 2.dp.toPx(), Offset(cupCx + xWobble + (i - 1) * 3.dp.toPx(), yOff))
-        }
+        val cy = coinBaseY - i * 6.dp.toPx()
+        drawRoundRect(
+            IllHighlight.copy(0.50f),
+            Offset(coinX, cy - 6.dp.toPx()),
+            Size(18.dp.toPx(), 6.dp.toPx()),
+            CornerRadius(3.dp.toPx())
+        )
+        drawRoundRect(
+            IllNeutral.copy(0.35f),
+            Offset(coinX, cy - 6.dp.toPx()),
+            Size(18.dp.toPx(), 6.dp.toPx()),
+            CornerRadius(3.dp.toPx()),
+            style = Stroke(1.dp.toPx())
+        )
     }
 
-    // --- Receipt (folded, on table) ---
-    val rcptX = w * 0.48f
-    val rcptW = 12.dp.toPx()
-    val rcptH = 18.dp.toPx()
-    drawRoundRect(sv.copy(0.07f), Offset(rcptX, tableY - rcptH + 2.dp.toPx()), Size(rcptW, rcptH), CornerRadius(1.dp.toPx()))
-    drawRoundRect(sv.copy(0.18f), Offset(rcptX, tableY - rcptH + 2.dp.toPx()), Size(rcptW, rcptH), CornerRadius(1.dp.toPx()), style = Stroke(1.dp.toPx()))
-    // Tiny text lines on receipt
-    for (i in 0..3) {
-        val ly = tableY - rcptH + 5.dp.toPx() + i * 3.5.dp.toPx()
-        val lw = if (i == 0) 6.dp.toPx() else if (i == 3) 4.dp.toPx() else 8.dp.toPx()
-        drawLine(sv.copy(0.12f), Offset(rcptX + 2.dp.toPx(), ly), Offset(rcptX + 2.dp.toPx() + lw, ly), 1.dp.toPx())
-    }
+    // ── Person standing, reaching toward desk ──
+    val px = w * 0.58f
+    val headCy = deskY - 110.dp.toPx()
+    val headR = 18.dp.toPx()
 
-    // --- Phone lying flat on table ---
-    val phX = w * 0.28f
-    val phW = 18.dp.toPx()
-    val phH = 10.dp.toPx()
-    drawRoundRect(sv.copy(0.06f), Offset(phX, tableY - phH + 1.dp.toPx()), Size(phW, phH), CornerRadius(2.dp.toPx()))
-    drawRoundRect(sv.copy(0.20f), Offset(phX, tableY - phH + 1.dp.toPx()), Size(phW, phH), CornerRadius(2.dp.toPx()), style = Stroke(1.dp.toPx()))
-    // Screen glint
-    drawLine(sv.copy(0.08f), Offset(phX + 3.dp.toPx(), tableY - phH + 3.dp.toPx()), Offset(phX + phW - 3.dp.toPx(), tableY - phH + 3.dp.toPx()), 1.dp.toPx())
-
-    // --- Chair leg suggestion (right side, partially cropped) ---
-    drawLine(sv.copy(0.08f), Offset(w * 0.82f, tableY + 4.dp.toPx()), Offset(w * 0.85f, h * 0.62f), 2.dp.toPx())
-}
-
-// ---- Scene 2: Evening desk — reflecting on finances ----
-
-private fun DrawScope.drawDeskScene(
-    fg: Color, sv: Color, bg: Color, glowAlpha: Float
-) {
-    val w = size.width
-    val h = size.height
-    val deskY = h * 0.48f
-
-    // --- Desk surface ---
-    drawLine(sv.copy(0.25f), Offset(0f, deskY), Offset(w, deskY), 2.dp.toPx())
-    drawRect(sv.copy(alpha = 0.03f), Offset(0f, deskY), Size(w, h * 0.08f))
-
-    // --- Desk lamp (right side, partially cropped) ---
-    val lampBaseX = w * 0.78f
-    // Base on desk
-    drawRoundRect(sv.copy(0.15f), Offset(lampBaseX - 10.dp.toPx(), deskY - 6.dp.toPx()), Size(20.dp.toPx(), 6.dp.toPx()), CornerRadius(2.dp.toPx()))
-    // Vertical stand
-    drawLine(sv.copy(0.22f), Offset(lampBaseX, deskY - 6.dp.toPx()), Offset(lampBaseX, deskY - 50.dp.toPx()), 2.dp.toPx())
-    // Angled arm
-    drawLine(sv.copy(0.22f), Offset(lampBaseX, deskY - 50.dp.toPx()), Offset(lampBaseX - 28.dp.toPx(), deskY - 70.dp.toPx()), 2.dp.toPx())
-    // Shade
-    val shadePath = Path().apply {
-        moveTo(lampBaseX - 42.dp.toPx(), deskY - 65.dp.toPx())
-        lineTo(lampBaseX - 28.dp.toPx(), deskY - 72.dp.toPx())
-        lineTo(lampBaseX - 14.dp.toPx(), deskY - 65.dp.toPx())
-    }
-    drawPath(shadePath, sv.copy(0.20f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
-    // Warm glow (subtle pulsing circle)
-    drawCircle(sv.copy(glowAlpha), 40.dp.toPx(), Offset(lampBaseX - 28.dp.toPx(), deskY - 40.dp.toPx()))
-
-    // --- Person sitting, left of center, reflective pose ---
-    val px = w * 0.36f
-    val headCy = deskY - 80.dp.toPx()
-    val headR = 20.dp.toPx()
-
-    drawCircle(sv.copy(0.10f), headR, Offset(px, headCy))
-    drawCircle(sv.copy(0.30f), headR, Offset(px, headCy), style = Stroke(1.5.dp.toPx()))
-
+    // Head
+    drawCircle(IllHighlight.copy(0.45f), headR, Offset(px, headCy))
+    drawCircle(IllSecondary.copy(0.40f), headR, Offset(px, headCy), style = Stroke(1.8.dp.toPx()))
     // Hair
-    val hairP = Path().apply {
-        moveTo(px - 16.dp.toPx(), headCy - 8.dp.toPx())
-        quadraticBezierTo(px, headCy - headR - 5.dp.toPx(), px + 16.dp.toPx(), headCy - 10.dp.toPx())
+    val hairPath = Path().apply {
+        moveTo(px - 14.dp.toPx(), headCy - 10.dp.toPx())
+        quadraticBezierTo(px, headCy - headR - 5.dp.toPx(), px + 15.dp.toPx(), headCy - 8.dp.toPx())
     }
-    drawPath(hairP, sv.copy(0.18f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
-
+    drawPath(hairPath, IllSecondary.copy(0.30f), style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round))
     // Neck
-    drawLine(sv.copy(0.18f), Offset(px, headCy + headR), Offset(px + 1.dp.toPx(), headCy + headR + 10.dp.toPx()), 1.5.dp.toPx())
-
+    drawLine(IllSecondary.copy(0.25f), Offset(px, headCy + headR), Offset(px - 1.dp.toPx(), headCy + headR + 10.dp.toPx()), 1.8.dp.toPx())
     // Torso
     val torso = Path().apply {
-        moveTo(px - 34.dp.toPx(), deskY - 6.dp.toPx())
-        quadraticBezierTo(px - 28.dp.toPx(), headCy + headR + 16.dp.toPx(), px, headCy + headR + 12.dp.toPx())
-        quadraticBezierTo(px + 28.dp.toPx(), headCy + headR + 16.dp.toPx(), px + 34.dp.toPx(), deskY - 6.dp.toPx())
+        moveTo(px - 32.dp.toPx(), deskY - 8.dp.toPx())
+        quadraticBezierTo(px - 26.dp.toPx(), headCy + headR + 18.dp.toPx(), px, headCy + headR + 12.dp.toPx())
+        quadraticBezierTo(px + 26.dp.toPx(), headCy + headR + 18.dp.toPx(), px + 32.dp.toPx(), deskY - 8.dp.toPx())
     }
-    drawPath(torso, sv.copy(0.06f))
-    drawPath(torso, sv.copy(0.25f), style = Stroke(1.5.dp.toPx()))
-
-    // Hand near chin (thinking gesture)
-    val handPath = Path().apply {
-        moveTo(px + 28.dp.toPx(), deskY - 12.dp.toPx())
-        quadraticBezierTo(px + 22.dp.toPx(), headCy + headR + 4.dp.toPx(), px + 10.dp.toPx(), headCy + headR - 2.dp.toPx())
+    drawPath(torso, IllHighlight.copy(0.30f))
+    drawPath(torso, IllSecondary.copy(0.30f), style = Stroke(1.8.dp.toPx()))
+    // Arm reaching toward phone
+    val armPath = Path().apply {
+        moveTo(px - 26.dp.toPx(), deskY - 18.dp.toPx())
+        quadraticBezierTo(px - 34.dp.toPx(), deskY - 14.dp.toPx(), phX + phW + 2.dp.toPx(), deskY - 6.dp.toPx())
     }
-    drawPath(handPath, sv.copy(0.20f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+    drawPath(armPath, IllSecondary.copy(0.28f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
 
-    // --- Open notebook on desk ---
-    val nbCx = w * 0.54f
-    val nbW = 30.dp.toPx()
-    val nbH = 20.dp.toPx()
-    // Left page
-    drawRoundRect(sv.copy(0.06f), Offset(nbCx - nbW, deskY - nbH + 2.dp.toPx()), Size(nbW, nbH), CornerRadius(1.dp.toPx()))
-    drawRoundRect(sv.copy(0.15f), Offset(nbCx - nbW, deskY - nbH + 2.dp.toPx()), Size(nbW, nbH), CornerRadius(1.dp.toPx()), style = Stroke(1.dp.toPx()))
-    // Right page
-    drawRoundRect(sv.copy(0.06f), Offset(nbCx, deskY - nbH + 2.dp.toPx()), Size(nbW, nbH), CornerRadius(1.dp.toPx()))
-    drawRoundRect(sv.copy(0.15f), Offset(nbCx, deskY - nbH + 2.dp.toPx()), Size(nbW, nbH), CornerRadius(1.dp.toPx()), style = Stroke(1.dp.toPx()))
-    // Spine
-    drawLine(sv.copy(0.20f), Offset(nbCx, deskY - nbH + 2.dp.toPx()), Offset(nbCx, deskY + 2.dp.toPx()), 1.dp.toPx())
-    // Text lines on right page
-    for (i in 0..3) {
-        val ly = deskY - nbH + 6.dp.toPx() + i * 4.dp.toPx()
-        drawLine(sv.copy(0.08f), Offset(nbCx + 3.dp.toPx(), ly), Offset(nbCx + nbW - 4.dp.toPx(), ly), 1.dp.toPx())
+    // ── Shopping bag ──
+    val bagX = w * 0.80f
+    val bagY = deskY - 28.dp.toPx()
+    val bagW = 20.dp.toPx()
+    val bagH = 24.dp.toPx()
+    drawRoundRect(IllHighlight.copy(0.40f), Offset(bagX, bagY), Size(bagW, bagH), CornerRadius(2.dp.toPx()))
+    drawRoundRect(IllNeutral.copy(0.30f), Offset(bagX, bagY), Size(bagW, bagH), CornerRadius(2.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+    // Handle
+    val handleP = Path().apply {
+        moveTo(bagX + 5.dp.toPx(), bagY)
+        quadraticBezierTo(bagX + bagW / 2, bagY - 10.dp.toPx(), bagX + bagW - 5.dp.toPx(), bagY)
     }
-
-    // --- Coffee mug ---
-    val mugX = w * 0.66f
-    val mugW = 12.dp.toPx()
-    val mugH = 14.dp.toPx()
-    val mugTop = deskY - mugH
-    drawRoundRect(sv.copy(0.08f), Offset(mugX, mugTop), Size(mugW, mugH), CornerRadius(2.dp.toPx()))
-    drawRoundRect(sv.copy(0.22f), Offset(mugX, mugTop), Size(mugW, mugH), CornerRadius(2.dp.toPx()), style = Stroke(1.5.dp.toPx()))
-
-    // --- Phone flat on desk ---
-    val phX = w * 0.46f
-    val phW = 16.dp.toPx()
-    val phH = 9.dp.toPx()
-    drawRoundRect(sv.copy(0.06f), Offset(phX, deskY - phH + 1.dp.toPx()), Size(phW, phH), CornerRadius(2.dp.toPx()))
-    drawRoundRect(sv.copy(0.18f), Offset(phX, deskY - phH + 1.dp.toPx()), Size(phW, phH), CornerRadius(2.dp.toPx()), style = Stroke(1.dp.toPx()))
+    drawPath(handleP, IllNeutral.copy(0.30f), style = Stroke(1.5.dp.toPx(), cap = StrokeCap.Round))
 }
 
-// ---- Scene 3: Dinner with friends — splitting the bill ----
+// ─── Screen 2: Smart Notifications & Encouragement ───────────────────────────
 
-private fun DrawScope.drawDinnerScene(
-    fg: Color, sv: Color, bg: Color
-) {
+private fun DrawScope.drawNotificationsScene() {
     val w = size.width
     val h = size.height
-    val tableY = h * 0.48f
 
-    // --- Table (rounded, large, slightly overhead perspective) ---
-    val tableW = w * 0.72f
-    val tableH = 50.dp.toPx()
-    val tableLeft = (w - tableW) / 2
-    drawRoundRect(sv.copy(0.06f), Offset(tableLeft, tableY - tableH / 2), Size(tableW, tableH), CornerRadius(25.dp.toPx()))
-    drawRoundRect(sv.copy(0.18f), Offset(tableLeft, tableY - tableH / 2), Size(tableW, tableH), CornerRadius(25.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+    // ── Ambient shapes ──
+    drawCircle(IllHighlight.copy(alpha = 0.20f), w * 0.22f, Offset(w * 0.20f, h * 0.25f))
+    drawRoundRect(IllHighlight.copy(0.12f), Offset(w * 0.60f, h * 0.10f), Size(w * 0.35f, h * 0.30f), CornerRadius(20.dp.toPx()))
 
-    // --- Plates (circles on table) ---
-    val plateR = 10.dp.toPx()
-    val plate1 = Offset(w * 0.34f, tableY - 4.dp.toPx())
-    val plate2 = Offset(w * 0.66f, tableY - 4.dp.toPx())
-    val plate3 = Offset(w * 0.50f, tableY + 6.dp.toPx())
-    for (plate in listOf(plate1, plate2, plate3)) {
-        drawCircle(sv.copy(0.05f), plateR, plate)
-        drawCircle(sv.copy(0.15f), plateR, plate, style = Stroke(1.dp.toPx()))
-        drawCircle(sv.copy(0.10f), plateR * 0.5f, plate, style = Stroke(0.5.dp.toPx()))
+    val seatY = h * 0.62f
+
+    // ── Couch / chair suggestion ──
+    val couchPath = Path().apply {
+        moveTo(w * 0.15f, seatY + 8.dp.toPx())
+        quadraticBezierTo(w * 0.50f, seatY + 14.dp.toPx(), w * 0.85f, seatY + 8.dp.toPx())
     }
+    drawPath(couchPath, IllHighlight.copy(0.30f), style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
+    // Armrests
+    drawLine(IllHighlight.copy(0.25f), Offset(w * 0.15f, seatY - 20.dp.toPx()), Offset(w * 0.15f, seatY + 8.dp.toPx()), 3.dp.toPx(), cap = StrokeCap.Round)
+    drawLine(IllHighlight.copy(0.25f), Offset(w * 0.85f, seatY - 20.dp.toPx()), Offset(w * 0.85f, seatY + 8.dp.toPx()), 3.dp.toPx(), cap = StrokeCap.Round)
 
-    // --- Glasses ---
-    val glassR = 3.5.dp.toPx()
-    drawCircle(sv.copy(0.12f), glassR, Offset(w * 0.40f, tableY - 12.dp.toPx()), style = Stroke(1.dp.toPx()))
-    drawCircle(sv.copy(0.12f), glassR, Offset(w * 0.60f, tableY - 12.dp.toPx()), style = Stroke(1.dp.toPx()))
-    drawCircle(sv.copy(0.12f), glassR, Offset(w * 0.52f, tableY + 14.dp.toPx()), style = Stroke(1.dp.toPx()))
+    // ── Person sitting, relaxed, phone in hand ──
+    val px = w * 0.48f
+    val headCy = seatY - 90.dp.toPx()
+    val headR = 18.dp.toPx()
 
-    // --- Receipt in center of table ---
-    val rcptW = 10.dp.toPx()
-    val rcptH = 14.dp.toPx()
-    drawRoundRect(sv.copy(0.10f), Offset(w * 0.49f, tableY - rcptH / 2), Size(rcptW, rcptH), CornerRadius(1.dp.toPx()))
-    drawRoundRect(sv.copy(0.20f), Offset(w * 0.49f, tableY - rcptH / 2), Size(rcptW, rcptH), CornerRadius(1.dp.toPx()), style = Stroke(1.dp.toPx()))
+    drawCircle(IllHighlight.copy(0.45f), headR, Offset(px, headCy))
+    drawCircle(IllSecondary.copy(0.40f), headR, Offset(px, headCy), style = Stroke(1.8.dp.toPx()))
+    // Hair
+    val hair = Path().apply {
+        moveTo(px - 15.dp.toPx(), headCy - 6.dp.toPx())
+        quadraticBezierTo(px - 2.dp.toPx(), headCy - headR - 6.dp.toPx(), px + 16.dp.toPx(), headCy - 9.dp.toPx())
+    }
+    drawPath(hair, IllSecondary.copy(0.28f), style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round))
+    // Neck
+    drawLine(IllSecondary.copy(0.22f), Offset(px, headCy + headR), Offset(px, headCy + headR + 10.dp.toPx()), 1.8.dp.toPx())
+    // Torso (relaxed lean)
+    val torso = Path().apply {
+        moveTo(px - 30.dp.toPx(), seatY - 2.dp.toPx())
+        quadraticBezierTo(px - 24.dp.toPx(), headCy + headR + 16.dp.toPx(), px, headCy + headR + 12.dp.toPx())
+        quadraticBezierTo(px + 24.dp.toPx(), headCy + headR + 16.dp.toPx(), px + 30.dp.toPx(), seatY - 2.dp.toPx())
+    }
+    drawPath(torso, IllHighlight.copy(0.28f))
+    drawPath(torso, IllSecondary.copy(0.28f), style = Stroke(1.8.dp.toPx()))
 
-    // --- Person 1 (bottom-left) ---
-    drawPersonSitting(sv, w * 0.28f, tableY + 40.dp.toPx(), facingRight = true)
+    // ── Phone in hand (held up, reading) ──
+    val phoneX = px + 18.dp.toPx()
+    val phoneY = headCy + 20.dp.toPx()
+    val phoneW = 16.dp.toPx()
+    val phoneH = 26.dp.toPx()
+    drawRoundRect(IllHighlight.copy(0.55f), Offset(phoneX, phoneY), Size(phoneW, phoneH), CornerRadius(3.dp.toPx()))
+    drawRoundRect(IllSecondary.copy(0.35f), Offset(phoneX, phoneY), Size(phoneW, phoneH), CornerRadius(3.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+    // Arm holding phone
+    val armP = Path().apply {
+        moveTo(px + 24.dp.toPx(), seatY - 10.dp.toPx())
+        quadraticBezierTo(px + 28.dp.toPx(), phoneY + phoneH, phoneX + phoneW / 2, phoneY + phoneH)
+    }
+    drawPath(armP, IllSecondary.copy(0.25f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
 
-    // --- Person 2 (bottom-right) ---
-    drawPersonSitting(sv, w * 0.72f, tableY + 40.dp.toPx(), facingRight = false)
+    // ── Notification dot on phone ──
+    drawCircle(IllAccent.copy(0.55f), 3.dp.toPx(), Offset(phoneX + phoneW - 2.dp.toPx(), phoneY + 3.dp.toPx()))
 
-    // --- Person 3 (across the table, top-center) ---
-    drawPersonAcross(sv, w * 0.50f, tableY - 50.dp.toPx())
+    // ── Achievement badge (floating near top-right) ──
+    val badgeCx = w * 0.72f
+    val badgeCy = h * 0.28f
+    val badgeR = 16.dp.toPx()
+    drawCircle(IllHighlight.copy(0.40f), badgeR, Offset(badgeCx, badgeCy))
+    drawCircle(IllNeutral.copy(0.35f), badgeR, Offset(badgeCx, badgeCy), style = Stroke(1.5.dp.toPx()))
+    // Star inside badge
+    val starPath = createStarPath(badgeCx, badgeCy, 6.dp.toPx(), 10.dp.toPx(), 5)
+    drawPath(starPath, IllSecondary.copy(0.30f), style = Stroke(1.5.dp.toPx(), cap = StrokeCap.Round))
 
-    // --- Phones resting near each person ---
-    // Phone near Person 1
-    val ph1X = w * 0.22f
-    drawRoundRect(sv.copy(0.06f), Offset(ph1X, tableY + 28.dp.toPx()), Size(10.dp.toPx(), 16.dp.toPx()), CornerRadius(2.dp.toPx()))
-    drawRoundRect(sv.copy(0.15f), Offset(ph1X, tableY + 28.dp.toPx()), Size(10.dp.toPx(), 16.dp.toPx()), CornerRadius(2.dp.toPx()), style = Stroke(1.dp.toPx()))
+    // ── Progress bar (near badge) ──
+    val barX = w * 0.62f
+    val barY = h * 0.40f
+    val barW = w * 0.22f
+    drawRoundRect(IllHighlight.copy(0.30f), Offset(barX, barY), Size(barW, 4.dp.toPx()), CornerRadius(2.dp.toPx()))
+    drawRoundRect(IllSecondary.copy(0.35f), Offset(barX, barY), Size(barW * 0.65f, 4.dp.toPx()), CornerRadius(2.dp.toPx()))
 
-    // Phone near Person 2
-    val ph2X = w * 0.76f
-    drawRoundRect(sv.copy(0.06f), Offset(ph2X, tableY + 30.dp.toPx()), Size(10.dp.toPx(), 16.dp.toPx()), CornerRadius(2.dp.toPx()))
-    drawRoundRect(sv.copy(0.15f), Offset(ph2X, tableY + 30.dp.toPx()), Size(10.dp.toPx(), 16.dp.toPx()), CornerRadius(2.dp.toPx()), style = Stroke(1.dp.toPx()))
+    // ── Small bell icon (top-left ambient) ──
+    val bellCx = w * 0.28f
+    val bellCy = h * 0.35f
+    // Bell body
+    val bellPath = Path().apply {
+        moveTo(bellCx - 8.dp.toPx(), bellCy + 4.dp.toPx())
+        quadraticBezierTo(bellCx - 8.dp.toPx(), bellCy - 8.dp.toPx(), bellCx, bellCy - 10.dp.toPx())
+        quadraticBezierTo(bellCx + 8.dp.toPx(), bellCy - 8.dp.toPx(), bellCx + 8.dp.toPx(), bellCy + 4.dp.toPx())
+        lineTo(bellCx - 8.dp.toPx(), bellCy + 4.dp.toPx())
+    }
+    drawPath(bellPath, IllHighlight.copy(0.35f))
+    drawPath(bellPath, IllNeutral.copy(0.30f), style = Stroke(1.5.dp.toPx()))
+    // Bell clapper
+    drawCircle(IllNeutral.copy(0.25f), 2.dp.toPx(), Offset(bellCx, bellCy + 7.dp.toPx()))
 }
 
-// --- Helper: Draw a person sitting (bottom half of scene, facing table) ---
-private fun DrawScope.drawPersonSitting(sv: Color, cx: Float, shoulderY: Float, facingRight: Boolean) {
-    val headR = 16.dp.toPx()
-    val headCy = shoulderY - 30.dp.toPx()
-    val xTilt = if (facingRight) 2.dp.toPx() else -2.dp.toPx()
+// ─── Screen 3: Split Expenses ────────────────────────────────────────────────
 
-    // Head
-    drawCircle(sv.copy(0.08f), headR, Offset(cx + xTilt, headCy))
-    drawCircle(sv.copy(0.25f), headR, Offset(cx + xTilt, headCy), style = Stroke(1.5.dp.toPx()))
+private fun DrawScope.drawSplitScene() {
+    val w = size.width
+    val h = size.height
 
+    // ── Ambient shapes ──
+    drawCircle(IllHighlight.copy(alpha = 0.18f), w * 0.30f, Offset(w * 0.50f, h * 0.20f))
+    drawCircle(IllHighlight.copy(alpha = 0.12f), w * 0.15f, Offset(w * 0.12f, h * 0.55f))
+
+    // ── Table (rounded, wide) ──
+    val tableY = h * 0.50f
+    val tableH = 40.dp.toPx()
+    val tableW = w * 0.74f
+    val tableL = (w - tableW) / 2
+    drawRoundRect(IllHighlight.copy(0.30f), Offset(tableL, tableY), Size(tableW, tableH), CornerRadius(20.dp.toPx()))
+    drawRoundRect(IllNeutral.copy(0.22f), Offset(tableL, tableY), Size(tableW, tableH), CornerRadius(20.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+
+    // ── Table items: plates, glasses, receipt ──
+    val plateR = 9.dp.toPx()
+    val plates = listOf(
+        Offset(w * 0.32f, tableY + tableH * 0.35f),
+        Offset(w * 0.50f, tableY + tableH * 0.55f),
+        Offset(w * 0.68f, tableY + tableH * 0.35f)
+    )
+    plates.forEach { p ->
+        drawCircle(IllHighlight.copy(0.40f), plateR, p)
+        drawCircle(IllNeutral.copy(0.20f), plateR, p, style = Stroke(1.dp.toPx()))
+        drawCircle(IllNeutral.copy(0.12f), plateR * 0.5f, p, style = Stroke(0.5.dp.toPx()))
+    }
+    // Glasses
+    drawCircle(IllNeutral.copy(0.18f), 3.5.dp.toPx(), Offset(w * 0.38f, tableY + 6.dp.toPx()), style = Stroke(1.dp.toPx()))
+    drawCircle(IllNeutral.copy(0.18f), 3.5.dp.toPx(), Offset(w * 0.62f, tableY + 6.dp.toPx()), style = Stroke(1.dp.toPx()))
+    // Receipt in center
+    drawRoundRect(IllHighlight.copy(0.45f), Offset(w * 0.47f, tableY + 8.dp.toPx()), Size(10.dp.toPx(), 14.dp.toPx()), CornerRadius(1.dp.toPx()))
+    drawRoundRect(IllNeutral.copy(0.22f), Offset(w * 0.47f, tableY + 8.dp.toPx()), Size(10.dp.toPx(), 14.dp.toPx()), CornerRadius(1.dp.toPx()), style = Stroke(1.dp.toPx()))
+
+    // ── Person 1 (left) ──
+    drawSeatedPerson(w * 0.28f, tableY - 10.dp.toPx(), tiltX = 2.dp.toPx(), scaleF = 1f)
+    // ── Person 2 (center-right) ──
+    drawSeatedPerson(w * 0.62f, tableY - 14.dp.toPx(), tiltX = -1.dp.toPx(), scaleF = 1.05f)
+    // ── Person 3 (across, top) ──
+    drawPersonAcross(w * 0.48f, tableY - 4.dp.toPx())
+
+    // ── Phones near each person ──
+    drawRoundRect(IllHighlight.copy(0.35f), Offset(w * 0.18f, tableY + tableH + 6.dp.toPx()), Size(10.dp.toPx(), 16.dp.toPx()), CornerRadius(2.dp.toPx()))
+    drawRoundRect(IllNeutral.copy(0.18f), Offset(w * 0.18f, tableY + tableH + 6.dp.toPx()), Size(10.dp.toPx(), 16.dp.toPx()), CornerRadius(2.dp.toPx()), style = Stroke(1.dp.toPx()))
+
+    drawRoundRect(IllHighlight.copy(0.35f), Offset(w * 0.74f, tableY + tableH + 8.dp.toPx()), Size(10.dp.toPx(), 16.dp.toPx()), CornerRadius(2.dp.toPx()))
+    drawRoundRect(IllNeutral.copy(0.18f), Offset(w * 0.74f, tableY + tableH + 8.dp.toPx()), Size(10.dp.toPx(), 16.dp.toPx()), CornerRadius(2.dp.toPx()), style = Stroke(1.dp.toPx()))
+}
+
+// ─── Screen 4: Security & Encryption ─────────────────────────────────────────
+
+private fun DrawScope.drawSecurityScene() {
+    val w = size.width
+    val h = size.height
+
+    // ── Ambient shapes ──
+    drawCircle(IllHighlight.copy(alpha = 0.15f), w * 0.35f, Offset(w * 0.50f, h * 0.35f))
+    drawCircle(IllHighlight.copy(alpha = 0.10f), w * 0.20f, Offset(w * 0.82f, h * 0.60f))
+
+    val cx = w * 0.50f
+    val shieldCy = h * 0.38f
+
+    // ── Shield ──
+    val shieldW = 60.dp.toPx()
+    val shieldH = 72.dp.toPx()
+    val shieldPath = Path().apply {
+        moveTo(cx, shieldCy - shieldH / 2)
+        quadraticBezierTo(cx + shieldW / 2 + 4.dp.toPx(), shieldCy - shieldH / 2 + 6.dp.toPx(), cx + shieldW / 2, shieldCy)
+        quadraticBezierTo(cx + shieldW / 2 - 4.dp.toPx(), shieldCy + shieldH / 2 - 6.dp.toPx(), cx, shieldCy + shieldH / 2)
+        quadraticBezierTo(cx - shieldW / 2 + 4.dp.toPx(), shieldCy + shieldH / 2 - 6.dp.toPx(), cx - shieldW / 2, shieldCy)
+        quadraticBezierTo(cx - shieldW / 2 - 4.dp.toPx(), shieldCy - shieldH / 2 + 6.dp.toPx(), cx, shieldCy - shieldH / 2)
+        close()
+    }
+    drawPath(shieldPath, IllHighlight.copy(0.30f))
+    drawPath(shieldPath, IllSecondary.copy(0.35f), style = Stroke(2.dp.toPx()))
+
+    // ── Lock inside shield ──
+    val lockCy = shieldCy + 4.dp.toPx()
+    val lockW = 16.dp.toPx()
+    val lockH = 14.dp.toPx()
+    drawRoundRect(IllSecondary.copy(0.30f), Offset(cx - lockW / 2, lockCy), Size(lockW, lockH), CornerRadius(3.dp.toPx()))
+    drawRoundRect(IllSecondary.copy(0.40f), Offset(cx - lockW / 2, lockCy), Size(lockW, lockH), CornerRadius(3.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+    // Lock shackle
+    val shacklePath = Path().apply {
+        moveTo(cx - 6.dp.toPx(), lockCy)
+        quadraticBezierTo(cx - 6.dp.toPx(), lockCy - 12.dp.toPx(), cx, lockCy - 12.dp.toPx())
+        quadraticBezierTo(cx + 6.dp.toPx(), lockCy - 12.dp.toPx(), cx + 6.dp.toPx(), lockCy)
+    }
+    drawPath(shacklePath, IllSecondary.copy(0.40f), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+    // Keyhole
+    drawCircle(IllHighlight.copy(0.50f), 2.5.dp.toPx(), Offset(cx, lockCy + lockH * 0.35f))
+
+    // ── Person standing beside shield (left) ──
+    val personX = w * 0.26f
+    val personHeadY = h * 0.30f
+    val pHeadR = 16.dp.toPx()
+    drawCircle(IllHighlight.copy(0.42f), pHeadR, Offset(personX, personHeadY))
+    drawCircle(IllSecondary.copy(0.35f), pHeadR, Offset(personX, personHeadY), style = Stroke(1.5.dp.toPx()))
+    // Body
+    drawLine(IllSecondary.copy(0.22f), Offset(personX, personHeadY + pHeadR), Offset(personX, personHeadY + pHeadR + 10.dp.toPx()), 1.5.dp.toPx())
+    val bodyP = Path().apply {
+        moveTo(personX - 22.dp.toPx(), h * 0.58f)
+        quadraticBezierTo(personX - 18.dp.toPx(), personHeadY + pHeadR + 18.dp.toPx(), personX, personHeadY + pHeadR + 12.dp.toPx())
+        quadraticBezierTo(personX + 18.dp.toPx(), personHeadY + pHeadR + 18.dp.toPx(), personX + 22.dp.toPx(), h * 0.58f)
+    }
+    drawPath(bodyP, IllHighlight.copy(0.25f))
+    drawPath(bodyP, IllSecondary.copy(0.25f), style = Stroke(1.5.dp.toPx()))
+    // Arm resting confidently
+    drawLine(IllSecondary.copy(0.20f), Offset(personX + 16.dp.toPx(), h * 0.42f), Offset(personX + 22.dp.toPx(), h * 0.50f), 2.dp.toPx(), cap = StrokeCap.Round)
+
+    // ── Cloud with lock (top-right) ──
+    val cloudCx = w * 0.76f
+    val cloudCy = h * 0.22f
+    val cloudPath = Path().apply {
+        moveTo(cloudCx - 20.dp.toPx(), cloudCy + 6.dp.toPx())
+        quadraticBezierTo(cloudCx - 24.dp.toPx(), cloudCy - 4.dp.toPx(), cloudCx - 12.dp.toPx(), cloudCy - 8.dp.toPx())
+        quadraticBezierTo(cloudCx - 6.dp.toPx(), cloudCy - 16.dp.toPx(), cloudCx + 4.dp.toPx(), cloudCy - 10.dp.toPx())
+        quadraticBezierTo(cloudCx + 16.dp.toPx(), cloudCy - 14.dp.toPx(), cloudCx + 20.dp.toPx(), cloudCy - 4.dp.toPx())
+        quadraticBezierTo(cloudCx + 24.dp.toPx(), cloudCy + 2.dp.toPx(), cloudCx + 18.dp.toPx(), cloudCy + 6.dp.toPx())
+        close()
+    }
+    drawPath(cloudPath, IllHighlight.copy(0.35f))
+    drawPath(cloudPath, IllNeutral.copy(0.28f), style = Stroke(1.5.dp.toPx()))
+    // Tiny lock on cloud
+    drawRoundRect(IllSecondary.copy(0.30f), Offset(cloudCx - 4.dp.toPx(), cloudCy - 2.dp.toPx()), Size(8.dp.toPx(), 7.dp.toPx()), CornerRadius(1.5.dp.toPx()))
+
+    // ── Fingerprint suggestion (bottom-right) ──
+    val fpCx = w * 0.72f
+    val fpCy = h * 0.58f
+    for (i in 1..3) {
+        val r = (8 + i * 6).dp.toPx()
+        drawArc(IllNeutral.copy(0.12f + i * 0.04f), -140f, 100f, false, Offset(fpCx - r, fpCy - r), Size(r * 2, r * 2), style = Stroke(1.5.dp.toPx(), cap = StrokeCap.Round))
+    }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Helper drawing functions
+// ═════════════════════════════════════════════════════════════════════════════
+
+private fun DrawScope.drawSeatedPerson(cx: Float, shoulderY: Float, tiltX: Float, scaleF: Float) {
+    val headR = 15.dp.toPx() * scaleF
+    val headCy = shoulderY - 28.dp.toPx() * scaleF
+
+    drawCircle(IllHighlight.copy(0.42f), headR, Offset(cx + tiltX, headCy))
+    drawCircle(IllSecondary.copy(0.35f), headR, Offset(cx + tiltX, headCy), style = Stroke(1.5.dp.toPx()))
     // Neck
-    drawLine(sv.copy(0.15f), Offset(cx, headCy + headR), Offset(cx, shoulderY - 14.dp.toPx()), 1.5.dp.toPx())
-
+    drawLine(IllSecondary.copy(0.18f), Offset(cx, headCy + headR), Offset(cx, shoulderY - 12.dp.toPx() * scaleF), 1.5.dp.toPx())
     // Shoulders
-    val sW = 28.dp.toPx()
-    val shoulderPath = Path().apply {
-        moveTo(cx - sW, shoulderY + 20.dp.toPx())
-        quadraticBezierTo(cx - sW + 6.dp.toPx(), shoulderY, cx, shoulderY - 8.dp.toPx())
-        quadraticBezierTo(cx + sW - 6.dp.toPx(), shoulderY, cx + sW, shoulderY + 20.dp.toPx())
+    val sW = 24.dp.toPx() * scaleF
+    val sp = Path().apply {
+        moveTo(cx - sW, shoulderY + 18.dp.toPx() * scaleF)
+        quadraticBezierTo(cx - sW + 6.dp.toPx(), shoulderY, cx, shoulderY - 6.dp.toPx() * scaleF)
+        quadraticBezierTo(cx + sW - 6.dp.toPx(), shoulderY, cx + sW, shoulderY + 18.dp.toPx() * scaleF)
     }
-    drawPath(shoulderPath, sv.copy(0.05f))
-    drawPath(shoulderPath, sv.copy(0.20f), style = Stroke(1.5.dp.toPx()))
+    drawPath(sp, IllHighlight.copy(0.25f))
+    drawPath(sp, IllSecondary.copy(0.22f), style = Stroke(1.5.dp.toPx()))
 }
 
-// --- Helper: Draw person across the table (top of scene) ---
-private fun DrawScope.drawPersonAcross(sv: Color, cx: Float, baseY: Float) {
-    val headR = 16.dp.toPx()
-    val headCy = baseY - 28.dp.toPx()
+private fun DrawScope.drawPersonAcross(cx: Float, baseY: Float) {
+    val headR = 15.dp.toPx()
+    val headCy = baseY - 50.dp.toPx()
 
-    // Head
-    drawCircle(sv.copy(0.08f), headR, Offset(cx, headCy))
-    drawCircle(sv.copy(0.25f), headR, Offset(cx, headCy), style = Stroke(1.5.dp.toPx()))
-
-    // Neck
-    drawLine(sv.copy(0.15f), Offset(cx, headCy + headR), Offset(cx, baseY - 12.dp.toPx()), 1.5.dp.toPx())
-
-    // Shoulders (seen from front)
-    val sW = 30.dp.toPx()
-    val shoulderPath = Path().apply {
-        moveTo(cx - sW, baseY + 10.dp.toPx())
-        quadraticBezierTo(cx - sW + 8.dp.toPx(), baseY - 4.dp.toPx(), cx, baseY - 8.dp.toPx())
-        quadraticBezierTo(cx + sW - 8.dp.toPx(), baseY - 4.dp.toPx(), cx + sW, baseY + 10.dp.toPx())
+    drawCircle(IllHighlight.copy(0.42f), headR, Offset(cx, headCy))
+    drawCircle(IllSecondary.copy(0.35f), headR, Offset(cx, headCy), style = Stroke(1.5.dp.toPx()))
+    drawLine(IllSecondary.copy(0.18f), Offset(cx, headCy + headR), Offset(cx, baseY - 34.dp.toPx()), 1.5.dp.toPx())
+    val sW = 26.dp.toPx()
+    val sp = Path().apply {
+        moveTo(cx - sW, baseY - 14.dp.toPx())
+        quadraticBezierTo(cx - sW + 8.dp.toPx(), baseY - 26.dp.toPx(), cx, baseY - 30.dp.toPx())
+        quadraticBezierTo(cx + sW - 8.dp.toPx(), baseY - 26.dp.toPx(), cx + sW, baseY - 14.dp.toPx())
     }
-    drawPath(shoulderPath, sv.copy(0.05f))
-    drawPath(shoulderPath, sv.copy(0.20f), style = Stroke(1.5.dp.toPx()))
+    drawPath(sp, IllHighlight.copy(0.25f))
+    drawPath(sp, IllSecondary.copy(0.22f), style = Stroke(1.5.dp.toPx()))
+}
+
+private fun createStarPath(cx: Float, cy: Float, innerR: Float, outerR: Float, points: Int): Path {
+    val path = Path()
+    val angle = Math.PI / points
+    for (i in 0 until points * 2) {
+        val r = if (i % 2 == 0) outerR else innerR
+        val a = i * angle - Math.PI / 2
+        val x = cx + (r * kotlin.math.cos(a)).toFloat()
+        val y = cy + (r * kotlin.math.sin(a)).toFloat()
+        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    }
+    path.close()
+    return path
 }
