@@ -126,17 +126,44 @@ fun OnboardingScreen(
                         else -> com.vesper.ledger.R.drawable.ill_onboarding_4
                     }
 
-                    // Illustration (larger size, responsive scaling up to 340dp, minimal margins)
-                    Image(
-                        painter = painterResource(id = illustrationRes),
-                        contentDescription = pages[page].title,
-                        contentScale = ContentScale.Fit,
+                    // Illustration (larger size, responsive scaling, minimal margins)
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
                             .heightIn(max = 340.dp)
-                            .padding(horizontal = 8.dp)
-                    )
+                            .padding(horizontal = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Dynamic organic backdrop blob (theme-aware, zero eye strain)
+                        val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+                        val blobColor = if (isDark) {
+                            Color(0xFF1E293B).copy(alpha = 0.4f) // Faint slate in dark theme
+                        } else {
+                            Color(0xFFF1F5F9) // Soft grey in light theme
+                        }
+                        
+                        val blobShape = RoundedCornerShape(
+                            topStart = 130.dp,
+                            topEnd = 115.dp,
+                            bottomStart = 105.dp,
+                            bottomEnd = 135.dp
+                        )
+                        
+                        Box(
+                            modifier = Modifier
+                                .size(260.dp)
+                                .clip(blobShape)
+                                .background(blobColor)
+                        )
+
+                        Image(
+                            painter = painterResource(id = illustrationRes),
+                            contentDescription = pages[page].title,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(24.dp)) // Clean premium gap
 
