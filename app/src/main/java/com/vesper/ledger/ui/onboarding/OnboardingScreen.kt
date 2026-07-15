@@ -115,16 +115,11 @@ fun OnboardingScreen(
                         .fillMaxSize()
                         .padding(horizontal = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    val illustrationRes = when (page) {
-                        0 -> com.vesper.ledger.R.drawable.ill_onboarding_1
-                        1 -> com.vesper.ledger.R.drawable.ill_onboarding_2
-                        2 -> com.vesper.ledger.R.drawable.ill_onboarding_3
-                        else -> com.vesper.ledger.R.drawable.ill_onboarding_4
-                    }
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                    // Illustration (flexible height, dynamically scales to fit screen)
+                    // Illustration (flexible height)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -140,14 +135,13 @@ fun OnboardingScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp)) // Pull text tightly upward
+                    Spacer(modifier = Modifier.height(28.dp)) // Spacious, premium gap (not cramped)
 
                     // Text Content (wrapped height, guaranteed to never crop or overflow)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 12.dp)
                     ) {
                         Text(
                             text = pages[page].title,
@@ -168,6 +162,9 @@ fun OnboardingScreen(
                             lineHeight = 22.sp
                         )
                     }
+
+                    // Bottom spacer to push the entire content block slightly upward
+                    Spacer(modifier = Modifier.weight(0.2f))
                 }
             }
 
