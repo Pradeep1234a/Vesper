@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -66,9 +67,9 @@ fun OnboardingScreen(
     val coroutineScope = rememberCoroutineScope()
     val currentPage by remember { derivedStateOf { pagerState.currentPage } }
 
-    val bgColor = MaterialTheme.colorScheme.background
-    val onBgColor = MaterialTheme.colorScheme.onBackground
-    val onSurfaceVar = MaterialTheme.colorScheme.onSurfaceVariant
+    val bgColor = Color.White
+    val onBgColor = Color(0xFF111111)
+    val onSurfaceVar = Color(0xFF777777)
 
     Box(
         modifier = Modifier
