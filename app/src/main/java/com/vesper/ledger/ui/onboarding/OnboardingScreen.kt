@@ -124,33 +124,38 @@ fun OnboardingScreen(
                         else -> com.vesper.ledger.R.drawable.ill_onboarding_4
                     }
 
-                    // Illustration
-                    Image(
-                        painter = painterResource(id = illustrationRes),
-                        contentDescription = pages[page].title,
-                        contentScale = ContentScale.Fit,
+                    // Illustration (flexible height, dynamically scales to fit screen)
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(320.dp)
-                    )
+                            .weight(1.2f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = illustrationRes),
+                            contentDescription = pages[page].title,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.height(28.dp)) // Reduced gap between illustration and text
+                    Spacer(modifier = Modifier.height(20.dp)) // Tight, connected gap
 
-                    // Text Content (fixed-height container to prevent layout shift)
+                    // Text Content (wrapped height, guaranteed to never crop or overflow)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(130.dp)
+                            .padding(bottom = 12.dp)
                     ) {
                         Text(
                             text = pages[page].title,
                             fontFamily = SpaceGroteskFamily,
-                            fontSize = 30.sp,
+                            fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = onBgColor,
                             textAlign = TextAlign.Center,
-                            lineHeight = 34.sp
+                            lineHeight = 32.sp
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
