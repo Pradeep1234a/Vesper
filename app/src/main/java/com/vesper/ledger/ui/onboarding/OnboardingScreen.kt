@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -71,7 +72,8 @@ fun OnboardingScreen(
     val bgColor = MaterialTheme.colorScheme.background
     val onBgColor = MaterialTheme.colorScheme.onBackground
     val onSurfaceVar = MaterialTheme.colorScheme.onSurfaceVariant
- 
+    val isDark = isSystemInDarkTheme()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -132,10 +134,10 @@ fun OnboardingScreen(
                     verticalArrangement = Arrangement.Top
                 ) {
                     val illustrationRes = when (page) {
-                        0 -> com.vesper.ledger.R.drawable.ill_onboarding_1
-                        1 -> com.vesper.ledger.R.drawable.ill_onboarding_2
-                        2 -> com.vesper.ledger.R.drawable.ill_onboarding_3
-                        else -> com.vesper.ledger.R.drawable.ill_onboarding_4
+                        0 -> if (isDark) com.vesper.ledger.R.drawable.ill_onboarding_1_dark else com.vesper.ledger.R.drawable.ill_onboarding_1
+                        1 -> if (isDark) com.vesper.ledger.R.drawable.ill_onboarding_2_dark else com.vesper.ledger.R.drawable.ill_onboarding_2
+                        2 -> if (isDark) com.vesper.ledger.R.drawable.ill_onboarding_3_dark else com.vesper.ledger.R.drawable.ill_onboarding_3
+                        else -> if (isDark) com.vesper.ledger.R.drawable.ill_onboarding_4_dark else com.vesper.ledger.R.drawable.ill_onboarding_4
                     }
 
                     // Calculate page offset to apply transition effects (gesture transition motion)
