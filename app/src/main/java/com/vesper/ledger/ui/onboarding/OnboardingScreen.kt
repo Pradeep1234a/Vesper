@@ -137,7 +137,7 @@ fun OnboardingScreen(
                         // Dynamic organic wave backdrop (theme-aware, Zinc neutral palette, large area coverage)
                         val isDark = androidx.compose.foundation.isSystemInDarkTheme()
                         val blobColor = if (isDark) {
-                            com.vesper.ledger.ui.theme.Slate800.copy(alpha = 0.4f) // Faint zinc grey in dark theme
+                            com.vesper.ledger.ui.theme.Slate600 // Solid mid-grey in dark theme to preserve black outlines
                         } else {
                             com.vesper.ledger.ui.theme.Slate100.copy(alpha = 0.9f) // Clean zinc grey in light theme
                         }
