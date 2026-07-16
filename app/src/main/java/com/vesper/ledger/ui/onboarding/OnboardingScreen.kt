@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -70,29 +71,42 @@ fun OnboardingScreen(
     val bgColor = MaterialTheme.colorScheme.background
     val onBgColor = MaterialTheme.colorScheme.onBackground
     val onSurfaceVar = MaterialTheme.colorScheme.onSurfaceVariant
-
+ 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(bgColor)
     ) {
-        // ── Skip button (fixed top-right) ──
-        if (currentPage < 3) {
-            Text(
-                text = "Skip",
-                fontFamily = SpaceGroteskFamily,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = onSurfaceVar.copy(alpha = 0.5f),
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .statusBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .clickable(
+        // ── Top Header Bar (Logo + Skip Button) ──
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .align(Alignment.TopCenter),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = com.vesper.ledger.R.drawable.ic_ledger_foreground),
+                contentDescription = "Vesper Brand Logo",
+                tint = onBgColor,
+                modifier = Modifier.size(36.dp)
+            )
+            
+            if (currentPage < 3) {
+                Text(
+                    text = "Skip",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = onSurfaceVar.copy(alpha = 0.5f),
+                    modifier = Modifier.clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) { onFinish() }
-            )
+                )
+            }
         }
 
         // ── Main unified content Column (Edge-to-edge layout) ──
@@ -101,7 +115,7 @@ fun OnboardingScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(bottom = 24.dp),
+                .padding(top = 64.dp, bottom = 24.dp), // Added top margin to clear the logo header
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Pager containing BOTH Illustration and text for a seamless, synchronized swipe transition
@@ -117,8 +131,6 @@ fun OnboardingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     val illustrationRes = when (page) {
                         0 -> com.vesper.ledger.R.drawable.ill_onboarding_1
                         1 -> com.vesper.ledger.R.drawable.ill_onboarding_2
@@ -126,12 +138,27 @@ fun OnboardingScreen(
                         else -> com.vesper.ledger.R.drawable.ill_onboarding_4
                     }
 
+                    // Calculate page offset to apply transition effects (gesture transition motion)
+                    val pageOffset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
+                    val absOffset = Math.abs(pageOffset)
+                    
+                    // Gesture Transition Motion: scale, fade and parallax translation
+                    val scale = 1f - (absOffset * 0.12f).coerceIn(0f, 0.12f)
+                    val alpha = 1f - (absOffset * 0.8f).coerceIn(0f, 0.8f)
+                    val translationX = pageOffset * 220f
+
                     // Illustration (true edge-to-edge size, responsive scaling, zero background blobs)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1.2f)
-                            .heightIn(max = 360.dp),
+                            .weight(1.1f) // Slightly reduced weight to pull text up
+                            .heightIn(max = 340.dp)
+                            .graphicsLayer {
+                                this.alpha = alpha
+                                this.scaleX = scale
+                                this.scaleY = scale
+                                this.translationX = translationX
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
@@ -142,7 +169,7 @@ fun OnboardingScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp)) // Clean premium gap
+                    Spacer(modifier = Modifier.height(12.dp)) // Reduced height to pull text upward
 
                     // Text Content (wrapped, standard readable margins)
                     Column(
@@ -150,6 +177,13 @@ fun OnboardingScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
+                            .graphicsLayer {
+                                this.alpha = alpha
+                                this.scaleX = scale
+                                this.scaleY = scale
+                                // Text parallax is slightly slower to create a beautiful 3D depth effect
+                                this.translationX = translationX * 0.5f
+                            }
                     ) {
                         Text(
                             text = pages[page].title,
@@ -171,7 +205,7 @@ fun OnboardingScreen(
                         )
                     }
                     
-                    Spacer(modifier = Modifier.height(16.dp)) // Padding before controls
+                    Spacer(modifier = Modifier.weight(0.15f)) // Pulls everything upwards as a spring!
                 }
             }
 
