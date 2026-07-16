@@ -2,6 +2,8 @@
 <resources>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="onboarding_outline">#1A1A1A</color>
+    <color name="onboarding_card_bg">#FFFFFF</color>
     <color name="onboarding_environment_fill">#FFFFFF</color>
     <color name="onboarding_environment_outline">#8E8E8E</color>
 </resources>

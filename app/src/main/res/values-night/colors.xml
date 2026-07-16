@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="onboarding_environment_fill">#00000000</color>
-    <color name="onboarding_environment_outline">#00000000</color>
+    <color name="onboarding_outline">#FFFFFF</color>
+    <color name="onboarding_card_bg">#1E1E1E</color>
+    <color name="onboarding_environment_fill">#242428</color>
+    <color name="onboarding_environment_outline">#8E8E8E</color>
 </resources>
