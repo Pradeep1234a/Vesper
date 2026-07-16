@@ -126,7 +126,7 @@ fun OnboardingScreen(
                         else -> com.vesper.ledger.R.drawable.ill_onboarding_4
                     }
 
-                    // Illustration (larger size, responsive scaling, minimal margins)
+                    // Illustration (larger size, responsive scaling, minimal margins, zero background blobs)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -134,93 +134,13 @@ fun OnboardingScreen(
                             .heightIn(max = 340.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Dynamic organic wave backdrop (theme-aware, Zinc neutral palette, large area coverage)
-                        val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-                        val blobColor = if (isDark) {
-                            com.vesper.ledger.ui.theme.Slate600 // Solid mid-grey in dark theme to preserve black outlines
-                        } else {
-                            com.vesper.ledger.ui.theme.Slate100.copy(alpha = 0.9f) // Clean zinc grey in light theme
-                        }
-                        
-                        androidx.compose.foundation.Canvas(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            val w = size.width
-                            val h = size.height
-                            val path = androidx.compose.ui.graphics.Path().apply {
-                                when (page) {
-                                    0 -> {
-                                        moveTo(0f, h * 0.35f)
-                                        cubicTo(
-                                            w * 0.3f, h * 0.15f,
-                                            w * 0.6f, h * 0.65f,
-                                            w, h * 0.5f
-                                        )
-                                        lineTo(w, h * 0.85f)
-                                        cubicTo(
-                                            w * 0.6f, h * 0.95f,
-                                            w * 0.3f, h * 0.55f,
-                                            0f, h * 0.7f
-                                        )
-                                    }
-                                    1 -> {
-                                        moveTo(0f, h * 0.5f)
-                                        cubicTo(
-                                            w * 0.3f, h * 0.7f,
-                                            w * 0.6f, h * 0.1f,
-                                            w, h * 0.3f
-                                        )
-                                        lineTo(w, h * 0.65f)
-                                        cubicTo(
-                                            w * 0.6f, h * 0.45f,
-                                            w * 0.3f, h * 0.9f,
-                                            0f, h * 0.85f
-                                        )
-                                    }
-                                    2 -> {
-                                        moveTo(0f, h * 0.3f)
-                                        cubicTo(
-                                            w * 0.3f, h * 0.1f,
-                                            w * 0.6f, h * 0.7f,
-                                            w, h * 0.55f
-                                        )
-                                        lineTo(w, h * 0.9f)
-                                        cubicTo(
-                                            w * 0.6f, h * 0.99f,
-                                            w * 0.3f, h * 0.5f,
-                                            0f, h * 0.65f
-                                        )
-                                    }
-                                    else -> {
-                                        moveTo(0f, h * 0.55f)
-                                        cubicTo(
-                                            w * 0.3f, h * 0.75f,
-                                            w * 0.6f, h * 0.15f,
-                                            w, h * 0.35f
-                                        )
-                                        lineTo(w, h * 0.7f)
-                                        cubicTo(
-                                            w * 0.6f, h * 0.55f,
-                                            w * 0.3f, h * 0.95f,
-                                            0f, h * 0.9f
-                                        )
-                                    }
-                                }
-                                close()
-                            }
-                            drawPath(
-                                path = path,
-                                color = blobColor
-                            )
-                        }
-
                         Image(
                             painter = painterResource(id = illustrationRes),
                             contentDescription = pages[page].title,
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(vertical = 12.dp, horizontal = 24.dp)
+                                .padding(vertical = 16.dp, horizontal = 24.dp)
                         )
                     }
 
