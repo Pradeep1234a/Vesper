@@ -126,8 +126,20 @@ fun PremiumButton(
     enabled: Boolean = true,
     outlined: Boolean = false
 ) {
-    val bgColor = if (outlined) Color.Transparent else MaterialTheme.colorScheme.primary
-    val contentColor = if (outlined) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onPrimary
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    
+    val bgColor = if (outlined) {
+        Color.Transparent
+    } else {
+        if (isDark) Color(0xFFFFFFFF) else Color(0xFF111111)
+    }
+    
+    val contentColor = if (outlined) {
+        if (isDark) Color(0xFFFFFFFF) else Color(0xFF111111)
+    } else {
+        if (isDark) Color(0xFF000000) else Color(0xFFFFFFFF)
+    }
+    
     val borderStroke = if (outlined) {
         Modifier.border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(20.dp))
     } else Modifier
