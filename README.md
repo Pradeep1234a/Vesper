@@ -5,18 +5,21 @@ Vesper Ledger is a premium, minimalist personal finance tracker designed for And
 The main purpose of the app is to help users quickly add income and expenses, track savings, manage spending habits, and maintain awareness of their money without overwhelming them with unnecessary analytics dashboards, motivational scores, or promotional widgets.
 
 ## Visual Design & Preview
-
+ 
 ### App Icon
 The app icon represents a minimalist, flat design with a high-contrast geometric representation of a balance scale and a line chart combined in a stylized "V".
-
-![Vesper Ledger Logo](assets/vesper_ledger_logo_1783769656368.png)
-
+ 
+![Vesper Ledger Logo](assets/vesper_ledger_logo.png)
+ 
 ### Dashboard Preview
 The Dashboard layout utilizes Bento-grid styling to group information into clean, high-contrast flat cards.
-
+ 
 ![Vesper Ledger Dashboard Mockup](assets/vesper_ledger_dashboard_1783769670408.png)
 
----
+### Onboarding Screens Preview
+The onboarding flow introduces the core narrative with premium character illustrations. The outlines, cards, and environment tags automatically adapt to the active system theme (Light vs. Dark Mode) for a seamless, glare-free visual experience.
+
+![Vesper Ledger Onboarding Flow](assets/onboarding_previews.jpg)
 
 ## Key Features
 
