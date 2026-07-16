@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -221,81 +222,89 @@ fun WelcomeScreen(
 ) {
     val onBg = MaterialTheme.colorScheme.onBackground
     val sec = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 32.dp),
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         // App Identity Header (Proportional logo size & tight spacing)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(top = 48.dp)
+            modifier = Modifier.padding(top = 16.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "Vesper Leaves Logo",
                 colorFilter = ColorFilter.tint(onBg),
-                modifier = Modifier.size(72.dp)
+                modifier = Modifier.size(110.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Vesper Ledger",
                 fontFamily = PlayfairDisplayFamily,
                 fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
-                color = onBg
+                fontSize = 36.sp,
+                color = onBg,
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Private finance,\nwithout the noise.",
                 fontFamily = InterFamily,
                 fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 color = sec,
                 textAlign = TextAlign.Center,
-                lineHeight = 20.sp
+                lineHeight = 22.sp
             )
         }
 
-        // Features list with specific icons and left alignment within balanced width
+        // Features list with circular borders, title, and subtitles
         Column(
-            modifier = Modifier
-                .padding(vertical = 48.dp)
-                .fillMaxWidth(0.85f),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.Start
+            modifier = Modifier.fillMaxWidth()
         ) {
-            val features = listOf(
-                "Track expenses." to Icons.Outlined.ShowChart,
-                "Build savings." to Icons.Outlined.Savings,
-                "Understand your money." to Icons.Outlined.PieChart
-            )
+            Divider(color = outlineColor.copy(alpha = 0.5f), thickness = 1.dp)
+            Spacer(modifier = Modifier.height(24.dp))
             
-            features.forEach { (text, icon) ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = onBg,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = text,
-                        fontFamily = InterFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 15.sp,
-                        color = onBg
-                    )
-                }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            ) {
+                FeatureRow(
+                    icon = Icons.Outlined.ShowChart,
+                    title = "Track expenses.",
+                    subtitle = "See where your money goes.",
+                    onBg = onBg,
+                    sec = sec,
+                    outlineColor = outlineColor
+                )
+                FeatureRow(
+                    icon = Icons.Outlined.Savings,
+                    title = "Build savings.",
+                    subtitle = "Create goals and grow wealth.",
+                    onBg = onBg,
+                    sec = sec,
+                    outlineColor = outlineColor
+                )
+                FeatureRow(
+                    icon = Icons.Outlined.PieChart,
+                    title = "Understand your money.",
+                    subtitle = "Make smarter financial decisions.",
+                    onBg = onBg,
+                    sec = sec,
+                    outlineColor = outlineColor
+                )
             }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            Divider(color = outlineColor.copy(alpha = 0.5f), thickness = 1.dp)
         }
 
         // Action CTAs & Footer with Underlined Links
@@ -313,7 +322,7 @@ fun WelcomeScreen(
                 onClick = onSignInClick,
                 outlined = true
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             Text(
                 text = buildAnnotatedString {
@@ -329,10 +338,58 @@ fun WelcomeScreen(
                 },
                 fontFamily = InterFamily,
                 fontWeight = FontWeight.Normal,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 color = sec.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
-                lineHeight = 16.sp
+                lineHeight = 18.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun FeatureRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    onBg: Color,
+    sec: Color,
+    outlineColor: Color
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(Color.Transparent, CircleShape)
+                .border(1.dp, outlineColor.copy(alpha = 0.5f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = onBg,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(
+                text = title,
+                fontFamily = InterFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 15.sp,
+                color = onBg
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                fontFamily = InterFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 13.sp,
+                color = sec
             )
         }
     }
