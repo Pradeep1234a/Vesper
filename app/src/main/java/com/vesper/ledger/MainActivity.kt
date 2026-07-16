@@ -165,8 +165,8 @@ class MainActivity : FragmentActivity() {
                                 modifier = Modifier.padding(32.dp)
                             ) {
                                 DynamicLogo(
-                                    size = 72.dp,
-                                    cornerRadius = 20.dp
+                                    size = 96.dp,
+                                    cornerRadius = 24.dp
                                 )
                                 
                                 Spacer(modifier = Modifier.height(24.dp))

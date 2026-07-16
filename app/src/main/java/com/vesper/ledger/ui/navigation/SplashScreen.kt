@@ -87,7 +87,7 @@ fun SplashScreen(
                 painter = painterResource(id = logoForegroundRes),
                 contentDescription = "Vesper Logo",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.size(120.dp)
+                modifier = Modifier.size(170.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
