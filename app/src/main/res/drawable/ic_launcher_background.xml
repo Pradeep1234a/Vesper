@@ -4,9 +4,9 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Premium dark Slate background representing depth -->
+    <!-- Premium dark Slate/Zinc-950 background matching the new brand identity -->
     <path
-        android:fillColor="#0F172A"
+        android:fillColor="#09090B"
         android:pathData="M 0,0 h 108 v 108 h -108 z" />
         
 </vector>
