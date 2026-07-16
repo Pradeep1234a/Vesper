@@ -135,12 +135,12 @@ fun OnboardingScreen(
                             .padding(horizontal = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Dynamic organic backdrop blob (theme-aware, zero eye strain)
+                        // Dynamic organic backdrop blob (theme-aware, Zinc neutral palette, zero eye strain)
                         val isDark = androidx.compose.foundation.isSystemInDarkTheme()
                         val blobColor = if (isDark) {
-                            Color(0xFF1E293B).copy(alpha = 0.4f) // Faint slate in dark theme
+                            com.vesper.ledger.ui.theme.Slate800.copy(alpha = 0.6f) // Slightly dark neutral grey in dark theme
                         } else {
-                            Color(0xFFF1F5F9) // Soft grey in light theme
+                            com.vesper.ledger.ui.theme.Slate100 // Faint neutral light grey in light theme
                         }
                         
                         val blobShape = RoundedCornerShape(
