@@ -219,7 +219,7 @@ fun WelcomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // App Identity Header
+        // App Identity Header (Proportional logo size & tight spacing)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(top = 48.dp)
@@ -228,7 +228,7 @@ fun WelcomeScreen(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "Vesper Leaves Logo",
                 colorFilter = ColorFilter.tint(onBg),
-                modifier = Modifier.size(108.dp)
+                modifier = Modifier.size(72.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -250,12 +250,12 @@ fun WelcomeScreen(
             )
         }
 
-        // Features list with specific icons
+        // Features list with specific icons and left alignment within balanced width
         Column(
             modifier = Modifier
                 .padding(vertical = 48.dp)
                 .fillMaxWidth(0.85f),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.Start
         ) {
             val features = listOf(
@@ -286,7 +286,7 @@ fun WelcomeScreen(
             }
         }
 
-        // Action CTAs & Footer
+        // Action CTAs & Footer with Underlined Links
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -304,7 +304,17 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.height(32.dp))
             
             Text(
-                text = "By continuing you agree to the\nTerms of Service and Privacy Policy.",
+                text = buildAnnotatedString {
+                    append("By continuing you agree to the\n")
+                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Medium)) {
+                        append("Terms of Service")
+                    }
+                    append(" and ")
+                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Medium)) {
+                        append("Privacy Policy")
+                    }
+                    append(".")
+                },
                 fontFamily = InterFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 11.sp,
@@ -341,18 +351,22 @@ fun SignInScreen(
             .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
-        // Back Button
+        // Back Button aligned exactly to left margin
         Box(
             modifier = Modifier
-                .padding(top = 16.dp)
-                .size(48.dp)
-                .clickable { onBack() },
+                .padding(top = 24.dp)
+                .size(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onBack() },
             contentAlignment = Alignment.CenterStart
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = onBg
+                tint = onBg,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -380,9 +394,9 @@ fun SignInScreen(
                 color = sec
             )
             
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Input Form Group with Labels and Icons
+            // Input Form Group
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -435,7 +449,7 @@ fun SignInScreen(
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                    contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                    contentDescription = null,
                                     tint = onBg,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -464,7 +478,7 @@ fun SignInScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Primary CTA
             PremiumButton(
@@ -473,7 +487,7 @@ fun SignInScreen(
                 onClick = onSignInSuccess
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Footer Link
             Row(
@@ -533,18 +547,22 @@ fun SignUpScreen(
             .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
-        // Back Button
+        // Back Button aligned exactly to left margin
         Box(
             modifier = Modifier
-                .padding(top = 16.dp)
-                .size(48.dp)
-                .clickable { onBack() },
+                .padding(top = 24.dp)
+                .size(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onBack() },
             contentAlignment = Alignment.CenterStart
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = onBg
+                tint = onBg,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -553,7 +571,7 @@ fun SignUpScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Title
             Text(
@@ -572,9 +590,9 @@ fun SignUpScreen(
                 color = sec
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Input Form Group with Labels and Icons
+            // Input Form Group
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -694,9 +712,9 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Checkbox Group with Underlined Interactive Links
+            // Checkbox Group
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -748,7 +766,7 @@ fun SignUpScreen(
                 onClick = onSignUpSuccess
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Footer
             Row(
@@ -800,18 +818,22 @@ fun ForgotPasswordScreen(
             .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
-        // Back Button
+        // Back Button aligned exactly to left margin
         Box(
             modifier = Modifier
-                .padding(top = 16.dp)
-                .size(48.dp)
-                .clickable { onBack() },
+                .padding(top = 24.dp)
+                .size(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onBack() },
             contentAlignment = Alignment.CenterStart
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = onBg
+                tint = onBg,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -840,7 +862,7 @@ fun ForgotPasswordScreen(
                 lineHeight = 20.sp
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Input
             Column {
@@ -868,7 +890,7 @@ fun ForgotPasswordScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // CTA
             PremiumButton(
@@ -877,7 +899,7 @@ fun ForgotPasswordScreen(
                 onClick = { onContinue(email) }
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Footer
             Row(
@@ -938,18 +960,22 @@ fun OtpVerificationScreen(
             .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
-        // Back
+        // Back Button aligned exactly to left margin
         Box(
             modifier = Modifier
-                .padding(top = 16.dp)
-                .size(48.dp)
-                .clickable { onBack() },
+                .padding(top = 24.dp)
+                .size(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onBack() },
             contentAlignment = Alignment.CenterStart
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = onBg
+                tint = onBg,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -990,7 +1016,7 @@ fun OtpVerificationScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // OTP Input row (monochrome square cells) with thin border and dot placeholder
+            // OTP Input row (monochrome square cells)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -1010,7 +1036,6 @@ fun OtpVerificationScreen(
                             )
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
-                                // Simple mock digits insertion for testing
                                 val valToSet = if (otpDigits[i].isEmpty()) "9" else ""
                                 otpDigits[i] = valToSet
                             },
@@ -1106,18 +1131,22 @@ fun ResetPasswordScreen(
             .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
-        // Back
+        // Back Button aligned exactly to left margin
         Box(
             modifier = Modifier
-                .padding(top = 16.dp)
-                .size(48.dp)
-                .clickable { onBack() },
+                .padding(top = 24.dp)
+                .size(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onBack() },
             contentAlignment = Alignment.CenterStart
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = onBg
+                tint = onBg,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -1146,9 +1175,9 @@ fun ResetPasswordScreen(
                 lineHeight = 20.sp
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Input Form Group with Labels and Icons
+            // Input Form Group
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -1185,7 +1214,7 @@ fun ResetPasswordScreen(
                     )
                 }
 
-                // Password strength indicator: 4 visual segments + Strength Label
+                // Password strength indicator: 4 visual segments
                 if (newPassword.isNotEmpty()) {
                     Column {
                         Row(
@@ -1202,9 +1231,9 @@ fun ResetPasswordScreen(
                                             color = if (isActive) {
                                                 when (strengthLevel) {
                                                     1 -> MaterialTheme.colorScheme.error
-                                                    2 -> Color(0xFFEAB308) // Yellow
-                                                    3 -> Color(0xFF3B82F6) // Blue
-                                                    else -> Color(0xFF22C55E) // Green
+                                                    2 -> Color(0xFFEAB308)
+                                                    3 -> Color(0xFF3B82F6)
+                                                    else -> Color(0xFF22C55E)
                                                 }
                                             } else MaterialTheme.colorScheme.outline,
                                             shape = RoundedCornerShape(2.dp)
@@ -1265,7 +1294,7 @@ fun ResetPasswordScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // CTA
             val isEnabled = newPassword.isNotEmpty() && confirmPassword.isNotEmpty() && 
