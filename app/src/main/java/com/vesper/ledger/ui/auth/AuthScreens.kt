@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,7 +27,9 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -34,6 +37,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.R
@@ -41,7 +45,7 @@ import com.vesper.ledger.ui.theme.InterFamily
 import com.vesper.ledger.ui.theme.PlayfairDisplayFamily
 import kotlinx.coroutines.delay
 
-// ─── CUSTOM COMPONENTS ────────────────────────────────────────────────────────
+// ─── PREMIUM CUSTOM COMPONENTS ───────────────────────────────────────────────
 
 @Composable
 fun PremiumTextField(
@@ -57,7 +61,7 @@ fun PremiumTextField(
 ) {
     val outlineColor = MaterialTheme.colorScheme.outline
     val textColor = MaterialTheme.colorScheme.onBackground
-    val placeholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    val placeholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     val containerBg = MaterialTheme.colorScheme.surfaceVariant
 
     BasicTextField(
@@ -185,6 +189,17 @@ fun PremiumCheckbox(
     }
 }
 
+@Composable
+fun InputLabel(text: String) {
+    Text(
+        text = text,
+        fontFamily = InterFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 13.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
 // ─── 1. WELCOME SCREEN ────────────────────────────────────────────────────────
 
 @Composable
@@ -225,36 +240,39 @@ fun WelcomeScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Private finance, without the noise.",
+                text = "Private finance,\nwithout the noise.",
                 fontFamily = InterFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
-                color = sec
+                color = sec,
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
             )
         }
 
-        // Features list
+        // Features list with specific icons
         Column(
             modifier = Modifier
                 .padding(vertical = 48.dp)
                 .fillMaxWidth(0.85f),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.Start
         ) {
             val features = listOf(
-                "Track expenses." to R.drawable.ic_launcher_background,
-                "Build savings." to R.drawable.ic_launcher_background,
-                "Understand your money." to R.drawable.ic_launcher_background
+                "Track expenses." to Icons.Outlined.ShowChart,
+                "Build savings." to Icons.Outlined.Savings,
+                "Understand your money." to Icons.Outlined.PieChart
             )
             
-            features.forEach { (text, _) ->
+            features.forEach { (text, icon) ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(onBg, RoundedCornerShape(3.dp))
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = onBg,
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
@@ -345,7 +363,7 @@ fun SignInScreen(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Title cluster
+            // Title
             Text(
                 text = "Sign In",
                 fontFamily = PlayfairDisplayFamily,
@@ -364,43 +382,67 @@ fun SignInScreen(
             
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Input Form Group (connected cluster)
+            // Input Form Group with Labels and Icons
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                PremiumTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    placeholder = "Enter your email",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    )
-                )
-
-                PremiumTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    placeholder = "Enter your password",
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
-                    ),
-                    trailingIcon = {
-                        Text(
-                            text = if (passwordVisible) "Hide" else "Show",
-                            fontFamily = InterFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 13.sp,
-                            color = onBg,
-                            modifier = Modifier.clickable { passwordVisible = !passwordVisible }
+                Column {
+                    InputLabel("Email Address")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PremiumTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = "Enter your email",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Mail,
+                                contentDescription = null,
+                                tint = sec,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
                         )
-                    }
-                )
+                    )
+                }
+
+                Column {
+                    InputLabel("Password")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PremiumTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        placeholder = "Enter your password",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = sec,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                    tint = onBg,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -532,79 +574,127 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Input Form Group
+            // Input Form Group with Labels and Icons
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                PremiumTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    placeholder = "Enter your full name",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    )
-                )
-
-                PremiumTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    placeholder = "Enter your email",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    )
-                )
-
-                PremiumTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    placeholder = "Create a password",
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Next
-                    ),
-                    trailingIcon = {
-                        Text(
-                            text = if (passwordVisible) "Hide" else "Show",
-                            fontFamily = InterFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 13.sp,
-                            color = onBg,
-                            modifier = Modifier.clickable { passwordVisible = !passwordVisible }
+                Column {
+                    InputLabel("Full Name")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PremiumTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        placeholder = "Enter your full name",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = sec,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Next
                         )
-                    }
-                )
+                    )
+                }
 
-                PremiumTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    placeholder = "Confirm your password",
-                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
-                    ),
-                    trailingIcon = {
-                        Text(
-                            text = if (confirmPasswordVisible) "Hide" else "Show",
-                            fontFamily = InterFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 13.sp,
-                            color = onBg,
-                            modifier = Modifier.clickable { confirmPasswordVisible = !confirmPasswordVisible }
+                Column {
+                    InputLabel("Email Address")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PremiumTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = "Enter your email",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Mail,
+                                contentDescription = null,
+                                tint = sec,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
                         )
-                    }
-                )
+                    )
+                }
+
+                Column {
+                    InputLabel("Password")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PremiumTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        placeholder = "Create a password",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = sec,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = null,
+                                    tint = onBg,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    )
+                }
+
+                Column {
+                    InputLabel("Confirm Password")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PremiumTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        placeholder = "Confirm your password",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = sec,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (confirmPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = null,
+                                    tint = onBg,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Checkbox Group
+            // Checkbox Group with Underlined Interactive Links
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -614,7 +704,12 @@ fun SignUpScreen(
                     PremiumCheckbox(checked = agreedTerms, onCheckedChange = { agreedTerms = it })
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "I agree to the Terms of Service",
+                        text = buildAnnotatedString {
+                            append("I agree to the ")
+                            withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Medium)) {
+                                append("Terms of Service")
+                            }
+                        },
                         fontFamily = InterFamily,
                         fontSize = 13.sp,
                         color = sec
@@ -627,7 +722,12 @@ fun SignUpScreen(
                     PremiumCheckbox(checked = agreedPrivacy, onCheckedChange = { agreedPrivacy = it })
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "I agree to the Privacy Policy",
+                        text = buildAnnotatedString {
+                            append("I agree to the ")
+                            withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Medium)) {
+                                append("Privacy Policy")
+                            }
+                        },
                         fontFamily = InterFamily,
                         fontSize = 13.sp,
                         color = sec
@@ -743,18 +843,30 @@ fun ForgotPasswordScreen(
             Spacer(modifier = Modifier.height(28.dp))
 
             // Input
-            PremiumTextField(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = "Enter your email",
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }
+            Column {
+                InputLabel("Email Address")
+                Spacer(modifier = Modifier.height(8.dp))
+                PremiumTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    placeholder = "Enter your email",
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Mail,
+                            contentDescription = null,
+                            tint = sec,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    )
                 )
-            )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -859,8 +971,15 @@ fun OtpVerificationScreen(
                 modifier = Modifier.align(Alignment.Start)
             )
             Spacer(modifier = Modifier.height(8.dp))
+            
+            // Bolded target email address for professional appearance
             Text(
-                text = "Enter the 6-digit code sent to\n$email",
+                text = buildAnnotatedString {
+                    append("Enter the 6-digit code sent to\n")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = onBg)) {
+                        append(email)
+                    }
+                },
                 fontFamily = InterFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
@@ -871,13 +990,13 @@ fun OtpVerificationScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // OTP Input row (monochrome square cells)
+            // OTP Input row (monochrome square cells) with thin border and dot placeholder
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 for (i in 0..5) {
-                    val isSelected = false
+                    val digit = otpDigits[i]
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -885,24 +1004,24 @@ fun OtpVerificationScreen(
                             .padding(horizontal = 4.dp)
                             .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                             .border(
-                                1.dp,
-                                if (isSelected) onBg else outlineColor,
-                                RoundedCornerShape(12.dp)
+                                width = 1.dp,
+                                color = if (digit.isNotEmpty()) onBg else outlineColor,
+                                shape = RoundedCornerShape(12.dp)
                             )
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
                                 // Simple mock digits insertion for testing
-                                val valToSet = if (otpDigits[i].isEmpty()) "•" else ""
+                                val valToSet = if (otpDigits[i].isEmpty()) "9" else ""
                                 otpDigits[i] = valToSet
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = otpDigits[i],
+                            text = if (digit.isEmpty()) "•" else digit,
                             fontFamily = InterFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            color = onBg
+                            color = if (digit.isEmpty()) sec.copy(alpha = 0.4f) else onBg
                         )
                     }
                 }
@@ -967,13 +1086,15 @@ fun ResetPasswordScreen(
     val strengthLevel = when {
         newPassword.isEmpty() -> 0
         newPassword.length < 6 -> 1
-        newPassword.any { it.isDigit() } && newPassword.any { it.isUpperCase() } -> 3
+        newPassword.any { it.isDigit() } && newPassword.any { it.isUpperCase() } -> 4
+        newPassword.length >= 8 -> 3
         else -> 2
     }
     val strengthText = when (strengthLevel) {
         0 -> ""
         1 -> "Weak"
-        2 -> "Medium"
+        2 -> "Fair"
+        3 -> "Good"
         else -> "Strong"
     }
 
@@ -1027,39 +1148,51 @@ fun ResetPasswordScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Input Form Group
+            // Input Form Group with Labels and Icons
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                PremiumTextField(
-                    value = newPassword,
-                    onValueChange = { newPassword = it },
-                    placeholder = "Enter new password",
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Next
-                    ),
-                    trailingIcon = {
-                        Text(
-                            text = if (passwordVisible) "Hide" else "Show",
-                            fontFamily = InterFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 13.sp,
-                            color = onBg,
-                            modifier = Modifier.clickable { passwordVisible = !passwordVisible }
-                        )
-                    }
-                )
+                Column {
+                    InputLabel("New Password")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PremiumTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it },
+                        placeholder = "Enter new password",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = sec,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = null,
+                                    tint = onBg,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    )
+                }
 
-                // Strength Indicator Bar
+                // Password strength indicator: 4 visual segments + Strength Label
                 if (newPassword.isNotEmpty()) {
                     Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            for (step in 1..3) {
+                            for (step in 1..4) {
                                 val isActive = step <= strengthLevel
                                 Box(
                                     modifier = Modifier
@@ -1070,6 +1203,7 @@ fun ResetPasswordScreen(
                                                 when (strengthLevel) {
                                                     1 -> MaterialTheme.colorScheme.error
                                                     2 -> Color(0xFFEAB308) // Yellow
+                                                    3 -> Color(0xFF3B82F6) // Blue
                                                     else -> Color(0xFF22C55E) // Green
                                                 }
                                             } else MaterialTheme.colorScheme.outline,
@@ -1087,35 +1221,48 @@ fun ResetPasswordScreen(
                             color = when (strengthLevel) {
                                 1 -> MaterialTheme.colorScheme.error
                                 2 -> Color(0xFFEAB308)
+                                3 -> Color(0xFF3B82F6)
                                 else -> Color(0xFF22C55E)
                             }
                         )
                     }
                 }
 
-                PremiumTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    placeholder = "Confirm new password",
-                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
-                    ),
-                    trailingIcon = {
-                        Text(
-                            text = if (confirmPasswordVisible) "Hide" else "Show",
-                            fontFamily = InterFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 13.sp,
-                            color = onBg,
-                            modifier = Modifier.clickable { confirmPasswordVisible = !confirmPasswordVisible }
-                        )
-                    }
-                )
+                Column {
+                    InputLabel("Confirm Password")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PremiumTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        placeholder = "Confirm new password",
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = sec,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (confirmPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = null,
+                                    tint = onBg,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
