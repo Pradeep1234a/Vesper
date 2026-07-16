@@ -13,39 +13,39 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Slate50,            // Dynamic override
-    onPrimary = Slate950,
-    primaryContainer = Slate900,
-    onPrimaryContainer = Slate50,
-    secondary = Slate700,
-    onSecondary = Slate200,
-    background = Slate950,
-    onBackground = Slate50,
-    surface = Slate950,
-    onSurface = Slate50,
-    surfaceVariant = Slate900,
-    onSurfaceVariant = Slate400,
-    outline = Slate800,
-    error = ExpenseRedDark,
-    onError = Slate950
+    primary = Color(0xFFFFFFFF),
+    onPrimary = Color(0xFF000000),
+    primaryContainer = Color(0xFF1E1E1E),
+    onPrimaryContainer = Color(0xFFFFFFFF),
+    secondary = Color(0xFF1E1E1E),
+    onSecondary = Color(0xFFFFFFFF),
+    background = Color(0xFF000000),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF000000),
+    onSurface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFF0A0A0A),
+    onSurfaceVariant = Color(0xFF8A8A8A),
+    outline = Color(0xFF1E1E1E),
+    error = Color(0xFFEF4444),
+    onError = Color(0xFFFFFFFF)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Slate900,           // Dynamic override
-    onPrimary = Slate50,
-    primaryContainer = Slate100,
-    onPrimaryContainer = Slate900,
-    secondary = Slate200,
-    onSecondary = Slate800,
-    background = Slate50,
-    onBackground = Slate950,
-    surface = Slate50,
-    onSurface = Slate950,
-    surfaceVariant = Slate100,
-    onSurfaceVariant = Slate500,
-    outline = Slate200,
-    error = ExpenseRedLight,
-    onError = Slate50
+    primary = Color(0xFF111111),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFE5E5E5),
+    onPrimaryContainer = Color(0xFF111111),
+    secondary = Color(0xFFE5E5E5),
+    onSecondary = Color(0xFF111111),
+    background = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF111111),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF111111),
+    surfaceVariant = Color(0xFFF7F7F7),
+    onSurfaceVariant = Color(0xFF666666),
+    outline = Color(0xFFE5E5E5),
+    error = Color(0xFFEF4444),
+    onError = Color(0xFFFFFFFF)
 )
 
 @Composable

@@ -53,7 +53,8 @@ enum class SettingsDialogType {
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSignOut: () -> Unit
 ) {
     val currency by viewModel.currency.collectAsState()
     val updateUiState by updateViewModel.uiState.collectAsState()
@@ -791,6 +792,13 @@ fun SettingsScreen(
                         title = "Terms & Conditions",
                         trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                         onClick = { activeDialog = SettingsDialogType.TERMS }
+                    )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingsRow(
+                        icon = Icons.Outlined.ExitToApp,
+                        title = "Sign Out",
+                        trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        onClick = { onSignOut() }
                     )
                 }
 

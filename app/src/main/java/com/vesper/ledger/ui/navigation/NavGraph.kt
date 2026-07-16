@@ -29,6 +29,7 @@ import com.vesper.ledger.ui.category.CategoriesScreen
 import com.vesper.ledger.ui.category.AddCategoryScreen
 import com.vesper.ledger.ui.category.CategoryViewModel
 import com.vesper.ledger.ui.category.CategoryViewModelFactory
+import com.vesper.ledger.ui.auth.*
 
 @Composable
 fun NavGraph(
@@ -67,8 +68,80 @@ fun NavGraph(
                 onFinish = {
                     val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
                     sharedPrefs.edit().putBoolean("isOnboardingCompleted", true).apply()
-                    navController.navigate("main_screen") {
+                    navController.navigate("auth_welcome") {
                         popUpTo("onboarding") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("auth_welcome") {
+            WelcomeScreen(
+                onCreateAccountClick = { navController.navigate("auth_signup") },
+                onSignInClick = { navController.navigate("auth_signin") }
+            )
+        }
+
+        composable("auth_signin") {
+            SignInScreen(
+                onBack = { navController.popBackStack() },
+                onSignInSuccess = {
+                    val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                    sharedPrefs.edit().putBoolean("isLoggedIn", true).apply()
+                    navController.navigate("main_screen") {
+                        popUpTo("auth_welcome") { inclusive = true }
+                    }
+                },
+                onForgotPasswordClick = { navController.navigate("auth_forgot_password") },
+                onCreateAccountClick = { navController.navigate("auth_signup") }
+            )
+        }
+
+        composable("auth_signup") {
+            SignUpScreen(
+                onBack = { navController.popBackStack() },
+                onSignUpSuccess = {
+                    val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                    sharedPrefs.edit().putBoolean("isLoggedIn", true).apply()
+                    navController.navigate("main_screen") {
+                        popUpTo("auth_welcome") { inclusive = true }
+                    }
+                },
+                onSignInClick = { navController.navigate("auth_signin") }
+            )
+        }
+
+        composable("auth_forgot_password") {
+            ForgotPasswordScreen(
+                onBack = { navController.popBackStack() },
+                onContinue = { email -> navController.navigate("auth_otp?email=$email") },
+                onSignInClick = { navController.navigate("auth_signin") }
+            )
+        }
+
+        composable(
+            route = "auth_otp?email={email}",
+            arguments = listOf(
+                navArgument("email") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            OtpVerificationScreen(
+                email = email,
+                onBack = { navController.popBackStack() },
+                onVerifySuccess = { navController.navigate("auth_reset_password") }
+            )
+        }
+
+        composable("auth_reset_password") {
+            ResetPasswordScreen(
+                onBack = { navController.popBackStack() },
+                onResetSuccess = {
+                    navController.navigate("auth_signin") {
+                        popUpTo("auth_welcome") { inclusive = false }
                     }
                 }
             )
@@ -80,7 +153,14 @@ fun NavGraph(
                 updateViewModel = updateViewModel,
                 onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) },
-                onCategoryManagementClick = { navController.navigate("categories") }
+                onCategoryManagementClick = { navController.navigate("categories") },
+                onSignOut = {
+                    val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                    sharedPrefs.edit().putBoolean("isLoggedIn", false).apply()
+                    navController.navigate("auth_welcome") {
+                        popUpTo("main_screen") { inclusive = true }
+                    }
+                }
             )
         }
 
