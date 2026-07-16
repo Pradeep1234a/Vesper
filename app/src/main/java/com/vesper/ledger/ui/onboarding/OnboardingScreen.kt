@@ -90,7 +90,7 @@ fun OnboardingScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(id = com.vesper.ledger.R.drawable.ic_ledger_foreground),
+                painter = painterResource(id = com.vesper.ledger.R.drawable.ic_launcher_foreground),
                 contentDescription = "Vesper Brand Logo",
                 tint = onBgColor,
                 modifier = Modifier.size(36.dp)
