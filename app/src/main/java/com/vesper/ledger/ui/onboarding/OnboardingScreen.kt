@@ -95,13 +95,13 @@ fun OnboardingScreen(
             )
         }
 
-        // ── Main unified content Column ──
+        // ── Main unified content Column (Edge-to-edge layout) ──
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
+                .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Pager containing BOTH Illustration and text for a seamless, synchronized swipe transition
@@ -126,21 +126,19 @@ fun OnboardingScreen(
                         else -> com.vesper.ledger.R.drawable.ill_onboarding_4
                     }
 
-                    // Illustration (larger size, responsive scaling, minimal margins, zero background blobs)
+                    // Illustration (true edge-to-edge size, responsive scaling, zero background blobs)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f)
-                            .heightIn(max = 340.dp),
+                            .weight(1.2f)
+                            .heightIn(max = 360.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
                             painter = painterResource(id = illustrationRes),
                             contentDescription = pages[page].title,
                             contentScale = ContentScale.Fit,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(vertical = 16.dp, horizontal = 24.dp)
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
 
@@ -181,7 +179,9 @@ fun OnboardingScreen(
 
             // Static controls at bottom (Pagination + CTA Button)
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Pagination indicators
