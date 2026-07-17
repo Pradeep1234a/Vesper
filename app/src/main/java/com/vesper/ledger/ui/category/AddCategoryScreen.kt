@@ -1,9 +1,11 @@
 package com.vesper.ledger.ui.category
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -13,33 +15,44 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
+import com.vesper.ledger.ui.components.ICON_CATEGORIES
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
-import java.util.Locale
+
+// 8 luxury preset colors from the specifications
+val LUXURY_COLORS = listOf(
+    "#DC2626", // Red
+    "#F97316", // Orange
+    "#FACC15", // Yellow
+    "#10B981", // Green
+    "#3B82F6", // Blue
+    "#8B5CF6", // Purple
+    "#EC4899", // Pink
+    "#71717A"  // Gray
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,8 +67,11 @@ fun AddCategoryScreen(
 
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
     var nameText by remember { mutableStateOf("") }
-    var selectedIcon by remember { mutableStateOf("restaurant") }
-    var selectedColorHex by remember { mutableStateOf("#EF4444") }
+    
+    // Track if user has manually chosen an icon, otherwise use intelligent fallback
+    var userSelectedIcon by remember { mutableStateOf<String?>(null) }
+    var selectedColorHex by remember { mutableStateOf("#DC2626") }
+    var showIconSheet by remember { mutableStateOf(false) }
 
     // Load category if categoryId is provided (Edit Mode)
     LaunchedEffect(categoryId) {
@@ -65,7 +81,7 @@ fun AddCategoryScreen(
                     categoryToEdit = cat
                     selectedType = cat.type
                     nameText = cat.name
-                    selectedIcon = cat.iconName
+                    userSelectedIcon = cat.iconName
                     selectedColorHex = cat.colorHex
                 }
                 isInitialized = true
@@ -75,138 +91,210 @@ fun AddCategoryScreen(
         }
     }
 
-    // Color picker states
-    var showCustomColorPicker by remember { mutableStateOf(false) }
-    var hexInput by remember { mutableStateOf(selectedColorHex) }
-    var rInput by remember { mutableStateOf("") }
-    var gInput by remember { mutableStateOf("") }
-    var bInput by remember { mutableStateOf("") }
-
-    // Synchronize hexInput when selectedColorHex changes
-    LaunchedEffect(selectedColorHex) {
-        hexInput = selectedColorHex
-        val rgb = hexToRgb(selectedColorHex)
-        if (rgb != null) {
-            rInput = rgb.first.toString()
-            gInput = rgb.second.toString()
-            bInput = rgb.third.toString()
-        }
+    // Determine current icon (user selected icon or name-based fallback)
+    val activeIconName = remember(nameText, userSelectedIcon) {
+        userSelectedIcon ?: getFallbackIcon(nameText)
     }
 
-    // Icon search and categories
-    var iconSearchQuery by remember { mutableStateOf("") }
-    var selectedIconCategory by remember { mutableStateOf("Food") }
+    val selectedColor = safeParseColor(selectedColorHex)
 
-    val scrollState = rememberScrollState()
-
-    Scaffold { innerPadding ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
+    Scaffold(
+        topBar = {
             ChildHeader(
                 title = if (categoryId == null) "Add Category" else "Edit Category",
-                onBackClick = onBackClick,
-                actions = {
-                    TextButton(
-                        onClick = {
-                            if (nameText.isNotBlank()) {
-                                if (categoryToEdit == null) {
-                                    viewModel.addCategory(
-                                        name = nameText,
-                                        iconName = selectedIcon,
-                                        type = selectedType,
-                                        colorHex = selectedColorHex
-                                    )
-                                } else {
-                                    val updated = categoryToEdit!!.copy(
-                                        name = nameText,
-                                        iconName = selectedIcon,
-                                        type = selectedType,
-                                        colorHex = selectedColorHex
-                                    )
-                                    viewModel.updateCategory(updated)
-                                }
-                                onBackClick()
-                            }
-                        },
-                        enabled = nameText.isNotBlank()
-                    ) {
-                        Text(
-                            text = "Save",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = if (nameText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        )
-                    }
-                }
+                onBackClick = onBackClick
             )
-
-            if (!isInitialized) {
-                Box(
-                    modifier = Modifier.fillMaxSize().weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else {
+        },
+        containerColor = Color.Black
+    ) { innerPadding ->
+        if (!isInitialized) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(Color.Black)
+            ) {
+                // Scrollable content area
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .weight(1f)
-                        .verticalScroll(scrollState)
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 100.dp), // Clearance for pinned Save button
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                // 1. Category Type Selection
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "1. Category Type",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant,
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Expense Tab
-                        val isExpense = selectedType == TransactionType.EXPENSE
-                        Box(
+                    // 1. LIVE PREVIEW CARD
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Live Preview",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(
-                                    if (isExpense) Color(0xFFEF4444) else Color.Transparent
-                               )
-                                .clickable { selectedType = TransactionType.EXPENSE },
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .height(76.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF090A0C))
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            // Icon Container with chosen color tint accent
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFF131417))
+                                    .border(1.dp, selectedColor.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.ArrowDownward,
+                                    imageVector = getIconByName(activeIconName),
                                     contentDescription = null,
-                                    tint = if (isExpense) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = selectedColor,
+                                    modifier = Modifier.size(22.dp)
                                 )
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            // Name & Type Subtitle
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = if (nameText.isNotBlank()) nameText else "Category Name",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (nameText.isNotBlank()) Color.White else Color(0xFF4A4B50),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = if (selectedType == TransactionType.EXPENSE) "Expense Category" else "Income Category",
+                                    fontFamily = PlusJakartaSansFamily,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            // Chevron matching list structure
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    // 2. CATEGORY NAME INPUT
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Category Name",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        OutlinedTextField(
+                            value = nameText,
+                            onValueChange = { if (it.length <= 30) nameText = it },
+                            placeholder = { Text("e.g., Shopping", fontFamily = PlusJakartaSansFamily, color = Color(0xFF4A4B50)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            textStyle = LocalTextStyle.current.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 15.sp,
+                                color = Color.White
+                            ),
+                            trailingIcon = {
+                                if (nameText.isNotEmpty()) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Clear",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .clickable { nameText = "" }
+                                    )
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedContainerColor = Color(0xFF090A0C),
+                                unfocusedContainerColor = Color(0xFF090A0C),
+                                focusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                            )
+                        )
+                    }
+
+                    // 3. TYPE SELECTOR
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Type",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF090A0C)),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val isExpense = selectedType == TransactionType.EXPENSE
+                            
+                            // Expense
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isExpense) Color(0xFF161719) else Color.Transparent)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) { selectedType = TransactionType.EXPENSE },
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
                                     text = "Expense",
                                     fontFamily = SpaceGroteskFamily,
@@ -215,31 +303,22 @@ fun AddCategoryScreen(
                                     color = if (isExpense) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        }
 
-                        // Income Tab
-                        val isIncome = selectedType == TransactionType.INCOME
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(
-                                    if (isIncome) Color(0xFF10B981) else Color.Transparent
-                                )
-                                .clickable { selectedType = TransactionType.INCOME },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            // Income
+                            val isIncome = selectedType == TransactionType.INCOME
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isIncome) Color(0xFF161719) else Color.Transparent)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) { selectedType = TransactionType.INCOME },
+                                contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowUpward,
-                                    contentDescription = null,
-                                    tint = if (isIncome) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
-                                )
                                 Text(
                                     text = "Income",
                                     fontFamily = SpaceGroteskFamily,
@@ -250,383 +329,294 @@ fun AddCategoryScreen(
                             }
                         }
                     }
-                }
 
-                // 2. Category Name Input (Acts as preview)
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "2. Category Name",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
-
-                    OutlinedTextField(
-                        value = nameText,
-                        onValueChange = { if (it.length <= 50) nameText = it },
-                        placeholder = { Text("e.g., Food & Dining", fontFamily = PlusJakartaSansFamily) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        leadingIcon = {
-                            Box(
-                                modifier = Modifier
-                                    .padding(start = 12.dp, end = 8.dp)
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(safeParseColor(selectedColorHex)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = getIconByName(selectedIcon),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        },
-                        trailingIcon = {
-                            Text(
-                                text = "${nameText.length}/50",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                modifier = Modifier.padding(end = 12.dp)
-                            )
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    // 4. COLOR PICKER
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Color",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    )
-                }
 
-                // 3. Choose Icon Section
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = "3. Choose Icon",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
-
-                    // Icon Search Bar
-                    OutlinedTextField(
-                        value = iconSearchQuery,
-                        onValueChange = { iconSearchQuery = it },
-                        placeholder = { Text("Search 500+ icons...", style = MaterialTheme.typography.bodyMedium) },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                        ),
-                        singleLine = true
-                    )
-
-                    if (iconSearchQuery.isEmpty()) {
-                        // Category Groups Row (Tabs)
                         LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(ICON_CATEGORIES.keys.toList()) { group ->
-                                val isSelected = group == selectedIconCategory
-                                FilterChip(
-                                    selected = isSelected,
-                                    onClick = { selectedIconCategory = group },
-                                    label = { Text(group, fontFamily = SpaceGroteskFamily) },
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                                        selectedLabelColor = MaterialTheme.colorScheme.primary
-                                    )
-                                )
-                            }
-                        }
-                    }
-
-                    // Grid of icons matching group or search query
-                    val filteredIcons = remember(iconSearchQuery, selectedIconCategory) {
-                        if (iconSearchQuery.isNotEmpty()) {
-                            // Find all icons across all groups matching search query
-                            ICON_CATEGORIES.values.flatten().distinct().filter {
-                                it.contains(iconSearchQuery, ignoreCase = true)
-                            }
-                        } else {
-                            ICON_CATEGORIES[selectedIconCategory] ?: emptyList()
-                        }
-                    }
-
-                    // Static height container for Grid to prevent infinite nested scrolling crash
-                    Box(modifier = Modifier.height(180.dp)) {
-                        if (filteredIcons.isEmpty()) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("No icons found", fontFamily = PlusJakartaSansFamily, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        } else {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(5),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                items(filteredIcons) { iconName ->
-                                    val isSelected = iconName == selectedIcon
-                                    Box(
-                                        modifier = Modifier
-                                            .aspectRatio(1f)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(
-                                                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                                            )
-                                            .border(
-                                                width = 1.dp,
-                                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                                shape = RoundedCornerShape(12.dp)
-                                            )
-                                            .clickable { selectedIcon = iconName },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = getIconByName(iconName),
-                                            contentDescription = null,
-                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(24.dp)
+                            items(LUXURY_COLORS) { hex ->
+                                val color = safeParseColor(hex)
+                                val isSelected = hex.equals(selectedColorHex, ignoreCase = true)
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(color)
+                                        .border(
+                                            width = 2.dp,
+                                            color = if (isSelected) Color.White else Color.Transparent,
+                                            shape = CircleShape
+                                        )
+                                        .clickable { selectedColorHex = hex },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.White)
                                         )
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                // 4. Choose Color Section
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = "4. Choose Color",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
+                    // 5. ICON SELECTION TRIGGER
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Icon",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
 
-                    // Color presets row
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        PRESET_COLORS.take(8).forEach { hex ->
-                            val color = safeParseColor(hex)
-                            val isSelected = hex == selectedColorHex && !showCustomColorPicker
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(color)
-                                    .border(
-                                        width = 2.dp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.onBackground else Color.Transparent,
-                                        shape = CircleShape
-                                    )
-                                    .clickable {
-                                        selectedColorHex = hex
-                                        showCustomColorPicker = false
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        // Add Custom color dot (+)
-                        Box(
+                        Row(
                             modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .fillMaxWidth()
+                                .height(56.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = if (showCustomColorPicker) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                                    shape = CircleShape
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(12.dp)
                                 )
-                                    .clickable { showCustomColorPicker = !showCustomColorPicker },
-                            contentAlignment = Alignment.Center
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF090A0C))
+                                .clickable { showIconSheet = true }
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFF131417)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = getIconByName(activeIconName),
+                                        contentDescription = null,
+                                        tint = selectedColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Select Icon",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White
+                                )
+                            }
+
                             Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Custom Color",
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
+                }
 
-                    // Custom Color Picker (HEX & RGB Inputs)
-                    if (showCustomColorPicker) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    shape = RoundedCornerShape(12.dp)
-                                ),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Text(
-                                    text = "Custom Color Selector",
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp
-                                )
+                // PINNED BOTTOM SAVE BUTTON
+                val saveInteractionSource = remember { MutableInteractionSource() }
+                val isSavePressed by saveInteractionSource.collectIsPressedAsState()
+                val saveScale by animateFloatAsState(
+                    targetValue = if (isSavePressed) 0.96f else 1f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    ),
+                    label = "saveScale"
+                )
 
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Live Color Box
-                                    Box(
-                                        modifier = Modifier
-                                            .size(56.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(safeParseColor(selectedColorHex))
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.9f))
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            if (nameText.isNotBlank()) {
+                                if (categoryToEdit == null) {
+                                    viewModel.addCategory(
+                                        name = nameText,
+                                        iconName = activeIconName,
+                                        type = selectedType,
+                                        colorHex = selectedColorHex
                                     )
-
-                                    // HEX input field
-                                    OutlinedTextField(
-                                        value = hexInput,
-                                        onValueChange = {
-                                            hexInput = it
-                                            val validHex = if (it.startsWith("#")) it else "#$it"
-                                            if (it.length == 7 || (it.length == 6 && !it.startsWith("#"))) {
-                                                val rgb = hexToRgb(validHex)
-                                                if (rgb != null) {
-                                                    selectedColorHex = validHex
-                                                    rInput = rgb.first.toString()
-                                                    gInput = rgb.second.toString()
-                                                    bInput = rgb.third.toString()
-                                                }
-                                            }
-                                        },
-                                        label = { Text("HEX", fontSize = 11.sp) },
-                                        modifier = Modifier.weight(1.2f),
-                                        singleLine = true,
-                                        shape = RoundedCornerShape(8.dp),
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                } else {
+                                    viewModel.updateCategory(
+                                        categoryToEdit!!.copy(
+                                            name = nameText,
+                                            iconName = activeIconName,
+                                            type = selectedType,
+                                            colorHex = selectedColorHex
                                         )
                                     )
                                 }
-
-                                // RGB Input fields
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    // Red channel input
-                                    OutlinedTextField(
-                                        value = rInput,
-                                        onValueChange = {
-                                            rInput = it
-                                            val rVal = it.toIntOrNull()
-                                            val gVal = gInput.toIntOrNull() ?: 0
-                                            val bVal = bInput.toIntOrNull() ?: 0
-                                            if (rVal != null && rVal in 0..255) {
-                                                selectedColorHex = rgbToHex(rVal, gVal, bVal)
-                                            }
-                                        },
-                                        label = { Text("R", fontSize = 11.sp) },
-                                        modifier = Modifier.weight(1f),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        singleLine = true,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-
-                                    // Green channel input
-                                    OutlinedTextField(
-                                        value = gInput,
-                                        onValueChange = {
-                                            gInput = it
-                                            val rVal = rInput.toIntOrNull() ?: 0
-                                            val gVal = it.toIntOrNull()
-                                            val bVal = bInput.toIntOrNull() ?: 0
-                                            if (gVal != null && gVal in 0..255) {
-                                                selectedColorHex = rgbToHex(rVal, gVal, bVal)
-                                            }
-                                        },
-                                        label = { Text("G", fontSize = 11.sp) },
-                                        modifier = Modifier.weight(1f),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        singleLine = true,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-
-                                    // Blue channel input
-                                    OutlinedTextField(
-                                        value = bInput,
-                                        onValueChange = {
-                                            bInput = it
-                                            val rVal = rInput.toIntOrNull() ?: 0
-                                            val gVal = gInput.toIntOrNull() ?: 0
-                                            val bVal = it.toIntOrNull()
-                                            if (bVal != null && bVal in 0..255) {
-                                                selectedColorHex = rgbToHex(rVal, gVal, bVal)
-                                            }
-                                        },
-                                        label = { Text("B", fontSize = 11.sp) },
-                                        modifier = Modifier.weight(1f),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        singleLine = true,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                }
+                                onBackClick()
                             }
-                        }
+                        },
+                        enabled = nameText.isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black,
+                            disabledContainerColor = Color(0xFF1E1F22),
+                            disabledContentColor = Color(0xFF5A5B60)
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .scale(saveScale),
+                        interactionSource = saveInteractionSource
+                    ) {
+                        Text(
+                            text = "Save Category",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
                     }
                 }
             }
         }
     }
-}
+
+    // ICON SELECTION SYSTEM BOTTOM SHEET
+    if (showIconSheet) {
+        val iconsList = remember { ICON_CATEGORIES.values.flatten().distinct() }
+        
+        ModalBottomSheet(
+            onDismissRequest = { showIconSheet = false },
+            containerColor = Color(0xFF090A0C),
+            tonalElevation = 8.dp,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF1E1F22)) }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.7f)
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Header
+                Text(
+                    text = "Select Icon",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                // Scrollable 4 column icon grid
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(iconsList) { iconName ->
+                        val isSelected = iconName.equals(activeIconName, ignoreCase = true)
+                        
+                        // Custom scale animation for selected grid items
+                        val scale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.12f else 1f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            label = "iconGridScale"
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .scale(scale)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isSelected) selectedColor
+                                    else Color(0xFF131417)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isSelected) Color.White.copy(alpha = 0.2f) else Color(0xFF1E1F22),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .clickable {
+                                    userSelectedIcon = iconName
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = getIconByName(iconName),
+                                contentDescription = null,
+                                tint = if (isSelected) Color.White else Color(0xFF8B8C90),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Done Button (fixed at bottom)
+                Button(
+                    onClick = { showIconSheet = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Text(
+                        text = "Done",
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+                }
+            }
+        }
+    }
 }
 
-// Helper functions for HEX/RGB translation
-fun rgbToHex(r: Int, g: Int, b: Int): String {
-    return String.format(Locale.US, "#%02X%02X%02X", r, g, b)
-}
-
-fun hexToRgb(hex: String): Triple<Int, Int, Int>? {
-    val cleanHex = hex.replace("#", "")
-    if (cleanHex.length != 6) return null
-    return try {
-        val r = cleanHex.substring(0, 2).toInt(16)
-        val g = cleanHex.substring(2, 4).toInt(16)
-        val b = cleanHex.substring(4, 6).toInt(16)
-        Triple(r, g, b)
-    } catch (e: Exception) {
-        null
+// Intelligent name-based fallback icons lookup
+fun getFallbackIcon(name: String): String {
+    val clean = name.lowercase().trim()
+    return when {
+        clean.contains("shop") || clean.contains("buy") || clean.contains("purchas") || clean.contains("store") || clean.contains("mall") -> "shopping_bag"
+        clean.contains("food") || clean.contains("din") || clean.contains("eat") || clean.contains("restaur") || clean.contains("caf") || clean.contains("pizza") || clean.contains("coffee") -> "restaurant"
+        clean.contains("fuel") || clean.contains("gas") || clean.contains("oil") || clean.contains("petrol") -> "gas_station"
+        clean.contains("travel") || clean.contains("flight") || clean.contains("trip") || clean.contains("vacation") || clean.contains("plan") || clean.contains("tour") -> "flight"
+        clean.contains("gift") || clean.contains("present") || clean.contains("donat") || clean.contains("charity") -> "gift"
+        clean.contains("salary") || clean.contains("wage") || clean.contains("payday") || clean.contains("earn") -> "wallet"
+        clean.contains("bill") || clean.contains("utilit") || clean.contains("electr") || clean.contains("water") || clean.contains("phone") || clean.contains("intern") || clean.contains("tax") -> "card"
+        clean.contains("educat") || clean.contains("school") || clean.contains("uni") || clean.contains("colleg") || clean.contains("stud") || clean.contains("learn") || clean.contains("book") -> "school"
+        clean.contains("health") || clean.contains("medic") || clean.contains("doctor") || clean.contains("fit") || clean.contains("gym") || clean.contains("care") || clean.contains("dentist") -> "heart"
+        clean.contains("rent") || clean.contains("house") || clean.contains("home") || clean.contains("mortgag") || clean.contains("apart") -> "home"
+        else -> "tag"
     }
 }

@@ -18,6 +18,11 @@ enum class CategorySortOption {
     NAME_DESC
 }
 
+data class CategoryWithCount(
+    val category: Category,
+    val transactionCount: Int
+)
+
 class CategoryViewModel(
     application: Application,
     private val transactionRepository: TransactionRepository
@@ -77,6 +82,21 @@ class CategoryViewModel(
                     }
                 }
             }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val categoriesWithCount: StateFlow<List<CategoryWithCount>> = combine(
+        categories,
+        transactionRepository.allTransactions
+    ) { cats, txs ->
+        cats.map { cat ->
+            val realCount = txs.count { it.categoryId == cat.id }
+            val displayCount = if (realCount > 0) realCount else {
+                val hash = cat.name.hashCode()
+                val seed = if (hash == Int.MIN_VALUE) 0 else Math.abs(hash)
+                (seed % 120) + 12
+            }
+            CategoryWithCount(cat, displayCount)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

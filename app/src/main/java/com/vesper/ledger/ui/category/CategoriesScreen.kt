@@ -1,27 +1,31 @@
 package com.vesper.ledger.ui.category
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +37,7 @@ import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoriesScreen(
     viewModel: CategoryViewModel,
@@ -41,21 +45,29 @@ fun CategoriesScreen(
     onAddCategoryClick: (categoryId: Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val categories by viewModel.categories.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
+    val categoriesWithCount by viewModel.categoriesWithCount.collectAsState()
     val selectedType by viewModel.selectedType.collectAsState()
-    val sortBy by viewModel.sortBy.collectAsState()
-
-    var showSearch by remember { mutableStateOf(false) }
-    var showSortSheet by remember { mutableStateOf(false) }
     var categoryToDelete by remember { mutableStateOf<Category?>(null) }
 
     // Delete confirmation dialog
     if (categoryToDelete != null) {
         AlertDialog(
             onDismissRequest = { categoryToDelete = null },
-            title = { Text("Delete Category", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete '${categoryToDelete?.name}'? Any transactions in this category will lose their category association.", fontFamily = PlusJakartaSansFamily) },
+            title = { 
+                Text(
+                    text = "Delete Category", 
+                    fontFamily = SpaceGroteskFamily, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                ) 
+            },
+            text = { 
+                Text(
+                    text = "Are you sure you want to delete '${categoryToDelete?.name}'? Any transactions in this category will lose their category association.", 
+                    fontFamily = PlusJakartaSansFamily,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ) 
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -63,160 +75,81 @@ fun CategoriesScreen(
                         categoryToDelete = null
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Delete", 
+                        color = MaterialTheme.colorScheme.error, 
+                        fontFamily = SpaceGroteskFamily, 
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { categoryToDelete = null }) {
-                    Text("Cancel", fontFamily = SpaceGroteskFamily)
+                    Text(
+                        text = "Cancel", 
+                        fontFamily = SpaceGroteskFamily,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            }
+            },
+            containerColor = Color(0xFF0D0E11),
+            modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
         )
     }
 
-    // Sorting bottom sheet
-    if (showSortSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSortSheet = false },
-            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outline) }
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 40.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "Sort Categories",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-
-                Divider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                val options = listOf(
-                    CategorySortOption.CUSTOM to "Custom Order (Drag / Shift)",
-                    CategorySortOption.NAME_ASC to "Name (A to Z)",
-                    CategorySortOption.NAME_DESC to "Name (Z to A)"
-                )
-
-                options.forEach { (option, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.sortBy.value = option
-                                showSortSheet = false
-                            }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = sortBy == option,
-                            onClick = {
-                                viewModel.sortBy.value = option
-                                showSortSheet = false
-                            }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = label,
-                            fontFamily = PlusJakartaSansFamily,
-                            fontSize = 15.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    Scaffold { innerPadding ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
+    Scaffold(
+        topBar = {
             ChildHeader(
                 title = "Categories",
-                onBackClick = onBackClick,
-                actions = {
-                    IconButton(onClick = { showSearch = !showSearch }) {
-                        Icon(
-                            imageVector = if (showSearch) Icons.Default.Close else Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                    IconButton(onClick = { showSortSheet = true }) {
-                        Icon(imageVector = Icons.Outlined.Sort, contentDescription = "Sort", tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                    IconButton(onClick = { onAddCategoryClick(null) }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Category", tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                }
+                onBackClick = onBackClick
             )
-            // Search Bar (if visible)
-            if (showSearch) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { viewModel.searchQuery.value = it },
-                    placeholder = { Text("Search categories...", style = MaterialTheme.typography.bodyMedium) },
+        },
+        containerColor = Color.Black
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(Color.Black)
+        ) {
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp), // Luxury spacing
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Segmented control identical to Add Transaction screen (Expense | Income)
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    shape = MaterialTheme.shapes.small,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    ),
-                    singleLine = true
-                )
-            }
-
-            // Segmented Tab Controls: Expense | Income
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(48.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Expense Tab
-                val isExpense = selectedType == TransactionType.EXPENSE
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            if (isExpense) Color(0xFFEF4444) else Color.Transparent
+                        .height(48.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(16.dp)
                         )
-                        .clickable { viewModel.selectedType.value = TransactionType.EXPENSE },
-                    contentAlignment = Alignment.Center
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFF090A0C)),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    val isExpense = selectedType == TransactionType.EXPENSE
+                    
+                    // Expense Tab
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isExpense) Color(0xFF161719) else Color.Transparent)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { viewModel.selectedType.value = TransactionType.EXPENSE },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDownward,
-                            contentDescription = null,
-                            tint = if (isExpense) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
                         Text(
                             text = "Expense",
                             fontFamily = SpaceGroteskFamily,
@@ -225,31 +158,22 @@ fun CategoriesScreen(
                             color = if (isExpense) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
 
-                // Income Tab
-                val isIncome = selectedType == TransactionType.INCOME
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            if (isIncome) Color(0xFF10B981) else Color.Transparent
-                        )
-                        .clickable { viewModel.selectedType.value = TransactionType.INCOME },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    // Income Tab
+                    val isIncome = selectedType == TransactionType.INCOME
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isIncome) Color(0xFF161719) else Color.Transparent)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { viewModel.selectedType.value = TransactionType.INCOME },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowUpward,
-                            contentDescription = null,
-                            tint = if (isIncome) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
                         Text(
                             text = "Income",
                             fontFamily = SpaceGroteskFamily,
@@ -259,126 +183,157 @@ fun CategoriesScreen(
                         )
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                // Transaction-style category list
+                if (categoriesWithCount.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No categories found",
+                            fontFamily = PlusJakartaSansFamily,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(categoriesWithCount, key = { it.category.id }) { item ->
+                            val cat = item.category
+                            val catColor = safeParseColor(cat.colorHex)
 
-            // Grid of categories
-            if (categories.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No categories found",
-                        fontFamily = PlusJakartaSansFamily,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(categories) { cat ->
-                        val catColor = safeParseColor(cat.colorHex)
-                        val isCustomSort = sortBy == CategorySortOption.CUSTOM
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(0.9f)
-                                .clip(RoundedCornerShape(16.dp))
-                                .combinedClickable(
-                                    onClick = { onAddCategoryClick(cat.id) },
-                                    onLongClick = { categoryToDelete = cat }
-                                ),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                            ),
-                            border = BorderStroke(
-                                1.dp,
-                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-                        ) {
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                // Content column
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    // Icon badge
-                                    Box(
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .clip(CircleShape)
-                                            .background(catColor),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = getIconByName(cat.iconName),
-                                            contentDescription = null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(20.dp)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(76.dp)
+                                    .border(
+                                        width = 1.dp,
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFF090A0C))
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onTap = { onAddCategoryClick(cat.id) },
+                                            onLongPress = { categoryToDelete = cat }
                                         )
                                     }
-
-                                    Spacer(modifier = Modifier.height(10.dp))
-
-                                    Text(
-                                        text = cat.name,
-                                        fontFamily = PlusJakartaSansFamily,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        textAlign = TextAlign.Center,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // LEFT: Rounded monochrome icon container with accent border or accent background
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color(0xFF131417))
+                                        .border(1.dp, catColor.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = getIconByName(cat.iconName),
+                                        contentDescription = null,
+                                        tint = catColor, // User selected color applied only to icon accent
+                                        modifier = Modifier.size(22.dp)
                                     )
                                 }
 
-                                // Custom sorting chevrons (overlay)
-                                if (isCustomSort) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .align(Alignment.TopCenter)
-                                            .padding(top = 4.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.ChevronLeft,
-                                            contentDescription = "Move Left",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clickable { viewModel.moveCategory(cat, up = true) }
-                                        )
-                                        Icon(
-                                            imageVector = Icons.Default.ChevronRight,
-                                            contentDescription = "Move Right",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clickable { viewModel.moveCategory(cat, up = false) }
-                                        )
-                                    }
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                // CENTER: Category name and transaction count
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = cat.name,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "${item.transactionCount} transactions",
+                                        fontFamily = PlusJakartaSansFamily,
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
+
+                                // RIGHT: Chevron icon
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowRight,
+                                    contentDescription = "Edit Category",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
+                        // Bottom spacer for FAB scrolling clearance
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
                     }
+                }
+            }
+
+            // Floating Action Button with Spring press animation
+            val fabInteractionSource = remember { MutableInteractionSource() }
+            val isFabPressed by fabInteractionSource.collectIsPressedAsState()
+            val fabScale by animateFloatAsState(
+                targetValue = if (isFabPressed) 0.94f else 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium
+                ),
+                label = "fabScale"
+            )
+
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 24.dp, end = 24.dp)
+                    .scale(fabScale)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            color = Color(0xFF1E1F22), // Frosted monochrome premium glass-like color
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = Color.White.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .clickable(
+                            interactionSource = fabInteractionSource,
+                            indication = rememberRipple(color = Color.White),
+                            onClick = { onAddCategoryClick(null) }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Category",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
         }
