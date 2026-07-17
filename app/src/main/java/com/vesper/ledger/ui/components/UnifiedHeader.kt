@@ -41,13 +41,13 @@ fun RootHeader(
             .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Hamburger icon starts exactly at 24.dp matching left edge of cards
+        // Hamburger icon starts exactly at 16.dp matching left edge of cards
         Icon(
             imageVector = Icons.Default.Menu,
             contentDescription = "Menu",
             tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
-                .padding(start = 24.dp)
+                .padding(start = 16.dp)
                 .size(24.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -71,12 +71,12 @@ fun RootHeader(
             modifier = Modifier.weight(1f)
         )
         
-        // Right visual group: Notification (12dp gap) + Avatar (24dp end margin)
+        // Right visual group: Notification (12dp gap) + Avatar (16dp end margin)
         if (actions != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(end = 24.dp),
+                modifier = Modifier.padding(end = 16.dp),
                 content = actions
             )
         }
