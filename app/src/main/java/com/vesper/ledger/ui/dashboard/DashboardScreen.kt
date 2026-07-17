@@ -87,14 +87,17 @@ fun DashboardScreen(
             RootHeader(
                 title = "Vesper Ledger",
                 actions = {
-                    IconButton(onClick = { /* Notification click */ }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Notifications,
-                            contentDescription = "Notifications",
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.Notifications,
+                        contentDescription = "Notifications",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { /* Notification click */ }
+                    )
                     Box(
                         modifier = Modifier
                             .size(36.dp)

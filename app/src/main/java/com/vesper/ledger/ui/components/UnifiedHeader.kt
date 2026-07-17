@@ -18,6 +18,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clip
+
 @Composable
 fun RootHeader(
     title: String,
@@ -29,22 +38,25 @@ fun RootHeader(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .height(56.dp)
-            .padding(horizontal = 4.dp),
+            .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(
-            onClick = { onMenuClick?.invoke() },
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Menu,
-                contentDescription = "Menu",
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(4.dp))
+        // Hamburger icon starts exactly at 24.dp matching left edge of cards
+        Icon(
+            imageVector = Icons.Default.Menu,
+            contentDescription = "Menu",
+            tint = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier
+                .padding(start = 24.dp)
+                .size(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onMenuClick?.invoke() }
+        )
+        
+        Spacer(modifier = Modifier.width(16.dp))
+        
         Text(
             text = title,
             style = TextStyle(
@@ -58,10 +70,13 @@ fun RootHeader(
             ),
             modifier = Modifier.weight(1f)
         )
+        
+        // Right visual group: Notification (12dp gap) + Avatar (24dp end margin)
         if (actions != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(end = 24.dp),
                 content = actions
             )
         }
