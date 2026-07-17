@@ -142,19 +142,19 @@ fun PremiumButton(
     }
     
     val borderStroke = if (outlined) {
-        Modifier.border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(20.dp))
+        Modifier.border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
     } else Modifier
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(52.dp)
             .background(
                 color = if (enabled) bgColor else MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(12.dp)
             )
             .then(borderStroke)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(12.dp))
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -243,7 +243,7 @@ fun WelcomeScreen(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "Vesper Leaves Logo",
                 colorFilter = ColorFilter.tint(onBg),
-                modifier = Modifier.size(110.dp)
+                modifier = Modifier.size(130.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -275,7 +275,7 @@ fun WelcomeScreen(
             
             Column(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier.padding(start = 24.dp, end = 8.dp)
             ) {
                 FeatureRow(
                     icon = Icons.Outlined.ShowChart,
@@ -309,7 +309,7 @@ fun WelcomeScreen(
 
         // Action CTAs & Footer with Underlined Links
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             PremiumButton(
