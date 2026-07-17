@@ -311,11 +311,14 @@ fun SettingsScreen(
         null -> {}
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        containerColor = Color.Black
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .background(Color.Black)
         ) {
             when (subView) {
                 SettingsSubView.MAIN -> {
@@ -325,7 +328,7 @@ fun SettingsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 24.dp)
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
@@ -336,13 +339,13 @@ fun SettingsScreen(
                         .fillMaxWidth()
                         .border(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = RoundedCornerShape(16.dp)
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(12.dp)
                         )
                         .clickable { activeDialog = SettingsDialogType.EDIT_NAME },
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                        containerColor = Color(0xFF090A0C)
                     )
                 ) {
                     Row(
@@ -355,14 +358,15 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .size(50.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                .background(Color(0xFF131417))
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = userName.take(1).uppercase(),
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = Color.White
                                 )
                             )
                         }
@@ -791,7 +795,7 @@ fun SettingsScreen(
                     title = "Updates",
                     onBackClick = { subView = SettingsSubView.MAIN }
                 )
-                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
                     com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
                 }
             }
@@ -836,12 +840,12 @@ fun SettingsGroup(
                 .fillMaxWidth()
                 .border(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(12.dp)
                 ),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = Color(0xFF090A0C)
             )
         ) {
             Column(modifier = Modifier.fillMaxWidth(), content = content)
@@ -875,7 +879,12 @@ fun SettingsRow(
             modifier = Modifier
                 .size(36.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    color = Color(0xFF131417),
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(8.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -883,7 +892,7 @@ fun SettingsRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = Color.White,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -1048,15 +1057,15 @@ fun AppIconSelectionScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // 1. Home Screen Preview (Premium Mockup)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp)),
-            shape = RoundedCornerShape(24.dp),
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+            shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = Color.Black // dark workspace mockup
             )
@@ -1190,17 +1199,13 @@ fun AppIconSelectionScreen(
                                 .weight(1f)
                                 .border(
                                     width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                                    shape = RoundedCornerShape(16.dp)
+                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(12.dp)
                                 )
                                 .clickable { previewKey = item.key },
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) {
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.05f)
-                                } else {
-                                    MaterialTheme.colorScheme.surface
-                                }
+                                containerColor = if (isSelected) Color(0xFF131417) else Color(0xFF090A0C)
                             )
                         ) {
                             Column(
