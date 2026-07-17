@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -120,12 +121,14 @@ fun CategoriesScreen(
             Box(
                 modifier = Modifier
                     .scale(fabScale)
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        color = MaterialTheme.colorScheme.onBackground,
+                    .padding(bottom = 56.dp) // Match bottom navigation bar offset to maintain identical screen position
+                    .size(64.dp)
+                    .shadow(
+                        elevation = if (isFabPressed) 1.dp else 3.dp,
                         shape = RoundedCornerShape(20.dp)
                     )
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.onBackground)
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
@@ -142,7 +145,7 @@ fun CategoriesScreen(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add Category",
                     tint = MaterialTheme.colorScheme.background,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             }
         },

@@ -35,9 +35,17 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -78,7 +86,50 @@ fun DashboardScreen(
         }
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        floatingActionButton = {
+            val fabInteractionSource = remember { MutableInteractionSource() }
+            val isFabPressed by fabInteractionSource.collectIsPressedAsState()
+            val fabScale by animateFloatAsState(
+                targetValue = if (isFabPressed) 0.96f else 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium
+                ),
+                label = "fabScale"
+            )
+
+            Box(
+                modifier = Modifier
+                    .scale(fabScale)
+                    .size(64.dp)
+                    .shadow(
+                        elevation = if (isFabPressed) 1.dp else 3.dp,
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.onBackground)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .clickable(
+                        interactionSource = fabInteractionSource,
+                        indication = rememberRipple(color = MaterialTheme.colorScheme.background),
+                        onClick = { onAddTransactionClick(null, null) }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Transaction",
+                    tint = MaterialTheme.colorScheme.background,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()

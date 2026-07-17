@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.widget.Toast
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -206,7 +207,11 @@ fun MainScreen(
                     onBackClick = {
                         navController.popBackStack()
                     },
-                    onAddTransactionClick = onAddTransactionClick
+                    onAddTransactionClick = onAddTransactionClick,
+                    onAddCategoryClick = onCategoryManagementClick,
+                    onAddAccountClick = {
+                        Toast.makeText(context, "Accounts module coming soon!", Toast.LENGTH_SHORT).show()
+                    }
                 )
             }
 

@@ -62,6 +62,22 @@ import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.RadioButton
+import androidx.compose.animation.*
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.border
+import androidx.compose.animation.core.*
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.ReceiptLong
+import kotlinx.coroutines.delay
 
 enum class FilterSheetView {
     FILTERS, CATEGORIES
@@ -73,8 +89,31 @@ fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
     onBackClick: () -> Unit,
-    onAddTransactionClick: (type: String?, id: Long?) -> Unit
+    onAddTransactionClick: (type: String?, id: Long?) -> Unit,
+    onAddCategoryClick: () -> Unit = {},
+    onAddAccountClick: () -> Unit = {}
 ) {
+    var isFabExpanded by remember { mutableStateOf(false) }
+    var showAction1 by remember { mutableStateOf(false) }
+    var showAction2 by remember { mutableStateOf(false) }
+    var showAction3 by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isFabExpanded) {
+        if (isFabExpanded) {
+            showAction1 = true
+            delay(35)
+            showAction2 = true
+            delay(35)
+            showAction3 = true
+        } else {
+            showAction3 = false
+            delay(35)
+            showAction2 = false
+            delay(35)
+            showAction1 = false
+        }
+    }
+
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategories by viewModel.selectedCategories.collectAsState()
     val isMultiSelectCategory by viewModel.isMultiSelectCategory.collectAsState()
@@ -135,22 +174,60 @@ fun TransactionsScreen(
 
     Scaffold(
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { onAddTransactionClick(null, null) },
-                icon = { Icon(imageVector = Icons.Default.Add, contentDescription = null) },
-                text = { Text("New") },
-                expanded = !listState.isScrollInProgress,
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.background
-            )
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Top action: Add Transaction
+                ExpandedActionItem(
+                    label = "Add Transaction",
+                    icon = Icons.Outlined.ReceiptLong,
+                    visible = showAction3,
+                    onClick = {
+                        isFabExpanded = false
+                        onAddTransactionClick(null, null)
+                    }
+                )
+                
+                // Middle action: Add Category
+                ExpandedActionItem(
+                    label = "Add Category",
+                    icon = Icons.Outlined.Category,
+                    visible = showAction2,
+                    onClick = {
+                        isFabExpanded = false
+                        onAddCategoryClick()
+                    }
+                )
+
+                // Bottom action: Add Account
+                ExpandedActionItem(
+                    label = "Add Account",
+                    icon = Icons.Outlined.AccountBalanceWallet,
+                    visible = showAction1,
+                    onClick = {
+                        isFabExpanded = false
+                        onAddAccountClick()
+                    }
+                )
+
+                // FAB Origin Button
+                FabOriginButton(
+                    isExpanded = isFabExpanded,
+                    onClick = { isFabExpanded = !isFabExpanded }
+                )
+            }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
             RootHeader(
                 title = "Transactions"
             )
@@ -403,10 +480,21 @@ fun TransactionsScreen(
                     }
                 }
             }
+            
+            // Background scrim overlay
+            if (isFabExpanded) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = { isFabExpanded = false })
+                        }
+                )
+            }
         }
-    }
-
-    if (showFilterSheet) {
+        
+        if (showFilterSheet) {
         var sheetView by remember { mutableStateOf(FilterSheetView.FILTERS) }
         var showRangePicker by remember { mutableStateOf(false) }
         var showSingleDatePicker by remember { mutableStateOf(false) }
@@ -1026,9 +1114,11 @@ fun TransactionsScreen(
                         Text("Back to Filters")
                     }
                 }
-            }
         }
     }
+}
+}
+}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1164,4 +1254,127 @@ fun MonthYearPickerDialog(
             }
         }
     )
+}
+
+@Composable
+private fun ExpandedActionItem(
+    label: String,
+    icon: ImageVector,
+    visible: Boolean,
+    onClick: () -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
+                slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 3 } +
+                scaleIn(spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioMediumBouncy), initialScale = 0.8f),
+        exit = fadeOut(spring(stiffness = Spring.StiffnessMedium)) +
+               slideOutVertically(spring(stiffness = Spring.StiffnessMedium)) { it / 3 } +
+               scaleOut(spring(stiffness = Spring.StiffnessMedium), targetScale = 0.8f)
+    ) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val isPressed by interactionSource.collectIsPressedAsState()
+        val scalePress by animateFloatAsState(
+            targetValue = if (isPressed) 0.98f else 1f,
+            animationSpec = spring(stiffness = Spring.StiffnessMedium),
+            label = "actionPressScale"
+        )
+        
+        val isDark = isSystemInDarkTheme()
+        val bgColor = if (isDark) Color(0xFF111111) else Color(0xFFF7F7F8)
+        
+        Row(
+            modifier = Modifier
+                .scale(scalePress)
+                .shadow(
+                    elevation = 2.dp,
+                    shape = RoundedCornerShape(18.dp)
+                )
+                .background(bgColor, RoundedCornerShape(18.dp))
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(18.dp)
+                )
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    onClick = onClick
+                )
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = label,
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun FabOriginButton(
+    isExpanded: Boolean,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scalePress by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "fabPressScale"
+    )
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isExpanded) 135f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "fabRotation"
+    )
+    
+    val containerColor = MaterialTheme.colorScheme.onBackground
+    val iconColor = MaterialTheme.colorScheme.background
+
+    Box(
+        modifier = Modifier
+            .scale(scalePress)
+            .size(64.dp)
+            .shadow(
+                elevation = if (isPressed) 1.dp else 3.dp,
+                shape = RoundedCornerShape(20.dp)
+            )
+            .clip(RoundedCornerShape(20.dp))
+            .background(containerColor)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = rememberRipple(color = iconColor.copy(alpha = 0.1f)),
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = "Menu",
+            tint = iconColor,
+            modifier = Modifier
+                .size(28.dp)
+                .rotate(rotationAngle)
+        )
+    }
 }
