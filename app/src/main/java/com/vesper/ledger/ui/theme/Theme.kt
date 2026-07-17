@@ -26,6 +26,7 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = Slate900,
     onSurfaceVariant = Slate400,
     outline = Slate800,
+    outlineVariant = Slate900,
     error = ExpenseRedDark,
     onError = Slate950
 )
@@ -43,7 +44,8 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Slate950,
     surfaceVariant = Slate100,
     onSurfaceVariant = Slate500,
-    outline = Slate200,
+    outline = Slate400,
+    outlineVariant = Slate300,
     error = ExpenseRedLight,
     onError = Slate50
 )
