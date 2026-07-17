@@ -105,24 +105,24 @@ fun AddCategoryScreen(
                 onBackClick = onBackClick
             )
         },
-        containerColor = Color.Black
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (!isInitialized) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(Color.Black),
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color.White)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.onBackground)
             }
         } else {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(Color.Black)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 // Scrollable content area
                 Column(
@@ -151,11 +151,11 @@ fun AddCategoryScreen(
                                 .height(76.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                     shape = RoundedCornerShape(12.dp)
                                 )
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF090A0C))
+                                .background(MaterialTheme.colorScheme.surface)
                                 .padding(horizontal = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -164,7 +164,7 @@ fun AddCategoryScreen(
                                 modifier = Modifier
                                     .size(44.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFF131417))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
                                     .border(1.dp, selectedColor.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -188,7 +188,7 @@ fun AddCategoryScreen(
                                     fontFamily = SpaceGroteskFamily,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (nameText.isNotBlank()) Color.White else Color(0xFF4A4B50),
+                                    color = if (nameText.isNotBlank()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -224,13 +224,13 @@ fun AddCategoryScreen(
                         OutlinedTextField(
                             value = nameText,
                             onValueChange = { if (it.length <= 30) nameText = it },
-                            placeholder = { Text("e.g., Shopping", fontFamily = PlusJakartaSansFamily, color = Color(0xFF4A4B50)) },
+                            placeholder = { Text("e.g., Shopping", fontFamily = PlusJakartaSansFamily, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             textStyle = LocalTextStyle.current.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontSize = 15.sp,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             ),
                             trailingIcon = {
                                 if (nameText.isNotEmpty()) {
@@ -246,12 +246,12 @@ fun AddCategoryScreen(
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedContainerColor = Color(0xFF090A0C),
-                                unfocusedContainerColor = Color(0xFF090A0C),
-                                focusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                             )
                         )
                     }
@@ -272,11 +272,11 @@ fun AddCategoryScreen(
                                 .height(48.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                     shape = RoundedCornerShape(16.dp)
                                 )
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFF090A0C)),
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             val isExpense = selectedType == TransactionType.EXPENSE
@@ -288,7 +288,7 @@ fun AddCategoryScreen(
                                     .fillMaxHeight()
                                     .padding(4.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(if (isExpense) Color(0xFF161719) else Color.Transparent)
+                                    .background(if (isExpense) MaterialTheme.colorScheme.surface else Color.Transparent)
                                     .clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null
@@ -300,7 +300,7 @@ fun AddCategoryScreen(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = if (isExpense) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = if (isExpense) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -312,7 +312,7 @@ fun AddCategoryScreen(
                                     .fillMaxHeight()
                                     .padding(4.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(if (isIncome) Color(0xFF161719) else Color.Transparent)
+                                    .background(if (isIncome) MaterialTheme.colorScheme.surface else Color.Transparent)
                                     .clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null
@@ -324,7 +324,7 @@ fun AddCategoryScreen(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = if (isIncome) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = if (isIncome) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -354,7 +354,7 @@ fun AddCategoryScreen(
                                         .background(color)
                                         .border(
                                             width = 2.dp,
-                                            color = if (isSelected) Color.White else Color.Transparent,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
                                             shape = CircleShape
                                         )
                                         .clickable { selectedColorHex = hex },
@@ -365,7 +365,7 @@ fun AddCategoryScreen(
                                             modifier = Modifier
                                                 .size(8.dp)
                                                 .clip(CircleShape)
-                                                .background(Color.White)
+                                                .background(MaterialTheme.colorScheme.background)
                                         )
                                     }
                                 }
@@ -389,11 +389,11 @@ fun AddCategoryScreen(
                                 .height(56.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                     shape = RoundedCornerShape(12.dp)
                                 )
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF090A0C))
+                                .background(MaterialTheme.colorScheme.surface)
                                 .clickable { showIconSheet = true }
                                 .padding(horizontal = 16.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -404,7 +404,7 @@ fun AddCategoryScreen(
                                     modifier = Modifier
                                         .size(32.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFF131417)),
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -420,7 +420,7 @@ fun AddCategoryScreen(
                                     fontFamily = SpaceGroteskFamily,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color.White
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
@@ -450,7 +450,7 @@ fun AddCategoryScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.9f))
+                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.9f))
                         .navigationBarsPadding()
                         .padding(horizontal = 24.dp, vertical = 20.dp)
                 ) {
@@ -479,10 +479,10 @@ fun AddCategoryScreen(
                         },
                         enabled = nameText.isNotBlank(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black,
-                            disabledContainerColor = Color(0xFF1E1F22),
-                            disabledContentColor = Color(0xFF5A5B60)
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
@@ -509,9 +509,9 @@ fun AddCategoryScreen(
         
         ModalBottomSheet(
             onDismissRequest = { showIconSheet = false },
-            containerColor = Color(0xFF090A0C),
+            containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF1E1F22)) }
+            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outline) }
         ) {
             Column(
                 modifier = Modifier
@@ -527,7 +527,7 @@ fun AddCategoryScreen(
                     fontFamily = SpaceGroteskFamily,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 // Scrollable 4 column icon grid
@@ -557,11 +557,11 @@ fun AddCategoryScreen(
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(
                                     if (isSelected) selectedColor
-                                    else Color(0xFF131417)
+                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                 )
                                 .border(
                                     width = 1.dp,
-                                    color = if (isSelected) Color.White.copy(alpha = 0.2f) else Color(0xFF1E1F22),
+                                    color = if (isSelected) Color.White.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                     shape = RoundedCornerShape(12.dp)
                                 )
                                 .clickable {
@@ -572,7 +572,7 @@ fun AddCategoryScreen(
                             Icon(
                                 imageVector = getIconByName(iconName),
                                 contentDescription = null,
-                                tint = if (isSelected) Color.White else Color(0xFF8B8C90),
+                                tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -583,8 +583,8 @@ fun AddCategoryScreen(
                 Button(
                     onClick = { showIconSheet = false },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
                     ),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier

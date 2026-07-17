@@ -104,13 +104,13 @@ fun CategoriesScreen(
                 onBackClick = onBackClick
             )
         },
-        containerColor = Color.Black
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             Column(
                 modifier = modifier
@@ -127,11 +127,11 @@ fun CategoriesScreen(
                         .height(48.dp)
                         .border(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             shape = RoundedCornerShape(16.dp)
                         )
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFF090A0C)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val isExpense = selectedType == TransactionType.EXPENSE
@@ -143,7 +143,7 @@ fun CategoriesScreen(
                             .fillMaxHeight()
                             .padding(4.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isExpense) Color(0xFF161719) else Color.Transparent)
+                            .background(if (isExpense) MaterialTheme.colorScheme.surface else Color.Transparent)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
@@ -155,7 +155,7 @@ fun CategoriesScreen(
                             fontFamily = SpaceGroteskFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = if (isExpense) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isExpense) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -167,7 +167,7 @@ fun CategoriesScreen(
                             .fillMaxHeight()
                             .padding(4.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isIncome) Color(0xFF161719) else Color.Transparent)
+                            .background(if (isIncome) MaterialTheme.colorScheme.surface else Color.Transparent)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
@@ -179,7 +179,7 @@ fun CategoriesScreen(
                             fontFamily = SpaceGroteskFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = if (isIncome) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isIncome) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -216,11 +216,11 @@ fun CategoriesScreen(
                                     .height(76.dp)
                                     .border(
                                         width = 1.dp,
-                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                         shape = RoundedCornerShape(12.dp)
                                     )
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFF090A0C))
+                                    .background(MaterialTheme.colorScheme.surface)
                                     .pointerInput(Unit) {
                                         detectTapGestures(
                                             onTap = { onAddCategoryClick(cat.id) },
@@ -235,7 +235,7 @@ fun CategoriesScreen(
                                     modifier = Modifier
                                         .size(44.dp)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(Color(0xFF131417))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
                                         .border(1.dp, catColor.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -259,7 +259,7 @@ fun CategoriesScreen(
                                         fontFamily = SpaceGroteskFamily,
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -313,17 +313,17 @@ fun CategoriesScreen(
                         .size(56.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(
-                            color = Color(0xFF1E1F22), // Frosted monochrome premium glass-like color
+                            color = MaterialTheme.colorScheme.onBackground,
                             shape = RoundedCornerShape(20.dp)
                         )
                         .border(
                             width = 1.dp,
-                            color = Color.White.copy(alpha = 0.15f),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             shape = RoundedCornerShape(20.dp)
                         )
                         .clickable(
                             interactionSource = fabInteractionSource,
-                            indication = rememberRipple(color = Color.White),
+                            indication = rememberRipple(color = MaterialTheme.colorScheme.background),
                             onClick = { onAddCategoryClick(null) }
                         ),
                     contentAlignment = Alignment.Center
@@ -331,7 +331,7 @@ fun CategoriesScreen(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add Category",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.background,
                         modifier = Modifier.size(24.dp)
                     )
                 }
