@@ -42,16 +42,22 @@ import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
-// 8 luxury preset colors from the specifications
+// 14 luxury preset colors from the specifications
 val LUXURY_COLORS = listOf(
-    "#DC2626", // Red
-    "#F97316", // Orange
-    "#FACC15", // Yellow
-    "#10B981", // Green
+    "#E5484D", // Red
+    "#F57C00", // Orange
+    "#E8A317", // Amber
+    "#D4B000", // Yellow
+    "#22A559", // Green
+    "#00A676", // Emerald
+    "#0FA3B1", // Teal
     "#3B82F6", // Blue
+    "#5C6BC0", // Indigo
     "#8B5CF6", // Purple
-    "#EC4899", // Pink
-    "#71717A"  // Gray
+    "#E84A9B", // Pink
+    "#E85D75", // Rose
+    "#8D6E63", // Brown
+    "#607D8B"  // Slate
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
