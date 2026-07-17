@@ -55,7 +55,7 @@ fun RootHeader(
                 ) { onMenuClick?.invoke() }
         )
         
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         
         Text(
             text = title,
@@ -71,11 +71,11 @@ fun RootHeader(
             modifier = Modifier.weight(1f)
         )
         
-        // Right visual group: Notification (12dp gap) + Avatar (16dp end margin)
+        // Right visual group: Notification (8dp gap) + Avatar (16dp end margin)
         if (actions != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(end = 16.dp),
                 content = actions
             )
@@ -111,7 +111,7 @@ fun ChildHeader(
                 ) { onBackClick() }
         )
         
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         
         Text(
             text = title,
@@ -131,7 +131,7 @@ fun ChildHeader(
         if (actions != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(end = 16.dp),
                 content = actions
             )

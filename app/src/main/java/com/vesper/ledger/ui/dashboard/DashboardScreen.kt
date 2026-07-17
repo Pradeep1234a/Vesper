@@ -100,7 +100,7 @@ fun DashboardScreen(
                     )
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(24.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
@@ -111,6 +111,7 @@ fun DashboardScreen(
                             text = userName.take(1).uppercase(),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         )
