@@ -325,6 +325,7 @@ fun SettingsScreen(
                     RootHeader(
                         title = "Settings"
                     )
+                    Spacer(modifier = Modifier.height(8.dp)) // Consistent spacing below header
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -332,7 +333,6 @@ fun SettingsScreen(
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
-                        Spacer(modifier = Modifier.height(8.dp)) // Add consistent spacing below header!
 
                 // Dedicated Premium Profile Card
                 Card(
