@@ -155,9 +155,17 @@ fun TransactionsScreen(
             RootHeader(
                 title = "Transactions",
                 actions = {
-                    IconButton(onClick = onCategoryManagementClick) {
-                        Icon(imageVector = Icons.Default.Category, contentDescription = "Manage Categories", tint = MaterialTheme.colorScheme.onBackground)
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Category,
+                        contentDescription = "Manage Categories",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { onCategoryManagementClick() }
+                    )
                 }
             )
             // Search Input Field & Filter Menu Button Row

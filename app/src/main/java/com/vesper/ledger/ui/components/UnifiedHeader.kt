@@ -94,22 +94,25 @@ fun ChildHeader(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .height(56.dp)
-            .padding(horizontal = 4.dp),
+            .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(
-            onClick = onBackClick,
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(4.dp))
+        // Back icon starts exactly at 16.dp matching left edge of cards
+        Icon(
+            imageVector = Icons.Default.ArrowBack,
+            contentDescription = "Back",
+            tint = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .size(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onBackClick() }
+        )
+        
+        Spacer(modifier = Modifier.width(16.dp))
+        
         Text(
             text = title,
             style = TextStyle(
@@ -123,10 +126,13 @@ fun ChildHeader(
             ),
             modifier = Modifier.weight(1f)
         )
+        
+        // Right visual group: Actions aligned with 16dp end margin
         if (actions != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(end = 16.dp),
                 content = actions
             )
         }

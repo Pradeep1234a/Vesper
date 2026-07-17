@@ -34,6 +34,8 @@ import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.RootHeader
 import java.text.DecimalFormat
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsScreen(
@@ -61,14 +63,17 @@ fun ReportsScreen(
         RootHeader(
             title = "Analytics",
             actions = {
-                IconButton(onClick = { /* Help click */ }) {
-                    Icon(
-                        imageVector = Icons.Outlined.HelpOutline,
-                        contentDescription = "Help",
-                        tint = secTextColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Outlined.HelpOutline,
+                    contentDescription = "Help",
+                    tint = secTextColor,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { /* Help click */ }
+                )
             }
         )
 
