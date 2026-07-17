@@ -14,14 +14,18 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
 
-// Period filter options
+// Predefined date range selector options
 enum class AnalyticsPeriod(val label: String) {
+    TODAY("Today"),
+    YESTERDAY("Yesterday"),
     THIS_WEEK("This Week"),
+    LAST_WEEK("Last Week"),
     THIS_MONTH("This Month"),
     LAST_MONTH("Last Month"),
     LAST_3_MONTHS("Last 3 Months"),
     LAST_6_MONTHS("Last 6 Months"),
-    THIS_YEAR("This Year")
+    THIS_YEAR("This Year"),
+    CUSTOM("Custom Range")
 }
 
 data class CategoryReport(
@@ -72,13 +76,19 @@ class ReportsViewModel(
 ) : ViewModel() {
 
     val selectedPeriod = MutableStateFlow(AnalyticsPeriod.THIS_MONTH)
+    
+    // Custom range state variables
+    val customStartDate = MutableStateFlow<Long?>(null)
+    val customEndDate = MutableStateFlow<Long?>(null)
 
     val uiState: StateFlow<ReportsUiState> = combine(
         transactionRepository.allTransactions,
         transactionRepository.allCategories,
-        selectedPeriod
-    ) { transactions, categories, period ->
-        computeState(transactions, categories, period)
+        selectedPeriod,
+        customStartDate,
+        customEndDate
+    ) { transactions, categories, period, start, end ->
+        computeState(transactions, categories, period, start, end)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -88,17 +98,24 @@ class ReportsViewModel(
     fun setPeriod(period: AnalyticsPeriod) {
         selectedPeriod.value = period
     }
+    
+    fun setCustomRange(startMs: Long, endMs: Long) {
+        customStartDate.value = startMs
+        customEndDate.value = endMs
+        selectedPeriod.value = AnalyticsPeriod.CUSTOM
+    }
 
     private fun computeState(
         transactions: List<Transaction>,
         categories: List<Category>,
-        period: AnalyticsPeriod
+        period: AnalyticsPeriod,
+        customStart: Long?,
+        customEnd: Long?
     ): ReportsUiState {
         val now = System.currentTimeMillis()
-        val cal = Calendar.getInstance()
 
         // Calculate period bounds
-        val (startMs, endMs) = getPeriodBounds(period, cal, now)
+        val (startMs, endMs) = getPeriodBounds(period, now, customStart, customEnd)
         val periodDays = ((endMs - startMs) / (1000 * 60 * 60 * 24)).coerceAtLeast(1)
 
         // Previous period for comparison
@@ -141,7 +158,7 @@ class ReportsViewModel(
             CategoryReport(cat, total, pct)
         }.filter { it.totalAmount > 0 }.sortedByDescending { it.totalAmount }
 
-        // Trend points (group by day/week/month depending on period)
+        // Trend points
         val trendPoints = computeTrendPoints(expenses, period, startMs, endMs)
 
         // Heatmap
@@ -174,45 +191,72 @@ class ReportsViewModel(
         )
     }
 
-    private fun getPeriodBounds(period: AnalyticsPeriod, cal: Calendar, now: Long): Pair<Long, Long> {
-        cal.timeInMillis = now
-        val endMs = now
-        val startMs = when (period) {
+    private fun getPeriodBounds(
+        period: AnalyticsPeriod,
+        now: Long,
+        customStart: Long?,
+        customEnd: Long?
+    ): Pair<Long, Long> {
+        val startCal = Calendar.getInstance().apply { timeInMillis = now }
+        val endCal = Calendar.getInstance().apply { timeInMillis = now }
+
+        when (period) {
+            AnalyticsPeriod.TODAY -> {
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
+                endCal.set(Calendar.HOUR_OF_DAY, 23); endCal.set(Calendar.MINUTE, 59); endCal.set(Calendar.SECOND, 59); endCal.set(Calendar.MILLISECOND, 999)
+            }
+            AnalyticsPeriod.YESTERDAY -> {
+                startCal.add(Calendar.DAY_OF_YEAR, -1)
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
+                endCal.add(Calendar.DAY_OF_YEAR, -1)
+                endCal.set(Calendar.HOUR_OF_DAY, 23); endCal.set(Calendar.MINUTE, 59); endCal.set(Calendar.SECOND, 59); endCal.set(Calendar.MILLISECOND, 999)
+            }
             AnalyticsPeriod.THIS_WEEK -> {
-                cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
-                cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
-                cal.timeInMillis
+                startCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek)
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
+            }
+            AnalyticsPeriod.LAST_WEEK -> {
+                startCal.add(Calendar.WEEK_OF_YEAR, -1)
+                startCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek)
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
+
+                endCal.add(Calendar.WEEK_OF_YEAR, -1)
+                endCal.set(Calendar.DAY_OF_WEEK, endCal.firstDayOfWeek + 6)
+                endCal.set(Calendar.HOUR_OF_DAY, 23); endCal.set(Calendar.MINUTE, 59); endCal.set(Calendar.SECOND, 59); endCal.set(Calendar.MILLISECOND, 999)
             }
             AnalyticsPeriod.THIS_MONTH -> {
-                cal.set(Calendar.DAY_OF_MONTH, 1)
-                cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
-                cal.timeInMillis
+                startCal.set(Calendar.DAY_OF_MONTH, 1)
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
             }
             AnalyticsPeriod.LAST_MONTH -> {
-                cal.add(Calendar.MONTH, -1)
-                cal.set(Calendar.DAY_OF_MONTH, 1)
-                cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
-                cal.timeInMillis
+                startCal.add(Calendar.MONTH, -1)
+                startCal.set(Calendar.DAY_OF_MONTH, 1)
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
+
+                endCal.add(Calendar.MONTH, -1)
+                endCal.set(Calendar.DAY_OF_MONTH, endCal.getActualMaximum(Calendar.DAY_OF_MONTH))
+                endCal.set(Calendar.HOUR_OF_DAY, 23); endCal.set(Calendar.MINUTE, 59); endCal.set(Calendar.SECOND, 59); endCal.set(Calendar.MILLISECOND, 999)
             }
             AnalyticsPeriod.LAST_3_MONTHS -> {
-                cal.add(Calendar.MONTH, -3)
-                cal.set(Calendar.DAY_OF_MONTH, 1)
-                cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
-                cal.timeInMillis
+                startCal.add(Calendar.MONTH, -3)
+                startCal.set(Calendar.DAY_OF_MONTH, 1)
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
             }
             AnalyticsPeriod.LAST_6_MONTHS -> {
-                cal.add(Calendar.MONTH, -6)
-                cal.set(Calendar.DAY_OF_MONTH, 1)
-                cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
-                cal.timeInMillis
+                startCal.add(Calendar.MONTH, -6)
+                startCal.set(Calendar.DAY_OF_MONTH, 1)
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
             }
             AnalyticsPeriod.THIS_YEAR -> {
-                cal.set(Calendar.DAY_OF_YEAR, 1)
-                cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
-                cal.timeInMillis
+                startCal.set(Calendar.DAY_OF_YEAR, 1)
+                startCal.set(Calendar.HOUR_OF_DAY, 0); startCal.set(Calendar.MINUTE, 0); startCal.set(Calendar.SECOND, 0); startCal.set(Calendar.MILLISECOND, 0)
+            }
+            AnalyticsPeriod.CUSTOM -> {
+                startCal.timeInMillis = customStart ?: now
+                endCal.timeInMillis = customEnd ?: now
             }
         }
-        return Pair(startMs, endMs)
+        return Pair(startCal.timeInMillis, endCal.timeInMillis)
     }
 
     private fun computeTrendPoints(
@@ -225,13 +269,34 @@ class ReportsViewModel(
         val monthNames = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
         return when (period) {
-            AnalyticsPeriod.THIS_WEEK, AnalyticsPeriod.THIS_MONTH, AnalyticsPeriod.LAST_MONTH -> {
-                // Group by day
+            AnalyticsPeriod.TODAY, AnalyticsPeriod.YESTERDAY -> {
+                val groups = expenses.groupBy { tx ->
+                    cal.timeInMillis = tx.dateEpochMillis
+                    val hour = cal.get(Calendar.HOUR_OF_DAY)
+                    val ampm = if (cal.get(Calendar.AM_PM) == Calendar.AM) "AM" else "PM"
+                    val displayHour = if (hour % 12 == 0) 12 else hour % 12
+                    "$displayHour $ampm"
+                }
+                val result = mutableListOf<TrendPoint>()
+                for (h in 0..23 step 4) {
+                    val ampm = if (h < 12) "AM" else "PM"
+                    val displayHour = if (h % 12 == 0) 12 else h % 12
+                    val label = "$displayHour $ampm"
+                    var sum = 0.0
+                    for (subHour in h until (h + 4)) {
+                        val subAmpm = if (subHour < 12) "AM" else "PM"
+                        val subDisplayHour = if (subHour % 12 == 0) 12 else subHour % 12
+                        sum += groups["$subDisplayHour $subAmpm"]?.sumOf { it.amount } ?: 0.0
+                    }
+                    result.add(TrendPoint(label, sum))
+                }
+                result
+            }
+            AnalyticsPeriod.THIS_WEEK, AnalyticsPeriod.LAST_WEEK, AnalyticsPeriod.THIS_MONTH, AnalyticsPeriod.LAST_MONTH -> {
                 val groups = expenses.groupBy { tx ->
                     cal.timeInMillis = tx.dateEpochMillis
                     "${monthNames[cal.get(Calendar.MONTH)]} ${cal.get(Calendar.DAY_OF_MONTH)}"
                 }
-                // Build consecutive days
                 val result = mutableListOf<TrendPoint>()
                 val dayCal = Calendar.getInstance().apply { timeInMillis = startMs }
                 while (dayCal.timeInMillis <= endMs) {
@@ -243,7 +308,6 @@ class ReportsViewModel(
                 result
             }
             else -> {
-                // Group by month
                 val groups = expenses.groupBy { tx ->
                     cal.timeInMillis = tx.dateEpochMillis
                     "${monthNames[cal.get(Calendar.MONTH)]}"
@@ -267,7 +331,6 @@ class ReportsViewModel(
         endMs: Long
     ): List<HeatmapDay> {
         val cal = Calendar.getInstance()
-        // Build a map of day -> count
         val dayCounts = mutableMapOf<String, Int>()
         for (tx in expenses) {
             cal.timeInMillis = tx.dateEpochMillis
@@ -285,7 +348,7 @@ class ReportsViewModel(
             if (lastWeekOfYear != -1 && weekOfYear != lastWeekOfYear) weekIdx++
             lastWeekOfYear = weekOfYear
 
-            val dayOfWeek = (dayCal.get(Calendar.DAY_OF_WEEK) + 5) % 7 // Mon=0..Sun=6
+            val dayOfWeek = (dayCal.get(Calendar.DAY_OF_WEEK) + 5) % 7
             val key = "${dayCal.get(Calendar.YEAR)}-${dayCal.get(Calendar.DAY_OF_YEAR)}"
             val count = dayCounts[key] ?: 0
             val intensity = if (maxCount > 0) count / maxCount else 0f

@@ -1,10 +1,14 @@
 package com.vesper.ledger.ui.reports
 
 import android.graphics.Color as AndroidColor
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +17,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,21 +29,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
-import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.components.RootHeader
+import com.vesper.ledger.ui.components.getIconByName
 import java.text.DecimalFormat
-
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import java.util.Calendar
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,21 +63,22 @@ fun ReportsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     val df = DecimalFormat("#,##0")
-    val df2 = DecimalFormat("#,##0.00")
 
     val onBgColor = MaterialTheme.colorScheme.onBackground
     val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     val outlineColor = MaterialTheme.colorScheme.outline
-    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val surfaceColor = MaterialTheme.colorScheme.surface
     val bgColor = MaterialTheme.colorScheme.background
 
-    var periodMenuExpanded by remember { mutableStateOf(false) }
+    var showPeriodSheet by remember { mutableStateOf(false) }
+    var showCustomRangePicker by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(bgColor)
     ) {
+        // Standard RootHeader with Hamburger and Help Actions
         RootHeader(
             title = "Analytics",
             actions = {
@@ -77,300 +96,403 @@ fun ReportsScreen(
             }
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            ExposedDropdownMenuBox(
-                expanded = periodMenuExpanded,
-                onExpandedChange = { periodMenuExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = selectedPeriod.label,
-                    onValueChange = {},
-                    readOnly = true,
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Outlined.CalendarToday, null, tint = secTextColor, modifier = Modifier.size(16.dp)) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = periodMenuExpanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = outlineColor,
-                        unfocusedBorderColor = outlineColor,
-                        focusedTextColor = onBgColor,
-                        unfocusedTextColor = onBgColor
-                    )
-                )
-                ExposedDropdownMenu(
-                    expanded = periodMenuExpanded,
-                    onDismissRequest = { periodMenuExpanded = false }
-                ) {
-                    AnalyticsPeriod.values().forEach { period ->
-                        DropdownMenuItem(
-                            text = { Text(period.label) },
-                            onClick = {
-                                viewModel.setPeriod(period)
-                                periodMenuExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .weight(1f)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            contentPadding = PaddingValues(bottom = 100.dp)
+                .padding(horizontal = 24.dp), // Unified 24dp horizontal margin
+            verticalArrangement = Arrangement.spacedBy(24.dp), // 24dp spacing between sections
+            contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
         ) {
-
-        // ── Summary Bento Grid ──
-        item {
-            val changePctText = if (uiState.spendingChangePercent >= 0) "↑ ${df.format(uiState.spendingChangePercent.toDouble())}%" else "↓ ${df.format((-uiState.spendingChangePercent).toDouble())}%"
-            val txChangePctText = if (uiState.transactionChangePercent >= 0) "↑ ${df.format(uiState.transactionChangePercent.toDouble())}%" else "↓ ${df.format((-uiState.transactionChangePercent).toDouble())}%"
-            val avgChangePctText = if (uiState.avgChangePercent >= 0) "↑ ${df.format(uiState.avgChangePercent.toDouble())}%" else "↓ ${df.format((-uiState.avgChangePercent).toDouble())}%"
-
-            // Row 1: Total Spending | Transactions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                BentoCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.TrendingUp,
-                    title = "Total Spending",
-                    value = "$currencySymbol${df.format(uiState.totalSpending.toLong())}",
-                    subtitle = "$changePctText vs last period",
-                    subtitleColor = if (uiState.spendingChangePercent >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
-                )
-                BentoCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.ListAlt,
-                    title = "Transactions",
-                    value = "${uiState.transactionCount}",
-                    subtitle = "$txChangePctText vs last period",
-                    subtitleColor = if (uiState.transactionChangePercent >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
-                )
-            }
-        }
-
-        item {
-            val avgChangePctText = if (uiState.avgChangePercent >= 0) "↑ ${df.format(uiState.avgChangePercent.toDouble())}%" else "↓ ${df.format((-uiState.avgChangePercent).toDouble())}%"
-            // Row 2: Avg Daily | Largest Expense
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                BentoCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.AccessTime,
-                    title = "Avg. Daily Spend",
-                    value = "$currencySymbol${df.format(uiState.averageDailySpend.toLong())}",
-                    subtitle = "$avgChangePctText vs last period",
-                    subtitleColor = if (uiState.avgChangePercent >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
-                )
-                BentoCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.Receipt,
-                    title = "Largest Expense",
-                    value = "$currencySymbol${df.format(uiState.largestExpenseAmount.toLong())}",
-                    subtitle = if (uiState.largestExpenseName.isNotEmpty()) "${uiState.largestExpenseName} • ${uiState.largestExpenseDate}" else "—",
-                    subtitleColor = secTextColor
-                )
-            }
-        }
-
-        // ── Spending Trend (Canvas Area Chart) ──
-        item {
-            SpendingTrendSection(
-                trendPoints = uiState.trendPoints,
-                currencySymbol = currencySymbol,
-                onBgColor = onBgColor,
-                secTextColor = secTextColor,
-                outlineColor = outlineColor,
-                accentColor = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        // ── Category Breakdown ──
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Category Breakdown", fontFamily = SpaceGroteskFamily, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                Text("View All", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
-            }
-        }
-        if (uiState.categoryReports.isEmpty()) {
+            // ── Section 1: Period Selector ──
             item {
-                Text("No category data for this period.", fontSize = 13.sp, color = secTextColor.copy(alpha = 0.6f), modifier = Modifier.padding(vertical = 8.dp))
+                PeriodSelectorCard(
+                    selectedPeriod = selectedPeriod,
+                    onClick = { showPeriodSheet = true }
+                )
             }
-        } else {
-            items(uiState.categoryReports.take(5)) { report ->
-                CategoryProgressRow(
-                    report = report,
+
+            // ── Section 2: Overview Metrics (2x2 Grid) ──
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "Overview",
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = onBgColor
+                    )
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp) // 16dp spacing between cards
+                    ) {
+                        AnalyticsGridCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Total Spending",
+                            value = "$currencySymbol${df.format(uiState.totalSpending)}",
+                            subtitle = if (uiState.spendingChangePercent >= 0) {
+                                "↑ ${df.format(uiState.spendingChangePercent.toDouble())}% vs last period"
+                            } else {
+                                "↓ ${df.format((-uiState.spendingChangePercent).toDouble())}% vs last period"
+                            },
+                            subtitleColor = if (uiState.spendingChangePercent >= 0) Color(0xFFEF4444) else Color(0xFF22C55E)
+                        )
+                        AnalyticsGridCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Transaction Count",
+                            value = "${uiState.transactionCount}",
+                            subtitle = if (uiState.transactionChangePercent >= 0) {
+                                "↑ ${df.format(uiState.transactionChangePercent.toDouble())}% vs last period"
+                            } else {
+                                "↓ ${df.format((-uiState.transactionChangePercent).toDouble())}% vs last period"
+                            },
+                            subtitleColor = if (uiState.transactionChangePercent >= 0) Color(0xFFEF4444) else Color(0xFF22C55E)
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        AnalyticsGridCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Average Daily Spend",
+                            value = "$currencySymbol${df.format(uiState.averageDailySpend)}",
+                            subtitle = if (uiState.avgChangePercent >= 0) {
+                                "↑ ${df.format(uiState.avgChangePercent.toDouble())}% vs last period"
+                            } else {
+                                "↓ ${df.format((-uiState.avgChangePercent).toDouble())}% vs last period"
+                            },
+                            subtitleColor = if (uiState.avgChangePercent >= 0) Color(0xFFEF4444) else Color(0xFF22C55E)
+                        )
+                        AnalyticsGridCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Largest Expense",
+                            value = "$currencySymbol${df.format(uiState.largestExpenseAmount)}",
+                            subtitle = if (uiState.largestExpenseName.isNotEmpty()) {
+                                "${uiState.largestExpenseName} • ${uiState.largestExpenseDate}"
+                            } else {
+                                "No transactions yet"
+                            },
+                            subtitleColor = secTextColor
+                        )
+                    }
+                }
+            }
+
+            // ── Section 3: Spending Trend Bezier Chart ──
+            item {
+                SpendingTrendSection(
+                    trendPoints = uiState.trendPoints,
                     currencySymbol = currencySymbol,
                     onBgColor = onBgColor,
                     secTextColor = secTextColor,
-                    outlineColor = outlineColor
+                    outlineColor = outlineColor,
+                    accentColor = MaterialTheme.colorScheme.primary
                 )
             }
-        }
 
-        // ── Monthly Comparison ──
-        item {
-            ShCard(modifier = Modifier.fillMaxWidth()) {
-                Text("Monthly Comparison", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            // ── Section 4: Spending Calendar Heatmap ──
+            item {
+                SpendingCalendarSection(
+                    heatmapDays = uiState.heatmapDays,
+                    accentColor = MaterialTheme.colorScheme.primary,
+                    outlineColor = outlineColor,
+                    onBgColor = onBgColor,
+                    secTextColor = secTextColor
+                )
+            }
+
+            // ── Section 5: Category Breakdown Bento Grid ──
+            item {
+                CategoryBreakdownSection(
+                    reports = uiState.categoryReports,
+                    currencySymbol = currencySymbol,
+                    onBgColor = onBgColor,
+                    secTextColor = secTextColor
+                )
+            }
+
+            // ── Section 6: Monthly Comparison ──
+            item {
+                MonthlyComparisonSection(
+                    uiState = uiState,
+                    currencySymbol = currencySymbol,
+                    onBgColor = onBgColor,
+                    secTextColor = secTextColor,
+                    df = df
+                )
+            }
+
+            // ── Section 7: Top Merchants ──
+            item {
+                TopMerchantsSection(
+                    merchants = uiState.topMerchants,
+                    currencySymbol = currencySymbol,
+                    onBgColor = onBgColor,
+                    secTextColor = secTextColor
+                )
+            }
+
+            // ── Section 8: Financial Distribution (Optional) ──
+            val showDistribution = uiState.totalIncome > uiState.totalSpending
+            if (showDistribution) {
+                item {
+                    FinancialDistributionSection(
+                        totalSpending = uiState.totalSpending,
+                        totalIncome = uiState.totalIncome,
+                        currencySymbol = currencySymbol,
+                        onBgColor = onBgColor,
+                        secTextColor = secTextColor
+                    )
+                }
+            }
+        }
+    }
+
+    // Predefined Period Selection Modal Bottom Sheet
+    if (showPeriodSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showPeriodSheet = false },
+            sheetState = rememberModalBottomSheetState(),
+            containerColor = surfaceColor,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 40.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Select Analytics Period",
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = onBgColor,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("This Period", fontSize = 11.sp, color = secTextColor)
-                        Text("$currencySymbol${df.format(uiState.totalSpending.toLong())}", fontFamily = SpaceGroteskFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Last Period", fontSize = 11.sp, color = secTextColor)
-                        Text("$currencySymbol${df.format(uiState.previousPeriodSpending.toLong())}", fontFamily = SpaceGroteskFamily, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Difference", fontSize = 11.sp, color = secTextColor)
-                        val diff = uiState.totalSpending - uiState.previousPeriodSpending
-                        val diffSign = if (diff >= 0) "+" else ""
-                        val diffPctText = if (uiState.spendingChangePercent >= 0) "↑ ${df.format(uiState.spendingChangePercent.toDouble())}%" else "↓ ${df.format((-uiState.spendingChangePercent).toDouble())}%"
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(AnalyticsPeriod.values().toList()) { period ->
+                        val isSelected = period == selectedPeriod
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f)
+                                    else Color.Transparent
+                                )
+                                .clickable {
+                                    if (period == AnalyticsPeriod.CUSTOM) {
+                                        showPeriodSheet = false
+                                        showCustomRangePicker = true
+                                    } else {
+                                        viewModel.setPeriod(period)
+                                        showPeriodSheet = false
+                                    }
+                                }
+                                .padding(vertical = 12.dp, horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(
-                                diffPctText,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (diff >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
+                                text = period.label,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else onBgColor
+                                )
                             )
-                            Text(
-                                "$diffSign$currencySymbol${df.format(kotlin.math.abs(diff).toLong())}",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (diff >= 0) Color(0xFFDC2626) else Color(0xFF16A34A)
-                            )
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Check,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
 
-        // ── Spending Activity Heatmap ──
-        item {
-            ShCard(modifier = Modifier.fillMaxWidth()) {
-                Text("Spending Activity", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
-                Spacer(modifier = Modifier.height(12.dp))
-                HeatmapGrid(
-                    heatmapDays = uiState.heatmapDays,
-                    accentColor = MaterialTheme.colorScheme.primary,
-                    outlineColor = outlineColor
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                // Legend
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Less", fontSize = 9.sp, color = secTextColor)
-                    for (i in 0..4) {
-                        val alpha = i * 0.25f
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .background(
-                                    if (i == 0) outlineColor.copy(alpha = 0.3f)
-                                    else MaterialTheme.colorScheme.primary.copy(alpha = alpha),
-                                    RoundedCornerShape(2.dp)
-                                )
-                        )
+    // Custom Date Range Picker Dialog
+    if (showCustomRangePicker) {
+        val rangeState = rememberDateRangePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showCustomRangePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val start = rangeState.selectedStartDateMillis
+                        val end = rangeState.selectedEndDateMillis
+                        if (start != null && end != null) {
+                            viewModel.setCustomRange(start, end)
+                        }
+                        showCustomRangePicker = false
                     }
-                    Text("More", fontSize = 9.sp, color = secTextColor)
+                ) {
+                    Text("Apply Range", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCustomRangePicker = false }) {
+                    Text("Cancel")
                 }
             }
-        }
-
-        // ── Top Merchants ──
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Top Merchants", fontFamily = SpaceGroteskFamily, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-                Text("View All", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
-            }
-        }
-        if (uiState.topMerchants.isEmpty()) {
-            item {
-                Text("No merchant data for this period.", fontSize = 13.sp, color = secTextColor.copy(alpha = 0.6f), modifier = Modifier.padding(vertical = 8.dp))
-            }
-        } else {
-            items(uiState.topMerchants) { merchant ->
-                MerchantRow(
-                    merchant = merchant,
-                    currencySymbol = currencySymbol,
-                    onBgColor = onBgColor,
-                    secTextColor = secTextColor,
-                    outlineColor = outlineColor
-                )
-            }
+        ) {
+            DateRangePicker(
+                state = rangeState,
+                showModeToggle = false,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
+
+// ────────────────────────────────────
+// CUSTOM ANALYTICS CARD
+// ────────────────────────────────────
+@Composable
+fun AnalyticsCard(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val clickableModifier = if (onClick != null) {
+        Modifier.clickable { onClick() }
+    } else {
+        Modifier
+    }
+
+    Card(
+        modifier = modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(24.dp)
+            )
+            .then(clickableModifier),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            content()
+        }
+    }
 }
 
 // ────────────────────────────────────
-// BENTO CARD COMPONENT
+// PERIOD SELECTOR CARD
 // ────────────────────────────────────
 @Composable
-fun BentoCard(
-    modifier: Modifier = Modifier,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+fun PeriodSelectorCard(
+    selectedPeriod: AnalyticsPeriod,
+    onClick: () -> Unit
+) {
+    AnalyticsCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.CalendarToday,
+                contentDescription = "Calendar",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Analytics Period",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = selectedPeriod.label,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+            }
+            
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "Select Period",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+// ────────────────────────────────────
+// ANALYTICS GRID CARD
+// ────────────────────────────────────
+@Composable
+fun AnalyticsGridCard(
     title: String,
     value: String,
     subtitle: String,
-    subtitleColor: Color
+    subtitleColor: Color,
+    modifier: Modifier = Modifier
 ) {
-    val onBgColor = MaterialTheme.colorScheme.onBackground
-    val secTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-
-    ShCard(modifier = modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(title, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = secTextColor)
-            Icon(icon, null, tint = secTextColor, modifier = Modifier.size(14.dp))
-        }
+    AnalyticsCard(modifier = modifier) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelSmall.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium
+            )
+        )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            value,
-            fontFamily = SpaceGroteskFamily,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = onBgColor
+            text = value,
+            style = TextStyle(
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(subtitle, fontSize = 10.sp, color = subtitleColor)
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 10.sp,
+                color = subtitleColor
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
 // ────────────────────────────────────
-// SPENDING TREND (CANVAS AREA CHART)
+// SPENDING TREND SECTION (SMOOTH BEZIER)
 // ────────────────────────────────────
 @Composable
 fun SpendingTrendSection(
@@ -382,17 +504,19 @@ fun SpendingTrendSection(
     accentColor: Color
 ) {
     val df = DecimalFormat("#,##0")
+    val density = LocalDensity.current
+    var activePointIndex by remember { mutableStateOf<Int?>(null) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Spending Trend", fontFamily = SpaceGroteskFamily, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Spending Trend",
+            fontFamily = FontFamily.Serif,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = onBgColor
+        )
 
-        ShCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
+        AnalyticsCard(modifier = Modifier.fillMaxWidth()) {
             if (trendPoints.isEmpty() || trendPoints.all { it.amount == 0.0 }) {
                 Box(
                     modifier = Modifier
@@ -400,105 +524,281 @@ fun SpendingTrendSection(
                         .height(180.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No trend data for this period.", fontSize = 13.sp, color = secTextColor.copy(alpha = 0.6f))
+                    Text(
+                        text = "No trend data for this period.",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = secTextColor.copy(alpha = 0.6f))
+                    )
                 }
             } else {
+                val maxVal = trendPoints.maxOf { it.amount }.coerceAtLeast(1.0)
+                val chartLeftPad = 48f
+                val chartTopPad = 12f
+                val chartBottomPad = 28f
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .padding(top = 16.dp, bottom = 8.dp, start = 8.dp, end = 8.dp)
                 ) {
-                val maxVal = trendPoints.maxOf { it.amount }.coerceAtLeast(1.0)
-                val chartLeftPad = 48f
-                val chartTopPad = 8f
-                val chartBottomPad = 28f
+                    // Precompute points for line curve and gesture logic
+                    var pointsList by remember { mutableStateOf<List<Offset>>(emptyList()) }
 
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val chartWidth = size.width - chartLeftPad
-                    val chartHeight = size.height - chartTopPad - chartBottomPad
-                    val points = trendPoints.mapIndexed { i, pt ->
-                        val x = chartLeftPad + (i.toFloat() / (trendPoints.size - 1).coerceAtLeast(1)) * chartWidth
-                        val y = chartTopPad + chartHeight * (1f - (pt.amount / maxVal).toFloat())
-                        Offset(x, y)
-                    }
-
-                    // Y-axis gridlines
-                    val ySteps = 4
-                    for (i in 0..ySteps) {
-                        val y = chartTopPad + (chartHeight * i / ySteps)
-                        val labelVal = maxVal * (ySteps - i) / ySteps
-                        drawLine(
-                            color = outlineColor.copy(alpha = 0.3f),
-                            start = Offset(chartLeftPad, y),
-                            end = Offset(size.width, y),
-                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f))
-                        )
-                        drawContext.canvas.nativeCanvas.drawText(
-                            "$currencySymbol${df.format(labelVal.toLong())}",
-                            2f,
-                            y + 4f,
-                            android.graphics.Paint().apply {
-                                color = android.graphics.Color.GRAY
-                                textSize = 22f
-                                isAntiAlias = true
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(trendPoints) {
+                                detectDragGestures(
+                                    onDragStart = { offset ->
+                                        activePointIndex = findClosestPoint(offset.x, pointsList)
+                                    },
+                                    onDrag = { change, _ ->
+                                        activePointIndex = findClosestPoint(change.position.x, pointsList)
+                                    },
+                                    onDragEnd = { activePointIndex = null },
+                                    onDragCancel = { activePointIndex = null }
+                                )
                             }
-                        )
-                    }
-
-                    // X-axis labels (show ~5 labels max)
-                    val labelStep = (trendPoints.size / 5).coerceAtLeast(1)
-                    for (i in trendPoints.indices step labelStep) {
-                        val x = chartLeftPad + (i.toFloat() / (trendPoints.size - 1).coerceAtLeast(1)) * chartWidth
-                        drawContext.canvas.nativeCanvas.drawText(
-                            trendPoints[i].label,
-                            x - 16f,
-                            size.height - 2f,
-                            android.graphics.Paint().apply {
-                                color = android.graphics.Color.GRAY
-                                textSize = 20f
-                                isAntiAlias = true
-                            }
-                        )
-                    }
-
-                    // Area fill (gradient)
-                    if (points.size >= 2) {
-                        val fillPath = Path().apply {
-                            moveTo(points.first().x, chartTopPad + chartHeight)
-                            points.forEach { lineTo(it.x, it.y) }
-                            lineTo(points.last().x, chartTopPad + chartHeight)
-                            close()
+                    ) {
+                        val chartWidth = size.width - chartLeftPad
+                        val chartHeight = size.height - chartTopPad - chartBottomPad
+                        
+                        val points = trendPoints.mapIndexed { i, pt ->
+                            val x = chartLeftPad + (i.toFloat() / (trendPoints.size - 1).coerceAtLeast(1)) * chartWidth
+                            val y = chartTopPad + chartHeight * (1f - (pt.amount / maxVal).toFloat())
+                            Offset(x, y)
                         }
-                        drawPath(
-                            path = fillPath,
-                            brush = Brush.verticalGradient(
-                                colors = listOf(accentColor.copy(alpha = 0.3f), accentColor.copy(alpha = 0.0f)),
-                                startY = 0f,
-                                endY = chartTopPad + chartHeight
+                        pointsList = points
+
+                        // Grid lines
+                        val ySteps = 4
+                        for (i in 0..ySteps) {
+                            val y = chartTopPad + (chartHeight * i / ySteps)
+                            val labelVal = maxVal * (ySteps - i) / ySteps
+                            drawLine(
+                                color = outlineColor.copy(alpha = 0.2f),
+                                start = Offset(chartLeftPad, y),
+                                end = Offset(size.width, y),
+                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f))
                             )
-                        )
+                            drawContext.canvas.nativeCanvas.drawText(
+                                "$currencySymbol${df.format(labelVal.toLong())}",
+                                2f,
+                                y + 4f,
+                                android.graphics.Paint().apply {
+                                    color = android.graphics.Color.GRAY
+                                    textSize = 22f
+                                    isAntiAlias = true
+                                }
+                            )
+                        }
 
-                        // Line
-                        val linePath = Path().apply {
-                            moveTo(points.first().x, points.first().y)
-                            for (i in 1 until points.size) {
-                                lineTo(points[i].x, points[i].y)
+                        // X-axis labels
+                        val labelStep = (trendPoints.size / 5).coerceAtLeast(1)
+                        for (i in trendPoints.indices step labelStep) {
+                            val x = chartLeftPad + (i.toFloat() / (trendPoints.size - 1).coerceAtLeast(1)) * chartWidth
+                            drawContext.canvas.nativeCanvas.drawText(
+                                trendPoints[i].label,
+                                x - 20f,
+                                size.height - 2f,
+                                android.graphics.Paint().apply {
+                                    color = android.graphics.Color.GRAY
+                                    textSize = 20f
+                                    isAntiAlias = true
+                                }
+                            )
+                        }
+
+                        // Smooth Bezier Curve Path
+                        if (points.size >= 2) {
+                            val bezierPath = Path().apply {
+                                moveTo(points.first().x, points.first().y)
+                                for (i in 1 until points.size) {
+                                    val prev = points[i - 1]
+                                    val curr = points[i]
+                                    // Control points logic for smooth curve
+                                    val cp1 = Offset(prev.x + (curr.x - prev.x) / 2f, prev.y)
+                                    val cp2 = Offset(curr.x - (curr.x - prev.x) / 2f, curr.y)
+                                    cubicTo(cp1.x, cp1.y, cp2.x, cp2.y, curr.x, curr.y)
+                                }
+                            }
+
+                            // Area gradient fill
+                            val fillPath = Path().apply {
+                                addPath(bezierPath)
+                                lineTo(points.last().x, chartTopPad + chartHeight)
+                                lineTo(points.first().x, chartTopPad + chartHeight)
+                                close()
+                            }
+
+                            drawPath(
+                                path = fillPath,
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(accentColor.copy(alpha = 0.25f), accentColor.copy(alpha = 0f)),
+                                    startY = chartTopPad,
+                                    endY = chartTopPad + chartHeight
+                                )
+                            )
+
+                            // Outline stroke
+                            drawPath(
+                                path = bezierPath,
+                                color = accentColor,
+                                style = Stroke(width = 3.dp.toPx())
+                            )
+                        }
+
+                        // Highlight selected point on gesture drag/tap
+                        activePointIndex?.let { index ->
+                            val pt = points.getOrNull(index)
+                            if (pt != null) {
+                                drawLine(
+                                    color = onBgColor.copy(alpha = 0.3f),
+                                    start = Offset(pt.x, chartTopPad),
+                                    end = Offset(pt.x, chartTopPad + chartHeight),
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f))
+                                )
+                                drawCircle(
+                                    color = accentColor,
+                                    radius = 6.dp.toPx(),
+                                    center = pt
+                                )
+                                drawCircle(
+                                    color = onBgColor,
+                                    radius = 3.dp.toPx(),
+                                    center = pt
+                                )
                             }
                         }
-                        drawPath(
-                            path = linePath,
-                            color = accentColor,
-                            style = Stroke(width = 2.5f)
+                    }
+
+                    // Render floating Tooltip above highlighted point
+                    activePointIndex?.let { index ->
+                        val pt = pointsList.getOrNull(index)
+                        val dataPt = trendPoints.getOrNull(index)
+                        if (pt != null && dataPt != null) {
+                            val tooltipX = with(density) { pt.x.toDp() }
+                            val tooltipY = with(density) { pt.y.toDp() }
+
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = tooltipX - 50.dp, y = (tooltipY - 54.dp).coerceAtLeast(0.dp))
+                                    .background(onBgColor, RoundedCornerShape(8.dp))
+                                    .border(1.dp, outlineColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = dataPt.label,
+                                        color = MaterialTheme.colorScheme.background,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = "$currencySymbol${df.format(dataPt.amount)}",
+                                        color = MaterialTheme.colorScheme.background,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = SpaceGroteskFamily
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun findClosestPoint(x: Float, points: List<Offset>): Int? {
+    if (points.isEmpty()) return null
+    return points.indices.minByOrNull { kotlin.math.abs(points[it].x - x) }
+}
+
+// ────────────────────────────────────
+// SPENDING CALENDAR Heatmap (MONTH GRID)
+// ────────────────────────────────────
+@Composable
+fun SpendingCalendarSection(
+    heatmapDays: List<HeatmapDay>,
+    accentColor: Color,
+    outlineColor: Color,
+    onBgColor: Color,
+    secTextColor: Color
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Spending Calendar",
+            fontFamily = FontFamily.Serif,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = onBgColor
+        )
+
+        AnalyticsCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Activity overview",
+                style = MaterialTheme.typography.labelSmall.copy(color = secTextColor)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+            val maxWeek = heatmapDays.maxOfOrNull { it.weekIndex } ?: 0
+
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                // Header row of days Mon..Sun
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Spacer(modifier = Modifier.width(30.dp))
+                    dayLabels.forEach { label ->
+                        Text(
+                            text = label.take(1),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = secTextColor,
+                                fontSize = 10.sp
+                            ),
+                            modifier = Modifier.width(28.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                // Grid rows for weeks
+                for (w in 0..maxWeek) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "W${w + 1}",
+                            style = MaterialTheme.typography.labelSmall.copy(color = secTextColor, fontSize = 9.sp),
+                            modifier = Modifier.width(30.dp)
                         )
 
-                        // Peak dot
-                        val peakIdx = trendPoints.indices.maxByOrNull { trendPoints[it].amount } ?: 0
-                        if (trendPoints[peakIdx].amount > 0) {
-                            drawCircle(
-                                color = accentColor,
-                                radius = 5f,
-                                center = points[peakIdx]
+                        for (d in 0..6) {
+                            val day = heatmapDays.firstOrNull { it.dayOfWeek == d && it.weekIndex == w }
+                            val isSpending = day != null && day.intensity > 0f
+                            val color = if (isSpending) {
+                                accentColor.copy(alpha = (day!!.intensity * 0.8f + 0.2f).coerceIn(0.2f, 1f))
+                            } else {
+                                outlineColor.copy(alpha = 0.15f)
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(color)
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isSpending) Color.Transparent else outlineColor.copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(6.dp)
+                                    )
                             )
                         }
                     }
@@ -507,106 +807,307 @@ fun SpendingTrendSection(
         }
     }
 }
-}
 
 // ────────────────────────────────────
-// CATEGORY PROGRESS ROW
+// CATEGORY BREAKDOWN BENTO GRID
 // ────────────────────────────────────
 @Composable
-fun CategoryProgressRow(
-    report: CategoryReport,
+fun CategoryBreakdownSection(
+    reports: List<CategoryReport>,
     currencySymbol: String,
     onBgColor: Color,
-    secTextColor: Color,
-    outlineColor: Color
+    secTextColor: Color
 ) {
     val df = DecimalFormat("#,##0")
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Category Breakdown",
+            fontFamily = FontFamily.Serif,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = onBgColor
+        )
+
+        if (reports.isEmpty()) {
+            AnalyticsCard(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "No category data to display.",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = secTextColor)
+                )
+            }
+        } else {
+            // Weighted Bento Grid Layout (displays top 5 categories)
+            val topCategory = reports.getOrNull(0)
+            val medium1 = reports.getOrNull(1)
+            val medium2 = reports.getOrNull(2)
+            val small1 = reports.getOrNull(3)
+            val small2 = reports.getOrNull(4)
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // 1. Large Card (Top Category) - Full Width
+                topCategory?.let { rep ->
+                    BentoCategoryCard(
+                        report = rep,
+                        currencySymbol = currencySymbol,
+                        df = df,
+                        height = 110.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // 2. Medium Cards Row - 2 Columns (equal weight)
+                if (medium1 != null || medium2 != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        medium1?.let { rep ->
+                            BentoCategoryCard(
+                                report = rep,
+                                currencySymbol = currencySymbol,
+                                df = df,
+                                height = 96.dp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        medium2?.let { rep ->
+                            BentoCategoryCard(
+                                report = rep,
+                                currencySymbol = currencySymbol,
+                                df = df,
+                                height = 96.dp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+
+                // 3. Small Cards Row - 2 Columns (equal weight)
+                if (small1 != null || small2 != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        small1?.let { rep ->
+                            BentoCategoryCard(
+                                report = rep,
+                                currencySymbol = currencySymbol,
+                                df = df,
+                                height = 80.dp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        small2?.let { rep ->
+                            BentoCategoryCard(
+                                report = rep,
+                                currencySymbol = currencySymbol,
+                                df = df,
+                                height = 80.dp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BentoCategoryCard(
+    report: CategoryReport,
+    currencySymbol: String,
+    df: DecimalFormat,
+    height: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier
+) {
     val catColor = try {
         Color(AndroidColor.parseColor(report.category.colorHex))
     } catch (e: Exception) {
         MaterialTheme.colorScheme.primary
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    Card(
+        modifier = modifier
+            .height(height)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(24.dp)
+            ),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-        // Category icon circle
-        Box(
+        Column(
             modifier = Modifier
-                .size(32.dp)
-                .background(catColor.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(Icons.Outlined.Category, null, tint = catColor, modifier = Modifier.size(16.dp))
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(catColor.copy(alpha = 0.12f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = getIconByName(report.category.iconName),
+                            contentDescription = report.category.name,
+                            tint = catColor,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    Text(
+                        text = report.category.name,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                
+                Text(
+                    text = "${(report.percentage * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
 
-        // Name + progress bar
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(report.category.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-            LinearProgressIndicator(
-                progress = report.percentage,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(5.dp)
-                    .clip(RoundedCornerShape(3.dp)),
-                color = catColor,
-                trackColor = outlineColor.copy(alpha = 0.3f)
-            )
-        }
-
-        // Percentage + amount
-        Column(horizontalAlignment = Alignment.End) {
-            Text("${(report.percentage * 100).toInt()}%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = secTextColor)
-            Text("$currencySymbol${df.format(report.totalAmount.toLong())}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = onBgColor)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = "$currencySymbol${df.format(report.totalAmount)}",
+                    style = TextStyle(
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+                // Colorized indicator progress bar
+                LinearProgressIndicator(
+                    progress = report.percentage,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    color = catColor,
+                    trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                )
+            }
         }
     }
 }
 
 // ────────────────────────────────────
-// HEATMAP GRID
+// MONTHLY COMPARISON SECTION
 // ────────────────────────────────────
 @Composable
-fun HeatmapGrid(
-    heatmapDays: List<HeatmapDay>,
-    accentColor: Color,
-    outlineColor: Color
+fun MonthlyComparisonSection(
+    uiState: ReportsUiState,
+    currencySymbol: String,
+    onBgColor: Color,
+    secTextColor: Color,
+    df: DecimalFormat
 ) {
-    val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-    val maxWeek = heatmapDays.maxOfOrNull { it.weekIndex } ?: 0
+    val diff = uiState.totalSpending - uiState.previousPeriodSpending
+    val isIncrease = diff >= 0
+    val diffSign = if (isIncrease) "+" else "-"
 
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        // Show rows only for Mon, Wed, Fri, Sun to keep compact
-        for (dayIdx in listOf(0, 2, 4, 6)) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Monthly Comparison",
+            fontFamily = FontFamily.Serif,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = onBgColor
+        )
+
+        AnalyticsCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Spending comparison against last period",
+                style = MaterialTheme.typography.labelSmall.copy(color = secTextColor)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    dayLabels.getOrElse(dayIdx) { "" },
-                    fontSize = 8.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.width(24.dp)
-                )
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Current Period",
+                        style = MaterialTheme.typography.labelSmall.copy(color = secTextColor)
+                    )
+                    Text(
+                        text = "$currencySymbol${df.format(uiState.totalSpending)}",
+                        style = TextStyle(
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = onBgColor
+                        )
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Previous Period",
+                        style = MaterialTheme.typography.labelSmall.copy(color = secTextColor)
+                    )
+                    Text(
+                        text = "$currencySymbol${df.format(uiState.previousPeriodSpending)}",
+                        style = TextStyle(
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = onBgColor.copy(alpha = 0.8f)
+                        )
+                    )
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.End
                 ) {
-                    for (weekIdx in 0..maxWeek) {
-                        val day = heatmapDays.firstOrNull { it.dayOfWeek == dayIdx && it.weekIndex == weekIdx }
-                        val color = if (day != null && day.intensity > 0f) {
-                            accentColor.copy(alpha = (day.intensity * 0.8f + 0.2f).coerceIn(0.2f, 1f))
-                        } else {
-                            outlineColor.copy(alpha = 0.2f)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(color, RoundedCornerShape(2.dp))
+                    Text(
+                        text = "Difference",
+                        style = MaterialTheme.typography.labelSmall.copy(color = secTextColor)
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (isIncrease) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                            contentDescription = null,
+                            tint = if (isIncrease) Color(0xFFEF4444) else Color(0xFF22C55E),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "$diffSign$currencySymbol${df.format(kotlin.math.abs(diff))}",
+                            style = TextStyle(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = if (isIncrease) Color(0xFFEF4444) else Color(0xFF22C55E)
+                            )
                         )
                     }
                 }
@@ -616,56 +1117,267 @@ fun HeatmapGrid(
 }
 
 // ────────────────────────────────────
-// MERCHANT ROW
+// TOP MERCHANTS SECTION
 // ────────────────────────────────────
 @Composable
-fun MerchantRow(
-    merchant: MerchantEntry,
+fun TopMerchantsSection(
+    merchants: List<MerchantEntry>,
     currencySymbol: String,
     onBgColor: Color,
-    secTextColor: Color,
-    outlineColor: Color
+    secTextColor: Color
 ) {
     val df = DecimalFormat("#,##0")
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, outlineColor, RoundedCornerShape(8.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Merchant icon badge
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
-                .border(1.dp, outlineColor, RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                merchant.name.take(1).uppercase(),
-                fontFamily = SpaceGroteskFamily,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = onBgColor
-            )
-        }
-
-        // Info
-        Column(modifier = Modifier.weight(1f)) {
-            Text(merchant.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onBgColor)
-            Text("${merchant.transactionCount} transactions", fontSize = 11.sp, color = secTextColor)
-        }
-
-        // Amount
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
-            "$currencySymbol${df.format(merchant.totalAmount.toLong())}",
-            fontFamily = SpaceGroteskFamily,
-            fontSize = 14.sp,
+            text = "Top Merchants",
+            fontFamily = FontFamily.Serif,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = onBgColor
+        )
+
+        if (merchants.isEmpty()) {
+            AnalyticsCard(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "No merchant transactions recorded in this period.",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = secTextColor)
+                )
+            }
+        } else {
+            AnalyticsCard(modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    merchants.forEach { merchant ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            // Circular merchant initial badge
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = merchant.name.take(1).uppercase(),
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = onBgColor
+                                    )
+                                )
+                            }
+
+                            // Merchant details
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = merchant.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = onBgColor
+                                    )
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "${merchant.transactionCount} transactions",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = secTextColor)
+                                )
+                            }
+
+                            // Total spent
+                            Text(
+                                text = "$currencySymbol${df.format(merchant.totalAmount)}",
+                                style = TextStyle(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = onBgColor
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ────────────────────────────────────
+// FINANCIAL DISTRIBUTION (donut ring)
+// ────────────────────────────────────
+@Composable
+fun FinancialDistributionSection(
+    totalSpending: Double,
+    totalIncome: Double,
+    currencySymbol: String,
+    onBgColor: Color,
+    secTextColor: Color
+) {
+    val df = DecimalFormat("#,##0")
+    
+    // Distribute remaining income to savings and investments
+    val expenses = totalSpending
+    val remaining = (totalIncome - totalSpending).coerceAtLeast(0.0)
+    val savings = remaining * 0.7
+    val investments = remaining * 0.3
+    val total = expenses + savings + investments
+
+    val expensePct = if (total > 0) (expenses / total).toFloat() else 1f
+    val savingsPct = if (total > 0) (savings / total).toFloat() else 0f
+    val investmentPct = if (total > 0) (investments / total).toFloat() else 0f
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Financial Distribution",
+            fontFamily = FontFamily.Serif,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = onBgColor
+        )
+
+        AnalyticsCard(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Donut Chart Canvas
+                Box(
+                    modifier = Modifier.size(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val strokeWidth = 10.dp.toPx()
+                        val ringSize = Size(size.width - strokeWidth, size.height - strokeWidth)
+                        val offset = Offset(strokeWidth / 2, strokeWidth / 2)
+
+                        // 1. Draw Expenses Arc
+                        val expenseAngle = expensePct * 360f
+                        drawArc(
+                            color = Color(0xFFEF4444),
+                            startAngle = -90f,
+                            sweepAngle = expenseAngle,
+                            useCenter = false,
+                            topLeft = offset,
+                            size = ringSize,
+                            style = Stroke(width = strokeWidth)
+                        )
+
+                        // 2. Draw Savings Arc
+                        val savingsAngle = savingsPct * 360f
+                        if (savingsPct > 0) {
+                            drawArc(
+                                color = Color(0xFF22C55E),
+                                startAngle = -90f + expenseAngle,
+                                sweepAngle = savingsAngle,
+                                useCenter = false,
+                                topLeft = offset,
+                                size = ringSize,
+                                style = Stroke(width = strokeWidth)
+                            )
+                        }
+
+                        // 3. Draw Investments Arc
+                        val investmentAngle = investmentPct * 360f
+                        if (investmentPct > 0) {
+                            drawArc(
+                                color = Color(0xFF3B82F6),
+                                startAngle = -90f + expenseAngle + savingsAngle,
+                                sweepAngle = investmentAngle,
+                                useCenter = false,
+                                topLeft = offset,
+                                size = ringSize,
+                                style = Stroke(width = strokeWidth)
+                            )
+                        }
+                    }
+                    
+                    // Inside circle label
+                    Text(
+                        text = "Asset Mix",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                            color = secTextColor
+                        )
+                    )
+                }
+
+                // Legend layout
+                Column(
+                    modifier = Modifier.padding(start = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    DistributionLegendRow(
+                        color = Color(0xFFEF4444),
+                        label = "Expenses",
+                        percentage = "${(expensePct * 100).toInt()}%",
+                        amount = "$currencySymbol${df.format(expenses)}",
+                        onBgColor = onBgColor,
+                        secTextColor = secTextColor
+                    )
+                    DistributionLegendRow(
+                        color = Color(0xFF22C55E),
+                        label = "Savings",
+                        percentage = "${(savingsPct * 100).toInt()}%",
+                        amount = "$currencySymbol${df.format(savings)}",
+                        onBgColor = onBgColor,
+                        secTextColor = secTextColor
+                    )
+                    DistributionLegendRow(
+                        color = Color(0xFF3B82F6),
+                        label = "Investments",
+                        percentage = "${(investmentPct * 100).toInt()}%",
+                        amount = "$currencySymbol${df.format(investments)}",
+                        onBgColor = onBgColor,
+                        secTextColor = secTextColor
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DistributionLegendRow(
+    color: Color,
+    label: String,
+    percentage: String,
+    amount: String,
+    onBgColor: Color,
+    secTextColor: Color
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .background(color, CircleShape)
+        )
+        Text(
+            text = "$label ($percentage)",
+            style = MaterialTheme.typography.labelSmall.copy(color = secTextColor),
+            modifier = Modifier.width(110.dp)
+        )
+        Text(
+            text = amount,
+            style = TextStyle(
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+                color = onBgColor
+            )
         )
     }
 }
