@@ -142,16 +142,28 @@ class UpdateRepository(private val context: Context) {
             connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
             connection.setRequestProperty("User-Agent", "VesperLedgerApp")
 
-            if (connection.responseCode == 200) {
+            val responseCode = connection.responseCode
+            if (responseCode == 200) {
                 val responseText = connection.inputStream.bufferedReader().use { it.readText() }
                 prefs.edit()
                     .putLong("lastCheckedAt", now)
                     .putString("cachedReleaseJson", responseText)
                     .apply()
                 return parseUpdateResponse(responseText)
+            } else if (responseCode == 403) {
+                // Rate limit exceeded! Fallback to redirect check
+                val fallbackInfo = fetchUpdateViaRedirect()
+                if (fallbackInfo != null) {
+                    return fallbackInfo
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            // Try redirect fallback on any network/connection error
+            val fallbackInfo = fetchUpdateViaRedirect()
+            if (fallbackInfo != null) {
+                return fallbackInfo
+            }
         } finally {
             connection?.disconnect()
         }
@@ -162,6 +174,57 @@ class UpdateRepository(private val context: Context) {
             } catch (e: Exception) {
                 // ignore
             }
+        }
+        return null
+    }
+
+    private fun fetchUpdateViaRedirect(): AppUpdateInfo? {
+        var connection: HttpURLConnection? = null
+        try {
+            val url = URL("https://github.com/Pradeep1234a/Vesper/releases/latest")
+            connection = url.openConnection() as HttpURLConnection
+            connection.instanceFollowRedirects = false
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.setRequestProperty("User-Agent", "VesperLedgerApp")
+
+            val responseCode = connection.responseCode
+            if (responseCode == 301 || responseCode == 302) {
+                val location = connection.getHeaderField("Location")
+                if (location != null && location.contains("/releases/tag/")) {
+                    val tagName = location.substringAfter("/releases/tag/").substringBefore("?").trim()
+                    if (tagName.isNotEmpty()) {
+                        val latestVersionName = tagName.removePrefix("v").trim()
+                        val currentVersionName = BuildConfig.VERSION_NAME
+                        val updateAvailable = isNewerVersionName(currentVersionName, latestVersionName)
+                        
+                        val latestCode = if (updateAvailable) {
+                            BuildConfig.VERSION_CODE + 1
+                        } else {
+                            BuildConfig.VERSION_CODE
+                        }
+                        
+                        val downloadUrl = "https://github.com/Pradeep1234a/Vesper/releases/download/$tagName/VesperLedger.apk"
+                        val updateType = determineUpdateType(currentVersionName, latestVersionName, "")
+                        
+                        return AppUpdateInfo(
+                            latestVersionCode = latestCode,
+                            latestVersionName = latestVersionName,
+                            currentVersionCode = BuildConfig.VERSION_CODE,
+                            currentVersionName = currentVersionName,
+                            updateAvailable = updateAvailable,
+                            updateType = updateType,
+                            downloadUrl = downloadUrl,
+                            fileSizeBytes = 0L,
+                            changelog = listOf(ChangelogEntry(ChangeType.ADDED, "New release available on GitHub (Rate Limit Fallback)"))
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            connection?.disconnect()
         }
         return null
     }
