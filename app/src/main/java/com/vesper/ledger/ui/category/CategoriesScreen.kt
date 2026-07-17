@@ -104,6 +104,48 @@ fun CategoriesScreen(
                 onBackClick = onBackClick
             )
         },
+        floatingActionButton = {
+            // Floating Action Button with Spring press animation
+            val fabInteractionSource = remember { MutableInteractionSource() }
+            val isFabPressed by fabInteractionSource.collectIsPressedAsState()
+            val fabScale by animateFloatAsState(
+                targetValue = if (isFabPressed) 0.96f else 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium
+                ),
+                label = "fabScale"
+            )
+
+            Box(
+                modifier = Modifier
+                    .scale(fabScale)
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        color = MaterialTheme.colorScheme.onBackground,
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .clickable(
+                        interactionSource = fabInteractionSource,
+                        indication = rememberRipple(color = MaterialTheme.colorScheme.background),
+                        onClick = { onAddCategoryClick(null) }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Category",
+                    tint = MaterialTheme.colorScheme.background,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
@@ -128,9 +170,9 @@ fun CategoriesScreen(
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(24.dp)
                         )
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(24.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -142,7 +184,7 @@ fun CategoriesScreen(
                             .weight(1f)
                             .fillMaxHeight()
                             .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .background(if (isExpense) MaterialTheme.colorScheme.surface else Color.Transparent)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
@@ -166,7 +208,7 @@ fun CategoriesScreen(
                             .weight(1f)
                             .fillMaxHeight()
                             .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .background(if (isIncome) MaterialTheme.colorScheme.surface else Color.Transparent)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
@@ -204,7 +246,7 @@ fun CategoriesScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(categoriesWithCount, key = { it.category.id }) { item ->
                             val cat = item.category
@@ -213,13 +255,13 @@ fun CategoriesScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(76.dp)
+                                    .height(96.dp)
                                     .border(
                                         width = 1.dp,
                                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                        shape = RoundedCornerShape(12.dp)
+                                        shape = RoundedCornerShape(24.dp)
                                     )
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(24.dp))
                                     .background(MaterialTheme.colorScheme.surface)
                                     .pointerInput(Unit) {
                                         detectTapGestures(
@@ -227,23 +269,23 @@ fun CategoriesScreen(
                                             onLongPress = { categoryToDelete = cat }
                                         )
                                     }
-                                    .padding(horizontal = 16.dp),
+                                    .padding(horizontal = 20.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 // LEFT: Rounded monochrome icon container with accent border or accent background
                                 Box(
                                     modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(RoundedCornerShape(12.dp))
+                                        .size(56.dp)
+                                        .clip(RoundedCornerShape(18.dp))
                                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                                        .border(1.dp, catColor.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+                                        .border(1.dp, catColor.copy(alpha = 0.4f), RoundedCornerShape(18.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = getIconByName(cat.iconName),
                                         contentDescription = null,
                                         tint = catColor, // User selected color applied only to icon accent
-                                        modifier = Modifier.size(22.dp)
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
 
@@ -257,13 +299,13 @@ fun CategoriesScreen(
                                     Text(
                                         text = cat.name,
                                         fontFamily = SpaceGroteskFamily,
-                                        fontSize = 15.sp,
+                                        fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
-                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = "${item.transactionCount} transactions",
                                         fontFamily = PlusJakartaSansFamily,
@@ -288,54 +330,8 @@ fun CategoriesScreen(
                     }
                 }
             }
-
-            // Floating Action Button with Spring press animation
-            val fabInteractionSource = remember { MutableInteractionSource() }
-            val isFabPressed by fabInteractionSource.collectIsPressedAsState()
-            val fabScale by animateFloatAsState(
-                targetValue = if (isFabPressed) 0.94f else 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                ),
-                label = "fabScale"
-            )
-
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 24.dp, end = 24.dp)
-                    .scale(fabScale)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(
-                            color = MaterialTheme.colorScheme.onBackground,
-                            shape = RoundedCornerShape(20.dp)
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(20.dp)
-                        )
-                        .clickable(
-                            interactionSource = fabInteractionSource,
-                            indication = rememberRipple(color = MaterialTheme.colorScheme.background),
-                            onClick = { onAddCategoryClick(null) }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add Category",
-                        tint = MaterialTheme.colorScheme.background,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
         }
     }
 }
+
+

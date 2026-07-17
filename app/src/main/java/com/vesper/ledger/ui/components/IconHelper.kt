@@ -217,6 +217,7 @@ fun getIconByName(name: String): ImageVector {
         "security" -> Icons.Outlined.Security
         "notifications" -> Icons.Outlined.Notifications
         "star" -> Icons.Outlined.Star
+        "category" -> Icons.Outlined.Category
 
         else -> Icons.Outlined.Tag
     }
