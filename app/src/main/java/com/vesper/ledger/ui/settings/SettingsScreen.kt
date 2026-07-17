@@ -41,7 +41,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 
 enum class SettingsSubView {
-    MAIN, CATEGORIES, UPDATES, APP_ICON
+    MAIN, UPDATES, APP_ICON
 }
 
 enum class SettingsDialogType {
@@ -53,7 +53,8 @@ enum class SettingsDialogType {
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onCategoriesClick: () -> Unit
 ) {
     val currency by viewModel.currency.collectAsState()
     val updateUiState by updateViewModel.uiState.collectAsState()
@@ -80,27 +81,10 @@ fun SettingsScreen(
     val biometricSupport by viewModel.biometricSupport.collectAsState()
     val isProUser by viewModel.isProUser.collectAsState()
     val userName by viewModel.userName.collectAsState()
-    val categories by viewModel.categories.collectAsState()
 
     var subView by remember { mutableStateOf(SettingsSubView.MAIN) }
     var activeDialog by remember { mutableStateOf<SettingsDialogType?>(null) }
     val context = LocalContext.current
-
-    // Category Creator State
-    var newCatName by remember { mutableStateOf("") }
-    var newCatType by remember { mutableStateOf(TransactionType.EXPENSE) }
-    var newCatColor by remember { mutableStateOf("#71717A") }
-
-    val colorOptions = listOf(
-        "#16A34A", // Green
-        "#DC2626", // Red
-        "#2563EB", // Blue
-        "#D97706", // Amber
-        "#9333EA", // Purple
-        "#DB2777", // Pink
-        "#0D9488", // Teal
-        "#71717A"  // Grey
-    )
 
     // Dialog handlers
     when (activeDialog) {
@@ -455,7 +439,7 @@ fun SettingsScreen(
                         title = "Categories",
                         subtitle = "Manage standard and customized transaction tags",
                         trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                        onClick = { subView = SettingsSubView.CATEGORIES }
+                        onClick = { onCategoriesClick() }
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
@@ -797,162 +781,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
-        SettingsSubView.CATEGORIES -> {
-            ChildHeader(
-                title = "Categories",
-                onBackClick = { subView = SettingsSubView.MAIN }
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
 
-                ShCard {
-                    Text(
-                        text = "Add Customized Category",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    ShTextField(
-                        value = newCatName,
-                        onValueChange = { newCatName = it },
-                        label = "Category Name",
-                        placeholder = "e.g., Subscriptions"
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "Category Type",
-                        style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    ShSegmentedControl(
-                        items = listOf("Expense", "Income"),
-                        selectedIndex = if (newCatType == TransactionType.EXPENSE) 0 else 1,
-                        onItemSelected = { index ->
-                            newCatType = if (index == 0) TransactionType.EXPENSE else TransactionType.INCOME
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "Theme Color",
-                        style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        colorOptions.forEach { hex ->
-                            val color = com.vesper.ledger.ui.components.safeParseColor(hex)
-                            val isSelected = hex == newCatColor
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(color)
-                                    .border(
-                                        width = if (isSelected) 2.dp else 0.dp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-                                        shape = CircleShape
-                                    )
-                                    .clickable { newCatColor = hex }
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    ShButton(
-                        text = "Create Category",
-                        onClick = {
-                            if (newCatName.isNotBlank()) {
-                                viewModel.addCategory(newCatName, newCatType, newCatColor)
-                                newCatName = ""
-                            }
-                        },
-                        enabled = newCatName.isNotBlank()
-                    )
-                }
-
-                Text(
-                    text = "Manage Existing Categories",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-
-                // List of existing categories grouped together nicely
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = RoundedCornerShape(12.dp)
-                        ),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        categories.forEachIndexed { index, cat ->
-                            val catColor = com.vesper.ledger.ui.components.safeParseColor(cat.colorHex)
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 12.dp, horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .clip(CircleShape)
-                                            .background(catColor)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(
-                                            text = cat.name,
-                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-                                        )
-                                        Text(
-                                            text = if (cat.type == TransactionType.INCOME) "Income" else "Expense",
-                                            style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        )
-                                    }
-                                }
-
-                                IconButton(onClick = { viewModel.deleteCategory(cat) }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Delete Category",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                    )
-                                }
-                            }
-                            if (index < categories.size - 1) {
-                                Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
         SettingsSubView.UPDATES -> {
             LaunchedEffect(Unit) {
                 updateViewModel.checkForUpdatesOnLaunch()

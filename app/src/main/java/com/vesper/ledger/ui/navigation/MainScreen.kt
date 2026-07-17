@@ -206,8 +206,7 @@ fun MainScreen(
                     onBackClick = {
                         navController.popBackStack()
                     },
-                    onAddTransactionClick = onAddTransactionClick,
-                    onCategoryManagementClick = onCategoryManagementClick
+                    onAddTransactionClick = onAddTransactionClick
                 )
             }
 
@@ -233,7 +232,8 @@ fun MainScreen(
                     updateViewModel = updateViewModel,
                     onBackClick = {
                         navController.popBackStack()
-                    }
+                    },
+                    onCategoriesClick = onCategoryManagementClick
                 )
             }
         }

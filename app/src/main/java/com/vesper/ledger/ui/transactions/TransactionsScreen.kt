@@ -73,8 +73,7 @@ fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
     onBackClick: () -> Unit,
-    onAddTransactionClick: (type: String?, id: Long?) -> Unit,
-    onCategoryManagementClick: () -> Unit
+    onAddTransactionClick: (type: String?, id: Long?) -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategories by viewModel.selectedCategories.collectAsState()
@@ -153,20 +152,7 @@ fun TransactionsScreen(
                 .padding(innerPadding)
         ) {
             RootHeader(
-                title = "Transactions",
-                actions = {
-                    Icon(
-                        imageVector = Icons.Default.Category,
-                        contentDescription = "Manage Categories",
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { onCategoryManagementClick() }
-                    )
-                }
+                title = "Transactions"
             )
             // Search Input Field & Filter Menu Button Row
             Row(
