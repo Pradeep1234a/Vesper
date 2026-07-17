@@ -332,6 +332,7 @@ fun SettingsScreen(
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
+                        Spacer(modifier = Modifier.height(8.dp)) // Add consistent spacing below header!
 
                 // Dedicated Premium Profile Card
                 Card(
@@ -795,7 +796,7 @@ fun SettingsScreen(
                     title = "Updates",
                     onBackClick = { subView = SettingsSubView.MAIN }
                 )
-                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                Box(modifier = Modifier.fillMaxSize()) {
                     com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
                 }
             }
@@ -806,7 +807,7 @@ fun SettingsScreen(
                     title = "App Icon",
                     onBackClick = { subView = SettingsSubView.MAIN }
                 )
-                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                Box(modifier = Modifier.fillMaxSize()) {
                     AppIconSelectionScreen(viewModel = viewModel)
                 }
             }
@@ -1057,7 +1058,7 @@ fun AppIconSelectionScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // 1. Home Screen Preview (Premium Mockup)
