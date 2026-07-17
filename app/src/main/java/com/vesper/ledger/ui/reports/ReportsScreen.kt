@@ -68,7 +68,7 @@ fun ReportsScreen(
                     contentDescription = "Help",
                     tint = secTextColor,
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(28.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null

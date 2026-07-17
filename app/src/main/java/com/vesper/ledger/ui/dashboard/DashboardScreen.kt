@@ -92,7 +92,7 @@ fun DashboardScreen(
                         contentDescription = "Notifications",
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(28.dp)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
@@ -100,7 +100,7 @@ fun DashboardScreen(
                     )
                     Box(
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(28.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
@@ -111,7 +111,7 @@ fun DashboardScreen(
                             text = userName.take(1).uppercase(),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp,
+                                fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         )

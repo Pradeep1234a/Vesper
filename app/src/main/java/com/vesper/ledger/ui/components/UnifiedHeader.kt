@@ -48,7 +48,7 @@ fun RootHeader(
             tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .padding(start = 16.dp)
-                .size(24.dp)
+                .size(28.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
@@ -104,7 +104,7 @@ fun ChildHeader(
             tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .padding(start = 16.dp)
-                .size(24.dp)
+                .size(28.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null

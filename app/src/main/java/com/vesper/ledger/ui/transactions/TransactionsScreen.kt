@@ -160,7 +160,7 @@ fun TransactionsScreen(
                         contentDescription = "Manage Categories",
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(28.dp)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
