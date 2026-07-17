@@ -61,7 +61,7 @@ fun RootHeader(
             text = title,
             style = TextStyle(
                 fontFamily = SpaceGroteskFamily,
-                fontSize = 20.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 platformStyle = PlatformTextStyle(
@@ -117,7 +117,7 @@ fun ChildHeader(
             text = title,
             style = TextStyle(
                 fontFamily = SpaceGroteskFamily,
-                fontSize = 20.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 platformStyle = PlatformTextStyle(
