@@ -126,7 +126,6 @@ fun WelcomeScreen(
     val appIcon = sharedPrefs.getString("appIcon", "default") ?: "default"
     val logoForegroundRes = com.vesper.ledger.data.secure.AppIconManager.getIconForegroundRes(appIcon)
 
-    // Determine the correct line-art illustration depending on light/dark background
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -162,9 +161,11 @@ fun WelcomeScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.Top
         ) {
-            // 2. Visual Anchor Card: Ledger Preview Mockup (Engaging visual anchor, NO illustrations)
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // 2. Visual Anchor Card: Ledger Preview Mockup (Engaging visual anchor)
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
@@ -247,15 +248,14 @@ fun WelcomeScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(28.dp))
+
             // 3. Poetic luxury editorial statement (Clean vertical flow text)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Silence the noise.",
                     style = MaterialTheme.typography.displayMedium.copy(
+                        fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = SpaceGroteskFamily,
                         lineHeight = 36.sp,
@@ -265,13 +265,14 @@ fun WelcomeScreen(
                 Text(
                     text = "Track with intention.",
                     style = MaterialTheme.typography.displayMedium.copy(
+                        fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = SpaceGroteskFamily,
                         lineHeight = 36.sp,
                         letterSpacing = (-0.5).sp
                     )
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Vesper is a private, monochrome space built to bring clarity and calm to your finances.",
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -282,6 +283,7 @@ fun WelcomeScreen(
             }
 
             Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(28.dp))
 
             // 4. Action Buttons & Links aligned on the same vertical axis
             Column(
@@ -296,11 +298,10 @@ fun WelcomeScreen(
                     contentColor = MaterialTheme.colorScheme.background
                 )
 
-                ShButton(
+                ShOutlinedButton(
                     text = "Sign In",
                     onClick = onSignInClick,
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
+                    contentColor = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -341,7 +342,7 @@ fun WelcomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -375,11 +376,11 @@ fun SignInScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Visual Anchor Card: Form Fields ONLY to act as a focused hero element
+            // Visual Anchor Card: Form Fields ONLY
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Welcome Back",
@@ -441,9 +442,9 @@ fun SignInScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // CTA Button & Navigation grouped tightly below the card for visual connectivity
+            // CTA Button & Navigation grouped tightly below the card
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -484,7 +485,7 @@ fun SignInScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -519,9 +520,9 @@ fun CreateAccountScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Visual Anchor Card: Fields container
             ShCard(modifier = Modifier.fillMaxWidth()) {
@@ -587,7 +588,7 @@ fun CreateAccountScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             // Action section tightly grouped below the card
             Column(
@@ -631,7 +632,7 @@ fun CreateAccountScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -663,9 +664,9 @@ fun ForgotPasswordScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Visual Anchor Card: Form container
             ShCard(modifier = Modifier.fillMaxWidth()) {
@@ -696,7 +697,7 @@ fun ForgotPasswordScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             // Action section tightly grouped below the card
             Column(
@@ -732,7 +733,7 @@ fun ForgotPasswordScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
