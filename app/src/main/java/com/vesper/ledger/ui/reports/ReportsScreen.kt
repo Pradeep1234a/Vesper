@@ -100,7 +100,7 @@ fun ReportsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .weight(1f)
-                .padding(horizontal = 24.dp), // Unified 24dp horizontal margin
+                .padding(horizontal = 16.dp), // Unified 16dp horizontal margin
             verticalArrangement = Arrangement.spacedBy(24.dp), // 24dp spacing between sections
             contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
         ) {
@@ -262,7 +262,7 @@ fun ReportsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 16.dp)
                     .padding(bottom = 40.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {

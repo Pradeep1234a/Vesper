@@ -119,7 +119,7 @@ fun AddTransactionScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp)
+                        .padding(horizontal = 16.dp)
                         .padding(bottom = 100.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {

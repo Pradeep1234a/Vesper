@@ -158,7 +158,7 @@ fun CategoriesScreen(
             Column(
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp), // Luxury spacing
+                    .padding(horizontal = 16.dp), // Unified 16dp margin
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
