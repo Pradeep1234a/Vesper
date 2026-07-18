@@ -127,13 +127,6 @@ fun WelcomeScreen(
     val logoForegroundRes = com.vesper.ledger.data.secure.AppIconManager.getIconForegroundRes(appIcon)
 
     // Determine the correct line-art illustration depending on light/dark background
-    val isDark = MaterialTheme.colorScheme.background == Color(0xFF000000)
-    val illustrationRes = if (isDark) {
-        com.vesper.ledger.R.drawable.ill_onboarding_2_dark
-    } else {
-        com.vesper.ledger.R.drawable.ill_onboarding_2
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -171,25 +164,86 @@ fun WelcomeScreen(
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 2. Visual Anchor Card: Abstract line-art illustration framing (Visual Anchor)
-            ShCard(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(0.dp) // Edge-to-edge inside the card container
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    androidx.compose.foundation.Image(
-                        painter = androidx.compose.ui.res.painterResource(id = illustrationRes),
-                        contentDescription = "Visual representation of clarity and mindfulness",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
+            // 2. Visual Anchor Card: Ledger Preview Mockup (Engaging visual anchor, NO illustrations)
+            ShCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "PREVIEW LEDGER",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                letterSpacing = 1.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(MaterialTheme.colorScheme.onBackground, shape = androidx.compose.foundation.shape.CircleShape)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "Total Balance",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
+                    Text(
+                        text = "$12,480.00",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                                    shape = MaterialTheme.shapes.small
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "☕", fontSize = 16.sp)
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Vesper Brew Co.",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                            Text(
+                                text = "Food & Drink",
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
+                        }
+
+                        Text(
+                            text = "-$4.50",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        )
+                    }
                 }
             }
 
