@@ -231,7 +231,7 @@ fun WelcomeScreen(
                 .fillMaxWidth()
                 .statusBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp), // Exact 6.dp gap requested
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
