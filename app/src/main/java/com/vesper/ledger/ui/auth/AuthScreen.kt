@@ -36,6 +36,25 @@ import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
+object AuthValidator {
+    fun isValidEmail(email: String): Boolean {
+        val trimmed = email.trim()
+        return trimmed.isNotEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(trimmed).matches()
+    }
+
+    fun isValidPassword(password: String): Boolean {
+        return password.length >= 8 && password.any { it.isDigit() } && password.any { it.isLetter() }
+    }
+
+    fun isValidFullName(name: String): Boolean {
+        val trimmed = name.trim()
+        val parts = trimmed.split("\\s+".toRegex()).filter { it.isNotEmpty() }
+        return parts.size >= 2 && parts.all { part ->
+            part.length >= 2 && part.all { it.isLetter() || it == '-' || it == '\'' }
+        }
+    }
+}
+
 // ─── Custom Outlined TextField Matching ShTextField Exactly ──────────────────
 
 @Composable
@@ -48,7 +67,8 @@ private fun AuthTextField(
     isPassword: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
-    onImeAction: () -> Unit = {}
+    onImeAction: () -> Unit = {},
+    errorText: String? = null
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
@@ -117,6 +137,15 @@ private fun AuthTextField(
                 cursorColor = textColorPrimary
             )
         )
+
+        if (errorText != null) {
+            Text(
+                text = errorText,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+            )
+        }
     }
 }
 
@@ -548,6 +577,9 @@ fun SignInScreen(
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+
+    val isEmailValid = email.isEmpty() || AuthValidator.isValidEmail(email)
+
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
@@ -564,7 +596,7 @@ fun SignInScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 80.dp), // Leaves space for bottom pinned link
+                .padding(bottom = 72.dp), // Prevents overlap with pinned link
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
@@ -572,7 +604,7 @@ fun SignInScreen(
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             if (errorMessage != null) {
                 Text(
@@ -581,30 +613,33 @@ fun SignInScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp)
+                        .padding(bottom = 10.dp)
                 )
             }
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, outlineColor)
+                borderStroke = BorderStroke(1.dp, outlineColor),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 Text(
                     text = "Welcome Back",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = textColorPrimary
+                        color = textColorPrimary,
+                        fontSize = 24.sp
                     )
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "Sign in to continue managing your finances.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary
+                        color = textColorSecondary,
+                        fontSize = 14.sp
                     )
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 AuthTextField(
                     value = email,
@@ -613,10 +648,11 @@ fun SignInScreen(
                     placeholder = "you@example.com",
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
+                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                    errorText = if (!isEmailValid) "Please enter a valid email address." else null
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 AuthTextField(
                     value = password,
@@ -628,7 +664,7 @@ fun SignInScreen(
                     onImeAction = { focusManager.clearFocus() }
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -650,7 +686,7 @@ fun SignInScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             PremiumButton(
                 text = if (isLoading) "Signing In..." else "Sign In",
@@ -662,7 +698,7 @@ fun SignInScreen(
                         errorMessage = error
                     }
                 },
-                enabled = email.isNotBlank() && password.isNotBlank() && !isLoading,
+                enabled = AuthValidator.isValidEmail(email) && password.isNotEmpty() && !isLoading,
                 isPrimary = true
             )
         }
@@ -673,7 +709,7 @@ fun SignInScreen(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -721,6 +757,12 @@ fun CreateAccountScreen(
     var showPrivacy by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+
+    val isNameValid = fullName.isEmpty() || AuthValidator.isValidFullName(fullName)
+    val isEmailValid = email.isEmpty() || AuthValidator.isValidEmail(email)
+    val isPasswordValid = password.isEmpty() || AuthValidator.isValidPassword(password)
+    val isConfirmValid = confirmPassword.isEmpty() || confirmPassword == password
+
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
@@ -737,7 +779,7 @@ fun CreateAccountScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 80.dp), // Leaves space for bottom pinned link
+                .padding(bottom = 72.dp), // Prevents overlap with bottom link
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
@@ -745,7 +787,7 @@ fun CreateAccountScreen(
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             if (errorMessage != null) {
                 Text(
@@ -754,41 +796,45 @@ fun CreateAccountScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp)
+                        .padding(bottom = 8.dp)
                 )
             }
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, outlineColor)
+                borderStroke = BorderStroke(1.dp, outlineColor),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Text(
                     text = "Get Started",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = textColorPrimary
+                        color = textColorPrimary,
+                        fontSize = 22.sp
                     )
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(1.dp))
                 Text(
                     text = "Create your secure Vesper Ledger account.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary
+                        color = textColorSecondary,
+                        fontSize = 13.sp
                     )
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 AuthTextField(
                     value = fullName,
                     onValueChange = { fullName = it },
                     label = "Full Name",
-                    placeholder = "Your full name",
+                    placeholder = "e.g. John Doe",
                     imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
+                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                    errorText = if (!isNameValid) "Please enter first and last name (letters only)." else null
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 AuthTextField(
                     value = email,
@@ -797,22 +843,24 @@ fun CreateAccountScreen(
                     placeholder = "you@example.com",
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
+                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                    errorText = if (!isEmailValid) "Please enter a valid email address." else null
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 AuthTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = "Password",
-                    placeholder = "••••••••",
+                    placeholder = "Min 8 chars, letter & number",
                     isPassword = true,
                     imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
+                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                    errorText = if (!isPasswordValid) "Min 8 chars with 1 letter and 1 digit." else null
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 AuthTextField(
                     value = confirmPassword,
@@ -821,10 +869,11 @@ fun CreateAccountScreen(
                     placeholder = "••••••••",
                     isPassword = true,
                     imeAction = ImeAction.Done,
-                    onImeAction = { focusManager.clearFocus() }
+                    onImeAction = { focusManager.clearFocus() },
+                    errorText = if (!isConfirmValid) "Passwords do not match." else null
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Terms of Service and Privacy Policy checkbox with clickable document links
                 Row(
@@ -842,14 +891,15 @@ fun CreateAccountScreen(
                     )
                     Text(
                         text = "I accept the ",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary)
+                        style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
                     )
                     Text(
                         text = "Terms",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = textColorPrimary,
                             fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
+                            textDecoration = TextDecoration.Underline,
+                            fontSize = 13.sp
                         ),
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -858,14 +908,15 @@ fun CreateAccountScreen(
                     )
                     Text(
                         text = " & ",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary)
+                        style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
                     )
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = textColorPrimary,
                             fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
+                            textDecoration = TextDecoration.Underline,
+                            fontSize = 13.sp
                         ),
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -875,23 +926,7 @@ fun CreateAccountScreen(
                 }
             }
 
-            // Dialogs for Terms & Conditions and Privacy Policy inside Create Account
-            if (showTerms) {
-                AuthInfoDialog(
-                    title = "Terms & Conditions",
-                    text = TERMS_CONDITIONS_TEXT,
-                    onDismissRequest = { showTerms = false }
-                )
-            }
-            if (showPrivacy) {
-                AuthInfoDialog(
-                    title = "Privacy Policy",
-                    text = PRIVACY_POLICY_TEXT,
-                    onDismissRequest = { showPrivacy = false }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             PremiumButton(
                 text = if (isLoading) "Creating Account..." else "Create Account",
@@ -907,10 +942,28 @@ fun CreateAccountScreen(
                         errorMessage = error
                     }
                 },
-                enabled = fullName.isNotBlank() && email.isNotBlank() &&
-                        password.isNotBlank() && confirmPassword.isNotBlank() &&
+                enabled = AuthValidator.isValidFullName(fullName) &&
+                        AuthValidator.isValidEmail(email) &&
+                        AuthValidator.isValidPassword(password) &&
+                        confirmPassword == password &&
                         termsAccepted && !isLoading,
                 isPrimary = true
+            )
+        }
+
+        // Dialogs for Terms & Conditions and Privacy Policy inside Create Account
+        if (showTerms) {
+            AuthInfoDialog(
+                title = "Terms & Conditions",
+                text = TERMS_CONDITIONS_TEXT,
+                onDismissRequest = { showTerms = false }
+            )
+        }
+        if (showPrivacy) {
+            AuthInfoDialog(
+                title = "Privacy Policy",
+                text = PRIVACY_POLICY_TEXT,
+                onDismissRequest = { showPrivacy = false }
             )
         }
 
@@ -920,7 +973,7 @@ fun CreateAccountScreen(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -964,6 +1017,10 @@ fun ForgotPasswordScreen(
     var statusMessage by remember { mutableStateOf<String?>(null) }
     var isSuccess by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+
+    val isEmailValid = email.isEmpty() || AuthValidator.isValidEmail(email)
+    val isPasswordValid = newPassword.isEmpty() || AuthValidator.isValidPassword(newPassword)
+
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
@@ -980,7 +1037,7 @@ fun ForgotPasswordScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 80.dp), // Leaves space for bottom pinned link
+                .padding(bottom = 72.dp), // Leaves space for bottom pinned link
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
@@ -988,7 +1045,7 @@ fun ForgotPasswordScreen(
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             if (statusMessage != null) {
                 Text(
@@ -997,30 +1054,33 @@ fun ForgotPasswordScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp)
+                        .padding(bottom = 10.dp)
                 )
             }
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, outlineColor)
+                borderStroke = BorderStroke(1.dp, outlineColor),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 Text(
                     text = "Reset Password",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = textColorPrimary
+                        color = textColorPrimary,
+                        fontSize = 24.sp
                     )
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "Enter your email address and a new password to reset your login credentials.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary
+                        color = textColorSecondary,
+                        fontSize = 14.sp
                     )
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 AuthTextField(
                     value = email,
@@ -1029,23 +1089,25 @@ fun ForgotPasswordScreen(
                     placeholder = "you@example.com",
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
+                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                    errorText = if (!isEmailValid) "Please enter a valid email address." else null
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 AuthTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
                     label = "New Password",
-                    placeholder = "••••••••",
+                    placeholder = "Min 8 chars, letter & number",
                     isPassword = true,
                     imeAction = ImeAction.Done,
-                    onImeAction = { focusManager.clearFocus() }
+                    onImeAction = { focusManager.clearFocus() },
+                    errorText = if (!isPasswordValid) "Min 8 chars with 1 letter and 1 digit." else null
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             PremiumButton(
                 text = if (isLoading) "Resetting Password..." else "Reset Password",
@@ -1063,7 +1125,7 @@ fun ForgotPasswordScreen(
                         }
                     }
                 },
-                enabled = email.isNotBlank() && newPassword.isNotBlank() && !isLoading,
+                enabled = AuthValidator.isValidEmail(email) && AuthValidator.isValidPassword(newPassword) && !isLoading,
                 isPrimary = true
             )
         }
@@ -1074,7 +1136,7 @@ fun ForgotPasswordScreen(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
