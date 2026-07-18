@@ -225,12 +225,12 @@ fun WelcomeScreen(
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        // 1. Sleek brand header (Logo & App Name)
+        // 1. Sleek brand header (Logo & App Name aligned flush with the left greeting edge)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 20.dp),
+                .padding(start = 12.dp, end = 16.dp, top = 20.dp, bottom = 20.dp), // Start padding 12.dp offsets asset margin
             horizontalArrangement = Arrangement.spacedBy(6.dp), // Exact 6.dp gap requested
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -238,16 +238,18 @@ fun WelcomeScreen(
                 painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
                 contentDescription = "Vesper Brand Logo",
                 tint = textColorPrimary,
-                modifier = Modifier.size(40.dp) // Exactly 40.dp logo size
+                modifier = Modifier.size(28.dp) // Size matches the dashboard top header scale
             )
             Text(
-                text = "VESPER LEDGER",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp, // Matched height to 40.dp logo size
-                    letterSpacing = 1.5.sp,
+                text = "Vesper Ledger",
+                style = androidx.compose.ui.text.TextStyle(
                     fontFamily = SpaceGroteskFamily,
-                    color = textColorPrimary
+                    fontSize = 22.sp, // Identical size to the dashboard top header title
+                    fontWeight = FontWeight.Bold,
+                    color = textColorPrimary,
+                    platformStyle = androidx.compose.ui.text.PlatformTextStyle(
+                        includeFontPadding = false // Ensures perfect vertical alignment with logo
+                    )
                 )
             )
         }
@@ -340,14 +342,14 @@ fun WelcomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Private by Design",
+                            text = "Your Money. Your Rules.",
                             color = textColorPrimary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Everything stays securely on your device.\nAlways private, always yours.",
+                            text = "Your financial life stays entirely yours.",
                             color = textColorSecondary,
                             fontSize = 13.sp,
                             lineHeight = 18.sp
@@ -392,14 +394,14 @@ fun WelcomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Built for Intention",
+                            text = "Slow Down. Notice More.",
                             color = textColorPrimary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Track every transaction consciously\nand with complete awareness.",
+                            text = "Recording each expense builds lasting awareness.",
                             color = textColorSecondary,
                             fontSize = 13.sp,
                             lineHeight = 18.sp
@@ -434,14 +436,14 @@ fun WelcomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Clarity in Simplicity",
+                            text = "Less Noise. More Clarity.",
                             color = textColorPrimary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "A calm, distraction-free space\nto focus on what matters.",
+                            text = "A calm space to understand your finances.",
                             color = textColorSecondary,
                             fontSize = 13.sp,
                             lineHeight = 18.sp
