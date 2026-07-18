@@ -22,14 +22,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.components.ChildHeader
+import com.vesper.ledger.ui.components.DynamicLogo
 import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
-import com.vesper.ledger.ui.components.ShOutlinedButton
 
 // ─── Custom Outlined TextField Matching ShTextField Exactly ──────────────────
 
@@ -103,7 +104,7 @@ private fun AuthTextField(
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedBorderColor = MaterialTheme.colorScheme.onBackground, // Monochrome focus to avoid red/rose accent
+                focusedBorderColor = MaterialTheme.colorScheme.onBackground, // Monochrome focus
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 cursorColor = MaterialTheme.colorScheme.onBackground
             )
@@ -131,93 +132,113 @@ fun WelcomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp) // Consistent 16dp margins
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Brand hero card matching Dashboard ShCard patterns
+            // Large unified branding and action card to maximize engagement
             ShCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "Welcome",
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        fontWeight = FontWeight.Bold
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Centered dynamic launcher logo for immediate recognition
+                    DynamicLogo(
+                        size = 80.dp,
+                        cornerRadius = 18.dp
                     )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Take control of every transaction with clarity and confidence.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Text(
+                        text = "Vesper Ledger",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
                     )
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Action CTAs
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                ShButton(
-                    text = "Create Account",
-                    onClick = onCreateAccountClick,
-                    containerColor = MaterialTheme.colorScheme.onBackground, // White in dark theme, Black in light theme
-                    contentColor = MaterialTheme.colorScheme.background
-                )
-
-                ShButton(
-                    text = "Sign In",
-                    onClick = onSignInClick,
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Privacy/Terms Footer
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Terms of Service",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { /* Terms click */ }
-                )
-                Text(
-                    text = "  ·  ",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Take control of every transaction with clarity and confidence.",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 20.sp,
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
-                )
-                Text(
-                    text = "Privacy Policy",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { /* Privacy click */ }
-                )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Buttons grouped tightly inside the card container to feel connected
+                    ShButton(
+                        text = "Create Account",
+                        onClick = onCreateAccountClick,
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    ShButton(
+                        text = "Sign In",
+                        onClick = onSignInClick,
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Legal links placed within the card block for visual rhythm
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Terms of Service",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textDecoration = TextDecoration.Underline
+                            ),
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { /* Terms click */ }
+                        )
+                        Text(
+                            text = "  ·  ",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                        )
+                        Text(
+                            text = "Privacy Policy",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textDecoration = TextDecoration.Underline
+                            ),
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { /* Privacy click */ }
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -250,12 +271,11 @@ fun SignInScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .navigationBarsPadding()
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Structured Form Container matching Dashboard Card styling
+            // Single card container holds all fields, primary CTA and link navigation for visual continuity
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Welcome Back",
@@ -297,7 +317,7 @@ fun SignInScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Forgot Password link styled like "See All" on the Dashboard
+                // Forgot Password link placed directly underneath the password field
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.CenterEnd
@@ -316,48 +336,50 @@ fun SignInScreen(
                         )
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-            ShButton(
-                text = "Sign In",
-                onClick = onSignInClick,
-                enabled = email.isNotBlank() && password.isNotBlank(),
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.background
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Footer link navigation
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Don't have an account? ",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                // Sign In Button placed inside the card to feel cohesive and connected
+                ShButton(
+                    text = "Sign In",
+                    onClick = onSignInClick,
+                    enabled = email.isNotBlank() && password.isNotBlank(),
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
                 )
-                Text(
-                    text = "Create Account",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onCreateAccountClick
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Underlined redirection link centered inside the card
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Don't have an account? ",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
-                )
+                    Text(
+                        text = "Create Account",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onCreateAccountClick
+                        )
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -391,12 +413,11 @@ fun CreateAccountScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .navigationBarsPadding()
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Form container card matching theme structure
+            // Form container card holding fields and action items together
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Get Started",
@@ -458,49 +479,51 @@ fun CreateAccountScreen(
                     imeAction = ImeAction.Done,
                     onImeAction = { focusManager.clearFocus() }
                 )
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-            ShButton(
-                text = "Create Account",
-                onClick = onCreateAccountClick,
-                enabled = fullName.isNotBlank() && email.isNotBlank() &&
-                        password.isNotBlank() && confirmPassword.isNotBlank(),
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.background
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Footer link
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Already have an account? ",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                // Action button inside card
+                ShButton(
+                    text = "Create Account",
+                    onClick = onCreateAccountClick,
+                    enabled = fullName.isNotBlank() && email.isNotBlank() &&
+                            password.isNotBlank() && confirmPassword.isNotBlank(),
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
                 )
-                Text(
-                    text = "Sign In",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onSignInClick
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Footer link inside card
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Already have an account? ",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
-                )
+                    Text(
+                        text = "Sign In",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onSignInClick
+                        )
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -531,12 +554,11 @@ fun ForgotPasswordScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .navigationBarsPadding()
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Form container card
+            // Card container holding email, CTA and return link
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Reset Password",
@@ -563,41 +585,41 @@ fun ForgotPasswordScreen(
                     imeAction = ImeAction.Done,
                     onImeAction = { focusManager.clearFocus() }
                 )
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-            ShButton(
-                text = "Send Reset Link",
-                onClick = onSendResetLinkClick,
-                enabled = email.isNotBlank(),
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.background
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Footer link
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Back to Sign In",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onBackToSignInClick
-                    )
+                ShButton(
+                    text = "Send Reset Link",
+                    onClick = onSendResetLinkClick,
+                    enabled = email.isNotBlank(),
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Back to Sign In",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onBackToSignInClick
+                        )
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
