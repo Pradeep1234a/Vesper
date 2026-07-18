@@ -119,15 +119,44 @@ fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
     onSignInClick: () -> Unit
 ) {
+@Composable
+fun WelcomeScreen(
+    onCreateAccountClick: () -> Unit,
+    onSignInClick: () -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val sharedPrefs = context.getSharedPreferences("vesper_settings", android.content.Context.MODE_PRIVATE)
+    val appIcon = sharedPrefs.getString("appIcon", "default") ?: "default"
+    val logoForegroundRes = com.vesper.ledger.data.secure.AppIconManager.getIconForegroundRes(appIcon)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        RootHeader(
-            title = "Vesper Ledger",
-            onMenuClick = null // No hamburger menu during onboarding/auth
-        )
+        // 1. Clean brand logo header matching onboarding style
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
+                contentDescription = "Vesper Brand Logo",
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.size(32.dp)
+            )
+            Text(
+                text = "Vesper Ledger",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = SpaceGroteskFamily
+                )
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -135,109 +164,167 @@ fun WelcomeScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Large unified branding and action card to maximize engagement
-            ShCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    // Centered dynamic launcher logo for immediate recognition
-                    DynamicLogo(
-                        size = 80.dp,
-                        cornerRadius = 18.dp
-                    )
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
-                    Text(
-                        text = "Vesper Ledger",
-                        style = MaterialTheme.typography.displayMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = "Take control of every transaction with clarity and confidence.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 20.sp,
-                            textAlign = TextAlign.Center
-                        ),
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    // Buttons grouped tightly inside the card container to feel connected
-                    ShButton(
-                        text = "Create Account",
-                        onClick = onCreateAccountClick,
-                        containerColor = MaterialTheme.colorScheme.onBackground,
-                        contentColor = MaterialTheme.colorScheme.background
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    ShButton(
-                        text = "Sign In",
-                        onClick = onSignInClick,
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    // Legal links placed within the card block for visual rhythm
+            // 2. Ledger Preview Card (Engaging UI Mockup that uses vertical space)
+            ShCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Terms of Service",
+                            text = "PREVIEW LEDGER",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textDecoration = TextDecoration.Underline
-                            ),
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { /* Terms click */ }
-                        )
-                        Text(
-                            text = "  ·  ",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                letterSpacing = 1.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         )
-                        Text(
-                            text = "Privacy Policy",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textDecoration = TextDecoration.Underline
-                            ),
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { /* Privacy click */ }
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(MaterialTheme.colorScheme.onBackground, shape = androidx.compose.foundation.shape.CircleShape)
                         )
                     }
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "Total Balance",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    Text(
+                        text = "$12,480.00",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
+                                    shape = MaterialTheme.shapes.small
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "☕", fontSize = 16.sp)
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Vesper Brew Co.",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                            Text(
+                                text = "Food & Drink",
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
+                        }
+
+                        Text(
+                            text = "-$4.50",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        )
+                    }
                 }
             }
+
+            // 3. Descriptive Welcoming Card
+            ShCard(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Private finance, without the noise.",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "A calm space to track, plan, and understand your finances. Your data stays entirely on your device.",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 20.sp
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 4. Connect CTAs & Links tightly inside a card/container
+            ShCard(modifier = Modifier.fillMaxWidth()) {
+                ShButton(
+                    text = "Create Account",
+                    onClick = onCreateAccountClick,
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                ShButton(
+                    text = "Sign In",
+                    onClick = onSignInClick,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Terms of Service",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { /* Terms click */ }
+                    )
+                    Text(
+                        text = "  ·  ",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                    )
+                    Text(
+                        text = "Privacy Policy",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { /* Privacy click */ }
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
