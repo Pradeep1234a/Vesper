@@ -88,7 +88,12 @@ fun DashboardScreen(
 
     val displayName = remember(userName) {
         val parts = userName.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }
-        parts.firstOrNull() ?: "User"
+        val first = parts.firstOrNull() ?: "User"
+        if (first.length > 10) {
+            "${first.take(8)}..."
+        } else {
+            first
+        }
     }
 
     Scaffold(
@@ -189,7 +194,9 @@ fun DashboardScreen(
                             style = MaterialTheme.typography.headlineLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp
-                            )
+                            ),
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Here is your money summary.",
