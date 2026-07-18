@@ -577,8 +577,7 @@ fun SignInScreen(
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-
-    val isEmailValid = email.isEmpty() || AuthValidator.isValidEmail(email)
+    var showErrors by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -649,7 +648,7 @@ fun SignInScreen(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
                     onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (!isEmailValid) "Please enter a valid email address." else null
+                    errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -661,7 +660,8 @@ fun SignInScreen(
                     placeholder = "••••••••",
                     isPassword = true,
                     imeAction = ImeAction.Done,
-                    onImeAction = { focusManager.clearFocus() }
+                    onImeAction = { focusManager.clearFocus() },
+                    errorText = if (showErrors && password.isEmpty()) "Password cannot be empty." else null
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -691,6 +691,10 @@ fun SignInScreen(
             PremiumButton(
                 text = if (isLoading) "Signing In..." else "Sign In",
                 onClick = {
+                    showErrors = true
+                    if (!AuthValidator.isValidEmail(email) || password.isEmpty()) {
+                        return@PremiumButton
+                    }
                     isLoading = true
                     errorMessage = null
                     onSignInClick(email, password) { error ->
@@ -698,7 +702,7 @@ fun SignInScreen(
                         errorMessage = error
                     }
                 },
-                enabled = AuthValidator.isValidEmail(email) && password.isNotEmpty() && !isLoading,
+                enabled = !isLoading,
                 isPrimary = true
             )
         }
@@ -757,11 +761,7 @@ fun CreateAccountScreen(
     var showPrivacy by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-
-    val isNameValid = fullName.isEmpty() || AuthValidator.isValidFullName(fullName)
-    val isEmailValid = email.isEmpty() || AuthValidator.isValidEmail(email)
-    val isPasswordValid = password.isEmpty() || AuthValidator.isValidPassword(password)
-    val isConfirmValid = confirmPassword.isEmpty() || confirmPassword == password
+    var showErrors by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -831,7 +831,7 @@ fun CreateAccountScreen(
                     placeholder = "e.g. John Doe",
                     imeAction = ImeAction.Next,
                     onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (!isNameValid) "Please enter first and last name (letters only)." else null
+                    errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter first and last name (letters only)." else null
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -844,7 +844,7 @@ fun CreateAccountScreen(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
                     onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (!isEmailValid) "Please enter a valid email address." else null
+                    errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -857,7 +857,7 @@ fun CreateAccountScreen(
                     isPassword = true,
                     imeAction = ImeAction.Next,
                     onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (!isPasswordValid) "Min 8 chars with 1 letter and 1 digit." else null
+                    errorText = if (showErrors && !AuthValidator.isValidPassword(password)) "Min 8 chars with 1 letter and 1 digit." else null
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -870,7 +870,7 @@ fun CreateAccountScreen(
                     isPassword = true,
                     imeAction = ImeAction.Done,
                     onImeAction = { focusManager.clearFocus() },
-                    errorText = if (!isConfirmValid) "Passwords do not match." else null
+                    errorText = if (showErrors && confirmPassword != password) "Passwords do not match." else null
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -931,8 +931,16 @@ fun CreateAccountScreen(
             PremiumButton(
                 text = if (isLoading) "Creating Account..." else "Create Account",
                 onClick = {
-                    if (password != confirmPassword) {
-                        errorMessage = "Passwords do not match."
+                    showErrors = true
+                    if (!AuthValidator.isValidFullName(fullName) ||
+                        !AuthValidator.isValidEmail(email) ||
+                        !AuthValidator.isValidPassword(password) ||
+                        confirmPassword != password
+                    ) {
+                        return@PremiumButton
+                    }
+                    if (!termsAccepted) {
+                        errorMessage = "You must accept the Terms of Service & Privacy Policy."
                         return@PremiumButton
                     }
                     isLoading = true
@@ -942,11 +950,7 @@ fun CreateAccountScreen(
                         errorMessage = error
                     }
                 },
-                enabled = AuthValidator.isValidFullName(fullName) &&
-                        AuthValidator.isValidEmail(email) &&
-                        AuthValidator.isValidPassword(password) &&
-                        confirmPassword == password &&
-                        termsAccepted && !isLoading,
+                enabled = !isLoading,
                 isPrimary = true
             )
         }
@@ -1017,9 +1021,7 @@ fun ForgotPasswordScreen(
     var statusMessage by remember { mutableStateOf<String?>(null) }
     var isSuccess by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-
-    val isEmailValid = email.isEmpty() || AuthValidator.isValidEmail(email)
-    val isPasswordValid = newPassword.isEmpty() || AuthValidator.isValidPassword(newPassword)
+    var showErrors by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -1090,7 +1092,7 @@ fun ForgotPasswordScreen(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
                     onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (!isEmailValid) "Please enter a valid email address." else null
+                    errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -1103,7 +1105,7 @@ fun ForgotPasswordScreen(
                     isPassword = true,
                     imeAction = ImeAction.Done,
                     onImeAction = { focusManager.clearFocus() },
-                    errorText = if (!isPasswordValid) "Min 8 chars with 1 letter and 1 digit." else null
+                    errorText = if (showErrors && !AuthValidator.isValidPassword(newPassword)) "Min 8 chars with 1 letter and 1 digit." else null
                 )
             }
 
@@ -1112,6 +1114,10 @@ fun ForgotPasswordScreen(
             PremiumButton(
                 text = if (isLoading) "Resetting Password..." else "Reset Password",
                 onClick = {
+                    showErrors = true
+                    if (!AuthValidator.isValidEmail(email) || !AuthValidator.isValidPassword(newPassword)) {
+                        return@PremiumButton
+                    }
                     isLoading = true
                     statusMessage = null
                     onSendResetLinkClick(email, newPassword) { error ->
@@ -1125,7 +1131,7 @@ fun ForgotPasswordScreen(
                         }
                     }
                 },
-                enabled = AuthValidator.isValidEmail(email) && AuthValidator.isValidPassword(newPassword) && !isLoading,
+                enabled = !isLoading,
                 isPrimary = true
             )
         }
