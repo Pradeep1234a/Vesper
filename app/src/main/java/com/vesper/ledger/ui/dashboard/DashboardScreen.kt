@@ -91,20 +91,16 @@ fun DashboardScreen(
         val first = parts.firstOrNull() ?: "User"
         val lastInitial = parts.getOrNull(1)?.take(1)?.uppercase()
         
-        if (lastInitial != null) {
-            val candidate = "$first $lastInitial."
-            if (candidate.length > 15) {
-                val truncatedFirst = if (first.length > 10) "${first.take(9)}..." else first
-                "$truncatedFirst $lastInitial."
-            } else {
-                candidate
-            }
+        val displayFirst = if (first.length > 15) {
+            "${first.take(12)}..."
         } else {
-            if (first.length > 15) {
-                "${first.take(12)}..."
-            } else {
-                first
-            }
+            first
+        }
+        
+        if (lastInitial != null) {
+            "$displayFirst $lastInitial."
+        } else {
+            displayFirst
         }
     }
 
