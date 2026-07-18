@@ -15,15 +15,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,6 +31,7 @@ import com.vesper.ledger.ui.components.DynamicLogo
 import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.ShOutlinedButton
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 // ─── Custom Outlined TextField Matching ShTextField Exactly ──────────────────
@@ -116,7 +116,6 @@ private fun AuthTextField(
 
 // ─── Screen 1: Welcome ──────────────────────────────────────────────────────
 
-
 @Composable
 fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
@@ -172,11 +171,33 @@ fun WelcomeScreen(
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 2. Poetic luxury editorial statement
+            // 2. Visual Anchor Card: Abstract line-art illustration framing (Visual Anchor)
+            ShCard(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp) // Edge-to-edge inside the card container
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = illustrationRes),
+                        contentDescription = "Visual representation of clarity and mindfulness",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    )
+                }
+            }
+
+            // 3. Poetic luxury editorial statement (Clean vertical flow text)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 4.dp)
             ) {
                 Text(
                     text = "Silence the noise.",
@@ -196,9 +217,9 @@ fun WelcomeScreen(
                         letterSpacing = (-0.5).sp
                     )
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Vesper is a private, monochrome space built to bring clarity and calm to your financial life.",
+                    text = "Vesper is a private, monochrome space built to bring clarity and calm to your finances.",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 22.sp
@@ -206,38 +227,20 @@ fun WelcomeScreen(
                 )
             }
 
-            // 3. Visual Anchor Card: Abstract line-art illustration framing
-            ShCard(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(0.dp) // Edge-to-edge inside the card container
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    androidx.compose.foundation.Image(
-                        painter = androidx.compose.ui.res.painterResource(id = illustrationRes),
-                        contentDescription = "Visual representation of clarity and mindfulness",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.weight(1f))
 
-            // 4. Action card grouping CTAs and legal links
-            ShCard(modifier = Modifier.fillMaxWidth()) {
+            // 4. Action Buttons & Links aligned on the same vertical axis
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 ShButton(
                     text = "Create Account",
                     onClick = onCreateAccountClick,
                     containerColor = MaterialTheme.colorScheme.onBackground,
                     contentColor = MaterialTheme.colorScheme.background
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 ShButton(
                     text = "Sign In",
@@ -246,7 +249,7 @@ fun WelcomeScreen(
                     contentColor = MaterialTheme.colorScheme.onSecondary
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -284,7 +287,7 @@ fun WelcomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
@@ -317,11 +320,12 @@ fun SignInScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Single card container holds all fields, primary CTA and link navigation for visual continuity
+            // Visual Anchor Card: Form Fields ONLY to act as a focused hero element
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Welcome Back",
@@ -363,7 +367,6 @@ fun SignInScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Forgot Password link placed directly underneath the password field
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.CenterEnd
@@ -382,10 +385,16 @@ fun SignInScreen(
                         )
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                // Sign In Button placed inside the card to feel cohesive and connected
+            // CTA Button & Navigation grouped tightly below the card for visual connectivity
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 ShButton(
                     text = "Sign In",
                     onClick = onSignInClick,
@@ -394,9 +403,6 @@ fun SignInScreen(
                     contentColor = MaterialTheme.colorScheme.background
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Underlined redirection link centered inside the card
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -422,9 +428,8 @@ fun SignInScreen(
                         )
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
             }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -459,11 +464,12 @@ fun CreateAccountScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Form container card holding fields and action items together
+            // Visual Anchor Card: Fields container
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Get Started",
@@ -525,10 +531,16 @@ fun CreateAccountScreen(
                     imeAction = ImeAction.Done,
                     onImeAction = { focusManager.clearFocus() }
                 )
+            }
 
-                Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                // Action button inside card
+            // Action section tightly grouped below the card
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 ShButton(
                     text = "Create Account",
                     onClick = onCreateAccountClick,
@@ -538,9 +550,6 @@ fun CreateAccountScreen(
                     contentColor = MaterialTheme.colorScheme.background
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Footer link inside card
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -566,9 +575,8 @@ fun CreateAccountScreen(
                         )
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
             }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -600,11 +608,12 @@ fun ForgotPasswordScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Card container holding email, CTA and return link
+            // Visual Anchor Card: Form container
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Reset Password",
@@ -631,9 +640,16 @@ fun ForgotPasswordScreen(
                     imeAction = ImeAction.Done,
                     onImeAction = { focusManager.clearFocus() }
                 )
+            }
 
-                Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
+            // Action section tightly grouped below the card
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 ShButton(
                     text = "Send Reset Link",
                     onClick = onSendResetLinkClick,
@@ -641,8 +657,6 @@ fun ForgotPasswordScreen(
                     containerColor = MaterialTheme.colorScheme.onBackground,
                     contentColor = MaterialTheme.colorScheme.background
                 )
-
-                Spacer(modifier = Modifier.height(24.dp))
 
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -662,9 +676,8 @@ fun ForgotPasswordScreen(
                         )
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
             }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
