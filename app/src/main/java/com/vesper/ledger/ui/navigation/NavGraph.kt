@@ -81,6 +81,7 @@ fun NavGraph(
                 onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) },
                 onCategoryManagementClick = { navController.navigate("categories") },
+                onNotificationsClick = { navController.navigate(Screen.Notifications.route) },
                 onSignOutClick = {
                     scope.launch(Dispatchers.IO) {
                         val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
@@ -179,6 +180,15 @@ fun NavGraph(
             SavingsScreen(
                 viewModel = savingsViewModel,
                 currencySymbol = currencySymbol,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Notifications.route) {
+            val notificationFactory = com.vesper.ledger.ui.notification.NotificationViewModelFactory(app)
+            val notificationViewModel: com.vesper.ledger.ui.notification.NotificationViewModel = viewModel(factory = notificationFactory)
+            com.vesper.ledger.ui.notification.NotificationCenterScreen(
+                viewModel = notificationViewModel,
                 onBackClick = { navController.popBackStack() }
             )
         }

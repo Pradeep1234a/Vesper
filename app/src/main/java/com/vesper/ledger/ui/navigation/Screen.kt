@@ -15,4 +15,5 @@ sealed class Screen(val route: String) {
     object AuthSignIn : Screen("auth_sign_in")
     object AuthCreateAccount : Screen("auth_create_account")
     object AuthForgotPassword : Screen("auth_forgot_password")
+    object Notifications : Screen("notifications")
 }

@@ -92,31 +92,22 @@ class MainActivity : FragmentActivity() {
         }
 
         // Initialize Periodic Intelligent Notifications Background Scheduler
-        val sharedPrefs = getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
-        val anyNotifyEnabled = sharedPrefs.getBoolean("dailyReminder", false) || 
-                               sharedPrefs.getBoolean("missedEntryReminder", false) || 
-                               sharedPrefs.getBoolean("budgetReminder", false) || 
-                               sharedPrefs.getBoolean("recurringReminder", false) || 
-                               sharedPrefs.getBoolean("weeklySummaryReminder", false) || 
-                               sharedPrefs.getBoolean("monthlySummaryReminder", false)
-
-        if (anyNotifyEnabled) {
-            val workManager = androidx.work.WorkManager.getInstance(this)
-            val request = androidx.work.PeriodicWorkRequestBuilder<com.vesper.ledger.data.notification.IntelligentNotificationWorker>(
-                4, java.util.concurrent.TimeUnit.HOURS
-            ).setConstraints(
-                androidx.work.Constraints.Builder()
-                    .setRequiresBatteryNotLow(true)
-                    .build()
-            ).build()
-            
-            workManager.enqueueUniquePeriodicWork(
-                "vesper_intelligent_notifications",
-                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
-                request
-            )
-            Log.d("MainActivity", "Enqueued intelligent notification worker on startup.")
-        }
+        // Always schedule on startup - individual checks happen inside the worker
+        val workManager = androidx.work.WorkManager.getInstance(this)
+        val request = androidx.work.PeriodicWorkRequestBuilder<com.vesper.ledger.data.notification.IntelligentNotificationWorker>(
+            4, java.util.concurrent.TimeUnit.HOURS
+        ).setConstraints(
+            androidx.work.Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .build()
+        ).build()
+        
+        workManager.enqueueUniquePeriodicWork(
+            "vesper_intelligent_notifications",
+            androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+        Log.d("MainActivity", "Enqueued intelligent notification worker on startup.")
 
         // Lock App initially on launch if App Lock is enabled
         val helper = SecureStorageHelper.getInstance(this)

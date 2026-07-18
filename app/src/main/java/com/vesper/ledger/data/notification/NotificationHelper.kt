@@ -5,7 +5,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.vesper.ledger.MainActivity
@@ -13,225 +16,210 @@ import com.vesper.ledger.R
 
 object NotificationHelper {
 
-    const val CHANNEL_BUDGET = "vesper_budget_alerts"
-    const val CHANNEL_SAVINGS = "vesper_savings_progress"
-    const val CHANNEL_RECURRING = "vesper_recurring_reminders"
-    const val CHANNEL_ENGAGEMENT = "vesper_engagement"
-
     fun initNotificationChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            val budgetChannel = NotificationChannel(
-                CHANNEL_BUDGET,
-                "Budget Warnings",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notifies when spending is close to or exceeds category budgets"
-            }
-
-            val savingsChannel = NotificationChannel(
-                CHANNEL_SAVINGS,
-                "Savings Progress",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Celebrates goal milestones and contributions"
-            }
-
-            val recurringChannel = NotificationChannel(
-                CHANNEL_RECURRING,
-                "Subscription Reminders",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Reminds you of expected upcoming bills and subscriptions"
-            }
-
-            val engagementChannel = NotificationChannel(
-                CHANNEL_ENGAGEMENT,
-                "Weekly Insights & Habits",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Delivers spending trend summaries and habit analytics"
-            }
-
-            manager.createNotificationChannels(
-                listOf(budgetChannel, savingsChannel, recurringChannel, engagementChannel)
+            val channels = listOf(
+                NotificationChannel(
+                    "vesper_daily_reminders",
+                    "Daily Reminders",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Reminds you to log daily transactions and build healthy habit streaks."
+                    enableVibration(true)
+                },
+                NotificationChannel(
+                    "vesper_smart_suggestions",
+                    "Smart Suggestions",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = "Delivers smart financial suggestions based on spending patterns."
+                    enableVibration(true)
+                },
+                NotificationChannel(
+                    "vesper_financial_insights",
+                    "Financial Insights",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = "Weekly summaries and monthly spending insights."
+                    enableVibration(false)
+                },
+                NotificationChannel(
+                    "vesper_goals_achievements",
+                    "Goals & Achievements",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = "Celebrates goal milestones and streak achievements."
+                    enableVibration(true)
+                },
+                NotificationChannel(
+                    "vesper_security",
+                    "Security",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Alerts about local data backups and account safety warnings."
+                    enableVibration(true)
+                },
+                NotificationChannel(
+                    "vesper_system",
+                    "System Events",
+                    NotificationManager.IMPORTANCE_LOW
+                ).apply {
+                    description = "System logs and database status messages."
+                    enableVibration(false)
+                },
+                NotificationChannel(
+                    "vesper_updates",
+                    "Product Updates",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = "Notifies about new feature releases and update announcements."
+                    enableVibration(false)
+                }
             )
+
+            manager.createNotificationChannels(channels)
+            Log.d("NotificationHelper", "All 7 notification channels initialized successfully.")
         }
     }
 
-    private fun getAsciiProgressBar(percent: Int): String {
-        val filledBlocks = (percent / 10).coerceIn(0, 10)
-        val emptyBlocks = 10 - filledBlocks
-        return "█".repeat(filledBlocks) + "░".repeat(emptyBlocks)
-    }
-
-    fun showBudgetAlert(context: Context, categoryName: String, spent: Double, limit: Double, currencySymbol: String) {
-        val percent = ((spent / limit) * 100).toInt()
-        val bar = getAsciiProgressBar(percent)
-        val remaining = limit - spent
-
-        val intent = Intent(context, MainActivity::class.java).apply {
+    /**
+     * Dispatch standard Android notification and hook click/delete actions for engagement tracking.
+     */
+    fun dispatchNotification(
+        context: Context,
+        dbId: Long,
+        title: String,
+        message: String,
+        category: NotificationCategory
+    ) {
+        val clickIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("NOTIFICATION_ID", dbId)
+            putExtra("NOTIFICATION_ACTION", "CLICK")
         }
-        val pendingIntent = PendingIntent.getActivity(
-            context, 0, intent,
+        val clickPendingIntent = PendingIntent.getActivity(
+            context,
+            dbId.toInt(),
+            clickIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val contentText = if (remaining >= 0) {
-            "Budget Alert\n$categoryName: $bar\n$currencySymbol${spent.toInt()} / $currencySymbol${limit.toInt()}\nOnly $currencySymbol${remaining.toInt()} remaining."
-        } else {
-            "Budget Alert\n$categoryName: $bar\n$currencySymbol${spent.toInt()} / $currencySymbol${limit.toInt()}\nBudget exceeded by $currencySymbol${(-remaining).toInt()}!"
+        val deleteIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+            action = "DISMISS_NOTIFICATION"
+            putExtra("NOTIFICATION_ID", dbId)
+        }
+        val deletePendingIntent = PendingIntent.getBroadcast(
+            context,
+            dbId.toInt() + 20000,
+            deleteIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Map category type to generic small drawable icon
+        val iconRes = when (category) {
+            NotificationCategory.WELCOME -> android.R.drawable.ic_dialog_info
+            NotificationCategory.DAILY_REMINDER -> android.R.drawable.ic_menu_edit
+            NotificationCategory.FRIENDLY_REMINDER -> android.R.drawable.ic_menu_edit
+            NotificationCategory.MOTIVATION -> android.R.drawable.ic_dialog_map
+            NotificationCategory.STREAK_CELEBRATION -> android.R.drawable.ic_dialog_info
+            NotificationCategory.WEEKLY_SUMMARY -> android.R.drawable.ic_menu_today
+            NotificationCategory.MONTHLY_INSIGHT -> android.R.drawable.ic_menu_today
+            NotificationCategory.SMART_SUGGESTIONS -> android.R.drawable.ic_dialog_alert
+            NotificationCategory.WARNING -> android.R.drawable.ic_dialog_alert
+            NotificationCategory.ACHIEVEMENT -> android.R.drawable.ic_dialog_info
+            NotificationCategory.BACKUP_REMINDER -> android.R.drawable.ic_lock_lock
+            NotificationCategory.PRODUCT_UPDATES -> android.R.drawable.ic_popup_sync
         }
 
-        val builder = NotificationCompat.Builder(context, CHANNEL_BUDGET)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("Budget Alert: $categoryName")
-            .setContentText(if (remaining >= 0) "Only $currencySymbol${remaining.toInt()} remaining." else "Budget exceeded!")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
+        val builder = NotificationCompat.Builder(context, category.channelId)
+            .setSmallIcon(iconRes)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(
+                if (category.channelId == "vesper_daily_reminders" || category.channelId == "vesper_security") 
+                    NotificationCompat.PRIORITY_HIGH 
+                else 
+                    NotificationCompat.PRIORITY_DEFAULT
+            )
+            .setContentIntent(clickPendingIntent)
+            .setDeleteIntent(deletePendingIntent)
             .setAutoCancel(true)
-            .addAction(0, "View Budget", pendingIntent)
 
         try {
-            NotificationManagerCompat.from(context).notify(categoryName.hashCode(), builder.build())
+            NotificationManagerCompat.from(context).notify(dbId.toInt(), builder.build())
         } catch (e: SecurityException) {
-            // Handled dynamically on permission model
+            Log.e("NotificationHelper", "Failed to dispatch notification: Permission denied", e)
         }
+    }
+
+    // Direct budget warn helpers
+    fun showBudgetAlert(context: Context, categoryName: String, spent: Double, limit: Double, currencySymbol: String) {
+        val remaining = limit - spent
+        val ratio = spent / limit
+        val percent = (ratio * 100).toInt()
+        val filledBlocks = (percent / 10).coerceIn(0, 10)
+        val bar = "█".repeat(filledBlocks) + "░".repeat(10 - filledBlocks)
+
+        val text = if (remaining >= 0) {
+            "Budget Alert: $categoryName: $bar $percent%\nSpent: $currencySymbol${spent.toInt()} / Limit: $currencySymbol${limit.toInt()}.\n$currencySymbol${remaining.toInt()} remaining."
+        } else {
+            "Budget Alert: $categoryName: $bar $percent%\nSpent: $currencySymbol${spent.toInt()} / Limit: $currencySymbol${limit.toInt()}.\nLimit exceeded by $currencySymbol${(-remaining).toInt()}!"
+        }
+
+        VesperNotificationApi.sendNotification(
+            context = context,
+            category = NotificationCategory.SMART_SUGGESTIONS,
+            customTitle = "Budget Warning: $categoryName",
+            customMessage = text
+        )
     }
 
     fun showSavingsGoalAlert(context: Context, goalId: Long, goalName: String, current: Double, target: Double, currencySymbol: String) {
         val percent = (((current / target) * 100).toInt()).coerceIn(0, 100)
-        val bar = getAsciiProgressBar(percent)
-
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            context, 1, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val text = "Savings Milestone for '$goalName': $percent% achieved ($currencySymbol${current.toInt()} of $currencySymbol${target.toInt()})."
+        
+        VesperNotificationApi.sendNotification(
+            context = context,
+            category = NotificationCategory.ACHIEVEMENT,
+            customTitle = "Savings Milestone!",
+            customMessage = text
         )
-
-        val contentText = "Savings Goal Progress\n$goalName: $percent% Complete\n$bar\n$currencySymbol${current.toInt()} / $currencySymbol${target.toInt()}"
-
-        val builder = NotificationCompat.Builder(context, CHANNEL_SAVINGS)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Savings Update: $goalName")
-            .setContentText("$percent% complete towards your target!")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .addAction(0, "Add Contribution", pendingIntent)
-
-        try {
-            NotificationManagerCompat.from(context).notify(goalId.toInt(), builder.build())
-        } catch (e: SecurityException) {
-        }
     }
 
     fun showRecurringTransactionAlert(context: Context, txId: Long, txName: String, amount: Double, currencySymbol: String) {
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            context, 2, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val text = "Your subscription '$txName' of $currencySymbol${amount.toInt()} is expected tomorrow."
+        
+        VesperNotificationApi.sendNotification(
+            context = context,
+            category = NotificationCategory.SMART_SUGGESTIONS,
+            customTitle = "Upcoming Payment Tomorrow",
+            customMessage = text
         )
-
-        // Mark Paid Action
-        val paidIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-            action = "MARK_PAID"
-            putExtra("TX_ID", txId)
-        }
-        val paidPendingIntent = PendingIntent.getBroadcast(
-            context, txId.toInt() * 10, paidIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Snooze Action
-        val snoozeIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-            action = "SNOOZE"
-            putExtra("TX_ID", txId)
-        }
-        val snoozePendingIntent = PendingIntent.getBroadcast(
-            context, txId.toInt() * 10 + 1, snoozeIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val contentText = "Expected Tomorrow:\n$txName Subscription\nAmount due: $currencySymbol${amount.toInt()}"
-
-        val builder = NotificationCompat.Builder(context, CHANNEL_RECURRING)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("Upcoming Payment: $txName")
-            .setContentText("$currencySymbol${amount.toInt()} due tomorrow.")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .addAction(0, "Mark Paid", paidPendingIntent)
-            .addAction(0, "Snooze", snoozePendingIntent)
-
-        try {
-            NotificationManagerCompat.from(context).notify(txId.toInt() + 10000, builder.build())
-        } catch (e: SecurityException) {
-        }
     }
 
     fun showMissedEntryAlert(context: Context, title: String, text: String) {
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            context, 3, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        VesperNotificationApi.sendNotification(
+            context = context,
+            category = NotificationCategory.DAILY_REMINDER,
+            customTitle = title,
+            customMessage = text
         )
-
-        val builder = NotificationCompat.Builder(context, CHANNEL_ENGAGEMENT)
-            .setSmallIcon(android.R.drawable.ic_menu_edit)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .addAction(0, "Add Transaction", pendingIntent)
-
-        try {
-            NotificationManagerCompat.from(context).notify(9999, builder.build())
-        } catch (e: SecurityException) {
-        }
     }
 
     fun showEngagementAlert(context: Context, title: String, text: String) {
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            context, 4, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        VesperNotificationApi.sendNotification(
+            context = context,
+            category = NotificationCategory.MOTIVATION,
+            customTitle = title,
+            customMessage = text
         )
-
-        val builder = NotificationCompat.Builder(context, CHANNEL_ENGAGEMENT)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-
-        try {
-            NotificationManagerCompat.from(context).notify(9998, builder.build())
-        } catch (e: SecurityException) {
-        }
     }
 
     fun cancelAllBudgetAlerts(context: Context) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        // Cancel arbitrary budget hashes
         manager.cancelAll()
     }
 }

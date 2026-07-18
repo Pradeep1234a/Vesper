@@ -67,10 +67,10 @@ class SettingsViewModel(
     val defaultTransactionType = MutableStateFlow(sharedPrefs.getString("defaultTransactionType", "Expense") ?: "Expense")
     val quickAddPreferences = MutableStateFlow(sharedPrefs.getBoolean("quickAddPreferences", true))
     val defaultAccount = MutableStateFlow(sharedPrefs.getString("defaultAccount", "Cash") ?: "Cash")
-    val dailyReminder = MutableStateFlow(sharedPrefs.getBoolean("dailyReminder", false))
-    val missedEntryReminder = MutableStateFlow(sharedPrefs.getBoolean("missedEntryReminder", false))
-    val budgetReminder = MutableStateFlow(sharedPrefs.getBoolean("budgetReminder", false))
-    val recurringReminder = MutableStateFlow(sharedPrefs.getBoolean("recurringReminder", false))
+    val dailyReminder = MutableStateFlow(sharedPrefs.getBoolean("dailyReminder", true))
+    val missedEntryReminder = MutableStateFlow(sharedPrefs.getBoolean("missedEntryReminder", true))
+    val budgetReminder = MutableStateFlow(sharedPrefs.getBoolean("budgetReminder", true))
+    val recurringReminder = MutableStateFlow(sharedPrefs.getBoolean("recurringReminder", true))
 
     // Secure App Lock & Biometrics states
     val appLock = MutableStateFlow(secureStorage.isAppLockEnabled)
@@ -89,8 +89,8 @@ class SettingsViewModel(
     val accentColor = MutableStateFlow(sharedPrefs.getString("accentColor", "rose") ?: "rose")
     val appStyle = MutableStateFlow(sharedPrefs.getString("appStyle", "comfortable") ?: "comfortable")
     val startScreen = MutableStateFlow(sharedPrefs.getString("startScreen", "dashboard") ?: "dashboard")
-    val weeklySummaryReminder = MutableStateFlow(sharedPrefs.getBoolean("weeklySummaryReminder", false))
-    val monthlySummaryReminder = MutableStateFlow(sharedPrefs.getBoolean("monthlySummaryReminder", false))
+    val weeklySummaryReminder = MutableStateFlow(sharedPrefs.getBoolean("weeklySummaryReminder", true))
+    val monthlySummaryReminder = MutableStateFlow(sharedPrefs.getBoolean("monthlySummaryReminder", true))
 
     val categories: StateFlow<List<Category>> = transactionRepository.allCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

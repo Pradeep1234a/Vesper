@@ -60,7 +60,8 @@ fun MainScreen(
     onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSavingsClick: () -> Unit,
     onCategoryManagementClick: () -> Unit,
-    onSignOutClick: () -> Unit
+    onSignOutClick: () -> Unit,
+    onNotificationsClick: () -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -192,7 +193,8 @@ fun MainScreen(
                             launchSingleTop = true
                             restoreState = true
                         }
-                    }
+                    },
+                    onNotificationsClick = onNotificationsClick
                 )
             }
 

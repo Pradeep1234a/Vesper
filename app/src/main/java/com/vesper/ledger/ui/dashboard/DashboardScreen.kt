@@ -60,6 +60,7 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,8 +72,10 @@ fun DashboardScreen(
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSavingsClick: () -> Unit,
-    onReportsClick: () -> Unit
+    onReportsClick: () -> Unit,
+    onNotificationsClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val df = DecimalFormat("#,##0.00")
     val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
@@ -156,17 +159,45 @@ fun DashboardScreen(
             RootHeader(
                 title = "Vesper Ledger",
                 actions = {
-                    Icon(
-                        imageVector = Icons.Outlined.Notifications,
-                        contentDescription = "Notifications",
-                        tint = MaterialTheme.colorScheme.onBackground,
+                    // Notification Bell with Badge
+                    val notificationDao = remember {
+                        com.vesper.ledger.data.local.AppDatabase.getDatabase(context).notificationHistoryDao()
+                    }
+                    val unreadCount by notificationDao.getUnreadCount().collectAsState(initial = 0)
+
+                    Box(
                         modifier = Modifier
                             .size(28.dp)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { /* Notification click */ }
-                    )
+                            ) { onNotificationsClick() }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        if (unreadCount > 0) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = 4.dp, y = (-2).dp)
+                                    .size(16.dp)
+                                    .background(MaterialTheme.colorScheme.error, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = if (unreadCount > 9) "9+" else unreadCount.toString(),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onError,
+                                    lineHeight = 10.sp
+                                )
+                            }
+                        }
+                    }
                     Box(
                         modifier = Modifier
                             .size(28.dp)

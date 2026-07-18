@@ -23,14 +23,27 @@ class IntelligentNotificationWorker(
         val sharedPrefs = app.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
 
         // Read settings toggles
-        val missedEntryReminderEnabled = sharedPrefs.getBoolean("missedEntryReminder", false)
-        val budgetReminderEnabled = sharedPrefs.getBoolean("budgetReminder", false)
-        val recurringReminderEnabled = sharedPrefs.getBoolean("recurringReminder", false)
-        val weeklySummaryEnabled = sharedPrefs.getBoolean("weeklySummaryReminder", false)
+        val missedEntryReminderEnabled = sharedPrefs.getBoolean("missedEntryReminder", true)
+        val budgetReminderEnabled = sharedPrefs.getBoolean("budgetReminder", true)
+        val recurringReminderEnabled = sharedPrefs.getBoolean("recurringReminder", true)
+        val weeklySummaryEnabled = sharedPrefs.getBoolean("weeklySummaryReminder", true)
 
         val currencySymbol = sharedPrefs.getString("currency", "$") ?: "$"
 
         Log.d("IntelligentNotifyWrk", "Worker active. TriggerType: $triggerType, BudgetEnabled: $budgetReminderEnabled")
+
+        if (triggerType == "SCHEDULED_ALERT") {
+            val catName = inputData.getString("CATEGORY_NAME")
+            if (catName != null) {
+                try {
+                    val category = NotificationCategory.valueOf(catName)
+                    VesperNotificationApi.sendNotification(applicationContext, category)
+                } catch (e: Exception) {
+                    Log.e("IntelligentNotifyWrk", "Failed triggering scheduled alert", e)
+                }
+            }
+            return Result.success()
+        }
 
         // 1. Direct snooze triggers
         if (triggerType == "SNOOZE_RECURRING") {

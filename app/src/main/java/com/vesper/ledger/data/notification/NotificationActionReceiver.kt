@@ -24,6 +24,14 @@ class NotificationActionReceiver : BroadcastReceiver() {
         Log.d("NotificationActionRc", "Action received: $action for TxID: $txId")
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (action == "DISMISS_NOTIFICATION") {
+            val notifyId = intent.getLongExtra("NOTIFICATION_ID", -1L)
+            if (notifyId != -1L) {
+                VesperNotificationApi.trackDismissed(context, notifyId)
+            }
+            return
+        }
+
         // Dismiss notification
         manager.cancel(txId.toInt() + 10000)
 

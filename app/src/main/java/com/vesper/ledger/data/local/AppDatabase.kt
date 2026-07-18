@@ -11,16 +11,18 @@ import com.vesper.ledger.data.model.SavingsGoal
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.data.model.UserAccount
+import com.vesper.ledger.data.model.NotificationHistory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Transaction::class, Category::class, SavingsGoal::class, UserAccount::class], version = 4, exportSchema = false)
+@Database(entities = [Transaction::class, Category::class, SavingsGoal::class, UserAccount::class, NotificationHistory::class], version = 5, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun savingsDao(): SavingsDao
     abstract fun userDao(): UserDao
+    abstract fun notificationHistoryDao(): NotificationHistoryDao
 
     companion object {
         @Volatile

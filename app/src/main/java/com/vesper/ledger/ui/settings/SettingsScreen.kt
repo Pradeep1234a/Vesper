@@ -596,6 +596,34 @@ fun SettingsScreen(
                             )
                         }
                     )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingsRow(
+                        icon = Icons.Outlined.Notifications,
+                        title = "Test Notification",
+                        subtitle = "Send a sample notification now",
+                        onClick = {
+                            com.vesper.ledger.data.notification.VesperNotificationApi.sendNotification(
+                                context = context,
+                                category = com.vesper.ledger.data.notification.NotificationCategory.DAILY_REMINDER
+                            )
+                            Toast.makeText(context, "Test notification sent!", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingsRow(
+                        icon = Icons.Outlined.NotificationsPaused,
+                        title = "Reset Notification Preferences",
+                        subtitle = "Restore all notification settings to defaults",
+                        onClick = {
+                            viewModel.saveDailyReminder(true)
+                            viewModel.saveMissedEntryReminder(true)
+                            viewModel.saveBudgetReminder(true)
+                            viewModel.saveRecurringReminder(true)
+                            viewModel.saveWeeklySummaryReminder(true)
+                            viewModel.saveMonthlySummaryReminder(true)
+                            Toast.makeText(context, "Notification preferences reset", Toast.LENGTH_SHORT).show()
+                        }
+                    )
                 }
 
                 // Data & Backup Section
