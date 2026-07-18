@@ -33,7 +33,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.vesper.ledger.ui.components.ChildHeader
-import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
@@ -52,12 +51,16 @@ private fun AuthTextField(
     onImeAction: () -> Unit = {}
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
+    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium.copy(
-                color = Color(0xFF8E8E93)
+                color = textColorSecondary
             ),
             modifier = Modifier.padding(bottom = 6.dp)
         )
@@ -69,12 +72,12 @@ private fun AuthTextField(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color(0xFF48484A)
+                        color = textColorSecondary.copy(alpha = 0.5f)
                     )
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = textColorPrimary),
             singleLine = true,
             visualTransformation = if (isPassword && !passwordVisible)
                 PasswordVisualTransformation() else VisualTransformation.None,
@@ -93,7 +96,7 @@ private fun AuthTextField(
                             Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                         contentDescription = if (passwordVisible)
                             "Hide password" else "Show password",
-                        tint = Color(0xFF8E8E93),
+                        tint = textColorSecondary,
                         modifier = Modifier
                             .size(20.dp)
                             .clickable(
@@ -103,21 +106,21 @@ private fun AuthTextField(
                     )
                 }
             } else null,
-            shape = MaterialTheme.shapes.small,
+            shape = MaterialTheme.shapes.small, // 6.dp curve matching buttons and inputs
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedContainerColor = Color(0xFF121212),
-                unfocusedContainerColor = Color(0xFF0E0E0E),
-                focusedBorderColor = Color.White,
-                unfocusedBorderColor = Color(0xFF262626),
-                cursorColor = Color.White
+                focusedTextColor = textColorPrimary,
+                unfocusedTextColor = textColorPrimary,
+                focusedContainerColor = surfaceVariantColor.copy(alpha = 0.2f),
+                unfocusedContainerColor = surfaceVariantColor.copy(alpha = 0.1f),
+                focusedBorderColor = textColorPrimary,
+                unfocusedBorderColor = outlineColor,
+                cursorColor = textColorPrimary
             )
         )
     }
 }
 
-// ─── Programmatic Premium Button (Mockup Aligned) ───────────────────────────
+// ─── Programmatic Premium Button (Curve & Hierarchy Aligned) ────────────────
 
 @Composable
 private fun PremiumButton(
@@ -127,17 +130,22 @@ private fun PremiumButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
-    val containerColor = if (isPrimary) Color.White else Color.Transparent
-    val contentColor = if (isPrimary) Color.Black else Color.White
-    val border = if (isPrimary) null else BorderStroke(1.dp, Color(0xFF262626))
+    // Dynamic theme colors
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val outlineColor = MaterialTheme.colorScheme.outline
+
+    val containerColor = if (isPrimary) textColorPrimary else Color.Transparent
+    val contentColor = if (isPrimary) backgroundColor else textColorPrimary
+    val border = if (isPrimary) null else BorderStroke(1.dp, outlineColor)
 
     Button(
         onClick = onClick,
         modifier = modifier
-            .height(58.dp)
+            .height(56.dp) // Touch target minimum requirement
             .fillMaxWidth(),
         enabled = enabled,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        shape = MaterialTheme.shapes.small, // 6.dp rounded corners matching the dashboard family shape
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,
@@ -205,12 +213,19 @@ fun WelcomeScreen(
     val appIcon = sharedPrefs.getString("appIcon", "default") ?: "default"
     val logoForegroundRes = com.vesper.ledger.data.secure.AppIconManager.getIconForegroundRes(appIcon)
 
+    // Dynamic Theme Colors
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val iconBgColor = textColorPrimary.copy(alpha = 0.06f)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF090909)) // Luxury Dark background
+            .background(backgroundColor)
     ) {
-        // 1. Sleek brand header
+        // 1. Sleek brand header (Logo & App Name)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -222,17 +237,17 @@ fun WelcomeScreen(
             Icon(
                 painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
                 contentDescription = "Vesper Brand Logo",
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
+                tint = textColorPrimary,
+                modifier = Modifier.size(24.dp) // Size matched to reference mockup
             )
             Text(
                 text = "VESPER LEDGER",
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    letterSpacing = 2.sp,
+                    fontSize = 12.sp,
+                    letterSpacing = 1.5.sp,
                     fontFamily = SpaceGroteskFamily,
-                    color = Color.White
+                    color = textColorPrimary
                 )
             )
         }
@@ -241,7 +256,6 @@ fun WelcomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.Top
         ) {
@@ -255,14 +269,14 @@ fun WelcomeScreen(
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Normal,
                         fontSize = 52.sp,
-                        color = Color.White
+                        color = textColorPrimary
                     )
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "A private space built for thoughtful money management.",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color(0xFF8E8E93),
+                        color = textColorSecondary,
                         lineHeight = 24.sp,
                         fontSize = 16.sp
                     )
@@ -270,7 +284,7 @@ fun WelcomeScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 // Minimal horizontal line
                 Divider(
-                    color = Color(0xFF262626),
+                    color = outlineColor,
                     thickness = 1.dp,
                     modifier = Modifier.width(60.dp)
                 )
@@ -291,12 +305,12 @@ fun WelcomeScreen(
                     Box(
                         modifier = Modifier
                             .size(44.dp)
-                            .background(Color(0xFF141414), shape = androidx.compose.foundation.shape.CircleShape),
+                            .background(iconBgColor, shape = androidx.compose.foundation.shape.CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
                             val stroke = 1.5.dp.toPx()
-                            val color = Color.White
+                            val color = textColorPrimary
                             // Shackle
                             drawArc(
                                 color = color,
@@ -327,21 +341,21 @@ fun WelcomeScreen(
                     Column {
                         Text(
                             text = "Private by Design",
-                            color = Color.White,
+                            color = textColorPrimary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "Everything stays securely on your device.\nAlways private, always yours.",
-                            color = Color(0xFF8E8E93),
+                            color = textColorSecondary,
                             fontSize = 13.sp,
                             lineHeight = 18.sp
                         )
                     }
                 }
 
-                Divider(color = Color(0xFF161616), thickness = 1.dp)
+                Divider(color = outlineColor.copy(alpha = 0.5f), thickness = 1.dp)
 
                 // Row 2: Built for Intention
                 Row(
@@ -351,12 +365,12 @@ fun WelcomeScreen(
                     Box(
                         modifier = Modifier
                             .size(44.dp)
-                            .background(Color(0xFF141414), shape = androidx.compose.foundation.shape.CircleShape),
+                            .background(iconBgColor, shape = androidx.compose.foundation.shape.CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
                             val stroke = 1.5.dp.toPx()
-                            val color = Color.White
+                            val color = textColorPrimary
                             drawCircle(
                                 color = color,
                                 radius = 2.dp.toPx(),
@@ -379,21 +393,21 @@ fun WelcomeScreen(
                     Column {
                         Text(
                             text = "Built for Intention",
-                            color = Color.White,
+                            color = textColorPrimary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "Track every transaction consciously\nand with complete awareness.",
-                            color = Color(0xFF8E8E93),
+                            color = textColorSecondary,
                             fontSize = 13.sp,
                             lineHeight = 18.sp
                         )
                     }
                 }
 
-                Divider(color = Color(0xFF161616), thickness = 1.dp)
+                Divider(color = outlineColor.copy(alpha = 0.5f), thickness = 1.dp)
 
                 // Row 3: Clarity in Simplicity
                 Row(
@@ -403,12 +417,12 @@ fun WelcomeScreen(
                     Box(
                         modifier = Modifier
                             .size(44.dp)
-                            .background(Color(0xFF141414), shape = androidx.compose.foundation.shape.CircleShape),
+                            .background(iconBgColor, shape = androidx.compose.foundation.shape.CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
                             val stroke = 1.5.dp.toPx()
-                            val color = Color.White
+                            val color = textColorPrimary
                             drawCircle(
                                 color = color,
                                 radius = size.width * 0.4f,
@@ -421,14 +435,14 @@ fun WelcomeScreen(
                     Column {
                         Text(
                             text = "Clarity in Simplicity",
-                            color = Color.White,
+                            color = textColorPrimary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "A calm, distraction-free space\nto focus on what matters.",
-                            color = Color(0xFF8E8E93),
+                            color = textColorSecondary,
                             fontSize = 13.sp,
                             lineHeight = 18.sp
                         )
@@ -437,9 +451,9 @@ fun WelcomeScreen(
             }
 
             Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // 4. Action Buttons & Links
+            // 4. Action Buttons & Links (Tuned curves and margins)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -457,7 +471,7 @@ fun WelcomeScreen(
                     isPrimary = false
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -467,7 +481,7 @@ fun WelcomeScreen(
                     Text(
                         text = "Terms of Service",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color(0xFF48484A),
+                            color = textColorSecondary.copy(alpha = 0.8f),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
@@ -478,13 +492,13 @@ fun WelcomeScreen(
                     Text(
                         text = "   ·   ",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color(0xFF262626)
+                            color = outlineColor
                         )
                     )
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color(0xFF48484A),
+                            color = textColorSecondary.copy(alpha = 0.8f),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
@@ -512,11 +526,15 @@ fun SignInScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF090909))
+            .background(backgroundColor)
     ) {
         ChildHeader(
             title = "Sign In",
@@ -535,20 +553,20 @@ fun SignInScreen(
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, Color(0xFF1E1E1E))
+                borderStroke = BorderStroke(1.dp, outlineColor)
             ) {
                 Text(
                     text = "Welcome Back",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = textColorPrimary
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Sign in to continue managing your finances.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color(0xFF8E8E93)
+                        color = textColorSecondary
                     )
                 )
 
@@ -585,7 +603,7 @@ fun SignInScreen(
                     Text(
                         text = "Forgot Password?",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = Color(0xFF8E8E93),
+                            color = textColorSecondary,
                             fontWeight = FontWeight.SemiBold,
                             textDecoration = TextDecoration.Underline
                         ),
@@ -620,13 +638,13 @@ fun SignInScreen(
                     Text(
                         text = "Don't have an account? ",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color(0xFF8E8E93)
+                            color = textColorSecondary
                         )
                     )
                     Text(
                         text = "Create Account",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White,
+                            color = textColorPrimary,
                             fontWeight = FontWeight.Bold,
                             textDecoration = TextDecoration.Underline
                         ),
@@ -657,11 +675,15 @@ fun CreateAccountScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF090909))
+            .background(backgroundColor)
     ) {
         ChildHeader(
             title = "Create Account",
@@ -680,20 +702,20 @@ fun CreateAccountScreen(
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, Color(0xFF1E1E1E))
+                borderStroke = BorderStroke(1.dp, outlineColor)
             ) {
                 Text(
                     text = "Get Started",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = textColorPrimary
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Create your secure Vesper Ledger account.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color(0xFF8E8E93)
+                        color = textColorSecondary
                     )
                 )
 
@@ -768,13 +790,13 @@ fun CreateAccountScreen(
                     Text(
                         text = "Already have an account? ",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color(0xFF8E8E93)
+                            color = textColorSecondary
                         )
                     )
                     Text(
                         text = "Sign In",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White,
+                            color = textColorPrimary,
                             fontWeight = FontWeight.Bold,
                             textDecoration = TextDecoration.Underline
                         ),
@@ -802,11 +824,15 @@ fun ForgotPasswordScreen(
 ) {
     var email by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF090909))
+            .background(backgroundColor)
     ) {
         ChildHeader(
             title = "Forgot Password",
@@ -825,20 +851,20 @@ fun ForgotPasswordScreen(
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, Color(0xFF1E1E1E))
+                borderStroke = BorderStroke(1.dp, outlineColor)
             ) {
                 Text(
                     text = "Reset Password",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = textColorPrimary
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Enter your email address and we'll send you a password reset link.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color(0xFF8E8E93)
+                        color = textColorSecondary
                     )
                 )
 
@@ -876,7 +902,7 @@ fun ForgotPasswordScreen(
                     Text(
                         text = "Back to Sign In",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White,
+                            color = textColorPrimary,
                             fontWeight = FontWeight.Bold,
                             textDecoration = TextDecoration.Underline
                         ),
