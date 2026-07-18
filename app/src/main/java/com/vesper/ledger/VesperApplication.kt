@@ -7,10 +7,40 @@ import com.vesper.ledger.data.repository.TransactionRepository
 import com.vesper.ledger.data.update.UpdateRepository
 
 class VesperApplication : Application() {
-    val database by lazy { AppDatabase.getDatabase(this) }
-    val transactionRepository by lazy { TransactionRepository(database.transactionDao()) }
-    val savingsRepository by lazy { SavingsRepository(database.savingsDao()) }
+    private var cachedDatabase: AppDatabase? = null
+    private var cachedTxRepo: TransactionRepository? = null
+    private var cachedSavingsRepo: SavingsRepository? = null
+
+    val database: AppDatabase
+        get() {
+            val current = AppDatabase.getDatabase(this)
+            if (cachedDatabase != current) {
+                cachedDatabase = current
+                cachedTxRepo = TransactionRepository(current.transactionDao())
+                cachedSavingsRepo = SavingsRepository(current.savingsDao())
+            }
+            return current
+        }
+
+    val transactionRepository: TransactionRepository
+        get() {
+            database
+            return cachedTxRepo!!
+        }
+
+    val savingsRepository: SavingsRepository
+        get() {
+            database
+            return cachedSavingsRepo!!
+        }
+
     val updateRepository by lazy { UpdateRepository(this) }
+
+    fun clearDatabaseCaches() {
+        cachedDatabase = null
+        cachedTxRepo = null
+        cachedSavingsRepo = null
+    }
 
     override fun onCreate() {
         super.onCreate()

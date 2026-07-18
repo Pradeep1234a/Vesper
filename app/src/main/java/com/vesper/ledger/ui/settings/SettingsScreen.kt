@@ -54,7 +54,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
     onBackClick: () -> Unit,
-    onCategoriesClick: () -> Unit
+    onCategoriesClick: () -> Unit,
+    onSignOutClick: () -> Unit
 ) {
     val currency by viewModel.currency.collectAsState()
     val updateUiState by updateViewModel.uiState.collectAsState()
@@ -81,6 +82,7 @@ fun SettingsScreen(
     val biometricSupport by viewModel.biometricSupport.collectAsState()
     val isProUser by viewModel.isProUser.collectAsState()
     val userName by viewModel.userName.collectAsState()
+    val userEmail by viewModel.userEmail.collectAsState()
 
     var subView by remember { mutableStateOf(SettingsSubView.MAIN) }
     var activeDialog by remember { mutableStateOf<SettingsDialogType?>(null) }
@@ -378,7 +380,7 @@ fun SettingsScreen(
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
-                                text = "Personal Profile • Tap to edit name",
+                                text = if (userEmail.isNotEmpty()) userEmail else "Personal Profile • Tap to edit name",
                                 style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                         }
@@ -780,6 +782,19 @@ fun SettingsScreen(
                         title = "Terms & Conditions",
                         trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                         onClick = { activeDialog = SettingsDialogType.TERMS }
+                    )
+                }
+
+                // Account Section (Sign Out)
+                SettingsGroup(title = "Account") {
+                    SettingsRow(
+                        icon = Icons.Outlined.ExitToApp,
+                        title = "Sign Out",
+                        subtitle = "Disconnect current profile and database",
+                        titleColor = MaterialTheme.colorScheme.error,
+                        onClick = {
+                            onSignOutClick()
+                        }
                     )
                 }
 

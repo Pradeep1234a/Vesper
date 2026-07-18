@@ -25,13 +25,32 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
+        private var CURRENT_DB_NAME: String? = null
 
         fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
+            val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+            val email = sharedPrefs.getString("user_email", "") ?: ""
+            val dbName = if (email.isBlank()) {
+                "vesper_ledger_db_guest"
+            } else {
+                "vesper_ledger_db_${email.replace(Regex("[^a-zA-Z0-9_]"), "_")}"
+            }
+
+            return INSTANCE?.takeIf { CURRENT_DB_NAME == dbName } ?: synchronized(this) {
+                INSTANCE?.let {
+                    if (CURRENT_DB_NAME != dbName) {
+                        try {
+                            it.close()
+                        } catch (e: Exception) {
+                            android.util.Log.e("AppDatabase", "Error closing database connection: $CURRENT_DB_NAME", e)
+                        }
+                    }
+                }
+
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "vesper_ledger_db"
+                    dbName
                 )
                 .fallbackToDestructiveMigration()
                 .addCallback(object : RoomDatabase.Callback() {
@@ -45,6 +64,7 @@ abstract class AppDatabase : RoomDatabase() {
                 })
                 .build()
                 INSTANCE = instance
+                CURRENT_DB_NAME = dbName
                 instance
             }
         }

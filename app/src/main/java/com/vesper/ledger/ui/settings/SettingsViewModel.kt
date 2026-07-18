@@ -82,6 +82,7 @@ class SettingsViewModel(
 
     val isProUser = MutableStateFlow(sharedPrefs.getBoolean("isProUser", false))
     val userName = MutableStateFlow(sharedPrefs.getString("userName", "User") ?: "User")
+    val userEmail = MutableStateFlow(sharedPrefs.getString("user_email", "") ?: "")
     val isFirstLaunch = MutableStateFlow(sharedPrefs.getBoolean("isFirstLaunch", true))
 
     // High Fidelity Personalization parameters
@@ -203,6 +204,15 @@ class SettingsViewModel(
     fun saveUserName(newValue: String) {
         userName.value = newValue
         sharedPrefs.edit().putString("userName", newValue).apply()
+        
+        // Write the updated name to the user's active database
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val email = sharedPrefs.getString("user_email", "") ?: ""
+            if (email.isNotBlank()) {
+                val db = com.vesper.ledger.data.local.AppDatabase.getDatabase(getApplication())
+                db.userDao().updateFullName(email, newValue)
+            }
+        }
     }
 
     fun saveFirstLaunch(newValue: Boolean) {

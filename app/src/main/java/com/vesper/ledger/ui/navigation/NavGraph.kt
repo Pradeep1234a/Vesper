@@ -32,6 +32,14 @@ import com.vesper.ledger.ui.auth.WelcomeScreen
 import com.vesper.ledger.ui.auth.SignInScreen
 import com.vesper.ledger.ui.auth.CreateAccountScreen
 import com.vesper.ledger.ui.auth.ForgotPasswordScreen
+import com.vesper.ledger.data.util.PasswordHasher
+import com.vesper.ledger.data.model.UserAccount
+import com.vesper.ledger.data.local.AppDatabase
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.widget.Toast
 
 @Composable
 fun NavGraph(
@@ -66,12 +74,36 @@ fun NavGraph(
         }
 
         composable("main_screen") {
+            val scope = rememberCoroutineScope()
             MainScreen(
                 settingsViewModel = settingsViewModel,
                 updateViewModel = updateViewModel,
                 onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) },
-                onCategoryManagementClick = { navController.navigate("categories") }
+                onCategoryManagementClick = { navController.navigate("categories") },
+                onSignOutClick = {
+                    scope.launch(Dispatchers.IO) {
+                        val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                        sharedPrefs.edit()
+                            .putBoolean("isAuthenticated", false)
+                            .putString("user_email", "")
+                            .putString("userName", "User")
+                            .commit() // Commit synchronously
+
+                        // Reset Viewmodel state values
+                        settingsViewModel.userName.value = "User"
+                        settingsViewModel.userEmail.value = ""
+
+                        // Close active user database connection and reset Application caches
+                        app.clearDatabaseCaches()
+
+                        withContext(Dispatchers.Main) {
+                            navController.navigate(Screen.AuthWelcome.route) {
+                                popUpTo("main_screen") { inclusive = true }
+                            }
+                        }
+                    }
+                }
             )
         }
 
@@ -161,14 +193,53 @@ fun NavGraph(
         }
 
         composable(Screen.AuthSignIn.route) {
+            val scope = rememberCoroutineScope()
             SignInScreen(
                 onBackClick = { navController.popBackStack() },
-                onSignInClick = {
-                    // Mark user as authenticated
-                    val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
-                    sharedPrefs.edit().putBoolean("isAuthenticated", true).apply()
-                    navController.navigate("main_screen") {
-                        popUpTo(Screen.AuthWelcome.route) { inclusive = true }
+                onSignInClick = { emailInput, passwordInput, onCallback ->
+                    scope.launch(Dispatchers.IO) {
+                        val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                        val oldEmail = sharedPrefs.getString("user_email", "") ?: ""
+
+                        // Switch database temporarily to target user to query their credentials
+                        sharedPrefs.edit().putString("user_email", emailInput).commit()
+                        val userDb = AppDatabase.getDatabase(context)
+                        val user = userDb.userDao().getUserByEmail(emailInput)
+
+                        if (user == null) {
+                            // Revert back
+                            sharedPrefs.edit().putString("user_email", oldEmail).commit()
+                            withContext(Dispatchers.Main) {
+                                onCallback("User account not found.")
+                            }
+                        } else {
+                            val isValid = PasswordHasher.verifyPassword(passwordInput, user.salt, user.passwordHash)
+                            if (isValid) {
+                                sharedPrefs.edit()
+                                    .putBoolean("isAuthenticated", true)
+                                    .putString("user_email", emailInput)
+                                    .putString("userName", user.fullName)
+                                    .commit()
+
+                                settingsViewModel.userName.value = user.fullName
+                                settingsViewModel.userEmail.value = emailInput
+
+                                // Clear local caches
+                                app.clearDatabaseCaches()
+
+                                withContext(Dispatchers.Main) {
+                                    onCallback(null)
+                                    navController.navigate("main_screen") {
+                                        popUpTo(Screen.AuthWelcome.route) { inclusive = true }
+                                    }
+                                }
+                            } else {
+                                sharedPrefs.edit().putString("user_email", oldEmail).commit()
+                                withContext(Dispatchers.Main) {
+                                    onCallback("Incorrect password.")
+                                }
+                            }
+                        }
                     }
                 },
                 onForgotPasswordClick = { navController.navigate(Screen.AuthForgotPassword.route) },
@@ -181,14 +252,53 @@ fun NavGraph(
         }
 
         composable(Screen.AuthCreateAccount.route) {
+            val scope = rememberCoroutineScope()
             CreateAccountScreen(
                 onBackClick = { navController.popBackStack() },
-                onCreateAccountClick = {
-                    // Mark user as authenticated
-                    val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
-                    sharedPrefs.edit().putBoolean("isAuthenticated", true).apply()
-                    navController.navigate("main_screen") {
-                        popUpTo(Screen.AuthWelcome.route) { inclusive = true }
+                onCreateAccountClick = { fullNameInput, emailInput, passwordInput, onCallback ->
+                    scope.launch(Dispatchers.IO) {
+                        val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                        val oldEmail = sharedPrefs.getString("user_email", "") ?: ""
+
+                        // Switch database temporarily to this email to check if database already exists
+                        sharedPrefs.edit().putString("user_email", emailInput).commit()
+                        val userDb = AppDatabase.getDatabase(context)
+                        val existingUser = userDb.userDao().getUserByEmail(emailInput)
+
+                        if (existingUser != null) {
+                            sharedPrefs.edit().putString("user_email", oldEmail).commit()
+                            withContext(Dispatchers.Main) {
+                                onCallback("An account with this email already exists.")
+                            }
+                        } else {
+                            val salt = PasswordHasher.generateSalt()
+                            val hash = PasswordHasher.hashPassword(passwordInput, salt)
+                            val newUser = UserAccount(
+                                email = emailInput,
+                                fullName = fullNameInput,
+                                passwordHash = hash,
+                                salt = salt
+                            )
+                            userDb.userDao().insertUser(newUser)
+
+                            sharedPrefs.edit()
+                                .putBoolean("isAuthenticated", true)
+                                .putString("user_email", emailInput)
+                                .putString("userName", fullNameInput)
+                                .commit()
+
+                            settingsViewModel.userName.value = fullNameInput
+                            settingsViewModel.userEmail.value = emailInput
+
+                            app.clearDatabaseCaches()
+
+                            withContext(Dispatchers.Main) {
+                                onCallback(null)
+                                navController.navigate("main_screen") {
+                                    popUpTo(Screen.AuthWelcome.route) { inclusive = true }
+                                }
+                            }
+                        }
                     }
                 },
                 onSignInClick = {
@@ -200,11 +310,34 @@ fun NavGraph(
         }
 
         composable(Screen.AuthForgotPassword.route) {
+            val scope = rememberCoroutineScope()
             ForgotPasswordScreen(
                 onBackClick = { navController.popBackStack() },
-                onSendResetLinkClick = {
-                    // Simulate sending reset link — navigate back to sign in
-                    navController.popBackStack()
+                onSendResetLinkClick = { emailInput, newPasswordInput, onCallback ->
+                    scope.launch(Dispatchers.IO) {
+                        val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                        val oldEmail = sharedPrefs.getString("user_email", "") ?: ""
+
+                        sharedPrefs.edit().putString("user_email", emailInput).commit()
+                        val userDb = AppDatabase.getDatabase(context)
+                        val user = userDb.userDao().getUserByEmail(emailInput)
+
+                        if (user == null) {
+                            sharedPrefs.edit().putString("user_email", oldEmail).commit()
+                            withContext(Dispatchers.Main) {
+                                onCallback("User account not found.")
+                            }
+                        } else {
+                            val newSalt = PasswordHasher.generateSalt()
+                            val newHash = PasswordHasher.hashPassword(newPasswordInput, newSalt)
+                            userDb.userDao().updatePassword(emailInput, newHash, newSalt)
+
+                            sharedPrefs.edit().putString("user_email", oldEmail).commit()
+                            withContext(Dispatchers.Main) {
+                                onCallback(null)
+                            }
+                        }
+                    }
                 },
                 onBackToSignInClick = { navController.popBackStack() }
             )

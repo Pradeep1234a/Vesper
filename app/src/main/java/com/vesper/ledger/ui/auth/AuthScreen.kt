@@ -521,37 +521,50 @@ fun WelcomeScreen(
 @Composable
 fun SignInScreen(
     onBackClick: () -> Unit,
-    onSignInClick: () -> Unit,
+    onSignInClick: (String, String, (String?) -> Unit) -> Unit,
     onForgotPasswordClick: () -> Unit,
     onCreateAccountClick: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     val outlineColor = MaterialTheme.colorScheme.outline
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        ChildHeader(
-            title = "Sign In",
-            onBackClick = onBackClick
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
+                .padding(bottom = 80.dp), // Leaves space for bottom pinned link
             verticalArrangement = Arrangement.Top
         ) {
+            ChildHeader(
+                title = "Sign In",
+                onBackClick = onBackClick
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            }
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
@@ -620,46 +633,54 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            PremiumButton(
+                text = if (isLoading) "Signing In..." else "Sign In",
+                onClick = {
+                    isLoading = true
+                    errorMessage = null
+                    onSignInClick(email, password) { error ->
+                        isLoading = false
+                        errorMessage = error
+                    }
+                },
+                enabled = email.isNotBlank() && password.isNotBlank() && !isLoading,
+                isPrimary = true
+            )
+        }
+
+        // Pin the link to the absolute bottom of the viewport
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onCreateAccountClick
+                ),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                PremiumButton(
-                    text = "Sign In",
-                    onClick = onSignInClick,
-                    enabled = email.isNotBlank() && password.isNotBlank(),
-                    isPrimary = true
+                Text(
+                    text = "Don't have an account? ",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = textColorSecondary
+                    )
                 )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Don't have an account? ",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = textColorSecondary
-                        )
+                Text(
+                    text = "Create Account",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = textColorPrimary,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
                     )
-                    Text(
-                        text = "Create Account",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = textColorPrimary,
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
-                        ),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onCreateAccountClick
-                        )
-                    )
-                }
+                )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -669,38 +690,52 @@ fun SignInScreen(
 @Composable
 fun CreateAccountScreen(
     onBackClick: () -> Unit,
-    onCreateAccountClick: () -> Unit,
+    onCreateAccountClick: (String, String, String, (String?) -> Unit) -> Unit,
     onSignInClick: () -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var termsAccepted by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     val outlineColor = MaterialTheme.colorScheme.outline
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        ChildHeader(
-            title = "Create Account",
-            onBackClick = onBackClick
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
+                .padding(bottom = 80.dp), // Leaves space for bottom pinned link
             verticalArrangement = Arrangement.Top
         ) {
+            ChildHeader(
+                title = "Create Account",
+                onBackClick = onBackClick
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            }
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
@@ -767,51 +802,92 @@ fun CreateAccountScreen(
                     imeAction = ImeAction.Done,
                     onImeAction = { focusManager.clearFocus() }
                 )
-            }
 
-            Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                PremiumButton(
-                    text = "Create Account",
-                    onClick = onCreateAccountClick,
-                    enabled = fullName.isNotBlank() && email.isNotBlank() &&
-                            password.isNotBlank() && confirmPassword.isNotBlank(),
-                    isPrimary = true
-                )
-
+                // Terms of Service and Privacy Policy checkbox
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Already have an account? ",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = textColorSecondary
+                    Checkbox(
+                        checked = termsAccepted,
+                        onCheckedChange = { termsAccepted = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = textColorPrimary,
+                            uncheckedColor = outlineColor,
+                            checkmarkColor = backgroundColor
                         )
                     )
                     Text(
-                        text = "Sign In",
+                        text = "I accept the Terms of Service & Privacy Policy",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = textColorPrimary,
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
+                            color = textColorSecondary
                         ),
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onSignInClick
-                        )
+                            indication = null
+                        ) { termsAccepted = !termsAccepted }
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
+
+            PremiumButton(
+                text = if (isLoading) "Creating Account..." else "Create Account",
+                onClick = {
+                    if (password != confirmPassword) {
+                        errorMessage = "Passwords do not match."
+                        return@PremiumButton
+                    }
+                    isLoading = true
+                    errorMessage = null
+                    onCreateAccountClick(fullName, email, password) { error ->
+                        isLoading = false
+                        errorMessage = error
+                    }
+                },
+                enabled = fullName.isNotBlank() && email.isNotBlank() &&
+                        password.isNotBlank() && confirmPassword.isNotBlank() &&
+                        termsAccepted && !isLoading,
+                isPrimary = true
+            )
+        }
+
+        // Pin the link to the absolute bottom of the viewport
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onSignInClick
+                ),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Already have an account? ",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = textColorSecondary
+                    )
+                )
+                Text(
+                    text = "Sign In",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = textColorPrimary,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+            }
         }
     }
 }
@@ -821,35 +897,50 @@ fun CreateAccountScreen(
 @Composable
 fun ForgotPasswordScreen(
     onBackClick: () -> Unit,
-    onSendResetLinkClick: () -> Unit,
+    onSendResetLinkClick: (String, String, (String?) -> Unit) -> Unit, // Uses (email, newPassword, callback)
     onBackToSignInClick: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var statusMessage by remember { mutableStateOf<String?>(null) }
+    var isSuccess by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     val outlineColor = MaterialTheme.colorScheme.outline
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        ChildHeader(
-            title = "Forgot Password",
-            onBackClick = onBackClick
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
+                .padding(bottom = 80.dp), // Leaves space for bottom pinned link
             verticalArrangement = Arrangement.Top
         ) {
+            ChildHeader(
+                title = "Reset Password",
+                onBackClick = onBackClick
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (statusMessage != null) {
+                Text(
+                    text = statusMessage!!,
+                    color = if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            }
 
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
@@ -864,7 +955,7 @@ fun ForgotPasswordScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Enter your email address and we'll send you a password reset link.",
+                    text = "Enter your email address and a new password to reset your login credentials.",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = textColorSecondary
                     )
@@ -878,6 +969,18 @@ fun ForgotPasswordScreen(
                     label = "Email",
                     placeholder = "you@example.com",
                     keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
+                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AuthTextField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it },
+                    label = "New Password",
+                    placeholder = "••••••••",
+                    isPassword = true,
                     imeAction = ImeAction.Done,
                     onImeAction = { focusManager.clearFocus() }
                 )
@@ -885,39 +988,49 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                PremiumButton(
-                    text = "Send Reset Link",
-                    onClick = onSendResetLinkClick,
-                    enabled = email.isNotBlank(),
-                    isPrimary = true
+            PremiumButton(
+                text = if (isLoading) "Resetting Password..." else "Reset Password",
+                onClick = {
+                    isLoading = true
+                    statusMessage = null
+                    onSendResetLinkClick(email, newPassword) { error ->
+                        isLoading = false
+                        if (error == null) {
+                            isSuccess = true
+                            statusMessage = "Password reset successfully!"
+                        } else {
+                            isSuccess = false
+                            statusMessage = error
+                        }
+                    }
+                },
+                enabled = email.isNotBlank() && newPassword.isNotBlank() && !isLoading,
+                isPrimary = true
+            )
+        }
+
+        // Pin the link to the absolute bottom of the viewport
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Back to Sign In",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = textColorPrimary,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline
+                ),
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onBackToSignInClick
                 )
-
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Back to Sign In",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = textColorPrimary,
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
-                        ),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onBackToSignInClick
-                        )
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
+            )
         }
     }
 }
