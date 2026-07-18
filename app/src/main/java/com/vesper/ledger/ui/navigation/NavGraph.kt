@@ -29,6 +29,10 @@ import com.vesper.ledger.ui.category.CategoriesScreen
 import com.vesper.ledger.ui.category.AddCategoryScreen
 import com.vesper.ledger.ui.category.CategoryViewModel
 import com.vesper.ledger.ui.category.CategoryViewModelFactory
+import com.vesper.ledger.ui.auth.WelcomeScreen
+import com.vesper.ledger.ui.auth.SignInScreen
+import com.vesper.ledger.ui.auth.CreateAccountScreen
+import com.vesper.ledger.ui.auth.ForgotPasswordScreen
 
 @Composable
 fun NavGraph(
@@ -157,6 +161,59 @@ fun NavGraph(
                 viewModel = savingsViewModel,
                 currencySymbol = currencySymbol,
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // ─── Authentication Flow ─────────────────────────────────────────
+
+        composable(Screen.AuthWelcome.route) {
+            WelcomeScreen(
+                onCreateAccountClick = { navController.navigate(Screen.AuthCreateAccount.route) },
+                onSignInClick = { navController.navigate(Screen.AuthSignIn.route) }
+            )
+        }
+
+        composable(Screen.AuthSignIn.route) {
+            SignInScreen(
+                onBackClick = { navController.popBackStack() },
+                onSignInClick = {
+                    navController.navigate("main_screen") {
+                        popUpTo(Screen.AuthWelcome.route) { inclusive = true }
+                    }
+                },
+                onForgotPasswordClick = { navController.navigate(Screen.AuthForgotPassword.route) },
+                onCreateAccountClick = {
+                    navController.navigate(Screen.AuthCreateAccount.route) {
+                        popUpTo(Screen.AuthSignIn.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.AuthCreateAccount.route) {
+            CreateAccountScreen(
+                onBackClick = { navController.popBackStack() },
+                onCreateAccountClick = {
+                    navController.navigate("main_screen") {
+                        popUpTo(Screen.AuthWelcome.route) { inclusive = true }
+                    }
+                },
+                onSignInClick = {
+                    navController.navigate(Screen.AuthSignIn.route) {
+                        popUpTo(Screen.AuthCreateAccount.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.AuthForgotPassword.route) {
+            ForgotPasswordScreen(
+                onBackClick = { navController.popBackStack() },
+                onSendResetLinkClick = {
+                    // Simulate sending reset link — navigate back to sign in
+                    navController.popBackStack()
+                },
+                onBackToSignInClick = { navController.popBackStack() }
             )
         }
     }
