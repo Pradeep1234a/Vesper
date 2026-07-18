@@ -231,20 +231,20 @@ fun WelcomeScreen(
                 .fillMaxWidth()
                 .statusBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
                 contentDescription = "Vesper Brand Logo",
                 tint = textColorPrimary,
-                modifier = Modifier.size(32.dp) // Large, highly visible logo size
+                modifier = Modifier.size(40.dp) // Large, highly visible logo size
             )
             Text(
                 text = "VESPER LEDGER",
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp, // Readable text size
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp, // Readable and confident text size
                     letterSpacing = 2.sp,
                     fontFamily = SpaceGroteskFamily,
                     color = textColorPrimary
