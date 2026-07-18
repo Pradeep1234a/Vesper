@@ -31,6 +31,7 @@ import com.vesper.ledger.ui.components.DynamicLogo
 import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 // ─── Custom Outlined TextField Matching ShTextField Exactly ──────────────────
 
@@ -114,11 +115,53 @@ private fun AuthTextField(
 
 // ─── Screen 1: Welcome ──────────────────────────────────────────────────────
 
+
 @Composable
-fun WelcomeScreen(
-    onCreateAccountClick: () -> Unit,
-    onSignInClick: () -> Unit
+private fun WelcomePillar(
+    number: String,
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier
 ) {
+    ShCard(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(14.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(
+                text = number,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    fontFamily = SpaceGroteskFamily
+                )
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title.uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 18.sp
+                    )
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
@@ -134,7 +177,7 @@ fun WelcomeScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // 1. Clean brand logo header matching onboarding style
+        // 1. Sleek brand header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -164,112 +207,30 @@ fun WelcomeScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 2. Ledger Preview Card (Engaging UI Mockup that uses vertical space)
-            ShCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "PREVIEW LEDGER",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                letterSpacing = 1.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .background(MaterialTheme.colorScheme.onBackground, shape = androidx.compose.foundation.shape.CircleShape)
-                        )
-                    }
+            // CRED-styled value pillar deck
+            WelcomePillar(
+                number = "01",
+                title = "Absolute Privacy",
+                description = "No cloud database. No bank syncing. Your financial data stays 100% on your device."
+            )
 
-                    Spacer(modifier = Modifier.height(14.dp))
+            WelcomePillar(
+                number = "02",
+                title = "Monochrome Minimalism",
+                description = "Finances in pure black and white. Designed to bring clarity and remove visual noise."
+            )
 
-                    Text(
-                        text = "Total Balance",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                    Text(
-                        text = "$12,480.00",
-                        style = MaterialTheme.typography.displayMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
-                                    shape = MaterialTheme.shapes.small
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = "☕", fontSize = 16.sp)
-                        }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Vesper Brew Co.",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-                            )
-                            Text(
-                                text = "Food & Drink",
-                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            )
-                        }
-
-                        Text(
-                            text = "-$4.50",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        )
-                    }
-                }
-            }
-
-            // 3. Descriptive Welcoming Card
-            ShCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Private finance, without the noise.",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "A calm space to track, plan, and understand your finances. Your data stays entirely on your device.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
-                    )
-                )
-            }
+            WelcomePillar(
+                number = "03",
+                title = "Intentional Ledger",
+                description = "Track every transaction manually. Cultivate absolute awareness of your spending."
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 4. Connect CTAs & Links tightly inside a card/container
+            // Action card grouping CTAs and legal links
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 ShButton(
                     text = "Create Account",
