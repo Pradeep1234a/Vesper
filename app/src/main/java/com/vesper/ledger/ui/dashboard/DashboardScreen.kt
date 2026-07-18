@@ -89,10 +89,22 @@ fun DashboardScreen(
     val displayName = remember(userName) {
         val parts = userName.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }
         val first = parts.firstOrNull() ?: "User"
-        if (first.length > 10) {
-            "${first.take(8)}..."
+        val lastInitial = parts.getOrNull(1)?.take(1)?.uppercase()
+        
+        if (lastInitial != null) {
+            val candidate = "$first $lastInitial."
+            if (candidate.length > 15) {
+                val truncatedFirst = if (first.length > 10) "${first.take(9)}..." else first
+                "$truncatedFirst $lastInitial."
+            } else {
+                candidate
+            }
         } else {
-            first
+            if (first.length > 15) {
+                "${first.take(12)}..."
+            } else {
+                first
+            }
         }
     }
 
