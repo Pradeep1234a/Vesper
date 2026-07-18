@@ -377,11 +377,11 @@ fun AnalyticsCard(
         modifier = modifier
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(24.dp)
+                color = MaterialTheme.colorScheme.outline,
+                shape = MaterialTheme.shapes.medium
             )
             .then(clickableModifier),
-        shape = RoundedCornerShape(24.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),

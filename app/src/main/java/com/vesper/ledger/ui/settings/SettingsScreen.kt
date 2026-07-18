@@ -183,8 +183,23 @@ fun SettingsScreen(
         SettingsDialogType.CONFIRM_RESTORE -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Restore Data", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
-                text = { Text("Are you sure you want to restore? This will overwrite your current local database.") },
+                title = {
+                    Text(
+                        text = "Restore Data",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Are you sure you want to restore? This will overwrite your current local database.",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -194,21 +209,49 @@ fun SettingsScreen(
                             }
                         }
                     ) {
-                        Text("Restore", color = MaterialTheme.colorScheme.error)
+                        Text(
+                            text = "Restore",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        )
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { activeDialog = null }) {
-                        Text("Cancel")
+                        Text(
+                            text = "Cancel",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
                     }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
             )
         }
         SettingsDialogType.CONFIRM_DELETE_ALL -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Delete All Data", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
-                text = { Text("Are you sure you want to delete all transaction history and settings? This action cannot be undone.") },
+                title = {
+                    Text(
+                        text = "Delete All Data",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Are you sure you want to delete all transaction history and settings? This action cannot be undone.",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -218,14 +261,27 @@ fun SettingsScreen(
                             }
                         }
                     ) {
-                        Text("Delete Everything", color = MaterialTheme.colorScheme.error)
+                        Text(
+                            text = "Delete Everything",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        )
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { activeDialog = null }) {
-                        Text("Cancel")
+                        Text(
+                            text = "Cancel",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
                     }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
             )
         }
         SettingsDialogType.TIMEOUT_SELECTION -> {
@@ -276,15 +332,22 @@ fun SettingsScreen(
             var tempName by remember { mutableStateOf(userName) }
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Edit Name", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
+                title = {
+                    Text(
+                        text = "Edit Name",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("What should we call you?")
-                        OutlinedTextField(
+                        ShTextField(
                             value = tempName,
                             onValueChange = { tempName = it },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
+                            label = "What should we call you?",
+                            placeholder = "Your name"
                         )
                     }
                 },
@@ -300,14 +363,27 @@ fun SettingsScreen(
                             }
                         }
                     ) {
-                        Text("Save")
+                        Text(
+                            text = "Save",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        )
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { activeDialog = null }) {
-                        Text("Cancel")
+                        Text(
+                            text = "Cancel",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
                     }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
             )
         }
         null -> {}
@@ -952,13 +1028,21 @@ fun <T> SettingsSelectionDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text("Cancel", color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = "Cancel",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
             }
         },
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             )
         },
         text = {
@@ -993,7 +1077,9 @@ fun <T> SettingsSelectionDialog(
                     }
                 }
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
     )
 }
 
@@ -1007,7 +1093,13 @@ fun SettingsInfoDialog(
         onDismissRequest = onDismissRequest,
         title = { 
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) 
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                ) 
             }
         },
         text = { 
@@ -1021,7 +1113,9 @@ fun SettingsInfoDialog(
                 }
                 Text(
                     text = text, 
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
                     textAlign = if (title == "About Vesper Ledger") TextAlign.Center else TextAlign.Start,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -1030,10 +1124,18 @@ fun SettingsInfoDialog(
         confirmButton = {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 TextButton(onClick = onDismissRequest) {
-                    Text("Close")
+                    Text(
+                        text = "Close",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
                 }
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
     )
 }
 

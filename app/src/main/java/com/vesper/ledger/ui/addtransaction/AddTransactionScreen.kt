@@ -42,9 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
-import com.vesper.ledger.ui.components.ShCard
-import com.vesper.ledger.ui.components.ChildHeader
-import com.vesper.ledger.ui.components.getIconByName
+import com.vesper.ledger.ui.components.*
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -488,31 +486,15 @@ fun AddTransactionScreen(
                     TransactionType.TRANSFER -> "Save Transfer"
                 }
 
-                Button(
+                ShButton(
+                    text = if (viewModel.isEditMode) "Save Changes" else saveLabel,
                     onClick = {
                         viewModel.saveTransaction {
                             onBackClick()
                         }
                     },
-                    enabled = amount.isNotBlank() && (amount.replace(",", ".").toDoubleOrNull() ?: 0.0) > 0.0,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onBackground,
-                        contentColor = MaterialTheme.colorScheme.background,
-                        disabledContainerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
-                        disabledContentColor = MaterialTheme.colorScheme.background.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Text(
-                        text = if (viewModel.isEditMode) "Save Changes" else saveLabel,
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                    enabled = amount.isNotBlank() && (amount.replace(",", ".").toDoubleOrNull() ?: 0.0) > 0.0
+                )
             }
         }
     }

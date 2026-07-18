@@ -32,9 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
-import com.vesper.ledger.ui.components.getIconByName
-import com.vesper.ledger.ui.components.safeParseColor
-import com.vesper.ledger.ui.components.ChildHeader
+import com.vesper.ledger.ui.components.*
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
@@ -93,8 +91,8 @@ fun CategoriesScreen(
                     )
                 }
             },
-            containerColor = Color(0xFF0D0E11),
-            modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+            containerColor = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
         )
     }
 
@@ -166,68 +164,13 @@ fun CategoriesScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Segmented control identical to Add Transaction screen (Expense | Income)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val isExpense = selectedType == TransactionType.EXPENSE
-                    
-                    // Expense Tab
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(if (isExpense) MaterialTheme.colorScheme.surface else Color.Transparent)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { viewModel.selectedType.value = TransactionType.EXPENSE },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Expense",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = if (isExpense) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                ShSegmentedControl(
+                    items = listOf("Expense", "Income"),
+                    selectedIndex = if (selectedType == TransactionType.EXPENSE) 0 else 1,
+                    onItemSelected = { index ->
+                        viewModel.selectedType.value = if (index == 0) TransactionType.EXPENSE else TransactionType.INCOME
                     }
-
-                    // Income Tab
-                    val isIncome = selectedType == TransactionType.INCOME
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(if (isIncome) MaterialTheme.colorScheme.surface else Color.Transparent)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { viewModel.selectedType.value = TransactionType.INCOME },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Income",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = if (isIncome) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                )
 
                 // Transaction-style category list
                 if (categoriesWithCount.isEmpty()) {
@@ -255,75 +198,71 @@ fun CategoriesScreen(
                             val cat = item.category
                             val catColor = safeParseColor(cat.colorHex)
 
-                            Row(
+                            ShCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(96.dp)
-                                    .border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                        shape = RoundedCornerShape(24.dp)
-                                    )
-                                    .clip(RoundedCornerShape(24.dp))
-                                    .background(MaterialTheme.colorScheme.surface)
                                     .pointerInput(Unit) {
                                         detectTapGestures(
                                             onTap = { onAddCategoryClick(cat.id) },
                                             onLongPress = { categoryToDelete = cat }
                                         )
-                                    }
-                                    .padding(horizontal = 20.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    },
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                             ) {
-                                // LEFT: Rounded monochrome icon container with accent border or accent background
-                                Box(
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .clip(RoundedCornerShape(18.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                        .border(1.dp, catColor.copy(alpha = 0.4f), RoundedCornerShape(18.dp)),
-                                    contentAlignment = Alignment.Center
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    // LEFT: Rounded monochrome icon container with accent border or accent background
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            .border(1.dp, catColor.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(cat.iconName),
+                                            contentDescription = null,
+                                            tint = catColor, // User selected color applied only to icon accent
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    // CENTER: Category name and transaction count
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = cat.name,
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            ),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "${item.transactionCount} transactions",
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        )
+                                    }
+
+                                    // RIGHT: Chevron icon
                                     Icon(
-                                        imageVector = getIconByName(cat.iconName),
-                                        contentDescription = null,
-                                        tint = catColor, // User selected color applied only to icon accent
-                                        modifier = Modifier.size(24.dp)
+                                        imageVector = Icons.Default.KeyboardArrowRight,
+                                        contentDescription = "Edit Category",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
-
-                                Spacer(modifier = Modifier.width(16.dp))
-
-                                // CENTER: Category name and transaction count
-                                Column(
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        text = cat.name,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "${item.transactionCount} transactions",
-                                        fontFamily = PlusJakartaSansFamily,
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-
-                                // RIGHT: Chevron icon
-                                Icon(
-                                    imageVector = Icons.Default.KeyboardArrowRight,
-                                    contentDescription = "Edit Category",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(20.dp)
-                                )
                             }
                         }
                         // Bottom spacer for FAB scrolling clearance

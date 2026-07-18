@@ -152,8 +152,23 @@ fun TransactionsScreen(
     if (transactionToDelete != null) {
         AlertDialog(
             onDismissRequest = { transactionToDelete = null },
-            title = { Text("Delete Transaction") },
-            text = { Text("Are you sure you want to delete this transaction?") },
+            title = {
+                Text(
+                    text = "Delete Transaction",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete this transaction?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -161,14 +176,27 @@ fun TransactionsScreen(
                         transactionToDelete = null
                     }
                 ) {
-                    Text("Delete", color = Color.Red)
+                    Text(
+                        text = "Delete",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { transactionToDelete = null }) {
-                    Text("Cancel")
+                    Text(
+                        text = "Cancel",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
         )
     }
 

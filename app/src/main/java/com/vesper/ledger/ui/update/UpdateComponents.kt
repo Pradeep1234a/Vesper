@@ -104,21 +104,12 @@ fun UpdateDialog(
                         MetadataRow(label = "Status", value = "Latest Version Installed")
                     }
 
-                    Button(
+                    ShButton(
+                        text = "Close",
                         onClick = onDismissRequest,
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.onBackground,
-                            contentColor = MaterialTheme.colorScheme.background
-                        )
-                    ) {
-                        Text(
-                            text = "Close",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
+                    )
                 } else {
                     // ── Update Available Dialog ──
                     Column(
@@ -433,17 +424,10 @@ fun SettingsUpdatesScreen(
                         modifier = Modifier.fillMaxWidth(0.85f)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = { viewModel.checkForUpdates() },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text("Retry", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
-                    }
+                    ShButton(
+                        text = "Retry",
+                        onClick = { viewModel.checkForUpdates() }
+                    )
                 }
             }
 
@@ -535,21 +519,11 @@ fun SettingsUpdatesScreen(
                         modifier = Modifier.fillMaxWidth(0.85f)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(
+                    ShButton(
+                        text = if (uiState.downloadState == UpdateDownloadState.INSTALLING) "Installing..." else "Install Update",
                         onClick = { viewModel.installUpdate() },
-                        enabled = uiState.downloadState != UpdateDownloadState.INSTALLING,
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text(
-                            text = if (uiState.downloadState == UpdateDownloadState.INSTALLING) "Installing..." else "Install Update",
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                        )
-                    }
+                        enabled = uiState.downloadState != UpdateDownloadState.INSTALLING
+                    )
                 }
             }
 
@@ -655,17 +629,10 @@ fun SettingsUpdatesScreen(
                         }
                     }
 
-                    Button(
-                        onClick = { viewModel.startDownload() },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text("Download Update", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
-                    }
+                    ShButton(
+                        text = "Download Update",
+                        onClick = { viewModel.startDownload() }
+                    )
                 }
             }
 
@@ -749,17 +716,10 @@ fun SettingsUpdatesScreen(
                         }
                     }
 
-                    Button(
-                        onClick = { viewModel.checkForUpdates() },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text("Check Again", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
-                    }
+                    ShButton(
+                        text = "Check Again",
+                        onClick = { viewModel.checkForUpdates() }
+                    )
                 }
             }
         }

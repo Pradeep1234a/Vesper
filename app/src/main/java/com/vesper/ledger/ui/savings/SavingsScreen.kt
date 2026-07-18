@@ -22,9 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.SavingsGoal
-import com.vesper.ledger.ui.components.ShCard
-import com.vesper.ledger.ui.components.ChildHeader
-import com.vesper.ledger.ui.components.ShTextField
+import com.vesper.ledger.ui.components.*
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -70,7 +68,15 @@ fun SavingsScreen(
 
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("New Savings Goal") },
+            title = {
+                Text(
+                    text = "New Savings Goal",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     ShTextField(
@@ -86,12 +92,11 @@ fun SavingsScreen(
                         placeholder = "e.g., 2000",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
-                    OutlinedButton(
-                        onClick = { datePickerDialog.show() },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Target Date: ${dateFormat.format(Date(newGoalDate))}")
-                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    ShOutlinedButton(
+                        text = "Target Date: ${dateFormat.format(Date(newGoalDate))}",
+                        onClick = { datePickerDialog.show() }
+                    )
                 }
             },
             confirmButton = {
@@ -107,12 +112,23 @@ fun SavingsScreen(
                         }
                     }
                 ) {
-                    Text("Add Goal")
+                    Text(
+                        text = "Add Goal",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("Cancel")
+                    Text(
+                        text = "Cancel",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
                 }
             }
         )
@@ -121,12 +137,23 @@ fun SavingsScreen(
     if (adjustGoal != null) {
         AlertDialog(
             onDismissRequest = { adjustGoal = null },
-            title = { Text(if (adjustIsDeposit) "Deposit Money" else "Withdraw Money") },
+            title = {
+                Text(
+                    text = if (adjustIsDeposit) "Deposit Money" else "Withdraw Money",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+            },
             text = {
                 Column {
                     Text(
                         text = adjustGoal?.name ?: "",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     ShTextField(
@@ -150,12 +177,23 @@ fun SavingsScreen(
                         adjustGoal = null
                     }
                 ) {
-                    Text("Confirm")
+                    Text(
+                        text = "Confirm",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { adjustGoal = null }) {
-                    Text("Cancel")
+                    Text(
+                        text = "Cancel",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
                 }
             }
         )
@@ -198,9 +236,11 @@ fun SavingsScreen(
                             )
                         )
                         Spacer(modifier = Modifier.height(12.dp))
-                        Button(onClick = { showAddDialog = true }) {
-                            Text("Create a Goal")
-                        }
+                        ShButton(
+                            text = "Create a Goal",
+                            onClick = { showAddDialog = true },
+                            modifier = Modifier.width(180.dp)
+                        )
                     }
                 }
             } else {
@@ -252,7 +292,7 @@ fun SavingsScreen(
                                 text = "$currencySymbol${df.format(goal.currentAmount)}",
                                 style = MaterialTheme.typography.displayMedium.copy(
                                     fontSize = 20.sp,
-                                    color = Color(0xFF2563EB)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             )
                             Text(
@@ -272,8 +312,8 @@ fun SavingsScreen(
                                 .fillMaxWidth()
                                 .height(6.dp)
                                 .clip(MaterialTheme.shapes.small),
-                            color = Color(0xFF2563EB),
-                            trackColor = MaterialTheme.colorScheme.outline
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -282,30 +322,22 @@ fun SavingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            OutlinedButton(
+                            ShOutlinedButton(
+                                text = "Withdraw",
                                 onClick = {
                                     adjustGoal = goal
                                     adjustIsDeposit = false
                                 },
-                                shape = MaterialTheme.shapes.small,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(40.dp)
-                            ) {
-                                Text("Withdraw", fontSize = 12.sp)
-                            }
-                            Button(
+                                modifier = Modifier.weight(1f)
+                            )
+                            ShButton(
+                                text = "Deposit",
                                 onClick = {
                                     adjustGoal = goal
                                     adjustIsDeposit = true
                                 },
-                                shape = MaterialTheme.shapes.small,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(40.dp)
-                            ) {
-                                Text("Deposit", fontSize = 12.sp)
-                            }
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                 }
