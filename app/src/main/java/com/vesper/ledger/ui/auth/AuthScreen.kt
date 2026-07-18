@@ -212,6 +212,7 @@ fun WelcomeScreen(
     val sharedPrefs = context.getSharedPreferences("vesper_settings", android.content.Context.MODE_PRIVATE)
     val appIcon = sharedPrefs.getString("appIcon", "default") ?: "default"
     val logoForegroundRes = com.vesper.ledger.data.secure.AppIconManager.getIconForegroundRes(appIcon)
+    var activeDialog by remember { mutableStateOf<String?>(null) }
 
     // Dynamic Theme Colors
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -489,7 +490,7 @@ fun WelcomeScreen(
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { /* Terms click */ }
+                        ) { activeDialog = "terms" }
                     )
                     Text(
                         text = "   ·   ",
@@ -506,12 +507,30 @@ fun WelcomeScreen(
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { /* Privacy click */ }
+                        ) { activeDialog = "privacy" }
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Dialog for Terms or Privacy Policy on Welcome Screen
+        when (activeDialog) {
+            "terms" -> {
+                AuthInfoDialog(
+                    title = "Terms & Conditions",
+                    text = TERMS_CONDITIONS_TEXT,
+                    onDismissRequest = { activeDialog = null }
+                )
+            }
+            "privacy" -> {
+                AuthInfoDialog(
+                    title = "Privacy Policy",
+                    text = PRIVACY_POLICY_TEXT,
+                    onDismissRequest = { activeDialog = null }
+                )
+            }
         }
     }
 }
@@ -698,6 +717,8 @@ fun CreateAccountScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var termsAccepted by remember { mutableStateOf(false) }
+    var showTerms by remember { mutableStateOf(false) }
+    var showPrivacy by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -805,7 +826,7 @@ fun CreateAccountScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Terms of Service and Privacy Policy checkbox
+                // Terms of Service and Privacy Policy checkbox with clickable document links
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -820,16 +841,54 @@ fun CreateAccountScreen(
                         )
                     )
                     Text(
-                        text = "I accept the Terms of Service & Privacy Policy",
+                        text = "I accept the ",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary)
+                    )
+                    Text(
+                        text = "Terms",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = textColorSecondary
+                            color = textColorPrimary,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { termsAccepted = !termsAccepted }
+                        ) { showTerms = true }
+                    )
+                    Text(
+                        text = " & ",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary)
+                    )
+                    Text(
+                        text = "Privacy Policy",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = textColorPrimary,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { showPrivacy = true }
                     )
                 }
+            }
+
+            // Dialogs for Terms & Conditions and Privacy Policy inside Create Account
+            if (showTerms) {
+                AuthInfoDialog(
+                    title = "Terms & Conditions",
+                    text = TERMS_CONDITIONS_TEXT,
+                    onDismissRequest = { showTerms = false }
+                )
+            }
+            if (showPrivacy) {
+                AuthInfoDialog(
+                    title = "Privacy Policy",
+                    text = PRIVACY_POLICY_TEXT,
+                    onDismissRequest = { showPrivacy = false }
+                )
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -1033,4 +1092,59 @@ fun ForgotPasswordScreen(
             )
         }
     }
+}
+
+// ─── Legal Documentation & Dialogue Composable ─────────────────────────────
+
+private const val PRIVACY_POLICY_TEXT = """Your financial privacy is our highest priority.
+
+1. Data Collection & Privacy
+Vesper Ledger is a local-first application. We do not transmit, track, or share your financial data. All information stays safely stored on your device's offline database.
+
+2. Database Security
+Individual database files are created per account credentials on your local storage. You have full custody of your account records.
+
+3. Third-Party Access
+No third parties have access to your data. No analytical SDKs or background telemetry tools are installed."""
+
+private const val TERMS_CONDITIONS_TEXT = """Vesper Ledger is provided as-is without any warranties of any kind.
+
+1. Scope of Service
+Vesper Ledger is provided as a local personal ledger utility. Users are responsible for backing up their own data.
+
+2. Limitation of Liability
+Under no circumstances shall Vesper Ledger be liable for direct, indirect, incidental, or consequential loss of data, funds, or savings.
+
+3. Security Responsibility
+You are solely responsible for maintaining the confidentiality of your master password and device security settings."""
+
+@Composable
+fun AuthInfoDialog(
+    title: String,
+    text: String,
+    onDismissRequest: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            }
+        },
+        text = {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                TextButton(onClick = onDismissRequest) {
+                    Text("Close")
+                }
+            }
+        }
+    )
 }
