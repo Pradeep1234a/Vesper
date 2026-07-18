@@ -86,6 +86,11 @@ fun DashboardScreen(
         }
     }
 
+    val displayName = remember(userName) {
+        val parts = userName.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }
+        parts.firstOrNull() ?: "User"
+    }
+
     Scaffold(
         floatingActionButton = {
             val fabInteractionSource = remember { MutableInteractionSource() }
@@ -180,7 +185,7 @@ fun DashboardScreen(
                 item {
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
                         Text(
-                            text = "$greeting, $userName!",
+                            text = "$greeting, $displayName!",
                             style = MaterialTheme.typography.headlineLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp
