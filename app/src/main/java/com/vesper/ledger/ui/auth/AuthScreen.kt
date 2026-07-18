@@ -238,13 +238,13 @@ fun WelcomeScreen(
                 painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
                 contentDescription = "Vesper Brand Logo",
                 tint = textColorPrimary,
-                modifier = Modifier.size(45.dp) // Exactly 45.dp logo size requested
+                modifier = Modifier.size(40.dp) // Exactly 40.dp logo size
             )
             Text(
                 text = "VESPER LEDGER",
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp, // Matched height to 45.dp logo size
+                    fontSize = 24.sp, // Matched height to 40.dp logo size
                     letterSpacing = 1.5.sp,
                     fontFamily = SpaceGroteskFamily,
                     color = textColorPrimary
