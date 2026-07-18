@@ -171,10 +171,11 @@ fun WelcomeScreen(
                     contentColor = MaterialTheme.colorScheme.background
                 )
 
-                ShOutlinedButton(
+                ShButton(
                     text = "Sign In",
                     onClick = onSignInClick,
-                    contentColor = MaterialTheme.colorScheme.onBackground // Neutral outlined button
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
                 )
             }
 
