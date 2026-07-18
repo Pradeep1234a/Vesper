@@ -212,20 +212,20 @@ fun WelcomeScreen(
             // CRED-styled value pillar deck
             WelcomePillar(
                 number = "01",
-                title = "Absolute Privacy",
-                description = "No cloud database. No bank syncing. Your financial data stays 100% on your device."
+                title = "Protect Your Privacy",
+                description = "Keep total ownership of your data. Your records are stored 100% locally on your device, secure and offline."
             )
 
             WelcomePillar(
                 number = "02",
-                title = "Monochrome Minimalism",
-                description = "Finances in pure black and white. Designed to bring clarity and remove visual noise."
+                title = "Focus on What Matters",
+                description = "Track your net worth and cash flow without distraction. Focus on the core numbers with a clean interface."
             )
 
             WelcomePillar(
                 number = "03",
-                title = "Intentional Ledger",
-                description = "Track every transaction manually. Cultivate absolute awareness of your spending."
+                title = "Build Mindful Habits",
+                description = "Log your transactions by hand to cultivate financial awareness and make intentional spending decisions."
             )
 
             Spacer(modifier = Modifier.height(8.dp))
