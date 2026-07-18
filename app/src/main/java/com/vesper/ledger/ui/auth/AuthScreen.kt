@@ -212,20 +212,20 @@ fun WelcomeScreen(
             // CRED-styled value pillar deck
             WelcomePillar(
                 number = "01",
-                title = "Protect Your Privacy",
-                description = "Keep total ownership of your data. Your records are stored 100% locally on your device, secure and offline."
+                title = "Keep it safe and private",
+                description = "Your personal money details are stored only on your own phone. Nobody else can see or track how you spend."
             )
 
             WelcomePillar(
                 number = "02",
-                title = "Focus on What Matters",
-                description = "Track your net worth and cash flow without distraction. Focus on the core numbers with a clean interface."
+                title = "Keep things simple",
+                description = "See exactly where your money goes without any confusing charts, ads, or clutter. Focus only on what you have."
             )
 
             WelcomePillar(
                 number = "03",
-                title = "Build Mindful Habits",
-                description = "Log your transactions by hand to cultivate financial awareness and make intentional spending decisions."
+                title = "Spend more mindfully",
+                description = "Write down what you spend by hand. It helps you stay aware of your habits and make better choices every day."
             )
 
             Spacer(modifier = Modifier.height(8.dp))
