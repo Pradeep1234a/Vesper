@@ -71,7 +71,7 @@ fun NavGraph(
                 onFinish = {
                     val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
                     sharedPrefs.edit().putBoolean("isOnboardingCompleted", true).apply()
-                    navController.navigate("main_screen") {
+                    navController.navigate(Screen.AuthWelcome.route) {
                         popUpTo("onboarding") { inclusive = true }
                     }
                 }
@@ -177,6 +177,9 @@ fun NavGraph(
             SignInScreen(
                 onBackClick = { navController.popBackStack() },
                 onSignInClick = {
+                    // Mark user as authenticated
+                    val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                    sharedPrefs.edit().putBoolean("isAuthenticated", true).apply()
                     navController.navigate("main_screen") {
                         popUpTo(Screen.AuthWelcome.route) { inclusive = true }
                     }
@@ -194,6 +197,9 @@ fun NavGraph(
             CreateAccountScreen(
                 onBackClick = { navController.popBackStack() },
                 onCreateAccountClick = {
+                    // Mark user as authenticated
+                    val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
+                    sharedPrefs.edit().putBoolean("isAuthenticated", true).apply()
                     navController.navigate("main_screen") {
                         popUpTo(Screen.AuthWelcome.route) { inclusive = true }
                     }
