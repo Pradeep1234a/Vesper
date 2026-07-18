@@ -64,14 +64,9 @@ fun SplashScreen(
             animationSpec = tween(durationMillis = 500)
         )
         
-        // 4. Navigation: Check onboarding and authentication state
-        val isOnboardingCompleted = sharedPrefs.getBoolean("isOnboardingCompleted", false)
+        // 4. Navigation: Check authentication state
         val isAuthenticated = sharedPrefs.getBoolean("isAuthenticated", false)
-        val destination = when {
-            !isOnboardingCompleted -> "onboarding"
-            !isAuthenticated -> Screen.AuthWelcome.route
-            else -> "main_screen"
-        }
+        val destination = if (!isAuthenticated) Screen.AuthWelcome.route else "main_screen"
         onNavigateNext(destination)
     }
 
