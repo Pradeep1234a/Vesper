@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -117,52 +118,6 @@ private fun AuthTextField(
 
 
 @Composable
-private fun WelcomePillar(
-    number: String,
-    title: String,
-    description: String,
-    modifier: Modifier = Modifier
-) {
-    ShCard(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Text(
-                text = number,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    fontFamily = SpaceGroteskFamily
-                )
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title.uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 18.sp
-                    )
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
     onSignInClick: () -> Unit
@@ -171,6 +126,14 @@ fun WelcomeScreen(
     val sharedPrefs = context.getSharedPreferences("vesper_settings", android.content.Context.MODE_PRIVATE)
     val appIcon = sharedPrefs.getString("appIcon", "default") ?: "default"
     val logoForegroundRes = com.vesper.ledger.data.secure.AppIconManager.getIconForegroundRes(appIcon)
+
+    // Determine the correct line-art illustration depending on light/dark background
+    val isDark = MaterialTheme.colorScheme.background == Color(0xFF000000)
+    val illustrationRes = if (isDark) {
+        com.vesper.ledger.R.drawable.ill_onboarding_2_dark
+    } else {
+        com.vesper.ledger.R.drawable.ill_onboarding_2
+    }
 
     Column(
         modifier = Modifier
@@ -207,30 +170,65 @@ fun WelcomeScreen(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // CRED-styled value pillar deck
-            WelcomePillar(
-                number = "01",
-                title = "Keep it safe and private",
-                description = "Your personal money details are stored only on your own phone. Nobody else can see or track how you spend."
-            )
+            // 2. Poetic luxury editorial statement
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Silence the noise.",
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFamily,
+                        lineHeight = 36.sp,
+                        letterSpacing = (-0.5).sp
+                    )
+                )
+                Text(
+                    text = "Track with intention.",
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFamily,
+                        lineHeight = 36.sp,
+                        letterSpacing = (-0.5).sp
+                    )
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Vesper is a private, monochrome space built to bring clarity and calm to your financial life.",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 22.sp
+                    )
+                )
+            }
 
-            WelcomePillar(
-                number = "02",
-                title = "Keep things simple",
-                description = "See exactly where your money goes without any confusing charts, ads, or clutter. Focus only on what you have."
-            )
+            // 3. Visual Anchor Card: Abstract line-art illustration framing
+            ShCard(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp) // Edge-to-edge inside the card container
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = illustrationRes),
+                        contentDescription = "Visual representation of clarity and mindfulness",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    )
+                }
+            }
 
-            WelcomePillar(
-                number = "03",
-                title = "Spend more mindfully",
-                description = "Write down what you spend by hand. It helps you stay aware of your habits and make better choices every day."
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Action card grouping CTAs and legal links
+            // 4. Action card grouping CTAs and legal links
             ShCard(modifier = Modifier.fillMaxWidth()) {
                 ShButton(
                     text = "Create Account",
