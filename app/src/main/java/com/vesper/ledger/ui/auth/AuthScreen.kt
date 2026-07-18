@@ -1,5 +1,6 @@
 package com.vesper.ledger.ui.auth
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,6 +20,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,12 +28,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.vesper.ledger.ui.components.ChildHeader
-import com.vesper.ledger.ui.components.DynamicLogo
-import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
-import com.vesper.ledger.ui.components.ShOutlinedButton
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 // ─── Custom Outlined TextField Matching ShTextField Exactly ──────────────────
@@ -54,7 +57,7 @@ private fun AuthTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color(0xFF8E8E93)
             ),
             modifier = Modifier.padding(bottom = 6.dp)
         )
@@ -66,12 +69,12 @@ private fun AuthTextField(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        color = Color(0xFF48484A)
                     )
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
             singleLine = true,
             visualTransformation = if (isPassword && !passwordVisible)
                 PasswordVisualTransformation() else VisualTransformation.None,
@@ -90,7 +93,7 @@ private fun AuthTextField(
                             Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                         contentDescription = if (passwordVisible)
                             "Hide password" else "Show password",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        tint = Color(0xFF8E8E93),
                         modifier = Modifier
                             .size(20.dp)
                             .clickable(
@@ -100,17 +103,93 @@ private fun AuthTextField(
                     )
                 }
             } else null,
-            shape = MaterialTheme.shapes.small, // Matches 6.dp small shape!
+            shape = MaterialTheme.shapes.small,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedBorderColor = MaterialTheme.colorScheme.onBackground, // Monochrome focus
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                cursorColor = MaterialTheme.colorScheme.onBackground
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedContainerColor = Color(0xFF121212),
+                unfocusedContainerColor = Color(0xFF0E0E0E),
+                focusedBorderColor = Color.White,
+                unfocusedBorderColor = Color(0xFF262626),
+                cursorColor = Color.White
             )
         )
+    }
+}
+
+// ─── Programmatic Premium Button (Mockup Aligned) ───────────────────────────
+
+@Composable
+private fun PremiumButton(
+    text: String,
+    onClick: () -> Unit,
+    isPrimary: Boolean,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val containerColor = if (isPrimary) Color.White else Color.Transparent
+    val contentColor = if (isPrimary) Color.Black else Color.White
+    val border = if (isPrimary) null else BorderStroke(1.dp, Color(0xFF262626))
+
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .height(58.dp)
+            .fillMaxWidth(),
+        enabled = enabled,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor,
+            disabledContainerColor = containerColor.copy(alpha = 0.4f),
+            disabledContentColor = contentColor.copy(alpha = 0.4f)
+        ),
+        border = border,
+        contentPadding = PaddingValues(horizontal = 24.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    letterSpacing = 0.2.sp
+                ),
+                modifier = Modifier.align(Alignment.Center)
+            )
+
+            // Custom thin right arrow matching mockup
+            androidx.compose.foundation.Canvas(
+                modifier = Modifier
+                    .size(16.dp)
+                    .align(Alignment.CenterEnd)
+            ) {
+                val strokeWidth = 1.5.dp.toPx()
+                val color = contentColor
+
+                // Line
+                drawLine(
+                    color = color,
+                    start = Offset(0f, size.height / 2),
+                    end = Offset(size.width, size.height / 2),
+                    strokeWidth = strokeWidth
+                )
+                // Chevron top
+                drawLine(
+                    color = color,
+                    start = Offset(size.width - size.height / 3, size.height / 2 - size.height / 3),
+                    end = Offset(size.width, size.height / 2),
+                    strokeWidth = strokeWidth
+                )
+                // Chevron bottom
+                drawLine(
+                    color = color,
+                    start = Offset(size.width - size.height / 3, size.height / 2 + size.height / 3),
+                    end = Offset(size.width, size.height / 2),
+                    strokeWidth = strokeWidth
+                )
+            }
+        }
     }
 }
 
@@ -129,28 +208,31 @@ fun WelcomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFF090909)) // Luxury Dark background
     ) {
         // 1. Sleek brand header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
                 contentDescription = "Vesper Brand Logo",
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = Color.White,
                 modifier = Modifier.size(32.dp)
             )
             Text(
-                text = "Vesper Ledger",
+                text = "VESPER LEDGER",
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = SpaceGroteskFamily
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                    letterSpacing = 2.sp,
+                    fontFamily = SpaceGroteskFamily,
+                    color = Color.White
                 )
             )
         }
@@ -165,143 +247,214 @@ fun WelcomeScreen(
         ) {
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 2. Visual Anchor Card: Ledger Preview Mockup (Engaging visual anchor)
-            ShCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+            // 2. Large Serif Heading & Paragraph
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Welcome.",
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 52.sp,
+                        color = Color.White
+                    )
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "A private space built for thoughtful money management.",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color(0xFF8E8E93),
+                        lineHeight = 24.sp,
+                        fontSize = 16.sp
+                    )
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Minimal horizontal line
+                Divider(
+                    color = Color(0xFF262626),
+                    thickness = 1.dp,
+                    modifier = Modifier.width(60.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(36.dp))
+
+            // 3. Trust Highlights (Editorial rows)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Row 1: Private by Design
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(Color(0xFF141414), shape = androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "PREVIEW LEDGER",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                letterSpacing = 1.sp,
-                                fontWeight = FontWeight.Bold
+                        androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
+                            val stroke = 1.5.dp.toPx()
+                            val color = Color.White
+                            // Shackle
+                            drawArc(
+                                color = color,
+                                startAngle = 180f,
+                                sweepAngle = 180f,
+                                useCenter = false,
+                                style = Stroke(width = stroke),
+                                topLeft = Offset(size.width * 0.25f, size.height * 0.15f),
+                                size = Size(size.width * 0.5f, size.height * 0.5f)
                             )
+                            // Body
+                            drawRoundRect(
+                                color = color,
+                                topLeft = Offset(size.width * 0.15f, size.height * 0.45f),
+                                size = Size(size.width * 0.7f, size.height * 0.45f),
+                                cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx()),
+                                style = Stroke(width = stroke)
+                            )
+                            // Dot
+                            drawCircle(
+                                color = color,
+                                radius = 1.5.dp.toPx(),
+                                center = Offset(size.width * 0.5f, size.height * 0.65f)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "Private by Design",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .background(MaterialTheme.colorScheme.onBackground, shape = androidx.compose.foundation.shape.CircleShape)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Everything stays securely on your device.\nAlways private, always yours.",
+                            color = Color(0xFF8E8E93),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
                         )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                Divider(color = Color(0xFF161616), thickness = 1.dp)
 
-                    Text(
-                        text = "Total Balance",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                    Text(
-                        text = "$12,480.00",
-                        style = MaterialTheme.typography.displayMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                // Row 2: Built for Intention
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(Color(0xFF141414), shape = androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
-                                    shape = MaterialTheme.shapes.small
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = "☕", fontSize = 16.sp)
-                        }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Vesper Brew Co.",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
+                            val stroke = 1.5.dp.toPx()
+                            val color = Color.White
+                            drawCircle(
+                                color = color,
+                                radius = 2.dp.toPx(),
+                                center = Offset(size.width * 0.5f, size.height * 0.5f)
                             )
-                            Text(
-                                text = "Food & Drink",
-                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            drawCircle(
+                                color = color,
+                                radius = size.width * 0.35f,
+                                center = Offset(size.width * 0.5f, size.height * 0.5f),
+                                style = Stroke(width = stroke)
                             )
+                            val tick = 3.dp.toPx()
+                            drawLine(color, Offset(size.width * 0.5f, 0f), Offset(size.width * 0.5f, tick), stroke)
+                            drawLine(color, Offset(size.width * 0.5f, size.height), Offset(size.width * 0.5f, size.height - tick), stroke)
+                            drawLine(color, Offset(0f, size.height * 0.5f), Offset(tick, size.height * 0.5f), stroke)
+                            drawLine(color, Offset(size.width, size.height * 0.5f), Offset(size.width - tick, size.height * 0.5f), stroke)
                         }
-
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
                         Text(
-                            text = "-$4.50",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
+                            text = "Built for Intention",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Track every transaction consciously\nand with complete awareness.",
+                            color = Color(0xFF8E8E93),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+
+                Divider(color = Color(0xFF161616), thickness = 1.dp)
+
+                // Row 3: Clarity in Simplicity
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(Color(0xFF141414), shape = androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
+                            val stroke = 1.5.dp.toPx()
+                            val color = Color.White
+                            drawCircle(
+                                color = color,
+                                radius = size.width * 0.4f,
+                                center = Offset(size.width * 0.5f, size.height * 0.5f),
+                                style = Stroke(width = stroke)
                             )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "Clarity in Simplicity",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "A calm, distraction-free space\nto focus on what matters.",
+                            color = Color(0xFF8E8E93),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // 3. Poetic luxury editorial statement (Clean vertical flow text)
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Silence the noise.",
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = SpaceGroteskFamily,
-                        lineHeight = 36.sp,
-                        letterSpacing = (-0.5).sp
-                    )
-                )
-                Text(
-                    text = "Track with intention.",
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = SpaceGroteskFamily,
-                        lineHeight = 36.sp,
-                        letterSpacing = (-0.5).sp
-                    )
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "Vesper is a private, monochrome space built to bring clarity and calm to your finances.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 22.sp
-                    )
-                )
-            }
-
             Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
-            // 4. Action Buttons & Links aligned on the same vertical axis
+            // 4. Action Buttons & Links
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ShButton(
+                PremiumButton(
                     text = "Create Account",
                     onClick = onCreateAccountClick,
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
+                    isPrimary = true
                 )
 
-                ShOutlinedButton(
+                PremiumButton(
                     text = "Sign In",
                     onClick = onSignInClick,
-                    contentColor = MaterialTheme.colorScheme.onBackground
+                    isPrimary = false
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -314,7 +467,7 @@ fun WelcomeScreen(
                     Text(
                         text = "Terms of Service",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color(0xFF48484A),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
@@ -323,15 +476,15 @@ fun WelcomeScreen(
                         ) { /* Terms click */ }
                     )
                     Text(
-                        text = "  ·  ",
+                        text = "   ·   ",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            color = Color(0xFF262626)
                         )
                     )
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color(0xFF48484A),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
@@ -363,7 +516,7 @@ fun SignInScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFF090909))
     ) {
         ChildHeader(
             title = "Sign In",
@@ -380,19 +533,22 @@ fun SignInScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Visual Anchor Card: Form Fields ONLY
-            ShCard(modifier = Modifier.fillMaxWidth()) {
+            ShCard(
+                modifier = Modifier.fillMaxWidth(),
+                borderStroke = BorderStroke(1.dp, Color(0xFF1E1E1E))
+            ) {
                 Text(
                     text = "Welcome Back",
                     style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Sign in to continue managing your finances.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color(0xFF8E8E93)
                     )
                 )
 
@@ -429,7 +585,7 @@ fun SignInScreen(
                     Text(
                         text = "Forgot Password?",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color(0xFF8E8E93),
                             fontWeight = FontWeight.SemiBold,
                             textDecoration = TextDecoration.Underline
                         ),
@@ -444,18 +600,16 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // CTA Button & Navigation grouped tightly below the card
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ShButton(
+                PremiumButton(
                     text = "Sign In",
                     onClick = onSignInClick,
                     enabled = email.isNotBlank() && password.isNotBlank(),
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
+                    isPrimary = true
                 )
 
                 Row(
@@ -466,13 +620,13 @@ fun SignInScreen(
                     Text(
                         text = "Don't have an account? ",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color(0xFF8E8E93)
                         )
                     )
                     Text(
                         text = "Create Account",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onBackground,
+                            color = Color.White,
                             fontWeight = FontWeight.Bold,
                             textDecoration = TextDecoration.Underline
                         ),
@@ -507,7 +661,7 @@ fun CreateAccountScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFF090909))
     ) {
         ChildHeader(
             title = "Create Account",
@@ -524,19 +678,22 @@ fun CreateAccountScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Visual Anchor Card: Fields container
-            ShCard(modifier = Modifier.fillMaxWidth()) {
+            ShCard(
+                modifier = Modifier.fillMaxWidth(),
+                borderStroke = BorderStroke(1.dp, Color(0xFF1E1E1E))
+            ) {
                 Text(
                     text = "Get Started",
                     style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Create your secure Vesper Ledger account.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color(0xFF8E8E93)
                     )
                 )
 
@@ -590,19 +747,17 @@ fun CreateAccountScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Action section tightly grouped below the card
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ShButton(
+                PremiumButton(
                     text = "Create Account",
                     onClick = onCreateAccountClick,
                     enabled = fullName.isNotBlank() && email.isNotBlank() &&
                             password.isNotBlank() && confirmPassword.isNotBlank(),
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
+                    isPrimary = true
                 )
 
                 Row(
@@ -613,13 +768,13 @@ fun CreateAccountScreen(
                     Text(
                         text = "Already have an account? ",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color(0xFF8E8E93)
                         )
                     )
                     Text(
                         text = "Sign In",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onBackground,
+                            color = Color.White,
                             fontWeight = FontWeight.Bold,
                             textDecoration = TextDecoration.Underline
                         ),
@@ -651,7 +806,7 @@ fun ForgotPasswordScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFF090909))
     ) {
         ChildHeader(
             title = "Forgot Password",
@@ -668,19 +823,22 @@ fun ForgotPasswordScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Visual Anchor Card: Form container
-            ShCard(modifier = Modifier.fillMaxWidth()) {
+            ShCard(
+                modifier = Modifier.fillMaxWidth(),
+                borderStroke = BorderStroke(1.dp, Color(0xFF1E1E1E))
+            ) {
                 Text(
                     text = "Reset Password",
                     style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Enter your email address and we'll send you a password reset link.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color(0xFF8E8E93)
                     )
                 )
 
@@ -699,18 +857,16 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Action section tightly grouped below the card
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ShButton(
+                PremiumButton(
                     text = "Send Reset Link",
                     onClick = onSendResetLinkClick,
                     enabled = email.isNotBlank(),
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
+                    isPrimary = true
                 )
 
                 Box(
@@ -720,7 +876,7 @@ fun ForgotPasswordScreen(
                     Text(
                         text = "Back to Sign In",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onBackground,
+                            color = Color.White,
                             fontWeight = FontWeight.Bold,
                             textDecoration = TextDecoration.Underline
                         ),
