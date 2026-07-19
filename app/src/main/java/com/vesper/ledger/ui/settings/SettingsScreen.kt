@@ -638,43 +638,6 @@ fun SettingsScreen(
                         }
                     )
                     
-                    // FCM Registration Token Copy Section
-                    val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
-                    var fcmToken by remember {
-                        mutableStateOf(sharedPrefs.getString("fcm_registration_token", "Not Registered") ?: "Not Registered")
-                    }
-
-                    LaunchedEffect(Unit) {
-                        try {
-                            if (com.google.firebase.FirebaseApp.getApps(context).isNotEmpty()) {
-                                com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        val token = task.result
-                                        fcmToken = token
-                                        sharedPrefs.edit().putString("fcm_registration_token", token).apply()
-                                        android.util.Log.d("SettingsScreen", "Successfully retrieved FCM token: $token")
-                                    }
-                                }
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.w("SettingsScreen", "Firebase not initialized: ${e.message}")
-                        }
-                    }
-
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.CloudSync,
-                        title = "Copy FCM Device Token",
-                        subtitle = if (fcmToken == "Not Registered") "Tap to refresh token (Firebase connection needed)" else "Token: ${fcmToken.take(16)}... (Tap to copy)",
-                        onClick = {
-                            if (fcmToken != "Not Registered") {
-                                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(fcmToken))
-                                Toast.makeText(context, "FCM Token copied to clipboard!", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "FCM token is not registered. Ensure google-services.json is present.", Toast.LENGTH_LONG).show()
-                            }
-                        }
-                    )
                 }
 
                 // Data & Backup Section

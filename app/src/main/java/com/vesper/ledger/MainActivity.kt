@@ -118,18 +118,7 @@ class MainActivity : FragmentActivity() {
         // Handle intent if launched via notification click
         handleNotificationIntent(intent)
 
-        // Log FCM registration token safely on launch if Firebase is active
-        try {
-            if (com.google.firebase.FirebaseApp.getApps(this).isNotEmpty()) {
-                com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Log.d("MainActivity", "FCM Device Token (for Firebase Console automation): ${task.result}")
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.w("MainActivity", "Firebase Messaging not yet initialized: ${e.message}")
-        }
+
 
         // Lock App initially on launch if App Lock is enabled
         val helper = SecureStorageHelper.getInstance(this)
