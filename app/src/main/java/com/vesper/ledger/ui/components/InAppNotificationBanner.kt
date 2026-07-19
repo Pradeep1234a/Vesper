@@ -79,8 +79,22 @@ fun InAppNotificationBannerOverlay(
                 .fillMaxWidth()
         ) {
             currentNotification?.let { item ->
+                // Parse encoded category string (format: "CATEGORY_NAME;style=...;actions=...")
+                val parts = item.category.split(";")
+                val categoryName = parts.getOrNull(0) ?: "DAILY_REMINDER"
+                val actions = mutableListOf<String>()
+
+                parts.drop(1).forEach { part ->
+                    if (part.startsWith("actions=")) {
+                        val list = part.substringAfter("actions=")
+                        if (list.isNotEmpty()) {
+                            actions.addAll(list.split(","))
+                        }
+                    }
+                }
+
                 // Map category tag to clean, theme-supported Shadcn-aligned Material Vector Icons
-                val categoryIcon = when (item.category) {
+                val categoryIcon = when (categoryName) {
                     "WELCOME" -> Icons.Outlined.Info
                     "DAILY_REMINDER", "FRIENDLY_REMINDER" -> Icons.Outlined.Edit
                     "MOTIVATION" -> Icons.Outlined.Lightbulb
@@ -162,7 +176,7 @@ fun InAppNotificationBannerOverlay(
                             ) {
                                 Icon(
                                     imageVector = categoryIcon,
-                                    contentDescription = item.category,
+                                    contentDescription = categoryName,
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -225,7 +239,7 @@ fun InAppNotificationBannerOverlay(
 
                         // Contextual Action Buttons shown ONLY when card is Expanded
                         AnimatedVisibility(
-                            visible = isExpanded,
+                            visible = isExpanded && actions.isNotEmpty(),
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut()
                         ) {
@@ -234,67 +248,35 @@ fun InAppNotificationBannerOverlay(
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                when (item.category) {
-                                    "DAILY_REMINDER", "FRIENDLY_REMINDER" -> {
-                                        TextButton(
-                                            onClick = {
-                                                currentNotification = null
-                                                onNavigate("add_transaction")
+                                actions.forEachIndexed { idx, actionKey ->
+                                    val label = actionKey.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
+                                    TextButton(
+                                        onClick = {
+                                            currentNotification = null
+                                            when (actionKey) {
+                                                "RECORD_EXPENSE" -> onNavigate("add_transaction")
+                                                "VIEW_ANALYTICS" -> onNavigate("reports")
+                                                "SETTINGS" -> onNavigate("settings")
+                                                "BACKUP_NOW" -> {
+                                                    // Trigger background save flow by routing to settings backup
+                                                    onNavigate("settings")
+                                                }
+                                                "SNOOZE" -> {
+                                                    // Suppressed
+                                                }
                                             }
-                                        ) {
-                                            Text(
-                                                text = "Record Expense",
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
                                         }
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = if (idx == 0) FontWeight.Bold else FontWeight.Normal,
+                                            fontSize = 12.sp,
+                                            color = if (idx == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    if (idx < actions.size - 1) {
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        TextButton(
-                                            onClick = {
-                                                currentNotification = null
-                                            }
-                                        ) {
-                                            Text(
-                                                text = "Snooze",
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                    "BACKUP_REMINDER" -> {
-                                        TextButton(
-                                            onClick = {
-                                                currentNotification = null
-                                                onNavigate("settings")
-                                            }
-                                        ) {
-                                            Text(
-                                                text = "Backup Now",
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                    "SMART_SUGGESTIONS", "WEEKLY_SUMMARY", "MONTHLY_INSIGHT" -> {
-                                        TextButton(
-                                            onClick = {
-                                                currentNotification = null
-                                                onNavigate("reports")
-                                            }
-                                        ) {
-                                            Text(
-                                                text = "View Analytics",
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
                                     }
                                 }
                             }

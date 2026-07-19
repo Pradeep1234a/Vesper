@@ -36,7 +36,7 @@ class NotificationViewModel(
             val matchesQuery = query.isBlank() || 
                     item.title.contains(query, ignoreCase = true) || 
                     item.message.contains(query, ignoreCase = true)
-            val matchesCategory = category == null || item.category == category
+            val matchesCategory = category == null || item.category == category || item.category.startsWith("$category;")
             matchesQuery && matchesCategory
         }
     }.flowOn(Dispatchers.IO)

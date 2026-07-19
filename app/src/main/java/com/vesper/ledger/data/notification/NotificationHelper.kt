@@ -5,8 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
-import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -89,25 +87,51 @@ object NotificationHelper {
     }
 
     /**
-     * Dispatch standard Android notification and hook click/delete actions for engagement tracking.
+     * Dispatch dynamic Android notifications using parsed category configuration.
+     * RawCategory parameter maps to format: "CATEGORY_NAME;style=STYLE_NAME;actions=ACTION1,ACTION2"
      */
     fun dispatchNotification(
         context: Context,
         dbId: Long,
         title: String,
         message: String,
-        category: NotificationCategory
+        rawCategory: String
     ) {
+        // Parse rawCategory info
+        val parts = rawCategory.split(";")
+        val categoryName = parts.getOrNull(0) ?: "DAILY_REMINDER"
+        val category = try {
+            NotificationCategory.valueOf(categoryName)
+        } catch (e: Exception) {
+            NotificationCategory.DAILY_REMINDER
+        }
+
+        var styleStr = "STANDARD"
+        val actions = mutableListOf<String>()
+
+        parts.drop(1).forEach { part ->
+            if (part.startsWith("style=")) {
+                styleStr = part.substringAfter("style=")
+            } else if (part.startsWith("actions=")) {
+                val list = part.substringAfter("actions=")
+                if (list.isNotEmpty()) {
+                    actions.addAll(list.split(","))
+                }
+            }
+        }
+
         val clickIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("NOTIFICATION_ID", dbId)
             putExtra("NOTIFICATION_ACTION", "CLICK")
             
-            // Contextual routing extras based on notification type
+            // Default deep-links routing
             if (category == NotificationCategory.DAILY_REMINDER || category == NotificationCategory.FRIENDLY_REMINDER) {
                 putExtra("EXTRA_ROUTE", "add_transaction")
-            } else if (category == NotificationCategory.SMART_SUGGESTIONS || category == NotificationCategory.WEEKLY_SUMMARY) {
+            } else if (category == NotificationCategory.SMART_SUGGESTIONS || category == NotificationCategory.WEEKLY_SUMMARY || category == NotificationCategory.MONTHLY_INSIGHT) {
                 putExtra("EXTRA_ROUTE", "reports")
+            } else if (category == NotificationCategory.BACKUP_REMINDER) {
+                putExtra("EXTRA_ROUTE", "settings")
             }
         }
         val clickPendingIntent = PendingIntent.getActivity(
@@ -129,7 +153,6 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, category.channelId)
-            // Use unified premium shadcn logo icon for all notifications
             .setSmallIcon(com.vesper.ledger.R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
@@ -138,91 +161,102 @@ object NotificationHelper {
             .setGroup("com.vesper.ledger.NOTIFICATIONS")
             .setAutoCancel(true)
 
-        // Choose Expandable vs non-expandable style based on length of message
-        if (message.length > 50) {
-            builder.setStyle(NotificationCompat.BigTextStyle().bigText(message))
+        // 1. Render style dynamically
+        when (styleStr) {
+            "BIG_TEXT" -> {
+                builder.setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            }
+            "INBOX" -> {
+                val inboxStyle = NotificationCompat.InboxStyle().setBigContentTitle(title)
+                // Split body lines or construct bulleted list
+                val lines = message.split("\n").filter { it.trim().isNotEmpty() }
+                if (lines.size > 1) {
+                    lines.forEach { inboxStyle.addLine(it) }
+                } else {
+                    inboxStyle.addLine("• $message")
+                    inboxStyle.addLine("• Track your goals daily")
+                    inboxStyle.addLine("• Check insights for savings")
+                }
+                builder.setStyle(inboxStyle)
+            }
+            "RICH" -> {
+                // Large text + summary format
+                builder.setStyle(NotificationCompat.BigTextStyle()
+                    .setBigContentTitle("⭐ Premium Insight: $title")
+                    .bigText(message)
+                    .setSummaryText("Vesper Premium Smart Engine")
+                )
+            }
         }
 
-        // Heads-up / Silent / Standard priority mapping based on category/specs
+        // 2. Set Priority dynamically based on channel
         if (category == NotificationCategory.WARNING || category == NotificationCategory.BACKUP_REMINDER || category.channelId == "vesper_security") {
-            // Heads-up: High priority popup banner
             builder.setPriority(NotificationCompat.PRIORITY_HIGH)
             builder.setDefaults(NotificationCompat.DEFAULT_ALL)
         } else if (category.channelId == "vesper_system" || category.channelId == "vesper_updates" || category == NotificationCategory.WEEKLY_SUMMARY || category == NotificationCategory.MONTHLY_INSIGHT) {
-            // Silent: Low priority, no vibration or sound
             builder.setPriority(NotificationCompat.PRIORITY_LOW)
         } else {
-            // Standard / Default priority
             builder.setPriority(NotificationCompat.PRIORITY_DEFAULT)
         }
 
-        // Contextual action buttons based on notification type
-        when (category) {
-            NotificationCategory.DAILY_REMINDER, NotificationCategory.FRIENDLY_REMINDER -> {
-                // Log Transaction Action
-                val logIntent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    putExtra("NOTIFICATION_ID", dbId)
-                    putExtra("NOTIFICATION_ACTION", "CLICK")
-                    putExtra("EXTRA_ROUTE", "add_transaction")
+        // 3. Attach actions dynamically
+        actions.forEachIndexed { index, actionKey ->
+            val actionIntent = when (actionKey) {
+                "RECORD_EXPENSE" -> {
+                    Intent(context, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        putExtra("NOTIFICATION_ID", dbId)
+                        putExtra("NOTIFICATION_ACTION", "CLICK")
+                        putExtra("EXTRA_ROUTE", "add_transaction")
+                    }
                 }
-                val logPendingIntent = PendingIntent.getActivity(
-                    context,
-                    dbId.toInt() + 1000,
-                    logIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-
-                // Snooze Action
-                val snoozeIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-                    action = "SNOOZE"
-                    putExtra("NOTIFICATION_ID", dbId)
-                    putExtra("TX_ID", -1L)
+                "VIEW_ANALYTICS" -> {
+                    Intent(context, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        putExtra("NOTIFICATION_ID", dbId)
+                        putExtra("NOTIFICATION_ACTION", "CLICK")
+                        putExtra("EXTRA_ROUTE", "reports")
+                    }
                 }
-                val snoozePendingIntent = PendingIntent.getBroadcast(
-                    context,
-                    dbId.toInt() + 2000,
-                    snoozeIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-
-                builder.addAction(android.R.drawable.ic_menu_add, "Record Expense", logPendingIntent)
-                builder.addAction(android.R.drawable.ic_lock_silent_mode, "Snooze", snoozePendingIntent)
+                "SETTINGS" -> {
+                    Intent(context, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        putExtra("NOTIFICATION_ID", dbId)
+                        putExtra("NOTIFICATION_ACTION", "CLICK")
+                        putExtra("EXTRA_ROUTE", "settings")
+                    }
+                }
+                "BACKUP_NOW" -> {
+                    Intent(context, NotificationActionReceiver::class.java).apply {
+                        action = "BACKUP_NOW"
+                        putExtra("NOTIFICATION_ID", dbId)
+                    }
+                }
+                "SNOOZE" -> {
+                    Intent(context, NotificationActionReceiver::class.java).apply {
+                        action = "SNOOZE"
+                        putExtra("NOTIFICATION_ID", dbId)
+                    }
+                }
+                "DISMISS" -> {
+                    Intent(context, NotificationActionReceiver::class.java).apply {
+                        action = "DISMISS_NOTIFICATION"
+                        putExtra("NOTIFICATION_ID", dbId)
+                    }
+                }
+                else -> null
             }
 
-            NotificationCategory.BACKUP_REMINDER -> {
-                // Trigger Secure Backup in background
-                val backupIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-                    action = "BACKUP_NOW"
-                    putExtra("NOTIFICATION_ID", dbId)
+            if (actionIntent != null) {
+                val requestCode = dbId.toInt() + 10000 + (index * 500)
+                val pending = if (actionKey == "BACKUP_NOW" || actionKey == "SNOOZE" || actionKey == "DISMISS") {
+                    PendingIntent.getBroadcast(context, requestCode, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                } else {
+                    PendingIntent.getActivity(context, requestCode, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 }
-                val backupPendingIntent = PendingIntent.getBroadcast(
-                    context,
-                    dbId.toInt() + 3000,
-                    backupIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-
-                builder.addAction(android.R.drawable.ic_menu_save, "Backup Now", backupPendingIntent)
+                val label = actionKey.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
+                builder.addAction(0, label, pending)
             }
-
-            NotificationCategory.SMART_SUGGESTIONS -> {
-                // View Reports/Analytics
-                val viewIntent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    putExtra("NOTIFICATION_ID", dbId)
-                    putExtra("NOTIFICATION_ACTION", "CLICK")
-                    putExtra("EXTRA_ROUTE", "reports")
-                }
-                val viewPendingIntent = PendingIntent.getActivity(
-                    context,
-                    dbId.toInt() + 4000,
-                    viewIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                builder.addAction(android.R.drawable.ic_menu_view, "View Analytics", viewPendingIntent)
-            }
-            else -> {}
         }
 
         try {
@@ -231,7 +265,7 @@ object NotificationHelper {
             Log.e("NotificationHelper", "Failed to dispatch notification: Permission denied", e)
         }
 
-        // Dynamically fetch unread list and dispatch an Inbox-style Group Summary notification if multiple unread exist
+        // 4. Update unread Inbox-Style summary dynamically
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val db = AppDatabase.getDatabase(context)

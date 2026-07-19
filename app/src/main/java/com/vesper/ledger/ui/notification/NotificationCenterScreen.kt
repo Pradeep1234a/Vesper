@@ -253,6 +253,22 @@ fun NotificationCardItem(
     val formatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
     val timeString = formatter.format(Date(item.timestamp))
 
+    val parts = item.category.split(";")
+    val categoryName = parts.getOrNull(0) ?: "DAILY_REMINDER"
+    
+    val actions = remember(item.category) {
+        val list = mutableListOf<String>()
+        parts.drop(1).forEach { part ->
+            if (part.startsWith("actions=")) {
+                val sub = part.substringAfter("actions=")
+                if (sub.isNotEmpty()) {
+                    list.addAll(sub.split(","))
+                }
+            }
+        }
+        list
+    }
+
     val borderStroke = if (!item.isRead) {
         BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
     } else {
@@ -293,7 +309,7 @@ fun NotificationCardItem(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val displayLabel = when (item.category) {
+                    val displayLabel = when (categoryName) {
                         "WELCOME" -> "Welcome"
                         "DAILY_REMINDER", "FRIENDLY_REMINDER" -> "Reminder"
                         "MOTIVATION" -> "Motivation"
@@ -303,7 +319,7 @@ fun NotificationCardItem(
                         "WARNING" -> "Alert"
                         "BACKUP_REMINDER" -> "Security"
                         "PRODUCT_UPDATES" -> "Update"
-                        else -> item.category.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
+                        else -> categoryName.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
                     }
                     Text(
                         text = displayLabel,
@@ -339,64 +355,37 @@ fun NotificationCardItem(
                     )
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    when (item.category) {
-                        "DAILY_REMINDER", "FRIENDLY_REMINDER" -> {
+                if (actions.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        actions.forEachIndexed { idx, actionKey ->
+                            val label = actionKey.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
                             TextButton(
                                 onClick = {
                                     onClick()
-                                    onNavigate("add_transaction")
+                                    when (actionKey) {
+                                        "RECORD_EXPENSE" -> onNavigate("add_transaction")
+                                        "VIEW_ANALYTICS" -> onNavigate("reports")
+                                        "SETTINGS" -> onNavigate("settings")
+                                        "BACKUP_NOW" -> onNavigate("settings")
+                                    }
                                 },
                                 contentPadding = PaddingValues(0.dp),
                                 modifier = Modifier.height(28.dp)
                             ) {
                                 Text(
-                                    text = "Record Expense",
+                                    text = label,
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
-                        }
-                        "BACKUP_REMINDER" -> {
-                            TextButton(
-                                onClick = {
-                                    onClick()
-                                    onNavigate("settings")
-                                },
-                                contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.height(28.dp)
-                            ) {
-                                Text(
-                                    text = "Backup Now",
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                        "SMART_SUGGESTIONS", "WEEKLY_SUMMARY", "MONTHLY_INSIGHT" -> {
-                            TextButton(
-                                onClick = {
-                                    onClick()
-                                    onNavigate("reports")
-                                },
-                                contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.height(28.dp)
-                            ) {
-                                Text(
-                                    text = "View Analytics",
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                            if (idx < actions.size - 1) {
+                                Spacer(modifier = Modifier.width(8.dp))
                             }
                         }
                     }
