@@ -211,15 +211,11 @@ fun SettingsScreen(
                                 activeDialog = null
                                 coroutineScope.launch {
                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                        context, 2048, "Restoring Data", "Restoring backup records... (0%)", progress = 0
-                                    )
-                                    kotlinx.coroutines.delay(800L)
-                                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
                                         context, 2048, "Restoring Data", "Rebuilding database indexes... (60%)", progress = 60
                                     )
-                                    kotlinx.coroutines.delay(800L)
+                                    delay(800L)
                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                        context, 2048, "Restore Complete", "Data restored successfully! 💾", progress = 100, isFinished = true
+                                        context, 2048, "Restore Complete", "Data restored successfully", progress = 100, isFinished = true
                                     )
                                     Toast.makeText(context, "Data restored successfully", Toast.LENGTH_SHORT).show()
                                 }
@@ -699,7 +695,7 @@ fun SettingsScreen(
                                      )
                                      kotlinx.coroutines.delay(1000L)
                                      com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 1024, "Backup Complete", "Secure backup created successfully! 💾", progress = 100, isFinished = true
+                                         context, 1024, "Backup Complete", "Secure backup created successfully", progress = 100, isFinished = true
                                      )
                                      Toast.makeText(context, "Backup created successfully", Toast.LENGTH_SHORT).show()
                                  }
@@ -734,7 +730,7 @@ fun SettingsScreen(
                                      )
                                      kotlinx.coroutines.delay(800L)
                                      com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2049, "Export Complete", "CSV exported successfully to Downloads folder! 📊", progress = 100, isFinished = true
+                                         context, 2049, "Export Complete", "CSV exported successfully to Downloads folder", progress = 100, isFinished = true
                                      )
                                      Toast.makeText(context, "CSV exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
                                  }
@@ -758,7 +754,7 @@ fun SettingsScreen(
                                      )
                                      kotlinx.coroutines.delay(800L)
                                      com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2050, "Export Complete", "JSON exported successfully to Downloads folder! 📝", progress = 100, isFinished = true
+                                         context, 2050, "Export Complete", "JSON exported successfully to Downloads folder", progress = 100, isFinished = true
                                      )
                                      Toast.makeText(context, "JSON exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
                                  }
@@ -782,7 +778,7 @@ fun SettingsScreen(
                                      )
                                      kotlinx.coroutines.delay(1000L)
                                      com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2051, "Import Complete", "Data imported successfully! ✅", progress = 100, isFinished = true
+                                         context, 2051, "Import Complete", "Data imported successfully", progress = 100, isFinished = true
                                      )
                                      Toast.makeText(context, "Data imported successfully", Toast.LENGTH_SHORT).show()
                                  }

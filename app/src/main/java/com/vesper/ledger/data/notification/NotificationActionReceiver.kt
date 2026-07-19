@@ -105,7 +105,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
                             context = context,
                             notificationId = 1024,
                             title = "Backup Complete",
-                            message = "Secure backup created successfully! 💾",
+                            message = "Secure backup created successfully",
                             progress = 100,
                             isFinished = true
                         )
