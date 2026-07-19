@@ -13,6 +13,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.vesper.ledger.MainActivity
 import com.vesper.ledger.R
+import com.vesper.ledger.data.local.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object NotificationHelper {
 
@@ -131,6 +135,7 @@ object NotificationHelper {
             .setContentText(message)
             .setContentIntent(clickPendingIntent)
             .setDeleteIntent(deletePendingIntent)
+            .setGroup("com.vesper.ledger.NOTIFICATIONS")
             .setAutoCancel(true)
 
         // Choose Expandable vs non-expandable style based on length of message
@@ -138,11 +143,16 @@ object NotificationHelper {
             builder.setStyle(NotificationCompat.BigTextStyle().bigText(message))
         }
 
-        // Heads-up Configuration (popup at top when outside app) for high priority categories
-        if (category.channelId == "vesper_daily_reminders" || category.channelId == "vesper_security" || category == NotificationCategory.WARNING) {
+        // Heads-up / Silent / Standard priority mapping based on category/specs
+        if (category == NotificationCategory.WARNING || category == NotificationCategory.BACKUP_REMINDER || category.channelId == "vesper_security") {
+            // Heads-up: High priority popup banner
             builder.setPriority(NotificationCompat.PRIORITY_HIGH)
-            builder.setDefaults(NotificationCompat.DEFAULT_ALL) // Sounds, vibrations, lights
+            builder.setDefaults(NotificationCompat.DEFAULT_ALL)
+        } else if (category.channelId == "vesper_system" || category.channelId == "vesper_updates" || category == NotificationCategory.WEEKLY_SUMMARY || category == NotificationCategory.MONTHLY_INSIGHT) {
+            // Silent: Low priority, no vibration or sound
+            builder.setPriority(NotificationCompat.PRIORITY_LOW)
         } else {
+            // Standard / Default priority
             builder.setPriority(NotificationCompat.PRIORITY_DEFAULT)
         }
 
@@ -219,6 +229,39 @@ object NotificationHelper {
             NotificationManagerCompat.from(context).notify(dbId.toInt(), builder.build())
         } catch (e: SecurityException) {
             Log.e("NotificationHelper", "Failed to dispatch notification: Permission denied", e)
+        }
+
+        // Dynamically fetch unread list and dispatch an Inbox-style Group Summary notification if multiple unread exist
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = AppDatabase.getDatabase(context)
+                val unreadCount = db.notificationHistoryDao().getUnreadCountSync()
+                if (unreadCount > 1) {
+                    val unreadList = db.notificationHistoryDao().getUnreadNotificationsSync()
+                    
+                    val inboxStyle = NotificationCompat.InboxStyle()
+                        .setBigContentTitle("Vesper Ledger ($unreadCount)")
+                        .setSummaryText("New alerts")
+                    
+                    unreadList.take(5).forEach { item ->
+                        inboxStyle.addLine("• ${item.title}")
+                    }
+
+                    val summaryNotification = NotificationCompat.Builder(context, "vesper_system")
+                        .setSmallIcon(com.vesper.ledger.R.mipmap.ic_launcher)
+                        .setContentTitle("Vesper Ledger ($unreadCount)")
+                        .setContentText("You have $unreadCount new updates")
+                        .setStyle(inboxStyle)
+                        .setGroup("com.vesper.ledger.NOTIFICATIONS")
+                        .setGroupSummary(true)
+                        .setAutoCancel(true)
+                        .build()
+
+                    NotificationManagerCompat.from(context).notify(9999, summaryNotification)
+                }
+            } catch (e: Exception) {
+                Log.e("NotificationHelper", "Failed to build grouped notification summary", e)
+            }
         }
     }
 

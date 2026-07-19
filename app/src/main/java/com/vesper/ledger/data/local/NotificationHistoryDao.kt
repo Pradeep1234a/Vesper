@@ -45,4 +45,10 @@ interface NotificationHistoryDao {
 
     @Query("SELECT * FROM notification_history WHERE title = :title AND message = :message AND category = :category AND timestamp >= :sinceTime LIMIT 1")
     suspend fun getRecentNotification(title: String, message: String, category: String, sinceTime: Long): NotificationHistory?
+
+    @Query("SELECT COUNT(*) FROM notification_history WHERE isRead = 0 AND isDeleted = 0")
+    suspend fun getUnreadCountSync(): Int
+
+    @Query("SELECT * FROM notification_history WHERE isRead = 0 AND isDeleted = 0 ORDER BY timestamp DESC")
+    suspend fun getUnreadNotificationsSync(): List<NotificationHistory>
 }

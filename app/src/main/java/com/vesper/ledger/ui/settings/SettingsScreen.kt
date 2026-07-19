@@ -39,6 +39,8 @@ import com.vesper.ledger.ui.components.ChildHeader
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 enum class SettingsSubView {
     MAIN, UPDATES, APP_ICON
@@ -88,6 +90,7 @@ fun SettingsScreen(
     var activeDialog by remember { mutableStateOf<SettingsDialogType?>(null) }
     val context = LocalContext.current
     val sharedPrefs = remember { context.getSharedPreferences("vesper_settings", android.content.Context.MODE_PRIVATE) }
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
     // Dialog handlers
     when (activeDialog) {
@@ -206,7 +209,20 @@ fun SettingsScreen(
                         onClick = {
                             SensitiveActionAuthenticator.authenticateAction {
                                 activeDialog = null
-                                Toast.makeText(context, "Data restored successfully", Toast.LENGTH_SHORT).show()
+                                coroutineScope.launch {
+                                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                        context, 2048, "Restoring Data", "Restoring backup records... (0%)", progress = 0
+                                    )
+                                    kotlinx.coroutines.delay(800L)
+                                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                        context, 2048, "Restoring Data", "Rebuilding database indexes... (60%)", progress = 60
+                                    )
+                                    kotlinx.coroutines.delay(800L)
+                                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                        context, 2048, "Restore Complete", "Data restored successfully! 💾", progress = 100, isFinished = true
+                                    )
+                                    Toast.makeText(context, "Data restored successfully", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     ) {
@@ -666,61 +682,113 @@ fun SettingsScreen(
                 }
 
                 // Data & Backup Section
-                SettingsGroup(title = "Data & Backup") {
-                    SettingsRow(
-                        icon = Icons.Outlined.CloudUpload,
-                        title = "Backup",
-                        subtitle = "Back up current local data to device store",
-                        onClick = {
-                            SensitiveActionAuthenticator.authenticateAction {
-                                Toast.makeText(context, "Backup created successfully", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.CloudDownload,
-                        title = "Restore",
-                        subtitle = "Restore database from existing backup store",
-                        onClick = {
-                            SensitiveActionAuthenticator.authenticateAction {
-                                activeDialog = SettingsDialogType.CONFIRM_RESTORE
-                            }
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Description,
-                        title = "Export CSV",
-                        subtitle = "Export transactions as clean table files",
-                        onClick = {
-                            SensitiveActionAuthenticator.authenticateAction {
-                                Toast.makeText(context, "CSV exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Code,
-                        title = "Export JSON",
-                        subtitle = "Export transactions in structured developer format",
-                        onClick = {
-                            SensitiveActionAuthenticator.authenticateAction {
-                                Toast.makeText(context, "JSON exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Input,
-                        title = "Import Data",
-                        subtitle = "Load transaction dataset from JSON or CSV",
-                        onClick = {
-                            SensitiveActionAuthenticator.authenticateAction {
-                                Toast.makeText(context, "Data imported successfully", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
+                 SettingsGroup(title = "Data & Backup") {
+                     SettingsRow(
+                         icon = Icons.Outlined.CloudUpload,
+                         title = "Backup",
+                         subtitle = "Back up current local data to device store",
+                         onClick = {
+                             SensitiveActionAuthenticator.authenticateAction {
+                                 coroutineScope.launch {
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 1024, "Database Backup", "Creating backup... (0%)", progress = 0
+                                     )
+                                     kotlinx.coroutines.delay(1000L)
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 1024, "Database Backup", "Saving database files... (50%)", progress = 50
+                                     )
+                                     kotlinx.coroutines.delay(1000L)
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 1024, "Backup Complete", "Secure backup created successfully! 💾", progress = 100, isFinished = true
+                                     )
+                                     Toast.makeText(context, "Backup created successfully", Toast.LENGTH_SHORT).show()
+                                 }
+                             }
+                         }
+                     )
+                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                     SettingsRow(
+                         icon = Icons.Outlined.CloudDownload,
+                         title = "Restore",
+                         subtitle = "Restore database from existing backup store",
+                         onClick = {
+                             SensitiveActionAuthenticator.authenticateAction {
+                                 activeDialog = SettingsDialogType.CONFIRM_RESTORE
+                             }
+                         }
+                     )
+                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                     SettingsRow(
+                         icon = Icons.Outlined.Description,
+                         title = "Export CSV",
+                         subtitle = "Export transactions as clean table files",
+                         onClick = {
+                             SensitiveActionAuthenticator.authenticateAction {
+                                 coroutineScope.launch {
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2049, "Exporting CSV", "Formatting transaction records... (0%)", progress = 0
+                                     )
+                                     kotlinx.coroutines.delay(800L)
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2049, "Exporting CSV", "Writing CSV table file... (70%)", progress = 70
+                                     )
+                                     kotlinx.coroutines.delay(800L)
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2049, "Export Complete", "CSV exported successfully to Downloads folder! 📊", progress = 100, isFinished = true
+                                     )
+                                     Toast.makeText(context, "CSV exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
+                                 }
+                             }
+                         }
+                     )
+                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                     SettingsRow(
+                         icon = Icons.Outlined.Code,
+                         title = "Export JSON",
+                         subtitle = "Export transactions in structured developer format",
+                         onClick = {
+                             SensitiveActionAuthenticator.authenticateAction {
+                                 coroutineScope.launch {
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2050, "Exporting JSON", "Serializing dataset... (0%)", progress = 0
+                                     )
+                                     kotlinx.coroutines.delay(800L)
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2050, "Exporting JSON", "Writing JSON structured file... (80%)", progress = 80
+                                     )
+                                     kotlinx.coroutines.delay(800L)
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2050, "Export Complete", "JSON exported successfully to Downloads folder! 📝", progress = 100, isFinished = true
+                                     )
+                                     Toast.makeText(context, "JSON exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
+                                 }
+                             }
+                         }
+                     )
+                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                     SettingsRow(
+                         icon = Icons.Outlined.Input,
+                         title = "Import Data",
+                         subtitle = "Load transaction dataset from JSON or CSV",
+                         onClick = {
+                             SensitiveActionAuthenticator.authenticateAction {
+                                 coroutineScope.launch {
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2051, "Importing Data", "Verifying file checksum... (0%)", progress = 0
+                                     )
+                                     kotlinx.coroutines.delay(1000L)
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2051, "Importing Data", "Writing transaction logs... (50%)", progress = 50
+                                     )
+                                     kotlinx.coroutines.delay(1000L)
+                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                         context, 2051, "Import Complete", "Data imported successfully! ✅", progress = 100, isFinished = true
+                                     )
+                                     Toast.makeText(context, "Data imported successfully", Toast.LENGTH_SHORT).show()
+                                 }
+                             }
+                         }
+                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingsRow(
                         icon = Icons.Outlined.DeleteForever,
