@@ -24,6 +24,16 @@ class NotificationActionReceiver : BroadcastReceiver() {
         Log.d("NotificationActionRc", "Action received: $action for TxID: $txId")
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (action == Intent.ACTION_MY_PACKAGE_REPLACED || action == "android.intent.action.MY_PACKAGE_REPLACED") {
+            VesperNotificationApi.sendNotification(
+                title = "Update Complete",
+                body = "Vesper Ledger was updated successfully! Tap to check out what is new.",
+                category = NotificationCategory.PRODUCT_UPDATES,
+                bypassCooldown = true
+            )
+            return
+        }
+
         if (action == "DISMISS_NOTIFICATION") {
             val notifyId = intent.getLongExtra("NOTIFICATION_ID", -1L)
             if (notifyId != -1L) {

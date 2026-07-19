@@ -157,13 +157,17 @@ class UpdateViewModel(
                     onProgress = { progress ->
                         _uiState.value = _uiState.value.copy(downloadProgress = progress)
                         
-                        // Show active progress bar in status bar (determinate)
+                        // Determinate progress block builder: ███████░░ 74%
+                        val filledBlocks = (progress.progressPercent / 10).coerceIn(0, 10)
+                        val blockBar = "█".repeat(filledBlocks) + "░".repeat(10 - filledBlocks)
+                        val message = "Downloading update: $blockBar ${progress.progressPercent}%"
+
                         try {
                             com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
                                 context = app,
                                 notificationId = 9901,
-                                title = "Downloading Update",
-                                message = "Downloading Vesper update... (${progress.progressPercent}%)",
+                                title = "Updating Vesper Ledger",
+                                message = message,
                                 progress = progress.progressPercent,
                                 isFinished = false
                             )
@@ -217,6 +221,33 @@ class UpdateViewModel(
         val apkFile = updateRepository.getDownloadedApkFile() ?: return
         try {
             _uiState.value = _uiState.value.copy(downloadState = UpdateDownloadState.INSTALLING)
+
+            // 1. Send "Installing..." notification to status bar
+            try {
+                com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                    context = app,
+                    notificationId = 9901,
+                    title = "Updating Vesper Ledger",
+                    message = "Installing...",
+                    progress = -1, // Indeterminate progress
+                    isFinished = false
+                )
+            } catch (e: Exception) {}
+
+            // 2. Launch coroutine to simulate "Optimizing..." notification brief step
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    kotlinx.coroutines.delay(2000L)
+                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                        context = app,
+                        notificationId = 9901,
+                        title = "Updating Vesper Ledger",
+                        message = "Optimizing...",
+                        progress = -1,
+                        isFinished = false
+                    )
+                } catch (e: Exception) {}
+            }
 
             val context = app
             val apkUri: Uri = FileProvider.getUriForFile(
