@@ -170,10 +170,9 @@ object NotificationHelper {
         }
 
         VesperNotificationApi.sendNotification(
-            context = context,
-            category = NotificationCategory.SMART_SUGGESTIONS,
-            customTitle = "Budget Warning: $categoryName",
-            customMessage = text
+            title = "Budget Warning: $categoryName",
+            body = text,
+            category = NotificationCategory.SMART_SUGGESTIONS
         )
     }
 
@@ -182,10 +181,9 @@ object NotificationHelper {
         val text = "Savings Milestone for '$goalName': $percent% achieved ($currencySymbol${current.toInt()} of $currencySymbol${target.toInt()})."
         
         VesperNotificationApi.sendNotification(
-            context = context,
-            category = NotificationCategory.ACHIEVEMENT,
-            customTitle = "Savings Milestone!",
-            customMessage = text
+            title = "Savings Milestone!",
+            body = text,
+            category = NotificationCategory.ACHIEVEMENT
         )
     }
 
@@ -193,28 +191,25 @@ object NotificationHelper {
         val text = "Your subscription '$txName' of $currencySymbol${amount.toInt()} is expected tomorrow."
         
         VesperNotificationApi.sendNotification(
-            context = context,
-            category = NotificationCategory.SMART_SUGGESTIONS,
-            customTitle = "Upcoming Payment Tomorrow",
-            customMessage = text
+            title = "Upcoming Payment Tomorrow",
+            body = text,
+            category = NotificationCategory.SMART_SUGGESTIONS
         )
     }
 
     fun showMissedEntryAlert(context: Context, title: String, text: String) {
         VesperNotificationApi.sendNotification(
-            context = context,
-            category = NotificationCategory.DAILY_REMINDER,
-            customTitle = title,
-            customMessage = text
+            title = title,
+            body = text,
+            category = NotificationCategory.DAILY_REMINDER
         )
     }
 
     fun showEngagementAlert(context: Context, title: String, text: String) {
         VesperNotificationApi.sendNotification(
-            context = context,
-            category = NotificationCategory.MOTIVATION,
-            customTitle = title,
-            customMessage = text
+            title = title,
+            body = text,
+            category = NotificationCategory.MOTIVATION
         )
     }
 

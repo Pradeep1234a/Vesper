@@ -42,8 +42,14 @@ class VesperApplication : Application() {
         cachedSavingsRepo = null
     }
 
+    companion object {
+        private lateinit var instance: VesperApplication
+        fun getContext(): VesperApplication = instance
+    }
+
     override fun onCreate() {
         super.onCreate()
+        instance = this
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             android.util.Log.e("VesperApplication", "CRITICAL: Uncaught exception on thread: ${thread.name}", throwable)
             if (thread.name.contains("main", ignoreCase = true) || thread.id == android.os.Looper.getMainLooper().thread.id) {

@@ -22,6 +22,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE id = :id")
     suspend fun getTransactionById(id: Long): Transaction?
 
+    @Query("SELECT COUNT(*) FROM transactions WHERE dateEpochMillis >= :sinceTime")
+    suspend fun getTransactionCountSince(sinceTime: Long): Int
+
     // Categories
     @Query("SELECT * FROM categories ORDER BY name ASC")
     fun getAllCategories(): Flow<List<Category>>

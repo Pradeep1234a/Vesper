@@ -107,7 +107,15 @@ class MainActivity : FragmentActivity() {
             androidx.work.ExistingPeriodicWorkPolicy.KEEP,
             request
         )
-        Log.d("MainActivity", "Enqueued intelligent notification worker on startup.")
+
+        // Trigger immediate one-time check in the background for automatic execution on start
+        val immediateRequest = androidx.work.OneTimeWorkRequestBuilder<com.vesper.ledger.data.notification.IntelligentNotificationWorker>().build()
+        workManager.enqueue(immediateRequest)
+        
+        Log.d("MainActivity", "Enqueued intelligent notification worker and immediate check on startup.")
+
+        // Handle intent if launched via notification click
+        handleNotificationIntent(intent)
 
         // Lock App initially on launch if App Lock is enabled
         val helper = SecureStorageHelper.getInstance(this)
@@ -349,6 +357,25 @@ class MainActivity : FragmentActivity() {
             window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: android.content.Intent?) {
+        intent?.let {
+            val notificationId = it.getLongExtra("NOTIFICATION_ID", -1L)
+            val action = it.getStringExtra("NOTIFICATION_ACTION")
+            if (notificationId != -1L) {
+                if (action == "CLICK") {
+                    com.vesper.ledger.data.notification.VesperNotificationApi.trackClicked(notificationId)
+                }
+                com.vesper.ledger.data.notification.VesperNotificationApi.trackOpened(notificationId)
+            }
         }
     }
 }

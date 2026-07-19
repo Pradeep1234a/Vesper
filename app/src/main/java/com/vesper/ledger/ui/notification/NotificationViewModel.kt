@@ -67,15 +67,15 @@ class NotificationViewModel(
     }
 
     fun trackOpened(id: Long) {
-        VesperNotificationApi.trackOpened(getApplication(), id)
+        VesperNotificationApi.trackOpened(id)
     }
 
     fun trackClicked(id: Long) {
-        VesperNotificationApi.trackClicked(getApplication(), id)
+        VesperNotificationApi.trackClicked(id)
     }
 
     fun triggerSync() {
-        VesperNotificationApi.syncHistoryWithCloud(getApplication())
+        VesperNotificationApi.syncHistoryWithCloud()
     }
 }
 

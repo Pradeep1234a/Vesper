@@ -27,7 +27,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         if (action == "DISMISS_NOTIFICATION") {
             val notifyId = intent.getLongExtra("NOTIFICATION_ID", -1L)
             if (notifyId != -1L) {
-                VesperNotificationApi.trackDismissed(context, notifyId)
+                VesperNotificationApi.trackDismissed(notifyId)
             }
             return
         }

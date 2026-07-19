@@ -603,8 +603,8 @@ fun SettingsScreen(
                         subtitle = "Send a sample notification now",
                         onClick = {
                             com.vesper.ledger.data.notification.VesperNotificationApi.sendNotification(
-                                context = context,
-                                category = com.vesper.ledger.data.notification.NotificationCategory.DAILY_REMINDER
+                                category = com.vesper.ledger.data.notification.NotificationCategory.DAILY_REMINDER,
+                                bypassCooldown = true
                             )
                             Toast.makeText(context, "Test notification sent!", Toast.LENGTH_SHORT).show()
                         }

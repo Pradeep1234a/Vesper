@@ -34,10 +34,16 @@ class IntelligentNotificationWorker(
 
         if (triggerType == "SCHEDULED_ALERT") {
             val catName = inputData.getString("CATEGORY_NAME")
+            val customTitle = inputData.getString("CUSTOM_TITLE")
+            val customBody = inputData.getString("CUSTOM_BODY")
             if (catName != null) {
                 try {
                     val category = NotificationCategory.valueOf(catName)
-                    VesperNotificationApi.sendNotification(applicationContext, category)
+                    if (customTitle != null && customBody != null) {
+                        VesperNotificationApi.sendNotification(customTitle, customBody, category)
+                    } else {
+                        VesperNotificationApi.sendNotification(category)
+                    }
                 } catch (e: Exception) {
                     Log.e("IntelligentNotifyWrk", "Failed triggering scheduled alert", e)
                 }

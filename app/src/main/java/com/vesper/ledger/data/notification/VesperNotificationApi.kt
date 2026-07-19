@@ -1,9 +1,6 @@
 package com.vesper.ledger.data.notification
 
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -13,59 +10,92 @@ import com.vesper.ledger.data.model.NotificationHistory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 object VesperNotificationApi {
 
     private const val TAG = "VesperNotificationApi"
 
-    /**
-     * Send a notification immediately and record it in the history database.
-     */
-    fun sendNotification(
-        context: Context,
-        category: NotificationCategory,
-        customTitle: String? = null,
-        customMessage: String? = null
-    ) {
-        val (fallbackTitle, fallbackMessage) = NotificationContentLibrary.getNextVariation(context, category)
-        val finalTitle = customTitle ?: fallbackTitle
-        val finalMessage = customMessage ?: fallbackMessage
+    // Configurable 24-hour cooldown period (in milliseconds)
+    var cooldownPeriodMs: Long = 24 * 60 * 60 * 1000L
 
-        // Insert into database in background
+    private val context: Context
+        get() = com.vesper.ledger.VesperApplication.getContext()
+
+    /**
+     * Individual Delivery conforming to spec:
+     * fun sendNotification(title: String, body: String, category: NotificationCategory)
+     */
+    fun sendNotification(title: String, body: String, category: NotificationCategory) {
+        sendNotification(title, body, category, bypassCooldown = false)
+    }
+
+    /**
+     * Overload supporting a bypassCooldown flag for test triggers or critical updates.
+     */
+    fun sendNotification(title: String, body: String, category: NotificationCategory, bypassCooldown: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val db = AppDatabase.getDatabase(context)
 
-                // Cooldown: 1 hour for duplicate content checks
-                val oneHourAgo = System.currentTimeMillis() - (1 * 60 * 60 * 1000L)
-                val existing = db.notificationHistoryDao().getRecentNotification(finalTitle, finalMessage, category.name, oneHourAgo)
-                if (existing != null) {
-                    Log.w(TAG, "Notification suppressed by Duplicate Prevention System: '$finalTitle'")
-                    return@launch
+                // 1. Cooldown Deduplication Layer Check (unless bypassed)
+                if (!bypassCooldown) {
+                    val sinceTime = System.currentTimeMillis() - cooldownPeriodMs
+                    val existing = db.notificationHistoryDao().getRecentNotification(title, body, category.name, sinceTime)
+                    if (existing != null) {
+                        Log.w(TAG, "Notification suppressed by Duplicate Prevention System (cooldown): '$title'")
+                        return@launch
+                    }
                 }
 
+                // 2. Automatically suppress daily reminders if the user already logged a transaction today
+                if (category == NotificationCategory.DAILY_REMINDER || category == NotificationCategory.FRIENDLY_REMINDER) {
+                    val todayStart = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }.timeInMillis
+                    val loggedCount = db.transactionDao().getTransactionCountSince(todayStart)
+                    if (loggedCount > 0) {
+                        Log.w(TAG, "Suppressed reminder ${category.name} because user already logged a transaction today.")
+                        return@launch
+                    }
+                }
+
+                // 3. Log notification to DB history
                 val notification = NotificationHistory(
-                    title = finalTitle,
-                    message = finalMessage,
+                    title = title,
+                    message = body,
                     category = category.name
                 )
                 val dbId = db.notificationHistoryDao().insertNotification(notification)
                 Log.d(TAG, "Logged notification to history DB. Category: ${category.name}, DB ID: $dbId")
 
-                // Trigger standard push dispatch helper
-                NotificationHelper.dispatchNotification(context, dbId, finalTitle, finalMessage, category)
+                // 4. Dispatch Android push notification channel binding
+                NotificationHelper.dispatchNotification(context, dbId, title, body, category)
             } catch (e: Exception) {
-                Log.e(TAG, "Error inserting notification into history DB", e)
+                Log.e(TAG, "Error processing and delivering notification", e)
             }
         }
     }
 
     /**
-     * Schedule a future notification using WorkManager.
+     * Dynamic Rotational Delivery from the content library.
+     */
+    fun sendNotification(category: NotificationCategory, bypassCooldown: Boolean = false) {
+        val (title, body) = NotificationContentLibrary.getNextVariation(context, category)
+        sendNotification(title, body, category, bypassCooldown = bypassCooldown)
+    }
+
+    /**
+     * Future Scheduling conforming to spec:
+     * fun scheduleNotification(title: String, body: String, category: NotificationCategory, triggerTimeEpoch: Long, tag: String)
      */
     fun scheduleNotification(
-        context: Context,
+        title: String,
+        body: String,
         category: NotificationCategory,
         triggerTimeEpoch: Long,
         tag: String
@@ -78,27 +108,31 @@ object VesperNotificationApi {
             .setInputData(
                 workDataOf(
                     "TRIGGER_TYPE" to "SCHEDULED_ALERT",
-                    "CATEGORY_NAME" to category.name
+                    "CATEGORY_NAME" to category.name,
+                    "CUSTOM_TITLE" to title,
+                    "CUSTOM_BODY" to body
                 )
             )
             .build()
 
         WorkManager.getInstance(context).enqueue(workRequest)
-        Log.d(TAG, "Scheduled notification for category ${category.name} in ${delayMs / 1000}s with tag $tag")
+        Log.d(TAG, "Scheduled future notification for ${category.name} in ${delayMs / 1000}s with tag $tag")
     }
 
     /**
-     * Cancel scheduled notification by tag.
+     * Cancellation conforming to spec:
+     * fun cancelScheduledNotification(tag: String)
      */
-    fun cancelScheduledNotification(context: Context, tag: String) {
+    fun cancelScheduledNotification(tag: String) {
         WorkManager.getInstance(context).cancelAllWorkByTag(tag)
         Log.d(TAG, "Cancelled scheduled notification for tag: $tag")
     }
 
     /**
-     * Update existing notification details in database and re-dispatch.
+     * Updates conforming to spec:
+     * fun updateNotification(id: Long, newTitle: String, newBody: String)
      */
-    fun updateNotification(context: Context, id: Long, newTitle: String, newBody: String) {
+    fun updateNotification(id: Long, newTitle: String, newBody: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val db = AppDatabase.getDatabase(context)
@@ -107,7 +141,11 @@ object VesperNotificationApi {
                     val updated = notification.copy(title = newTitle, message = newBody)
                     db.notificationHistoryDao().updateNotification(updated)
                     
-                    val category = NotificationCategory.valueOf(notification.category)
+                    val category = try {
+                        NotificationCategory.valueOf(notification.category)
+                    } catch (e: Exception) {
+                        NotificationCategory.DAILY_REMINDER
+                    }
                     NotificationHelper.dispatchNotification(context, id, newTitle, newBody, category)
                     Log.d(TAG, "Updated notification ID: $id")
                 }
@@ -117,7 +155,10 @@ object VesperNotificationApi {
         }
     }
 
-    fun trackOpened(context: Context, id: Long) {
+    /**
+     * Engagement Trigger: fun trackOpened(id: Long)
+     */
+    fun trackOpened(id: Long) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val db = AppDatabase.getDatabase(context)
@@ -129,19 +170,10 @@ object VesperNotificationApi {
         }
     }
 
-    fun trackClicked(context: Context, id: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val db = AppDatabase.getDatabase(context)
-                db.notificationHistoryDao().incrementClickedCount(id)
-                Log.d(TAG, "Tracked clicked event for ID: $id")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed tracking click for ID: $id", e)
-            }
-        }
-    }
-
-    fun trackDismissed(context: Context, id: Long) {
+    /**
+     * Engagement Trigger: fun trackDismissed(id: Long)
+     */
+    fun trackDismissed(id: Long) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val db = AppDatabase.getDatabase(context)
@@ -154,26 +186,41 @@ object VesperNotificationApi {
     }
 
     /**
-     * Simulated Cloud Push Sync API falls back to inserting new entries to local history.
+     * Engagement Trigger: fun trackClicked(id: Long)
      */
-    fun syncHistoryWithCloud(context: Context) {
+    fun trackClicked(id: Long) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Simulating remote fetch. We'll generate a "Cloud Updates" product announcement notification.
+                val db = AppDatabase.getDatabase(context)
+                db.notificationHistoryDao().incrementClickedCount(id)
+                Log.d(TAG, "Tracked clicked event for ID: $id")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed tracking click for ID: $id", e)
+            }
+        }
+    }
+
+    /**
+     * Cloud Synchronization conforming to spec:
+     * fun syncHistoryWithCloud()
+     */
+    fun syncHistoryWithCloud() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
                 val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
                 val lastSyncTime = sharedPrefs.getLong("last_cloud_sync", 0L)
                 val now = System.currentTimeMillis()
 
                 if (now - lastSyncTime > 12 * 60 * 60 * 1000L) { // 12 hours check
-                    // Simulate fetching remote notification
+                    // Fetch announcement / product update announcement simulated
                     sendNotification(
-                        context = context,
+                        title = "Cloud Sync Active",
+                        body = "Your financial ledger is fully synchronized. Secure backups are active.",
                         category = NotificationCategory.PRODUCT_UPDATES,
-                        customTitle = "Cloud Sync Active",
-                        customMessage = "Your financial ledger is fully synchronized. Secure backups are active."
+                        bypassCooldown = true
                     )
                     sharedPrefs.edit().putLong("last_cloud_sync", now).apply()
-                    Log.d(TAG, "Simulated Cloud Sync succeeded: new record synced to local history.")
+                    Log.d(TAG, "Simulated Cloud Sync succeeded: remote notifications synced to local history.")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed cloud push sync simulation", e)
