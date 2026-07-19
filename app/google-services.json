@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1091078625628",
+    "project_id": "vesper-ledger",
+    "storage_bucket": "vesper-ledger.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1091078625628:android:707811c13361b3f04c8999",
+        "android_client_info": {
+          "package_name": "com.vesper.ledger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG8SZiXkhoqRfsdbw1R3BDebdmzh42dGs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

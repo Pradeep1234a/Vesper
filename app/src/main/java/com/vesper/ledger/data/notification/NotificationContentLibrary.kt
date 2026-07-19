@@ -79,23 +79,80 @@ object NotificationContentLibrary {
     )
 
     /**
-     * Intelligently rotates unused variations for a category using SharedPreferences state tracking.
+     * Dynamically generates witty, contextual, Zomato/Swiggy-style alerts based on time-of-day,
+     * day-of-week, and user context, falling back to randomized dynamic library rotation.
      */
     fun getNextVariation(context: Context, category: NotificationCategory): Pair<String, String> {
-        val list = library[category] ?: return "Vesper Ledger" to "Your financial tracking partner."
-        if (list.size <= 1) return list.first()
+        val calendar = java.util.Calendar.getInstance()
+        val hour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
+        val dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK) // Sunday=1, Monday=2, ...
+        
+        val isWeekend = (dayOfWeek == java.util.Calendar.SATURDAY || dayOfWeek == java.util.Calendar.SUNDAY)
 
-        val prefs = context.getSharedPreferences("vesper_notification_rotation", Context.MODE_PRIVATE)
-        val key = "last_index_${category.name}"
-        val lastIndex = prefs.getInt(key, -1)
+        when (category) {
+            NotificationCategory.DAILY_REMINDER -> {
+                return if (isWeekend) {
+                    if (hour in 9..15) {
+                        "Weekend mode active! 🥳" to "Splurging on weekend plans? We support it! Just remember to record it in Vesper."
+                    } else {
+                        "Sunday budget review 💆" to "Reset your ledger, check your streaks, and prepare your wallet for a fresh week ahead!"
+                    }
+                } else {
+                    when (hour) {
+                        in 8..11 -> {
+                            if (dayOfWeek == java.util.Calendar.MONDAY) {
+                                "Monday morning budget plan! 📈" to "Start the week with complete financial clarity. Let's record yesterday's leftovers."
+                            } else {
+                                "Morning coffee logged? ☕" to "Log your morning startup fuel in Vesper before the caffeine wears off!"
+                            }
+                        }
+                        in 12..16 -> {
+                            "Lunch was delicious! 🌮" to "But how's the wallet feeling? Take 5 seconds to log your meal before you forget!"
+                        }
+                        in 17..20 -> {
+                            "Heading home? 🚌" to "Record your commute costs or dinner spending in Vesper and wind down your budget."
+                        }
+                        else -> { // Late night / early morning
+                            "Midnight munchies? 🌌" to "We won't judge your late-night snack spending. Just log it in Vesper so your charts stay honest!"
+                        }
+                    }
+                }
+            }
+            
+            NotificationCategory.FRIENDLY_REMINDER -> {
+                val variations = listOf(
+                    "We miss your wallet! 💔" to "Vesper is feeling a bit empty. Take a moment to log your recent spending catch-ups.",
+                    "A spend-free week? 🧐" to "If you haven't spent anything, you are a master. Otherwise, open Vesper to fill in the blanks!",
+                    "Did you drop your wallet? 🔍" to "No entries for a few days. Let's make sure we track those recent bills and keep Vesper fresh!"
+                )
+                return variations[kotlin.random.Random.nextInt(variations.size)]
+            }
+            
+            NotificationCategory.MOTIVATION -> {
+                val variations = listOf(
+                    "Rule #1 of wealth: 🧠" to "Keep track of where your money goes. Check Vesper today and keep your goals in sight!",
+                    "A spend-free day is the ultimate flex. 💪" to "Tap to keep your streak burning hot today!",
+                    "Checking Vesper is 100% free. 💸" to "Unlike that online checkout cart you've been staring at for 20 minutes. 😉",
+                    "Future you is watching... 👀" to "Keep your budgets tidy. Log today's transactions and stay financially fit!"
+                )
+                return variations[kotlin.random.Random.nextInt(variations.size)]
+            }
 
-        // Rotate index
-        var nextIndex = lastIndex + 1
-        if (nextIndex >= list.size) {
-            nextIndex = 0
+            NotificationCategory.STREAK_CELEBRATION -> {
+                val variations = listOf(
+                    "You're on fire! 🔥" to "Your tracking streak is absolutely hot. Log today's entry to keep the fire burning!",
+                    "Streak Master! 🏆" to "Consistency is your superpower. Keep logging daily to build generational wealth habits."
+                )
+                return variations[kotlin.random.Random.nextInt(variations.size)]
+            }
+            
+            else -> {
+                // Fallback to randomized list rotation to avoid repetitive robotic behavior
+                val list = library[category] ?: return "Vesper Ledger" to "Your financial tracking partner."
+                if (list.size <= 1) return list.first()
+                val randomIndex = kotlin.random.Random.nextInt(list.size)
+                return list[randomIndex]
+            }
         }
-
-        prefs.edit().putInt(key, nextIndex).apply()
-        return list[nextIndex]
     }
 }

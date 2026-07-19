@@ -73,6 +73,9 @@ object VesperNotificationApi {
                 val dbId = db.notificationHistoryDao().insertNotification(notification)
                 Log.d(TAG, "Logged notification to history DB. Category: ${category.name}, DB ID: $dbId")
 
+                // Post event to in-app notifier overlay
+                InAppNotificationController.postNotification(notification.copy(id = dbId))
+
                 // 4. Dispatch Android push notification channel binding
                 NotificationHelper.dispatchNotification(context, dbId, title, body, category)
             } catch (e: Exception) {

@@ -220,11 +220,14 @@ class MainActivity : FragmentActivity() {
                         }
                     } else {
                         val navController = rememberNavController()
-                        NavGraph(
-                            navController = navController,
-                            settingsViewModel = settingsViewModel,
-                            updateViewModel = updateViewModel
-                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            NavGraph(
+                                navController = navController,
+                                settingsViewModel = settingsViewModel,
+                                updateViewModel = updateViewModel
+                            )
+                            com.vesper.ledger.ui.components.InAppNotificationBannerOverlay()
+                        }
                     }
                 }
 
