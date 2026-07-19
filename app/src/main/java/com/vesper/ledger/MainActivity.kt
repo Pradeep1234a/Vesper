@@ -240,7 +240,15 @@ class MainActivity : FragmentActivity() {
                                 settingsViewModel = settingsViewModel,
                                 updateViewModel = updateViewModel
                             )
-                            com.vesper.ledger.ui.components.InAppNotificationBannerOverlay()
+                            com.vesper.ledger.ui.components.InAppNotificationBannerOverlay(
+                                onNavigate = { route ->
+                                    try {
+                                        navController.navigate(route)
+                                    } catch (e: Exception) {
+                                        android.util.Log.e("MainActivity", "Failed to navigate in banner: $route", e)
+                                    }
+                                }
+                            )
                         }
                     }
                 }
