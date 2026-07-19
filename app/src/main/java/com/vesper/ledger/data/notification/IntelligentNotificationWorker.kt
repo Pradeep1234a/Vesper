@@ -101,6 +101,22 @@ class IntelligentNotificationWorker(
             runWeeklyTrendAnalysis(app, expenses)
         }
 
+        // 3. Background Update Checking
+        try {
+            val updateRepo = com.vesper.ledger.data.update.UpdateRepository(app)
+            val updateInfo = updateRepo.checkForUpdate()
+            if (updateInfo != null && updateInfo.updateAvailable) {
+                VesperNotificationApi.sendNotification(
+                    title = "Update Available",
+                    body = "Vesper Ledger v${updateInfo.latestVersionName} is ready to install. Review changelogs now.",
+                    category = NotificationCategory.PRODUCT_UPDATES,
+                    bypassCooldown = false
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("IntelligentNotifyWrk", "Background update check failed", e)
+        }
+
         return Result.success()
     }
 
