@@ -195,7 +195,7 @@ fun InAppNotificationBannerOverlay(
                                         }
                                     ) {
                                         Text(
-                                            text = "Log Expense",
+                                            text = "Record Expense",
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 12.sp,

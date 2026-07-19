@@ -290,9 +290,20 @@ fun NotificationCardItem(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val displayLabel = when (item.category) {
+                        "WELCOME" -> "Welcome"
+                        "DAILY_REMINDER", "FRIENDLY_REMINDER" -> "Reminder"
+                        "MOTIVATION" -> "Motivation"
+                        "STREAK_CELEBRATION", "ACHIEVEMENT" -> "Achievement"
+                        "WEEKLY_SUMMARY", "MONTHLY_INSIGHT" -> "Insight"
+                        "SMART_SUGGESTIONS" -> "Suggestion"
+                        "WARNING" -> "Alert"
+                        "BACKUP_REMINDER" -> "Security"
+                        "PRODUCT_UPDATES" -> "Update"
+                        else -> item.category.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
+                    }
                     Text(
-                        text = item.category.replace("_", " ").lowercase()
-                            .replaceFirstChar { it.titlecase() },
+                        text = displayLabel,
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary

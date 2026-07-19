@@ -186,7 +186,7 @@ object NotificationHelper {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
 
-                builder.addAction(android.R.drawable.ic_menu_add, "Log Expense", logPendingIntent)
+                builder.addAction(android.R.drawable.ic_menu_add, "Record Expense", logPendingIntent)
                 builder.addAction(android.R.drawable.ic_lock_silent_mode, "Snooze", snoozePendingIntent)
             }
 
