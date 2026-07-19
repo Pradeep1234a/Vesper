@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
         PaymentMethod::class,
         RecurringTransaction::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

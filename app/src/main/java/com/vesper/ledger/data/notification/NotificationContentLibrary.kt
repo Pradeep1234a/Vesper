@@ -15,7 +15,8 @@ enum class NotificationCategory(val channelId: String, val label: String) {
     WARNING("vesper_system", "Warning"),
     ACHIEVEMENT("vesper_goals_achievements", "Achievement"),
     BACKUP_REMINDER("vesper_security", "Backup Reminder"),
-    PRODUCT_UPDATES("vesper_updates", "Product Updates")
+    PRODUCT_UPDATES("vesper_updates", "Product Updates"),
+    RECURRING_REMINDERS("vesper_system", "Recurring Reminders")
 }
 
 enum class NotificationStyle {

@@ -20,5 +20,6 @@ data class RecurringTransaction(
     val reminderEnabled: Boolean = true,
     val autoCreate: Boolean = true,
     val isPaused: Boolean = false,
-    val lastTriggeredEpochMillis: Long = 0L
+    val lastTriggeredEpochMillis: Long = 0L,
+    val lastExecutedDate: Long? = null
 )
