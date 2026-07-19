@@ -90,21 +90,8 @@ fun DashboardScreen(
     }
 
     val displayName = remember(userName) {
-        val parts = userName.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }
-        val first = parts.firstOrNull() ?: "User"
-        val lastInitial = parts.getOrNull(1)?.take(1)?.uppercase()
-        
-        val displayFirst = if (first.length > 15) {
-            "${first.take(12)}..."
-        } else {
-            first
-        }
-        
-        if (lastInitial != null) {
-            "$displayFirst $lastInitial."
-        } else {
-            displayFirst
-        }
+        val name = userName.trim()
+        if (name.isEmpty()) "User" else name
     }
 
     Scaffold(
@@ -229,18 +216,30 @@ fun DashboardScreen(
                 item {
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
                         Text(
-                            text = "$greeting, $displayName!",
+                            text = "$greeting,",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 16.sp
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "$displayName!",
                             style = MaterialTheme.typography.headlineLarge.copy(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp
+                                fontSize = 28.sp,
+                                color = MaterialTheme.colorScheme.onBackground
                             ),
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Here is your money summary.",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                fontSize = 13.sp
                             )
                         )
                     }
