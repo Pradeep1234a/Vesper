@@ -7,6 +7,7 @@ import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.data.repository.TransactionRepository
+import com.vesper.ledger.data.repository.AccountRepository
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -18,7 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class AddTransactionViewModel(
-    private val transactionRepository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
+    private val accountRepository: AccountRepository
 ) : ViewModel() {
 
     val title = MutableStateFlow("")
@@ -28,6 +30,9 @@ class AddTransactionViewModel(
     val dateEpochMillis = MutableStateFlow(System.currentTimeMillis())
     val note = MutableStateFlow("")
     val accountName = MutableStateFlow("Cash Wallet")
+    val accountId = MutableStateFlow<Long>(0)
+    val targetAccountName = MutableStateFlow("Select Account")
+    val targetAccountId = MutableStateFlow<Long?>(null)
     val paymentMethod = MutableStateFlow("Cash")
     val recurringPattern = MutableStateFlow("One Time")
     val location = MutableStateFlow("")
@@ -38,6 +43,12 @@ class AddTransactionViewModel(
     private var editingTransactionId: Long? = null
 
     val categories: StateFlow<List<Category>> = transactionRepository.allCategories
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val accounts: StateFlow<List<com.vesper.ledger.data.model.Account>> = accountRepository.allAccounts
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val paymentMethods: StateFlow<List<com.vesper.ledger.data.model.PaymentMethod>> = accountRepository.allPaymentMethods
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val filteredCategories: StateFlow<List<Category>> = combine(
@@ -67,9 +78,15 @@ class AddTransactionViewModel(
                     dateEpochMillis.value = tx.dateEpochMillis
                     note.value = tx.note
                     accountName.value = tx.accountName
+                    accountId.value = tx.accountId
+                    targetAccountId.value = tx.targetAccountId
                     paymentMethod.value = tx.paymentMethod
                     recurringPattern.value = tx.recurringPattern
                     location.value = tx.location
+                    
+                    // Fetch target account name
+                    val targetAcc = tx.targetAccountId?.let { accountRepository.getAccountById(it) }
+                    targetAccountName.value = targetAcc?.name ?: "Select Account"
                 }
             }
         } else {
@@ -84,9 +101,24 @@ class AddTransactionViewModel(
             dateEpochMillis.value = System.currentTimeMillis()
             note.value = ""
             accountName.value = "Cash Wallet"
+            accountId.value = 0L
+            targetAccountName.value = "Select Account"
+            targetAccountId.value = null
             paymentMethod.value = "Cash"
             recurringPattern.value = "One Time"
             location.value = ""
+
+            // Prepopulate default account & payment method from settings
+            viewModelScope.launch {
+                val accList = accountRepository.allAccounts.stateIn(viewModelScope).value
+                val defaultAcc = accList.find { it.name == accountName.value }
+                if (defaultAcc != null) {
+                    accountId.value = defaultAcc.id
+                } else if (accList.isNotEmpty()) {
+                    accountName.value = accList.first().name
+                    accountId.value = accList.first().id
+                }
+            }
         }
     }
 
@@ -107,6 +139,8 @@ class AddTransactionViewModel(
                     dateEpochMillis = dateEpochMillis.value,
                     note = note.value,
                     accountName = accountName.value,
+                    accountId = accountId.value,
+                    targetAccountId = if (type.value == TransactionType.TRANSFER) targetAccountId.value else null,
                     paymentMethod = paymentMethod.value,
                     recurringPattern = recurringPattern.value,
                     location = location.value
@@ -121,6 +155,8 @@ class AddTransactionViewModel(
                     dateEpochMillis = dateEpochMillis.value,
                     note = note.value,
                     accountName = accountName.value,
+                    accountId = accountId.value,
+                    targetAccountId = if (type.value == TransactionType.TRANSFER) targetAccountId.value else null,
                     paymentMethod = paymentMethod.value,
                     recurringPattern = recurringPattern.value,
                     location = location.value
@@ -133,12 +169,13 @@ class AddTransactionViewModel(
 }
 
 class AddTransactionViewModelFactory(
-    private val transactionRepository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
+    private val accountRepository: AccountRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddTransactionViewModel::class.java)) {
-            return AddTransactionViewModel(transactionRepository) as T
+            return AddTransactionViewModel(transactionRepository, accountRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

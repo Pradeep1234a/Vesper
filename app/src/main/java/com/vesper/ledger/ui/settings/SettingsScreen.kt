@@ -47,7 +47,7 @@ enum class SettingsSubView {
 }
 
 enum class SettingsDialogType {
-    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE, EDIT_NAME, CONFIRM_DELETE_ALL, TIMEOUT_SELECTION
+    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, DEFAULT_PAYMENT_METHOD, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE, EDIT_NAME, CONFIRM_DELETE_ALL, TIMEOUT_SELECTION
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,6 +55,7 @@ enum class SettingsDialogType {
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
+    onMenuClick: () -> Unit,
     onBackClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     onSignOutClick: () -> Unit
@@ -72,6 +73,9 @@ fun SettingsScreen(
     val defaultTransactionType by viewModel.defaultTransactionType.collectAsState()
     val quickAddPreferences by viewModel.quickAddPreferences.collectAsState()
     val defaultAccount by viewModel.defaultAccount.collectAsState()
+    val defaultPaymentMethod by viewModel.defaultPaymentMethod.collectAsState()
+    val accountsList by viewModel.accounts.collectAsState()
+    val paymentMethodsList by viewModel.paymentMethods.collectAsState()
     val dailyReminder by viewModel.dailyReminder.collectAsState()
     val missedEntryReminder by viewModel.missedEntryReminder.collectAsState()
     val budgetReminder by viewModel.budgetReminder.collectAsState()
@@ -150,9 +154,18 @@ fun SettingsScreen(
         SettingsDialogType.DEFAULT_ACCOUNT -> {
             SettingsSelectionDialog(
                 title = "Default Account",
-                options = listOf("Cash", "Bank Card", "Savings Account"),
+                options = accountsList.map { it.name }.ifEmpty { listOf("Cash Wallet") },
                 selectedOption = defaultAccount,
                 onOptionSelected = { viewModel.saveDefaultAccount(it) },
+                onDismissRequest = { activeDialog = null }
+            )
+        }
+        SettingsDialogType.DEFAULT_PAYMENT_METHOD -> {
+            SettingsSelectionDialog(
+                title = "Default Payment Method",
+                options = paymentMethodsList.map { it.name }.ifEmpty { listOf("Cash", "Debit Card", "Credit Card", "UPI", "Bank Transfer", "Wallet") },
+                selectedOption = defaultPaymentMethod,
+                onOptionSelected = { viewModel.saveDefaultPaymentMethod(it) },
                 onDismissRequest = { activeDialog = null }
             )
         }
@@ -414,7 +427,8 @@ fun SettingsScreen(
             when (subView) {
                 SettingsSubView.MAIN -> {
                     RootHeader(
-                        title = "Settings"
+                        title = "Settings",
+                        onMenuClick = onMenuClick
                     )
                     Spacer(modifier = Modifier.height(8.dp)) // Consistent spacing below header
                     Column(
@@ -561,6 +575,13 @@ fun SettingsScreen(
                         title = "Default Account",
                         trailing = { Text(defaultAccount, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
                         onClick = { activeDialog = SettingsDialogType.DEFAULT_ACCOUNT }
+                    )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingsRow(
+                        icon = Icons.Outlined.Payment,
+                        title = "Default Payment Method",
+                        trailing = { Text(defaultPaymentMethod, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                        onClick = { activeDialog = SettingsDialogType.DEFAULT_PAYMENT_METHOD }
                     )
                 }
 

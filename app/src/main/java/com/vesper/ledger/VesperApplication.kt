@@ -10,6 +10,9 @@ class VesperApplication : Application() {
     private var cachedDatabase: AppDatabase? = null
     private var cachedTxRepo: TransactionRepository? = null
     private var cachedSavingsRepo: SavingsRepository? = null
+    private var cachedAccountRepo: com.vesper.ledger.data.repository.AccountRepository? = null
+    private var cachedBudgetRepo: com.vesper.ledger.data.repository.BudgetRepository? = null
+    private var cachedRecurringRepo: com.vesper.ledger.data.repository.RecurringTransactionRepository? = null
 
     val database: AppDatabase
         get() {
@@ -18,6 +21,9 @@ class VesperApplication : Application() {
                 cachedDatabase = current
                 cachedTxRepo = TransactionRepository(current.transactionDao())
                 cachedSavingsRepo = SavingsRepository(current.savingsDao())
+                cachedAccountRepo = com.vesper.ledger.data.repository.AccountRepository(current.accountDao(), current.paymentMethodDao())
+                cachedBudgetRepo = com.vesper.ledger.data.repository.BudgetRepository(current.budgetDao())
+                cachedRecurringRepo = com.vesper.ledger.data.repository.RecurringTransactionRepository(current.recurringTransactionDao())
             }
             return current
         }
@@ -34,12 +40,33 @@ class VesperApplication : Application() {
             return cachedSavingsRepo!!
         }
 
+    val accountRepository: com.vesper.ledger.data.repository.AccountRepository
+        get() {
+            database
+            return cachedAccountRepo!!
+        }
+
+    val budgetRepository: com.vesper.ledger.data.repository.BudgetRepository
+        get() {
+            database
+            return cachedBudgetRepo!!
+        }
+
+    val recurringRepository: com.vesper.ledger.data.repository.RecurringTransactionRepository
+        get() {
+            database
+            return cachedRecurringRepo!!
+        }
+
     val updateRepository by lazy { UpdateRepository(this) }
 
     fun clearDatabaseCaches() {
         cachedDatabase = null
         cachedTxRepo = null
         cachedSavingsRepo = null
+        cachedAccountRepo = null
+        cachedBudgetRepo = null
+        cachedRecurringRepo = null
     }
 
     companion object {

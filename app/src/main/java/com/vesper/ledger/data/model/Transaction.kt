@@ -19,5 +19,7 @@ data class Transaction(
     val accountName: String = "Cash Wallet",
     val paymentMethod: String = "Cash",
     val recurringPattern: String = "One Time",
-    val location: String = ""
+    val location: String = "",
+    val accountId: Long = 0,
+    val targetAccountId: Long? = null
 )

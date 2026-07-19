@@ -69,6 +69,9 @@ class IntelligentNotificationWorker(
             return Result.success()
         }
 
+        // Process auto recurring transactions
+        processRecurringTransactions(app, currencySymbol)
+
         // 2. Perform Intelligent Analytical Checks
         val transactions = app.database.transactionDao().getAllTransactions().first()
         val categories = app.database.transactionDao().getAllCategories().first()
@@ -304,6 +307,62 @@ class IntelligentNotificationWorker(
                     NotificationHelper.showEngagementAlert(context, title, body)
                     sharedPrefs.edit().putLong(lastTrendKey, System.currentTimeMillis()).apply()
                 }
+            }
+        }
+    }
+
+    private suspend fun processRecurringTransactions(app: com.vesper.ledger.VesperApplication, currencySymbol: String) {
+        val now = System.currentTimeMillis()
+        val dao = app.database.recurringTransactionDao()
+        val txDao = app.database.transactionDao()
+        val accountDao = app.database.accountDao()
+        val activeRecurring = dao.getAllRecurringTransactions().first().filter { !it.isPaused }
+
+        activeRecurring.forEach { rec ->
+            val lastRun = rec.lastExecutedDate ?: rec.startDate
+            val elapsed = now - lastRun
+            val threshold = when (rec.frequency) {
+                "DAILY" -> 24 * 60 * 60 * 1000L
+                "WEEKLY" -> 7 * 24 * 60 * 60 * 1000L
+                "MONTHLY" -> 30 * 24 * 60 * 60 * 1000L
+                "YEARLY" -> 365 * 24 * 60 * 60 * 1000L
+                else -> 30 * 24 * 60 * 60 * 1000L
+            }
+
+            if (elapsed >= threshold) {
+                // Auto create transaction if checked
+                if (rec.autoCreate) {
+                    val account = accountDao.getAccountById(rec.accountId)
+                    val accName = account?.name ?: "Cash Wallet"
+                    
+                    val transaction = Transaction(
+                        title = rec.title,
+                        amount = rec.amount,
+                        type = TransactionType.valueOf(rec.type),
+                        categoryId = rec.categoryId,
+                        dateEpochMillis = now,
+                        note = rec.notes ?: "Auto-generated recurring transaction",
+                        accountName = accName,
+                        accountId = rec.accountId,
+                        targetAccountId = rec.targetAccountId,
+                        paymentMethod = rec.paymentMethod,
+                        recurringPattern = rec.frequency,
+                        location = ""
+                    )
+                    txDao.insertTransaction(transaction)
+                    
+                    // Show notification helper warning/informing user
+                    val df = java.text.DecimalFormat("#,##0.00")
+                    VesperNotificationApi.sendNotification(
+                        title = "Recurring Transaction Logged",
+                        body = "Automatically logged '${rec.title}' of $currencySymbol${df.format(rec.amount)} to $accName.",
+                        category = NotificationCategory.RECURRING_REMINDERS,
+                        bypassCooldown = true
+                    )
+                }
+
+                // Update recurring transaction execution time
+                dao.updateRecurringTransaction(rec.copy(lastExecutedDate = now))
             }
         }
     }

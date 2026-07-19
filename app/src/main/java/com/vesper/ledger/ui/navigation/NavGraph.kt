@@ -51,7 +51,7 @@ fun NavGraph(
     val context = LocalContext.current
     val app = context.applicationContext as VesperApplication
 
-    val addTransactionFactory = AddTransactionViewModelFactory(app.transactionRepository)
+    val addTransactionFactory = AddTransactionViewModelFactory(app.transactionRepository, app.accountRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
     val categoryFactory = CategoryViewModelFactory(app, app.transactionRepository)
     val categoryViewModel: CategoryViewModel = viewModel(factory = categoryFactory)

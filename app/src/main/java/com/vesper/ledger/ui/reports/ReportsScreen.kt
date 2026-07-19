@@ -58,7 +58,8 @@ import java.util.Date
 @Composable
 fun ReportsScreen(
     viewModel: ReportsViewModel,
-    currencySymbol: String
+    currencySymbol: String,
+    onMenuClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
@@ -81,6 +82,7 @@ fun ReportsScreen(
         // Standard RootHeader with Hamburger and Help Actions
         RootHeader(
             title = "Analytics",
+            onMenuClick = onMenuClick,
             actions = {
                 Icon(
                     imageVector = Icons.Outlined.HelpOutline,

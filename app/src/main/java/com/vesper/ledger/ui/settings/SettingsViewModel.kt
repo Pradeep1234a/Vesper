@@ -66,8 +66,15 @@ class SettingsViewModel(
     val dynamicColors = MutableStateFlow(sharedPrefs.getBoolean("dynamicColors", true))
     val defaultTransactionType = MutableStateFlow(sharedPrefs.getString("defaultTransactionType", "Expense") ?: "Expense")
     val quickAddPreferences = MutableStateFlow(sharedPrefs.getBoolean("quickAddPreferences", true))
-    val defaultAccount = MutableStateFlow(sharedPrefs.getString("defaultAccount", "Cash") ?: "Cash")
+    val defaultAccount = MutableStateFlow(sharedPrefs.getString("defaultAccount", "Cash Wallet") ?: "Cash Wallet")
+    val defaultPaymentMethod = MutableStateFlow(sharedPrefs.getString("defaultPaymentMethod", "Cash") ?: "Cash")
     val dailyReminder = MutableStateFlow(sharedPrefs.getBoolean("dailyReminder", true))
+
+    val accounts: StateFlow<List<com.vesper.ledger.data.model.Account>> = (application as com.vesper.ledger.VesperApplication).accountRepository.allAccounts
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val paymentMethods: StateFlow<List<com.vesper.ledger.data.model.PaymentMethod>> = (application as com.vesper.ledger.VesperApplication).accountRepository.allPaymentMethods
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val missedEntryReminder = MutableStateFlow(sharedPrefs.getBoolean("missedEntryReminder", true))
     val budgetReminder = MutableStateFlow(sharedPrefs.getBoolean("budgetReminder", true))
     val recurringReminder = MutableStateFlow(sharedPrefs.getBoolean("recurringReminder", true))
@@ -142,6 +149,11 @@ class SettingsViewModel(
     fun saveDefaultAccount(newValue: String) {
         defaultAccount.value = newValue
         sharedPrefs.edit().putString("defaultAccount", newValue).apply()
+    }
+
+    fun saveDefaultPaymentMethod(newValue: String) {
+        defaultPaymentMethod.value = newValue
+        sharedPrefs.edit().putString("defaultPaymentMethod", newValue).apply()
     }
 
     fun saveDailyReminder(newValue: Boolean) {

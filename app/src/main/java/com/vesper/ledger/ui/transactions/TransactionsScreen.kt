@@ -88,6 +88,7 @@ enum class FilterSheetView {
 fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
+    onMenuClick: () -> Unit,
     onBackClick: () -> Unit,
     onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onAddCategoryClick: () -> Unit = {},
@@ -257,7 +258,8 @@ fun TransactionsScreen(
                     .padding(innerPadding)
             ) {
             RootHeader(
-                title = "Transactions"
+                title = "Transactions",
+                onMenuClick = onMenuClick
             )
             // Search Input Field & Filter Menu Button Row
             Row(

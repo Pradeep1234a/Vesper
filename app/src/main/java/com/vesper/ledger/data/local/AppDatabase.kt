@@ -12,17 +12,39 @@ import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.data.model.UserAccount
 import com.vesper.ledger.data.model.NotificationHistory
+import com.vesper.ledger.data.model.Account
+import com.vesper.ledger.data.model.Budget
+import com.vesper.ledger.data.model.PaymentMethod
+import com.vesper.ledger.data.model.RecurringTransaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [Transaction::class, Category::class, SavingsGoal::class, UserAccount::class, NotificationHistory::class], version = 5, exportSchema = false)
+@Database(
+    entities = [
+        Transaction::class,
+        Category::class,
+        SavingsGoal::class,
+        UserAccount::class,
+        NotificationHistory::class,
+        Account::class,
+        Budget::class,
+        PaymentMethod::class,
+        RecurringTransaction::class
+    ],
+    version = 6,
+    exportSchema = false
+)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun savingsDao(): SavingsDao
     abstract fun userDao(): UserDao
     abstract fun notificationHistoryDao(): NotificationHistoryDao
+    abstract fun accountDao(): AccountDao
+    abstract fun budgetDao(): BudgetDao
+    abstract fun paymentMethodDao(): PaymentMethodDao
+    abstract fun recurringTransactionDao(): RecurringTransactionDao
 
     companion object {
         @Volatile
@@ -59,8 +81,32 @@ abstract class AppDatabase : RoomDatabase() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
                         CoroutineScope(Dispatchers.IO).launch {
-                            val dao = getDatabase(context).transactionDao()
+                            val dbInstance = getDatabase(context)
+                            val dao = dbInstance.transactionDao()
                             dao.insertCategories(defaultCategories)
+
+                            // Seed default account
+                            dbInstance.accountDao().insertAccount(
+                                Account(
+                                    name = "Cash Wallet",
+                                    type = "CASH",
+                                    initialBalance = 0.0,
+                                    currency = "USD",
+                                    iconName = "account_balance_wallet"
+                                )
+                            )
+
+                            // Seed default payment methods
+                            dbInstance.paymentMethodDao().insertPaymentMethods(
+                                listOf(
+                                    PaymentMethod(name = "Cash", isDefault = true),
+                                    PaymentMethod(name = "Debit Card"),
+                                    PaymentMethod(name = "Credit Card"),
+                                    PaymentMethod(name = "UPI"),
+                                    PaymentMethod(name = "Bank Transfer"),
+                                    PaymentMethod(name = "Wallet")
+                                )
+                            )
                         }
                     }
                 })

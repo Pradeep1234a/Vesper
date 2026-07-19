@@ -49,6 +49,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,15 +59,20 @@ fun AddTransactionScreen(
     currencySymbol: String,
     onBackClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val amount by viewModel.amount.collectAsState()
     val type by viewModel.type.collectAsState()
     val categoryId by viewModel.categoryId.collectAsState()
     val dateEpochMillis by viewModel.dateEpochMillis.collectAsState()
     val note by viewModel.note.collectAsState()
     val accountName by viewModel.accountName.collectAsState()
+    val targetAccountName by viewModel.targetAccountName.collectAsState()
     val paymentMethod by viewModel.paymentMethod.collectAsState()
     val recurringPattern by viewModel.recurringPattern.collectAsState()
     val location by viewModel.location.collectAsState()
+    val accounts by viewModel.accounts.collectAsState()
+    val paymentMethods by viewModel.paymentMethods.collectAsState()
+    var showTargetAccountPicker by remember { mutableStateOf(false) }
 
     val categories by viewModel.categories.collectAsState()
     val filteredCategories by viewModel.filteredCategories.collectAsState()
@@ -289,14 +296,29 @@ fun AddTransactionScreen(
                     )
                     Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                    // Row 2: Account
-                    FormRow(
-                        icon = Icons.Outlined.AccountBalanceWallet,
-                        label = "Account",
-                        value = accountName,
-                        onClick = { showAccountPicker = true }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    // Row 2: Account selection
+                    if (type == TransactionType.TRANSFER) {
+                        FormRow(
+                            icon = Icons.Outlined.AccountBalanceWallet,
+                            label = "Source Account",
+                            value = accountName,
+                            onClick = { showAccountPicker = true }
+                        )
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        FormRow(
+                            icon = Icons.Outlined.AccountBalanceWallet,
+                            label = "Destination Account",
+                            value = targetAccountName,
+                            onClick = { showTargetAccountPicker = true }
+                        )
+                    } else {
+                        FormRow(
+                            icon = Icons.Outlined.AccountBalanceWallet,
+                            label = "Account",
+                            value = accountName,
+                            onClick = { showAccountPicker = true }
+                        )
+                    }
 
                     // Row 3: Payment Method
                     FormRow(
@@ -489,8 +511,14 @@ fun AddTransactionScreen(
                 ShButton(
                     text = if (viewModel.isEditMode) "Save Changes" else saveLabel,
                     onClick = {
-                        viewModel.saveTransaction {
-                            onBackClick()
+                        if (type == TransactionType.TRANSFER && viewModel.targetAccountId.value == null) {
+                            Toast.makeText(context, "Please select a destination account.", Toast.LENGTH_SHORT).show()
+                        } else if (type == TransactionType.TRANSFER && viewModel.targetAccountId.value == viewModel.accountId.value) {
+                            Toast.makeText(context, "Source and destination accounts must be different.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            viewModel.saveTransaction {
+                                onBackClick()
+                            }
                         }
                     },
                     enabled = amount.isNotBlank() && (amount.replace(",", ".").toDoubleOrNull() ?: 0.0) > 0.0
@@ -955,13 +983,8 @@ fun AddTransactionScreen(
 
     // ── Account Selector Bottom Sheet ──
     if (showAccountPicker) {
-        val accounts = listOf(
-            Pair("Cash Wallet", "Available: $currencySymbol" + "12,500.00"),
-            Pair("Bank Account", "Available: $currencySymbol" + "84,200.00"),
-            Pair("Savings Goal", "Goal Target: $currencySymbol" + "15,000.00")
-        )
         var searchQuery by remember { mutableStateOf("") }
-        val filtered = accounts.filter { it.first.contains(searchQuery, ignoreCase = true) }
+        val filtered = accounts.filter { it.name.contains(searchQuery, ignoreCase = true) }
 
         ModalBottomSheet(
             onDismissRequest = { showAccountPicker = false }
@@ -999,7 +1022,8 @@ fun AddTransactionScreen(
                                 .height(56.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable {
-                                    viewModel.accountName.value = acc.first
+                                    viewModel.accountName.value = acc.name
+                                    viewModel.accountId.value = acc.id
                                     showAccountPicker = false
                                 }
                                 .padding(horizontal = 16.dp),
@@ -1007,10 +1031,73 @@ fun AddTransactionScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text(acc.first, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                                Text(acc.second, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(acc.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                Text(acc.type, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            if (accountName == acc.first) {
+                            if (accountName == acc.name) {
+                                Icon(Icons.Outlined.Check, null, tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ── Target Account Selector Bottom Sheet ──
+    if (showTargetAccountPicker) {
+        var searchQuery by remember { mutableStateOf("") }
+        val filtered = accounts.filter { it.name.contains(searchQuery, ignoreCase = true) }
+
+        ModalBottomSheet(
+            onDismissRequest = { showTargetAccountPicker = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Select Destination Account",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                // Search box
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search destination...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    singleLine = true
+                )
+
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(filtered) { acc ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    viewModel.targetAccountName.value = acc.name
+                                    viewModel.targetAccountId.value = acc.id
+                                    showTargetAccountPicker = false
+                                }
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(acc.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                Text(acc.type, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            if (targetAccountName == acc.name) {
                                 Icon(Icons.Outlined.Check, null, tint = MaterialTheme.colorScheme.primary)
                             }
                         }
@@ -1022,8 +1109,6 @@ fun AddTransactionScreen(
 
     // ── Payment Method Bottom Sheet ──
     if (showPaymentPicker) {
-        val methods = listOf("Cash", "Debit Card", "Credit Card", "UPI", "Bank Transfer", "Wallet")
-
         ModalBottomSheet(
             onDismissRequest = { showPaymentPicker = false }
         ) {
@@ -1043,22 +1128,22 @@ fun AddTransactionScreen(
                 )
 
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(methods) { method ->
+                    items(paymentMethods) { method ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable {
-                                    viewModel.paymentMethod.value = method
+                                    viewModel.paymentMethod.value = method.name
                                     showPaymentPicker = false
                                 }
                                 .padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(method, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                            if (paymentMethod == method) {
+                            Text(method.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            if (paymentMethod == method.name) {
                                 Icon(Icons.Outlined.Check, null, tint = MaterialTheme.colorScheme.primary)
                             }
                         }

@@ -68,6 +68,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel,
     currencySymbol: String,
     userName: String,
+    onMenuClick: () -> Unit,
     onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -145,6 +146,7 @@ fun DashboardScreen(
         ) {
             RootHeader(
                 title = "Vesper Ledger",
+                onMenuClick = onMenuClick,
                 actions = {
                     // Notification Bell with Badge
                     val notificationDao = remember {
