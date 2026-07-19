@@ -36,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -220,6 +221,19 @@ class MainActivity : FragmentActivity() {
                         }
                     } else {
                         val navController = rememberNavController()
+                        
+                        // Handle route redirection from notification clicks/actions
+                        LaunchedEffect(intent) {
+                            intent?.getStringExtra("EXTRA_ROUTE")?.let { route ->
+                                try {
+                                    navController.navigate(route)
+                                } catch (e: Exception) {
+                                    android.util.Log.e("MainActivity", "Failed to navigate to route $route", e)
+                                }
+                                intent.removeExtra("EXTRA_ROUTE") // Prevent double navigation
+                            }
+                        }
+
                         Box(modifier = Modifier.fillMaxSize()) {
                             NavGraph(
                                 navController = navController,

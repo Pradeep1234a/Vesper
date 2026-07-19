@@ -26,26 +26,26 @@ object NotificationContentLibrary {
             "Welcome to Vesper!" to "Keep track of where your money goes. Simple entries, complete control.",
             "A New Chapter" to "Every large wealth is built on consistent tracking. We are here to support your path."
         ),
-        NotificationCategory.DAILY_REMINDER to listOf(
-            "Record Today's Entry" to "Your ledger is waiting for today's transactions. Take a minute to update it.",
-            "Log Today's Spending" to "A quick update today keeps your finances clear tomorrow. Record any changes.",
-            "Keep the Ledger Fresh" to "Record today's transactions while they are still fresh in your memory.",
-            "Habit Builder" to "Every small entry builds better habits. Open Vesper to log today's activity.",
-            "Financial Clarity" to "Staying consistent makes tracking effortless. Log today's spending in seconds."
-        ),
         NotificationCategory.FRIENDLY_REMINDER to listOf(
-            "It's been a few days" to "We haven't seen you recently. Let's continue building your tracking habit.",
-            "Quick Catchup" to "Take a moment to record any recent expenses you made over the last few days.",
-            "Mindful Finances" to "A complete log is a clear mind. Log your recent activity to stay on track."
+            "We miss your wallet! 💔" to "Vesper is feeling a bit empty. Take a moment to log your recent spending catch-ups.",
+            "A spend-free week? 🧐" to "If you haven't spent anything, you are a master. Otherwise, open Vesper to fill in the blanks!",
+            "Did you drop your wallet? 🔍" to "No entries for a few days. Let's make sure we track those recent bills and keep Vesper fresh!"
         ),
         NotificationCategory.MOTIVATION to listOf(
-            "Mindful Spending" to "Every recorded transaction brings you one step closer to financial clarity.",
-            "Better Financial Habits" to "Simple tracking is the foundation of wealth. Keep going, your future self will thank you.",
-            "Tracking Makes a Difference" to "Consistency over intensity. Small daily updates compound into powerful insights."
+            "Rule #1 of wealth: 🧠" to "Keep track of where your money goes. Check Vesper today and keep your goals in sight!",
+            "A spend-free day is the ultimate flex. 💪" to "Tap to keep your streak burning hot today!",
+            "Checking Vesper is 100% free. 💸" to "Unlike that online checkout cart you've been staring at for 20 minutes. 😉",
+            "Future you is watching... 👀" to "Keep your budgets tidy. Log today's transactions and stay financially fit!",
+            "Wealth is quiet. 🤫" to "Consistent tracking builds quiet wealth. Log your expenses today.",
+            "Budgeting is not restriction." to "It is about freedom. See where your money goes in Vesper.",
+            "Don't fear your bank statement. 🦁" to "Tracking daily in Vesper makes bank statements peaceful. Try it!",
+            "Small leaks sink large ships. 🚢" to "Log those miscellaneous subscription trials today.",
+            "Consistency beats intensity. 🎯" to "Logging daily takes 5 seconds. Do it today!",
+            "Invest in clarity. 💎" to "Clear mind, clear wallet. Log your spending now."
         ),
         NotificationCategory.STREAK_CELEBRATION to listOf(
-            "Streaking Ahead!" to "Your tracking streak is alive and strong. Keep up this incredible habit!",
-            "Habit Master" to "You've been logging entries consistently. Keep the streak going today!",
+            "You're on fire! 🔥" to "Your tracking streak is absolutely hot. Log today's entry to keep the fire burning!",
+            "Streak Master! 🏆" to "Consistency is your superpower. Keep logging daily to build generational wealth habits.",
             "Unstoppable Streak" to "Consistency is key. Tap to log today's transactions and keep your record clean."
         ),
         NotificationCategory.WEEKLY_SUMMARY to listOf(
@@ -120,37 +120,30 @@ object NotificationContentLibrary {
             }
             
             NotificationCategory.FRIENDLY_REMINDER -> {
-                val variations = listOf(
-                    "We miss your wallet! 💔" to "Vesper is feeling a bit empty. Take a moment to log your recent spending catch-ups.",
-                    "A spend-free week? 🧐" to "If you haven't spent anything, you are a master. Otherwise, open Vesper to fill in the blanks!",
-                    "Did you drop your wallet? 🔍" to "No entries for a few days. Let's make sure we track those recent bills and keep Vesper fresh!"
+                val variations = library[NotificationCategory.FRIENDLY_REMINDER] ?: listOf(
+                    "We miss your wallet! 💔" to "Vesper is feeling a bit empty. Take a moment to log your recent spending catch-ups."
                 )
-                return variations[kotlin.random.Random.nextInt(variations.size)]
+                return variations[Random.nextInt(variations.size)]
             }
             
             NotificationCategory.MOTIVATION -> {
-                val variations = listOf(
-                    "Rule #1 of wealth: 🧠" to "Keep track of where your money goes. Check Vesper today and keep your goals in sight!",
-                    "A spend-free day is the ultimate flex. 💪" to "Tap to keep your streak burning hot today!",
-                    "Checking Vesper is 100% free. 💸" to "Unlike that online checkout cart you've been staring at for 20 minutes. 😉",
-                    "Future you is watching... 👀" to "Keep your budgets tidy. Log today's transactions and stay financially fit!"
+                val variations = library[NotificationCategory.MOTIVATION] ?: listOf(
+                    "Rule #1 of wealth: 🧠" to "Keep track of where your money goes."
                 )
-                return variations[kotlin.random.Random.nextInt(variations.size)]
+                return variations[Random.nextInt(variations.size)]
             }
 
             NotificationCategory.STREAK_CELEBRATION -> {
-                val variations = listOf(
-                    "You're on fire! 🔥" to "Your tracking streak is absolutely hot. Log today's entry to keep the fire burning!",
-                    "Streak Master! 🏆" to "Consistency is your superpower. Keep logging daily to build generational wealth habits."
+                val variations = library[NotificationCategory.STREAK_CELEBRATION] ?: listOf(
+                    "You're on fire! 🔥" to "Your tracking streak is absolutely hot."
                 )
-                return variations[kotlin.random.Random.nextInt(variations.size)]
+                return variations[Random.nextInt(variations.size)]
             }
             
             else -> {
-                // Fallback to randomized list rotation to avoid repetitive robotic behavior
                 val list = library[category] ?: return "Vesper Ledger" to "Your financial tracking partner."
                 if (list.size <= 1) return list.first()
-                val randomIndex = kotlin.random.Random.nextInt(list.size)
+                val randomIndex = Random.nextInt(list.size)
                 return list[randomIndex]
             }
         }

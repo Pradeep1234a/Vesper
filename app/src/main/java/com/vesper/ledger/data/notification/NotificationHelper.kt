@@ -98,6 +98,13 @@ object NotificationHelper {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("NOTIFICATION_ID", dbId)
             putExtra("NOTIFICATION_ACTION", "CLICK")
+            
+            // Contextual routing extras based on notification type
+            if (category == NotificationCategory.DAILY_REMINDER || category == NotificationCategory.FRIENDLY_REMINDER) {
+                putExtra("EXTRA_ROUTE", "add_transaction")
+            } else if (category == NotificationCategory.SMART_SUGGESTIONS || category == NotificationCategory.WEEKLY_SUMMARY) {
+                putExtra("EXTRA_ROUTE", "reports")
+            }
         }
         val clickPendingIntent = PendingIntent.getActivity(
             context,
@@ -117,41 +124,136 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Map category type to generic small drawable icon
-        val iconRes = when (category) {
-            NotificationCategory.WELCOME -> android.R.drawable.ic_dialog_info
-            NotificationCategory.DAILY_REMINDER -> android.R.drawable.ic_menu_edit
-            NotificationCategory.FRIENDLY_REMINDER -> android.R.drawable.ic_menu_edit
-            NotificationCategory.MOTIVATION -> android.R.drawable.ic_dialog_map
-            NotificationCategory.STREAK_CELEBRATION -> android.R.drawable.ic_dialog_info
-            NotificationCategory.WEEKLY_SUMMARY -> android.R.drawable.ic_menu_today
-            NotificationCategory.MONTHLY_INSIGHT -> android.R.drawable.ic_menu_today
-            NotificationCategory.SMART_SUGGESTIONS -> android.R.drawable.ic_dialog_alert
-            NotificationCategory.WARNING -> android.R.drawable.ic_dialog_alert
-            NotificationCategory.ACHIEVEMENT -> android.R.drawable.ic_dialog_info
-            NotificationCategory.BACKUP_REMINDER -> android.R.drawable.ic_lock_lock
-            NotificationCategory.PRODUCT_UPDATES -> android.R.drawable.ic_popup_sync
-        }
-
         val builder = NotificationCompat.Builder(context, category.channelId)
-            .setSmallIcon(iconRes)
+            // Use unified premium shadcn logo icon for all notifications
+            .setSmallIcon(com.vesper.ledger.R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-            .setPriority(
-                if (category.channelId == "vesper_daily_reminders" || category.channelId == "vesper_security") 
-                    NotificationCompat.PRIORITY_HIGH 
-                else 
-                    NotificationCompat.PRIORITY_DEFAULT
-            )
             .setContentIntent(clickPendingIntent)
             .setDeleteIntent(deletePendingIntent)
             .setAutoCancel(true)
+
+        // Choose Expandable vs non-expandable style based on length of message
+        if (message.length > 50) {
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(message))
+        }
+
+        // Heads-up Configuration (popup at top when outside app) for high priority categories
+        if (category.channelId == "vesper_daily_reminders" || category.channelId == "vesper_security" || category == NotificationCategory.WARNING) {
+            builder.setPriority(NotificationCompat.PRIORITY_HIGH)
+            builder.setDefaults(NotificationCompat.DEFAULT_ALL) // Sounds, vibrations, lights
+        } else {
+            builder.setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        }
+
+        // Contextual action buttons based on notification type
+        when (category) {
+            NotificationCategory.DAILY_REMINDER, NotificationCategory.FRIENDLY_REMINDER -> {
+                // Log Transaction Action
+                val logIntent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    putExtra("NOTIFICATION_ID", dbId)
+                    putExtra("NOTIFICATION_ACTION", "CLICK")
+                    putExtra("EXTRA_ROUTE", "add_transaction")
+                }
+                val logPendingIntent = PendingIntent.getActivity(
+                    context,
+                    dbId.toInt() + 1000,
+                    logIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                // Snooze Action
+                val snoozeIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+                    action = "SNOOZE"
+                    putExtra("NOTIFICATION_ID", dbId)
+                    putExtra("TX_ID", -1L)
+                }
+                val snoozePendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    dbId.toInt() + 2000,
+                    snoozeIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                builder.addAction(android.R.drawable.ic_menu_add, "Log Expense", logPendingIntent)
+                builder.addAction(android.R.drawable.ic_lock_silent_mode, "Snooze", snoozePendingIntent)
+            }
+
+            NotificationCategory.BACKUP_REMINDER -> {
+                // Trigger Secure Backup in background
+                val backupIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+                    action = "BACKUP_NOW"
+                    putExtra("NOTIFICATION_ID", dbId)
+                }
+                val backupPendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    dbId.toInt() + 3000,
+                    backupIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                builder.addAction(android.R.drawable.ic_menu_save, "Backup Now", backupPendingIntent)
+            }
+
+            NotificationCategory.SMART_SUGGESTIONS -> {
+                // View Reports/Analytics
+                val viewIntent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    putExtra("NOTIFICATION_ID", dbId)
+                    putExtra("NOTIFICATION_ACTION", "CLICK")
+                    putExtra("EXTRA_ROUTE", "reports")
+                }
+                val viewPendingIntent = PendingIntent.getActivity(
+                    context,
+                    dbId.toInt() + 4000,
+                    viewIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                builder.addAction(android.R.drawable.ic_menu_view, "View Analytics", viewPendingIntent)
+            }
+            else -> {}
+        }
 
         try {
             NotificationManagerCompat.from(context).notify(dbId.toInt(), builder.build())
         } catch (e: SecurityException) {
             Log.e("NotificationHelper", "Failed to dispatch notification: Permission denied", e)
+        }
+    }
+
+    /**
+     * Dispatch progress-bar notifications for background long-running tasks.
+     */
+    fun dispatchProgressNotification(
+        context: Context,
+        notificationId: Int,
+        title: String,
+        message: String,
+        progress: Int, // 0 to 100, or -1 for indeterminate
+        isFinished: Boolean = false
+    ) {
+        val builder = NotificationCompat.Builder(context, "vesper_system")
+            .setSmallIcon(com.vesper.ledger.R.mipmap.ic_launcher)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setOngoing(!isFinished)
+            .setAutoCancel(isFinished)
+
+        if (isFinished) {
+            builder.setProgress(0, 0, false)
+        } else {
+            if (progress >= 0) {
+                builder.setProgress(100, progress, false)
+            } else {
+                builder.setProgress(0, 0, true) // Indeterminate loading
+            }
+        }
+
+        try {
+            NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+        } catch (e: SecurityException) {
+            Log.e("NotificationHelper", "Failed to dispatch progress notification", e)
         }
     }
 
