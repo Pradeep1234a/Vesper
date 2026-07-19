@@ -43,7 +43,8 @@ import java.util.*
 fun NotificationCenterScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: NotificationViewModel = viewModel()
+    viewModel: NotificationViewModel = viewModel(),
+    onNavigate: (String) -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
@@ -229,7 +230,8 @@ fun NotificationCenterScreen(
                                     },
                                     onDeleteClick = {
                                         viewModel.deleteNotification(item.id)
-                                    }
+                                    },
+                                    onNavigate = onNavigate
                                 )
                             }
                         }
@@ -245,7 +247,8 @@ fun NotificationCardItem(
     item: NotificationHistory,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigate: (String) -> Unit = {}
 ) {
     val formatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
     val timeString = formatter.format(Date(item.timestamp))
@@ -335,6 +338,69 @@ fun NotificationCardItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    when (item.category) {
+                        "DAILY_REMINDER", "FRIENDLY_REMINDER" -> {
+                            TextButton(
+                                onClick = {
+                                    onClick()
+                                    onNavigate("add_transaction")
+                                },
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.height(28.dp)
+                            ) {
+                                Text(
+                                    text = "Record Expense",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        "BACKUP_REMINDER" -> {
+                            TextButton(
+                                onClick = {
+                                    onClick()
+                                    onNavigate("settings")
+                                },
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.height(28.dp)
+                            ) {
+                                Text(
+                                    text = "Backup Now",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        "SMART_SUGGESTIONS", "WEEKLY_SUMMARY", "MONTHLY_INSIGHT" -> {
+                            TextButton(
+                                onClick = {
+                                    onClick()
+                                    onNavigate("reports")
+                                },
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.height(28.dp)
+                            ) {
+                                Text(
+                                    text = "View Analytics",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.width(8.dp))

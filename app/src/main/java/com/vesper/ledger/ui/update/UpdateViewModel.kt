@@ -32,9 +32,9 @@ data class UpdateUiState(
 )
 
 class UpdateViewModel(
-    application: Application,
+    private val app: Application,
     private val updateRepository: UpdateRepository
-) : AndroidViewModel(application) {
+) : AndroidViewModel(app) {
 
     private val _uiState = MutableStateFlow(UpdateUiState())
     val uiState: StateFlow<UpdateUiState> = _uiState.asStateFlow()
@@ -63,6 +63,18 @@ class UpdateViewModel(
                         updateInfo = updateInfo,
                         showUpdateDialog = updateRepository.shouldShowPopup(updateInfo.latestVersionCode)
                     )
+
+                    // Dispatch product update notification to status bar
+                    try {
+                        com.vesper.ledger.data.notification.VesperNotificationApi.sendNotification(
+                            title = "Update Available",
+                            body = "Vesper Ledger v${updateInfo.latestVersionName} is ready to install. Review changelogs now.",
+                            category = com.vesper.ledger.data.notification.NotificationCategory.PRODUCT_UPDATES,
+                            bypassCooldown = true
+                        )
+                    } catch (e: Exception) {
+                        android.util.Log.e("UpdateViewModel", "Failed to send update notification", e)
+                    }
                 } else {
                     _uiState.value = _uiState.value.copy(
                         downloadState = UpdateDownloadState.IDLE,
@@ -100,6 +112,18 @@ class UpdateViewModel(
                         downloadState = state,
                         updateInfo = updateInfo
                     )
+
+                    // Dispatch product update notification to status bar
+                    try {
+                        com.vesper.ledger.data.notification.VesperNotificationApi.sendNotification(
+                            title = "Update Available",
+                            body = "Vesper Ledger v${updateInfo.latestVersionName} is ready to install. Review changelogs now.",
+                            category = com.vesper.ledger.data.notification.NotificationCategory.PRODUCT_UPDATES,
+                            bypassCooldown = true
+                        )
+                    } catch (e: Exception) {
+                        android.util.Log.e("UpdateViewModel", "Failed to send update notification", e)
+                    }
                 } else {
                     _uiState.value = _uiState.value.copy(
                         downloadState = UpdateDownloadState.IDLE,
@@ -132,17 +156,59 @@ class UpdateViewModel(
                     versionCode = info.latestVersionCode,
                     onProgress = { progress ->
                         _uiState.value = _uiState.value.copy(downloadProgress = progress)
+                        
+                        // Show active progress bar in status bar (determinate)
+                        try {
+                            com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                                context = app,
+                                notificationId = 9901,
+                                title = "Downloading Update",
+                                message = "Downloading Vesper update... (${progress.progressPercent}%)",
+                                progress = progress.progressPercent,
+                                isFinished = false
+                            )
+                        } catch (e: Exception) {
+                            // Suppress helper exceptions
+                        }
                     }
                 )
 
                 _uiState.value = _uiState.value.copy(
                     downloadState = UpdateDownloadState.DOWNLOADED
                 )
+                
+                // Show completed progress notification in status bar
+                try {
+                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                        context = app,
+                        notificationId = 9901,
+                        title = "Download Complete",
+                        message = "Vesper update is ready to install",
+                        progress = 100,
+                        isFinished = true
+                    )
+                } catch (e: Exception) {
+                    // Suppress helper exceptions
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     downloadState = UpdateDownloadState.ERROR,
                     errorMessage = "Download failed: ${e.message}"
                 )
+                
+                // Clear progress notification on error
+                try {
+                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
+                        context = app,
+                        notificationId = 9901,
+                        title = "Download Failed",
+                        message = "Update download could not complete",
+                        progress = 0,
+                        isFinished = true
+                    )
+                } catch (ex: Exception) {
+                    // Suppress
+                }
             }
         }
     }
@@ -152,7 +218,7 @@ class UpdateViewModel(
         try {
             _uiState.value = _uiState.value.copy(downloadState = UpdateDownloadState.INSTALLING)
 
-            val context = getApplication<Application>()
+            val context = app
             val apkUri: Uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.provider",

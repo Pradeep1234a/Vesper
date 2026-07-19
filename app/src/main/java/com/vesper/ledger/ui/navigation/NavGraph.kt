@@ -189,7 +189,8 @@ fun NavGraph(
             val notificationViewModel: com.vesper.ledger.ui.notification.NotificationViewModel = viewModel(factory = notificationFactory)
             com.vesper.ledger.ui.notification.NotificationCenterScreen(
                 viewModel = notificationViewModel,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onNavigate = { route -> navController.navigate(route) }
             )
         }
 
