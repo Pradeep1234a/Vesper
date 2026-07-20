@@ -50,28 +50,4 @@ class SecureStorageHelper private constructor(context: Context) {
             }
         }
     }
-
-    var isAppLockEnabled: Boolean
-        get() = sharedPrefs?.getBoolean("app_lock_enabled", false) ?: false
-        set(value) {
-            sharedPrefs?.edit()?.putBoolean("app_lock_enabled", value)?.apply()
-        }
-
-    var isBiometricEnabled: Boolean
-        get() = sharedPrefs?.getBoolean("biometric_enabled", false) ?: false
-        set(value) {
-            sharedPrefs?.edit()?.putBoolean("biometric_enabled", value)?.apply()
-        }
-
-    var lockTimeoutMs: Long
-        get() = sharedPrefs?.getLong("lock_timeout_ms", 0L) ?: 0L
-        set(value) {
-            sharedPrefs?.edit()?.putLong("lock_timeout_ms", value)?.apply()
-        }
-
-    var hideAppPreview: Boolean
-        get() = sharedPrefs?.getBoolean("hide_app_preview", false) ?: false
-        set(value) {
-            sharedPrefs?.edit()?.putBoolean("hide_app_preview", value)?.apply()
-        }
 }

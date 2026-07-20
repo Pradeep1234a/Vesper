@@ -11,7 +11,6 @@ import com.vesper.ledger.data.model.SavingsGoal
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.data.model.UserAccount
-import com.vesper.ledger.data.model.NotificationHistory
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.data.model.PaymentMethod
@@ -26,7 +25,6 @@ import kotlinx.coroutines.launch
         Category::class,
         SavingsGoal::class,
         UserAccount::class,
-        NotificationHistory::class,
         Account::class,
         Budget::class,
         PaymentMethod::class,
@@ -40,7 +38,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun savingsDao(): SavingsDao
     abstract fun userDao(): UserDao
-    abstract fun notificationHistoryDao(): NotificationHistoryDao
     abstract fun accountDao(): AccountDao
     abstract fun budgetDao(): BudgetDao
     abstract fun paymentMethodDao(): PaymentMethodDao
@@ -80,40 +77,48 @@ abstract class AppDatabase : RoomDatabase() {
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val dbInstance = getDatabase(context)
-                            val dao = dbInstance.transactionDao()
-                            dao.insertCategories(defaultCategories)
-
-                            // Seed default account
-                            dbInstance.accountDao().insertAccount(
-                                Account(
-                                    name = "Cash Wallet",
-                                    type = "CASH",
-                                    initialBalance = 0.0,
-                                    currency = "USD",
-                                    iconName = "account_balance_wallet"
-                                )
-                            )
-
-                            // Seed default payment methods
-                            dbInstance.paymentMethodDao().insertPaymentMethods(
-                                listOf(
-                                    PaymentMethod(name = "Cash", isDefault = true),
-                                    PaymentMethod(name = "Debit Card"),
-                                    PaymentMethod(name = "Credit Card"),
-                                    PaymentMethod(name = "UPI"),
-                                    PaymentMethod(name = "Bank Transfer"),
-                                    PaymentMethod(name = "Wallet")
-                                )
-                            )
-                        }
+                        seedDatabase(context)
+                    }
+                    override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+                        super.onDestructiveMigration(db)
+                        seedDatabase(context)
                     }
                 })
                 .build()
                 INSTANCE = instance
                 CURRENT_DB_NAME = dbName
                 instance
+            }
+        }
+
+        private fun seedDatabase(context: Context) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val dbInstance = getDatabase(context)
+                val dao = dbInstance.transactionDao()
+                dao.insertCategories(defaultCategories)
+
+                // Seed default account
+                dbInstance.accountDao().insertAccount(
+                    Account(
+                        name = "Cash Wallet",
+                        type = "CASH",
+                        initialBalance = 0.0,
+                        currency = "USD",
+                        iconName = "account_balance_wallet"
+                    )
+                )
+
+                // Seed default payment methods
+                dbInstance.paymentMethodDao().insertPaymentMethods(
+                    listOf(
+                        PaymentMethod(name = "Cash", isDefault = true),
+                        PaymentMethod(name = "Debit Card"),
+                        PaymentMethod(name = "Credit Card"),
+                        PaymentMethod(name = "UPI"),
+                        PaymentMethod(name = "Bank Transfer"),
+                        PaymentMethod(name = "Wallet")
+                    )
+                )
             }
         }
 

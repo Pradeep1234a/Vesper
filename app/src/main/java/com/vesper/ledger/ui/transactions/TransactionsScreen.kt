@@ -88,7 +88,6 @@ enum class FilterSheetView {
 fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
-    onMenuClick: () -> Unit,
     onBackClick: () -> Unit,
     onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onAddCategoryClick: () -> Unit = {},
@@ -139,6 +138,7 @@ fun TransactionsScreen(
     val df = DecimalFormat("#,##0.00")
     val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
     val sdfShort = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
     val context = LocalContext.current
 
     val groupedTransactions = remember(transactions) {
@@ -258,8 +258,7 @@ fun TransactionsScreen(
                     .padding(innerPadding)
             ) {
             RootHeader(
-                title = "Transactions",
-                onMenuClick = onMenuClick
+                title = "Transactions"
             )
             // Search Input Field & Filter Menu Button Row
             Row(
@@ -422,7 +421,7 @@ fun TransactionsScreen(
                                                 )
                                                 Spacer(modifier = Modifier.height(2.dp))
                                                 Text(
-                                                    text = categoryLabel,
+                                                    text = "$categoryLabel • ${tx.accountName}",
                                                     style = MaterialTheme.typography.labelSmall.copy(
                                                         fontSize = 11.sp,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -447,7 +446,7 @@ fun TransactionsScreen(
                                                 )
                                                 Spacer(modifier = Modifier.height(2.dp))
                                                 Text(
-                                                    text = dateFormat.format(Date(tx.dateEpochMillis)),
+                                                    text = "${sdfShort.format(Date(tx.dateEpochMillis))} • ${timeFormat.format(Date(tx.dateEpochMillis))}",
                                                     style = MaterialTheme.typography.labelSmall.copy(
                                                         fontSize = 11.sp,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant

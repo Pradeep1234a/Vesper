@@ -68,18 +68,17 @@ fun DashboardScreen(
     viewModel: DashboardViewModel,
     currencySymbol: String,
     userName: String,
-    onMenuClick: () -> Unit,
     onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSavingsClick: () -> Unit,
-    onReportsClick: () -> Unit,
-    onNotificationsClick: () -> Unit
+    onReportsClick: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val df = DecimalFormat("#,##0.00")
     val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
+    val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
 
     val greeting = remember {
         val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
@@ -146,47 +145,7 @@ fun DashboardScreen(
         ) {
             RootHeader(
                 title = "Vesper Ledger",
-                onMenuClick = onMenuClick,
                 actions = {
-                    // Notification Bell with Badge
-                    val notificationDao = remember {
-                        com.vesper.ledger.data.local.AppDatabase.getDatabase(context).notificationHistoryDao()
-                    }
-                    val unreadCount by notificationDao.getUnreadCount().collectAsState(initial = 0)
-
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { onNotificationsClick() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Notifications,
-                            contentDescription = "Notifications",
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        if (unreadCount > 0) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = 4.dp, y = (-2).dp)
-                                    .size(16.dp)
-                                    .background(MaterialTheme.colorScheme.error, CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = if (unreadCount > 9) "9+" else unreadCount.toString(),
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onError,
-                                    lineHeight = 10.sp
-                                )
-                            }
-                        }
-                    }
                     Box(
                         modifier = Modifier
                             .size(28.dp)
@@ -217,25 +176,52 @@ fun DashboardScreen(
             ) {
                 item {
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                        Text(
-                            text = "$greeting,",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                fontWeight = FontWeight.Normal,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 16.sp
+                        val isShortName = displayName.length <= 10
+                        if (isShortName) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = "$greeting,",
+                                    style = MaterialTheme.typography.headlineLarge.copy(
+                                        fontWeight = FontWeight.Normal,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 26.sp
+                                    )
+                                )
+                                Text(
+                                    text = "$displayName!",
+                                    style = MaterialTheme.typography.headlineLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 26.sp,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    ),
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = "$greeting,",
+                                style = MaterialTheme.typography.headlineLarge.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 26.sp
+                                )
                             )
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "$displayName!",
-                            style = MaterialTheme.typography.headlineLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 28.sp,
-                                color = MaterialTheme.colorScheme.onBackground
-                            ),
-                            maxLines = 2,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                        )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "$displayName!",
+                                style = MaterialTheme.typography.headlineLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 26.sp,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                ),
+                                maxLines = 2,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Here is your money summary.",
@@ -947,7 +933,7 @@ fun DashboardScreen(
                                                     )
                                                     Spacer(modifier = Modifier.height(2.dp))
                                                     Text(
-                                                        text = categoryLabel,
+                                                        text = "$categoryLabel • ${tx.accountName}",
                                                         style = MaterialTheme.typography.labelSmall.copy(
                                                             fontSize = 11.sp,
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -972,7 +958,7 @@ fun DashboardScreen(
                                                     )
                                                     Spacer(modifier = Modifier.height(2.dp))
                                                     Text(
-                                                        text = dateFormat.format(Date(tx.dateEpochMillis)),
+                                                        text = "${dateFormat.format(Date(tx.dateEpochMillis))} • ${timeFormat.format(Date(tx.dateEpochMillis))}",
                                                         style = MaterialTheme.typography.labelSmall.copy(
                                                             fontSize = 11.sp,
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant

@@ -51,6 +51,7 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,6 +106,15 @@ fun AddTransactionScreen(
     var showPaymentPicker by remember { mutableStateOf(false) }
     var showRepeatPicker by remember { mutableStateOf(false) }
     var showAdditionalDetails by remember { mutableStateOf(false) }
+
+    val sheetScope = rememberCoroutineScope()
+    val calculatorSheetState = rememberModalBottomSheetState()
+    val categorySheetState = rememberModalBottomSheetState()
+    val dateSheetState = rememberModalBottomSheetState()
+    val accountSheetState = rememberModalBottomSheetState()
+    val targetAccountSheetState = rememberModalBottomSheetState()
+    val paymentSheetState = rememberModalBottomSheetState()
+    val repeatSheetState = rememberModalBottomSheetState()
 
     Scaffold { innerPadding ->
         Column(
@@ -537,6 +547,7 @@ fun AddTransactionScreen(
         }
 
         ModalBottomSheet(
+            sheetState = calculatorSheetState,
             onDismissRequest = { showCalculator = false }
         ) {
             Column(
@@ -640,7 +651,11 @@ fun AddTransactionScreen(
                     onClick = {
                         val eval = evaluateExpression(calcExpr)
                         viewModel.amount.value = if (eval > 0.0) DecimalFormat("#.##").format(eval) else ""
-                        showCalculator = false
+                        sheetScope.launch { calculatorSheetState.hide() }.invokeOnCompletion {
+                            if (!calculatorSheetState.isVisible) {
+                                showCalculator = false
+                            }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -660,6 +675,7 @@ fun AddTransactionScreen(
     // ── Category Selector Bottom Sheet ──
     if (showCategoryPicker) {
         ModalBottomSheet(
+            sheetState = categorySheetState,
             onDismissRequest = { showCategoryPicker = false }
         ) {
             Column(
@@ -705,7 +721,11 @@ fun AddTransactionScreen(
                                 )
                                 .clickable {
                                     viewModel.categoryId.value = cat.id
-                                    showCategoryPicker = false
+                                    sheetScope.launch { categorySheetState.hide() }.invokeOnCompletion {
+                                        if (!categorySheetState.isVisible) {
+                                            showCategoryPicker = false
+                                        }
+                                    }
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -742,6 +762,7 @@ fun AddTransactionScreen(
         }
 
         ModalBottomSheet(
+            sheetState = dateSheetState,
             onDismissRequest = { showDatePicker = false }
         ) {
             Column(
@@ -887,7 +908,11 @@ fun AddTransactionScreen(
                         if (!isCustomDateTime) {
                             viewModel.dateEpochMillis.value = System.currentTimeMillis()
                         }
-                        showDatePicker = false
+                        sheetScope.launch { dateSheetState.hide() }.invokeOnCompletion {
+                            if (!dateSheetState.isVisible) {
+                                showDatePicker = false
+                            }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -987,6 +1012,7 @@ fun AddTransactionScreen(
         val filtered = accounts.filter { it.name.contains(searchQuery, ignoreCase = true) }
 
         ModalBottomSheet(
+            sheetState = accountSheetState,
             onDismissRequest = { showAccountPicker = false }
         ) {
             Column(
@@ -1024,7 +1050,11 @@ fun AddTransactionScreen(
                                 .clickable {
                                     viewModel.accountName.value = acc.name
                                     viewModel.accountId.value = acc.id
-                                    showAccountPicker = false
+                                    sheetScope.launch { accountSheetState.hide() }.invokeOnCompletion {
+                                        if (!accountSheetState.isVisible) {
+                                            showAccountPicker = false
+                                        }
+                                    }
                                 }
                                 .padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1050,6 +1080,7 @@ fun AddTransactionScreen(
         val filtered = accounts.filter { it.name.contains(searchQuery, ignoreCase = true) }
 
         ModalBottomSheet(
+            sheetState = targetAccountSheetState,
             onDismissRequest = { showTargetAccountPicker = false }
         ) {
             Column(
@@ -1087,7 +1118,11 @@ fun AddTransactionScreen(
                                 .clickable {
                                     viewModel.targetAccountName.value = acc.name
                                     viewModel.targetAccountId.value = acc.id
-                                    showTargetAccountPicker = false
+                                    sheetScope.launch { targetAccountSheetState.hide() }.invokeOnCompletion {
+                                        if (!targetAccountSheetState.isVisible) {
+                                            showTargetAccountPicker = false
+                                        }
+                                    }
                                 }
                                 .padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1110,6 +1145,7 @@ fun AddTransactionScreen(
     // ── Payment Method Bottom Sheet ──
     if (showPaymentPicker) {
         ModalBottomSheet(
+            sheetState = paymentSheetState,
             onDismissRequest = { showPaymentPicker = false }
         ) {
             Column(
@@ -1136,7 +1172,11 @@ fun AddTransactionScreen(
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable {
                                     viewModel.paymentMethod.value = method.name
-                                    showPaymentPicker = false
+                                    sheetScope.launch { paymentSheetState.hide() }.invokeOnCompletion {
+                                        if (!paymentSheetState.isVisible) {
+                                            showPaymentPicker = false
+                                        }
+                                    }
                                 }
                                 .padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1158,6 +1198,7 @@ fun AddTransactionScreen(
         val patterns = listOf("One Time", "Daily", "Weekly", "Monthly", "Yearly")
 
         ModalBottomSheet(
+            sheetState = repeatSheetState,
             onDismissRequest = { showRepeatPicker = false }
         ) {
             Column(
@@ -1184,7 +1225,11 @@ fun AddTransactionScreen(
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable {
                                     viewModel.recurringPattern.value = pattern
-                                    showRepeatPicker = false
+                                    sheetScope.launch { repeatSheetState.hide() }.invokeOnCompletion {
+                                        if (!repeatSheetState.isVisible) {
+                                            showRepeatPicker = false
+                                        }
+                                    }
                                 }
                                 .padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,

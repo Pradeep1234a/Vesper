@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.BuildConfig
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
-import com.vesper.ledger.data.secure.SensitiveActionAuthenticator
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShSegmentedControl
@@ -47,7 +46,7 @@ enum class SettingsSubView {
 }
 
 enum class SettingsDialogType {
-    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, DEFAULT_PAYMENT_METHOD, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, CONFIRM_RESTORE, EDIT_NAME, CONFIRM_DELETE_ALL, TIMEOUT_SELECTION
+    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, DEFAULT_PAYMENT_METHOD, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, EDIT_NAME
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,7 +54,6 @@ enum class SettingsDialogType {
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
-    onMenuClick: () -> Unit,
     onBackClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     onSignOutClick: () -> Unit
@@ -69,31 +67,19 @@ fun SettingsScreen(
     }
     val theme by viewModel.theme.collectAsState()
     val language by viewModel.language.collectAsState()
-    val dynamicColors by viewModel.dynamicColors.collectAsState()
     val defaultTransactionType by viewModel.defaultTransactionType.collectAsState()
     val quickAddPreferences by viewModel.quickAddPreferences.collectAsState()
     val defaultAccount by viewModel.defaultAccount.collectAsState()
     val defaultPaymentMethod by viewModel.defaultPaymentMethod.collectAsState()
     val accountsList by viewModel.accounts.collectAsState()
     val paymentMethodsList by viewModel.paymentMethods.collectAsState()
-    val dailyReminder by viewModel.dailyReminder.collectAsState()
-    val missedEntryReminder by viewModel.missedEntryReminder.collectAsState()
-    val budgetReminder by viewModel.budgetReminder.collectAsState()
-    val recurringReminder by viewModel.recurringReminder.collectAsState()
-    val appLock by viewModel.appLock.collectAsState()
-    val biometricAuth by viewModel.biometricAuth.collectAsState()
-    val lockTimeout by viewModel.lockTimeout.collectAsState()
-    val hideAppPreview by viewModel.hideAppPreview.collectAsState()
     val appIcon by viewModel.appIcon.collectAsState()
-    val biometricSupport by viewModel.biometricSupport.collectAsState()
-    val isProUser by viewModel.isProUser.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
 
     var subView by remember { mutableStateOf(SettingsSubView.MAIN) }
     var activeDialog by remember { mutableStateOf<SettingsDialogType?>(null) }
     val context = LocalContext.current
-    val sharedPrefs = remember { context.getSharedPreferences("vesper_settings", android.content.Context.MODE_PRIVATE) }
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
     // Dialog handlers
@@ -111,32 +97,16 @@ fun SettingsScreen(
         SettingsDialogType.CURRENCY -> {
             SettingsSelectionDialog(
                 title = "Select Currency",
-                options = listOf("USD", "EUR", "GBP", "INR", "JPY", "AUD", "CAD", "SGD", "AED", "CNY", "BRL"),
+                options = listOf("USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD", "CHF", "CNY", "BRL", "MXN", "ZAR", "RUB", "SAR", "AED", "SGD", "AUD", "NZD", "CHF", "ILS", "BDT"),
                 selectedOption = currency,
                 onOptionSelected = { viewModel.saveCurrency(it) },
-                onDismissRequest = { activeDialog = null },
-                labelProvider = { code ->
-                    when (code) {
-                        "USD" -> "USD ($)"
-                        "EUR" -> "EUR (€)"
-                        "GBP" -> "GBP (£)"
-                        "INR" -> "INR (₹)"
-                        "JPY" -> "JPY (¥)"
-                        "AUD" -> "AUD ($)"
-                        "CAD" -> "CAD (CA$)"
-                        "SGD" -> "SGD ($)"
-                        "AED" -> "AED (د.إ)"
-                        "CNY" -> "CNY (¥)"
-                        "BRL" -> "BRL (R$)"
-                        else -> code
-                    }
-                }
+                onDismissRequest = { activeDialog = null }
             )
         }
         SettingsDialogType.LANGUAGE -> {
             SettingsSelectionDialog(
                 title = "Select Language",
-                options = listOf("English", "Spanish", "French", "German"),
+                options = listOf("English", "Hindi", "Español", "Français", "Deutsch", "Italiano", "Português", "Русский", "日本語", "한국어", "中文"),
                 selectedOption = language,
                 onOptionSelected = { viewModel.saveLanguage(it) },
                 onDismissRequest = { activeDialog = null }
@@ -145,25 +115,27 @@ fun SettingsScreen(
         SettingsDialogType.DEFAULT_TX_TYPE -> {
             SettingsSelectionDialog(
                 title = "Default Transaction Type",
-                options = listOf("Expense", "Income"),
+                options = listOf("Expense", "Income", "Transfer"),
                 selectedOption = defaultTransactionType,
                 onOptionSelected = { viewModel.saveDefaultTransactionType(it) },
                 onDismissRequest = { activeDialog = null }
             )
         }
         SettingsDialogType.DEFAULT_ACCOUNT -> {
+            val accountNames = accountsList.map { it.name }
             SettingsSelectionDialog(
                 title = "Default Account",
-                options = accountsList.map { it.name }.ifEmpty { listOf("Cash Wallet") },
+                options = accountNames,
                 selectedOption = defaultAccount,
                 onOptionSelected = { viewModel.saveDefaultAccount(it) },
                 onDismissRequest = { activeDialog = null }
             )
         }
         SettingsDialogType.DEFAULT_PAYMENT_METHOD -> {
+            val pmNames = paymentMethodsList.map { it.name }
             SettingsSelectionDialog(
                 title = "Default Payment Method",
-                options = paymentMethodsList.map { it.name }.ifEmpty { listOf("Cash", "Debit Card", "Credit Card", "UPI", "Bank Transfer", "Wallet") },
+                options = pmNames,
                 selectedOption = defaultPaymentMethod,
                 onOptionSelected = { viewModel.saveDefaultPaymentMethod(it) },
                 onDismissRequest = { activeDialog = null }
@@ -172,14 +144,14 @@ fun SettingsScreen(
         SettingsDialogType.ABOUT_APP -> {
             SettingsInfoDialog(
                 title = "About Vesper Ledger",
-                text = "Vesper Ledger v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n\nA premium, minimalist personal finance tracker designed for Android using a clean shadcn-inspired design system.",
+                text = "Vesper Ledger is a premium, minimalist personal finance tracker designed for Android using a clean shadcn-inspired design system.",
                 onDismissRequest = { activeDialog = null }
             )
         }
         SettingsDialogType.PRIVACY_POLICY -> {
             SettingsInfoDialog(
                 title = "Privacy Policy",
-                text = "Your financial privacy is our highest priority. All your transaction data, accounts, and categories are saved locally on your device in a secure SQLite database. Vesper Ledger does not track, collect, or transmit any of your personal or financial information.",
+                text = "Vesper Ledger operates completely offline. Your financial data is securely stored on your local device storage and is never uploaded to any remote servers.",
                 onDismissRequest = { activeDialog = null }
             )
         }
@@ -193,165 +165,8 @@ fun SettingsScreen(
         SettingsDialogType.TERMS -> {
             SettingsInfoDialog(
                 title = "Terms & Conditions",
-                text = "Vesper Ledger is provided as-is without any warranties of any kind. You are responsible for backing up your data using the Data & Backup utilities in Settings.",
+                text = "Vesper Ledger is provided as-is without any warranties of any kind. You are responsible for managing your financial logs and data.",
                 onDismissRequest = { activeDialog = null }
-            )
-        }
-        SettingsDialogType.CONFIRM_RESTORE -> {
-            AlertDialog(
-                onDismissRequest = { activeDialog = null },
-                title = {
-                    Text(
-                        text = "Restore Data",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    )
-                },
-                text = {
-                    Text(
-                        text = "Are you sure you want to restore? This will overwrite your current local database.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            SensitiveActionAuthenticator.authenticateAction {
-                                activeDialog = null
-                                coroutineScope.launch {
-                                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                        context, 2048, "Restoring Data", "Rebuilding database indexes... (60%)", progress = 60
-                                    )
-                                    delay(800L)
-                                    com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                        context, 2048, "Restore Complete", "Data restored successfully", progress = 100, isFinished = true
-                                    )
-                                    Toast.makeText(context, "Data restored successfully", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
-                    ) {
-                        Text(
-                            text = "Restore",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        )
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { activeDialog = null }) {
-                        Text(
-                            text = "Cancel",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
-            )
-        }
-        SettingsDialogType.CONFIRM_DELETE_ALL -> {
-            AlertDialog(
-                onDismissRequest = { activeDialog = null },
-                title = {
-                    Text(
-                        text = "Delete All Data",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    )
-                },
-                text = {
-                    Text(
-                        text = "Are you sure you want to delete all transaction history and settings? This action cannot be undone.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            SensitiveActionAuthenticator.authenticateAction {
-                                activeDialog = null
-                                Toast.makeText(context, "All data deleted. Please restart app.", Toast.LENGTH_LONG).show()
-                            }
-                        }
-                    ) {
-                        Text(
-                            text = "Delete Everything",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        )
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { activeDialog = null }) {
-                        Text(
-                            text = "Cancel",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
-            )
-        }
-        SettingsDialogType.TIMEOUT_SELECTION -> {
-            val timeoutOptions = listOf(
-                "Immediately" to 0L,
-                "30 seconds" to 30000L,
-                "1 minute" to 60000L,
-                "5 minutes" to 300000L,
-                "15 minutes" to 900000L,
-                "30 minutes" to 1800000L,
-                "Never" to -1L
-            )
-            AlertDialog(
-                onDismissRequest = { activeDialog = null },
-                title = { Text("Lock Timeout", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        timeoutOptions.forEach { (label, value) ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        SensitiveActionAuthenticator.authenticateAction {
-                                            viewModel.saveLockTimeout(value)
-                                            activeDialog = null
-                                        }
-                                    }
-                                    .padding(vertical = 12.dp, horizontal = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(label)
-                                if (lockTimeout == value) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Selected",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        }
-                    }
-                },
-                confirmButton = {}
             )
         }
         SettingsDialogType.EDIT_NAME -> {
@@ -427,522 +242,64 @@ fun SettingsScreen(
             when (subView) {
                 SettingsSubView.MAIN -> {
                     RootHeader(
-                        title = "Settings",
-                        onMenuClick = onMenuClick
+                        title = "Settings"
                     )
-                    Spacer(modifier = Modifier.height(8.dp)) // Consistent spacing below header
+                    Spacer(modifier = Modifier.height(8.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp) // Match dashboard horizontal margin!
+                            .padding(horizontal = 16.dp)
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
 
-                // Dedicated Premium Profile Card
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = MaterialTheme.shapes.medium
-                        )
-                        .clickable { activeDialog = SettingsDialogType.EDIT_NAME },
-                    shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
+                        // Personal Profile Card
+                        Card(
                             modifier = Modifier
-                                .size(50.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
-                                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = userName.take(1).uppercase(),
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                .fillMaxWidth()
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline,
+                                    shape = MaterialTheme.shapes.medium
                                 )
+                                .clickable { activeDialog = SettingsDialogType.EDIT_NAME },
+                            shape = MaterialTheme.shapes.medium,
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
                             )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = userName,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Text(
-                                text = if (userEmail.isNotEmpty()) userEmail else "Personal Profile • Tap to edit name",
-                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Outlined.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                // Preferences Section
-                SettingsGroup(title = "Preferences") {
-                    SettingsRow(
-                        icon = Icons.Outlined.Palette,
-                        title = "Theme",
-                        trailing = { Text(theme.replaceFirstChar { char -> char.uppercase() }, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = { activeDialog = SettingsDialogType.THEME }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.AttachMoney,
-                        title = "Currency",
-                        trailing = { Text(currency, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = { activeDialog = SettingsDialogType.CURRENCY }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Translate,
-                        title = "Language",
-                        trailing = { Text(language, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = { activeDialog = SettingsDialogType.LANGUAGE }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.ColorLens,
-                        title = "Dynamic Colors",
-                        trailing = {
-                            Switch(
-                                checked = dynamicColors,
-                                onCheckedChange = { viewModel.saveDynamicColors(it) }
-                            )
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Layers,
-                        title = "App Icon",
-                        trailing = {
-                            Text(
-                                text = appIcon.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
-                                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            )
-                        },
-                        onClick = { subView = SettingsSubView.APP_ICON }
-                    )
-                }
-
-                // Transactions Section
-                SettingsGroup(title = "Transactions") {
-                    SettingsRow(
-                        icon = Icons.Outlined.Category,
-                        title = "Categories",
-                        subtitle = "Manage standard and customized transaction tags",
-                        trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                        onClick = { onCategoriesClick() }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.SwapHoriz,
-                        title = "Default Transaction Type",
-                        trailing = { Text(defaultTransactionType, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = { activeDialog = SettingsDialogType.DEFAULT_TX_TYPE }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Bolt,
-                        title = "Quick Add Preferences",
-                        trailing = {
-                            Switch(
-                                checked = quickAddPreferences,
-                                onCheckedChange = { viewModel.saveQuickAddPreferences(it) }
-                            )
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.AccountBalanceWallet,
-                        title = "Default Account",
-                        trailing = { Text(defaultAccount, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = { activeDialog = SettingsDialogType.DEFAULT_ACCOUNT }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Payment,
-                        title = "Default Payment Method",
-                        trailing = { Text(defaultPaymentMethod, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = { activeDialog = SettingsDialogType.DEFAULT_PAYMENT_METHOD }
-                    )
-                }
-
-                // Notifications Section
-                SettingsGroup(title = "Notifications") {
-                    SettingsRow(
-                        icon = Icons.Outlined.Notifications,
-                        title = "Daily Reminder",
-                        trailing = {
-                            Switch(
-                                checked = dailyReminder,
-                                onCheckedChange = { viewModel.saveDailyReminder(it) }
-                            )
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.NotificationsActive,
-                        title = "Missed Entry Reminder",
-                        trailing = {
-                            Switch(
-                                checked = missedEntryReminder, // Map to correct flow
-                                onCheckedChange = { viewModel.saveMissedEntryReminder(it) }
-                            )
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.NotificationsPaused,
-                        title = "Budget Reminder",
-                        trailing = {
-                            Switch(
-                                checked = budgetReminder,
-                                onCheckedChange = { viewModel.saveBudgetReminder(it) }
-                            )
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Autorenew,
-                        title = "Recurring Transaction Reminder",
-                        trailing = {
-                            Switch(
-                                checked = recurringReminder,
-                                onCheckedChange = { viewModel.saveRecurringReminder(it) }
-                            )
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Notifications,
-                        title = "Test Notification",
-                        subtitle = "Send a sample notification now",
-                        onClick = {
-                            com.vesper.ledger.data.notification.VesperNotificationApi.sendNotification(
-                                category = com.vesper.ledger.data.notification.NotificationCategory.DAILY_REMINDER,
-                                bypassCooldown = true
-                            )
-                            Toast.makeText(context, "Test notification sent!", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.NotificationsPaused,
-                        title = "Reset Notification Preferences",
-                        subtitle = "Restore all notification settings to defaults",
-                        onClick = {
-                            viewModel.saveDailyReminder(true)
-                            viewModel.saveMissedEntryReminder(true)
-                            viewModel.saveBudgetReminder(true)
-                            viewModel.saveRecurringReminder(true)
-                            viewModel.saveWeeklySummaryReminder(true)
-                            viewModel.saveMonthlySummaryReminder(true)
-                            Toast.makeText(context, "Notification preferences reset", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                    
-                }
-
-                // Data & Backup Section
-                 SettingsGroup(title = "Data & Backup") {
-                     SettingsRow(
-                         icon = Icons.Outlined.CloudUpload,
-                         title = "Backup",
-                         subtitle = "Back up current local data to device store",
-                         onClick = {
-                             SensitiveActionAuthenticator.authenticateAction {
-                                 coroutineScope.launch {
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 1024, "Database Backup", "Creating backup... (0%)", progress = 0
-                                     )
-                                     kotlinx.coroutines.delay(1000L)
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 1024, "Database Backup", "Saving database files... (50%)", progress = 50
-                                     )
-                                     kotlinx.coroutines.delay(1000L)
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 1024, "Backup Complete", "Secure backup created successfully", progress = 100, isFinished = true
-                                     )
-                                     Toast.makeText(context, "Backup created successfully", Toast.LENGTH_SHORT).show()
-                                 }
-                             }
-                         }
-                     )
-                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                     SettingsRow(
-                         icon = Icons.Outlined.CloudDownload,
-                         title = "Restore",
-                         subtitle = "Restore database from existing backup store",
-                         onClick = {
-                             SensitiveActionAuthenticator.authenticateAction {
-                                 activeDialog = SettingsDialogType.CONFIRM_RESTORE
-                             }
-                         }
-                     )
-                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                     SettingsRow(
-                         icon = Icons.Outlined.Description,
-                         title = "Export CSV",
-                         subtitle = "Export transactions as clean table files",
-                         onClick = {
-                             SensitiveActionAuthenticator.authenticateAction {
-                                 coroutineScope.launch {
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2049, "Exporting CSV", "Formatting transaction records... (0%)", progress = 0
-                                     )
-                                     kotlinx.coroutines.delay(800L)
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2049, "Exporting CSV", "Writing CSV table file... (70%)", progress = 70
-                                     )
-                                     kotlinx.coroutines.delay(800L)
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2049, "Export Complete", "CSV exported successfully to Downloads folder", progress = 100, isFinished = true
-                                     )
-                                     Toast.makeText(context, "CSV exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
-                                 }
-                             }
-                         }
-                     )
-                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                     SettingsRow(
-                         icon = Icons.Outlined.Code,
-                         title = "Export JSON",
-                         subtitle = "Export transactions in structured developer format",
-                         onClick = {
-                             SensitiveActionAuthenticator.authenticateAction {
-                                 coroutineScope.launch {
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2050, "Exporting JSON", "Serializing dataset... (0%)", progress = 0
-                                     )
-                                     kotlinx.coroutines.delay(800L)
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2050, "Exporting JSON", "Writing JSON structured file... (80%)", progress = 80
-                                     )
-                                     kotlinx.coroutines.delay(800L)
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2050, "Export Complete", "JSON exported successfully to Downloads folder", progress = 100, isFinished = true
-                                     )
-                                     Toast.makeText(context, "JSON exported successfully to Downloads folder", Toast.LENGTH_SHORT).show()
-                                 }
-                             }
-                         }
-                     )
-                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                     SettingsRow(
-                         icon = Icons.Outlined.Input,
-                         title = "Import Data",
-                         subtitle = "Load transaction dataset from JSON or CSV",
-                         onClick = {
-                             SensitiveActionAuthenticator.authenticateAction {
-                                 coroutineScope.launch {
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2051, "Importing Data", "Verifying file checksum... (0%)", progress = 0
-                                     )
-                                     kotlinx.coroutines.delay(1000L)
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2051, "Importing Data", "Writing transaction logs... (50%)", progress = 50
-                                     )
-                                     kotlinx.coroutines.delay(1000L)
-                                     com.vesper.ledger.data.notification.NotificationHelper.dispatchProgressNotification(
-                                         context, 2051, "Import Complete", "Data imported successfully", progress = 100, isFinished = true
-                                     )
-                                     Toast.makeText(context, "Data imported successfully", Toast.LENGTH_SHORT).show()
-                                 }
-                             }
-                         }
-                     )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.DeleteForever,
-                        title = "Delete All Data",
-                        subtitle = "Irreversibly delete all transaction history and settings",
-                        titleColor = MaterialTheme.colorScheme.error,
-                        onClick = {
-                            SensitiveActionAuthenticator.authenticateAction {
-                                activeDialog = SettingsDialogType.CONFIRM_DELETE_ALL
-                            }
-                        }
-                    )
-                }
-
-                // Privacy & Security Section
-                SettingsGroup(title = "Privacy & Security") {
-                    SettingsRow(
-                        icon = Icons.Outlined.Lock,
-                        title = "App Lock",
-                        subtitle = "Lock application contents when idle",
-                        trailing = {
-                            Switch(
-                                checked = appLock,
-                                onCheckedChange = { isEnabled ->
-                                    SensitiveActionAuthenticator.authenticateAction {
-                                        viewModel.saveAppLock(isEnabled)
-                                    }
-                                }
-                            )
-                        }
-                    )
-                    
-                    if (appLock) {
-                        if (biometricSupport == BiometricSupportType.AVAILABLE || biometricSupport == BiometricSupportType.NONE_ENROLLED) {
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.Fingerprint,
-                                title = "Biometric Authentication",
-                                subtitle = if (biometricSupport == BiometricSupportType.NONE_ENROLLED) "No biometrics registered in settings" else "Unlock app using biometric hardware",
-                                trailing = {
-                                    Switch(
-                                        checked = biometricAuth,
-                                        enabled = biometricSupport == BiometricSupportType.AVAILABLE,
-                                        onCheckedChange = { isEnabled ->
-                                            SensitiveActionAuthenticator.authenticateAction {
-                                                viewModel.saveBiometricAuth(isEnabled)
-                                            }
-                                        }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+                                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = userName.take(1).uppercase(),
+                                        style = MaterialTheme.typography.titleLarge.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
                                     )
                                 }
-                            )
-                        } else {
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.Fingerprint,
-                                title = "Biometric Authentication",
-                                subtitle = "Biometric hardware is not available on this device",
-                                trailing = {
-                                    Text("Unavailable", style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)))
-                                }
-                            )
-                        }
-                        
-                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                        val timeoutLabel = when (lockTimeout) {
-                            0L -> "Immediately"
-                            30000L -> "30 seconds"
-                            60000L -> "1 minute"
-                            300000L -> "5 minutes"
-                            900000L -> "15 minutes"
-                            1800000L -> "30 minutes"
-                            else -> "Never"
-                        }
-                        SettingsRow(
-                            icon = Icons.Outlined.HourglassEmpty,
-                            title = "Lock Timeout",
-                            subtitle = "Require credentials after inactivity",
-                            trailing = {
-                                Text(timeoutLabel, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold))
-                            },
-                            onClick = {
-                                activeDialog = SettingsDialogType.TIMEOUT_SELECTION
-                            }
-                        )
-                    }
-
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.VisibilityOff,
-                        title = "Hide App Preview",
-                        subtitle = "Obscure ledger contents in recent apps switcher",
-                        trailing = {
-                            Switch(
-                                checked = hideAppPreview,
-                                onCheckedChange = { isEnabled ->
-                                    SensitiveActionAuthenticator.authenticateAction {
-                                        viewModel.saveHideAppPreview(isEnabled)
-                                    }
-                                }
-                            )
-                        }
-                    )
-                }
-
-                // Premium Section
-                SettingsGroup(title = "Premium") {
-                    SettingsRow(
-                        icon = Icons.Outlined.Star,
-                        title = "Upgrade to Pro",
-                        subtitle = "Unlock cloud backup and advanced export features.",
-                        trailing = {
-                            Text(
-                                text = if (isProUser) "Pro Active" else "Get Pro >",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isProUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                                )
-                            )
-                        },
-                        onClick = {
-                            viewModel.saveIsProUser(!isProUser)
-                            Toast.makeText(
-                                context,
-                                if (!isProUser) "Upgraded to Pro successfully!" else "Subscription managed successfully",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.CreditCard,
-                        title = "Manage Subscription",
-                        onClick = { Toast.makeText(context, "Redirecting to subscription portal...", Toast.LENGTH_SHORT).show() }
-                    )
-                }
-
-                // About Section
-                SettingsGroup(title = "About") {
-                    SettingsRow(
-                        icon = Icons.Outlined.Info,
-                        title = "App Version",
-                        trailing = { Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                        onClick = { activeDialog = SettingsDialogType.ABOUT_APP }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = if (isUpdateAvailable) Icons.Outlined.FileDownload else Icons.Outlined.Check,
-                        title = "Application Updates",
-                        subtitle = if (isUpdateAvailable) {
-                            "v${BuildConfig.VERSION_NAME} → v${updateUiState.updateInfo!!.latestVersionName} available"
-                        } else {
-                            "v${BuildConfig.VERSION_NAME} • Up To Date"
-                        },
-                        trailing = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                if (isUpdateAvailable) {
-                                    Box(
-                                        modifier = Modifier
-                                            .background(
-                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                                shape = RoundedCornerShape(4.dp)
-                                            )
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                                    ) {
-                                        Text(
-                                            text = "NEW",
-                                            fontSize = 9.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = userName,
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                    Text(
+                                        text = if (userEmail.isNotEmpty()) userEmail else "Personal Profile • Tap to edit name",
+                                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    )
                                 }
                                 Icon(
                                     imageVector = Icons.Outlined.KeyboardArrowRight,
@@ -950,77 +307,203 @@ fun SettingsScreen(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        },
-                        onClick = { subView = SettingsSubView.UPDATES }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Policy,
-                        title = "Privacy Policy",
-                        trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                        onClick = { activeDialog = SettingsDialogType.PRIVACY_POLICY }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Gavel,
-                        title = "Open Source Licenses",
-                        trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                        onClick = { activeDialog = SettingsDialogType.OPEN_SOURCE }
-                    )
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SettingsRow(
-                        icon = Icons.Outlined.Assignment,
-                        title = "Terms & Conditions",
-                        trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                        onClick = { activeDialog = SettingsDialogType.TERMS }
-                    )
-                }
-
-                // Account Section (Sign Out)
-                SettingsGroup(title = "Account") {
-                    SettingsRow(
-                        icon = Icons.Outlined.ExitToApp,
-                        title = "Sign Out",
-                        subtitle = "Disconnect current profile and database",
-                        titleColor = MaterialTheme.colorScheme.error,
-                        onClick = {
-                            onSignOutClick()
                         }
-                    )
+
+                        // Preferences Section
+                        SettingsGroup(title = "Preferences") {
+                            SettingsRow(
+                                icon = Icons.Outlined.Palette,
+                                title = "Theme",
+                                trailing = { Text(theme.replaceFirstChar { char -> char.uppercase() }, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                                onClick = { activeDialog = SettingsDialogType.THEME }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.AttachMoney,
+                                title = "Currency",
+                                trailing = { Text(currency, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                                onClick = { activeDialog = SettingsDialogType.CURRENCY }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Translate,
+                                title = "Language",
+                                trailing = { Text(language, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                                onClick = { activeDialog = SettingsDialogType.LANGUAGE }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Layers,
+                                title = "App Icon",
+                                trailing = {
+                                    Text(
+                                        text = appIcon.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    )
+                                },
+                                onClick = { subView = SettingsSubView.APP_ICON }
+                            )
+                        }
+
+                        // Transactions Section
+                        SettingsGroup(title = "Transactions") {
+                            SettingsRow(
+                                icon = Icons.Outlined.Category,
+                                title = "Categories",
+                                subtitle = "Manage standard and customized transaction tags",
+                                trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                onClick = { onCategoriesClick() }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.SwapHoriz,
+                                title = "Default Transaction Type",
+                                trailing = { Text(defaultTransactionType, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                                onClick = { activeDialog = SettingsDialogType.DEFAULT_TX_TYPE }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Bolt,
+                                title = "Quick Add Preferences",
+                                trailing = {
+                                    Switch(
+                                        checked = quickAddPreferences,
+                                        onCheckedChange = { viewModel.saveQuickAddPreferences(it) }
+                                    )
+                                }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.AccountBalanceWallet,
+                                title = "Default Account",
+                                trailing = { Text(defaultAccount, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                                onClick = { activeDialog = SettingsDialogType.DEFAULT_ACCOUNT }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Payment,
+                                title = "Default Payment Method",
+                                trailing = { Text(defaultPaymentMethod, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                                onClick = { activeDialog = SettingsDialogType.DEFAULT_PAYMENT_METHOD }
+                            )
+                        }
+
+                        // About Section
+                        SettingsGroup(title = "About") {
+                            SettingsRow(
+                                icon = Icons.Outlined.Info,
+                                title = "App Version",
+                                trailing = { Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
+                                onClick = { activeDialog = SettingsDialogType.ABOUT_APP }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = if (isUpdateAvailable) Icons.Outlined.FileDownload else Icons.Outlined.Check,
+                                title = "Application Updates",
+                                subtitle = if (isUpdateAvailable) {
+                                    "v${BuildConfig.VERSION_NAME} → v${updateUiState.updateInfo!!.latestVersionName} available"
+                                } else {
+                                    "v${BuildConfig.VERSION_NAME} • Up To Date"
+                                },
+                                trailing = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        if (isUpdateAvailable) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .background(
+                                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                                        shape = RoundedCornerShape(4.dp)
+                                                    )
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            ) {
+                                                Text(
+                                                    text = "NEW",
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                        Icon(
+                                            imageVector = Icons.Outlined.KeyboardArrowRight,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                },
+                                onClick = { subView = SettingsSubView.UPDATES }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Policy,
+                                title = "Privacy Policy",
+                                trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                onClick = { activeDialog = SettingsDialogType.PRIVACY_POLICY }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Gavel,
+                                title = "Open Source Licenses",
+                                trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                onClick = { activeDialog = SettingsDialogType.OPEN_SOURCE }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SettingsRow(
+                                icon = Icons.Outlined.Assignment,
+                                title = "Terms & Conditions",
+                                trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                onClick = { activeDialog = SettingsDialogType.TERMS }
+                            )
+                        }
+
+                        // Account Section (Sign Out)
+                        SettingsGroup(title = "Account") {
+                            SettingsRow(
+                                icon = Icons.Outlined.ExitToApp,
+                                title = "Sign Out",
+                                subtitle = "Disconnect current profile and database",
+                                titleColor = MaterialTheme.colorScheme.error,
+                                onClick = {
+                                    onSignOutClick()
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
-
-        SettingsSubView.UPDATES -> {
-            LaunchedEffect(Unit) {
-                updateViewModel.checkForUpdatesOnLaunch()
-            }
-            Column(modifier = Modifier.fillMaxSize()) {
-                ChildHeader(
-                    title = "Updates",
-                    onBackClick = { subView = SettingsSubView.MAIN }
-                )
-                Box(modifier = Modifier.fillMaxSize()) {
-                    com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
+                SettingsSubView.UPDATES -> {
+                    LaunchedEffect(Unit) {
+                        updateViewModel.checkForUpdatesOnLaunch()
+                    }
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        ChildHeader(
+                            title = "Updates",
+                            onBackClick = { subView = SettingsSubView.MAIN }
+                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
+                        }
+                    }
                 }
-            }
-        }
-        SettingsSubView.APP_ICON -> {
-            Column(modifier = Modifier.fillMaxSize()) {
-                ChildHeader(
-                    title = "App Icon",
-                    onBackClick = { subView = SettingsSubView.MAIN }
-                )
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AppIconSelectionScreen(viewModel = viewModel)
+                SettingsSubView.APP_ICON -> {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        ChildHeader(
+                            title = "App Icon",
+                            onBackClick = { subView = SettingsSubView.MAIN }
+                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AppIconSelectionScreen(viewModel = viewModel)
+                        }
+                    }
                 }
             }
         }
     }
-}
-}
 }
 
 @Composable
@@ -1261,7 +744,6 @@ fun AppIconSelectionScreen(
     val activeIcon by viewModel.appIcon.collectAsState()
     val context = LocalContext.current
     
-    // Icon Variant definition helper
     data class IconVariantItem(
         val key: String,
         val name: String,
@@ -1293,14 +775,13 @@ fun AppIconSelectionScreen(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // 1. Home Screen Preview (Premium Mockup)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium),
             shape = MaterialTheme.shapes.medium,
             colors = CardDefaults.cardColors(
-                containerColor = Color.Black // dark workspace mockup
+                containerColor = Color.Black
             )
         ) {
             Column(
@@ -1309,7 +790,6 @@ fun AppIconSelectionScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header (Mockup status)
                 Text(
                     text = "HOME SCREEN PREVIEW",
                     style = MaterialTheme.typography.labelSmall.copy(
@@ -1321,7 +801,6 @@ fun AppIconSelectionScreen(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // Clock Widget Mockup
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "10:42",
@@ -1342,16 +821,13 @@ fun AppIconSelectionScreen(
 
                 Spacer(modifier = Modifier.height(36.dp))
 
-                // Dock / App placement mockup
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Mock App 1: Phone
                     MockAppIcon(name = "Phone", icon = Icons.Outlined.Phone, color = Color(0xFF10B981))
                     
-                    // The main Vesper App Icon under preview
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -1382,13 +858,11 @@ fun AppIconSelectionScreen(
                         )
                     }
 
-                    // Mock App 3: Messages
                     MockAppIcon(name = "Messages", icon = Icons.Outlined.ChatBubbleOutline, color = Color(0xFF3B82F6))
                 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Active status badge
                 val isActive = previewKey == activeIcon
                 Box(
                     modifier = Modifier
@@ -1407,14 +881,12 @@ fun AppIconSelectionScreen(
             }
         }
 
-        // 2. Grid header
         Text(
             text = "Choose App Identity",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(horizontal = 4.dp)
         )
 
-        // 3. 2-Column Responsive Layout
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
@@ -1452,7 +924,6 @@ fun AppIconSelectionScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                // Layered App Icon Preview in Card
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
@@ -1499,7 +970,6 @@ fun AppIconSelectionScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 4. Action Buttons
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
