@@ -42,9 +42,6 @@ import com.vesper.ledger.ui.savings.SavingsViewModelFactory
 import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
-import com.vesper.ledger.ui.recurring.RecurringScreen
-import com.vesper.ledger.ui.recurring.RecurringViewModel
-import com.vesper.ledger.ui.recurring.RecurringViewModelFactory
 import kotlinx.coroutines.launch
 
 data class DrawerItem(
@@ -81,7 +78,6 @@ fun MainScreen(
     val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
     val budgetsFactory = BudgetsViewModelFactory(app)
-    val recurringFactory = RecurringViewModelFactory(app)
 
     val currencySymbol by settingsViewModel.currencySymbol.collectAsState()
     val userName by settingsViewModel.userName.collectAsState()
@@ -95,7 +91,6 @@ fun MainScreen(
         DrawerItem(Screen.Transactions.route, "Transactions", Icons.Outlined.ListAlt),
         DrawerItem(Screen.Budgets.route, "Budgets", Icons.Outlined.PieChart),
         DrawerItem(Screen.Savings.route, "Savings", Icons.Outlined.Savings),
-        DrawerItem(Screen.Recurring.route, "Recurring", Icons.Outlined.Autorenew),
         DrawerItem(Screen.Settings.route, "Settings", Icons.Outlined.Settings)
     )
 
@@ -348,15 +343,6 @@ fun MainScreen(
                     val savingsViewModel: SavingsViewModel = viewModel(factory = savingsFactory)
                     SavingsScreen(
                         viewModel = savingsViewModel,
-                        currencySymbol = currencySymbol,
-                        onBackClick = { navController.popBackStack() }
-                    )
-                }
-
-                composable(Screen.Recurring.route) {
-                    val recurringViewModel: RecurringViewModel = viewModel(factory = recurringFactory)
-                    RecurringScreen(
-                        viewModel = recurringViewModel,
                         currencySymbol = currencySymbol,
                         onBackClick = { navController.popBackStack() }
                     )
