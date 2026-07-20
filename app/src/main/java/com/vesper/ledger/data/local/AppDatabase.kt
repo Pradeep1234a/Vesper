@@ -89,30 +89,34 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private fun seedDatabase(db: SupportSQLiteDatabase) {
-            // Categories
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (1, 'Salary', 'work', 'INCOME', '#16A34A')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (2, 'Investments', 'trending_up', 'INCOME', '#0D9488')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (3, 'Gifts', 'card_giftcard', 'INCOME', '#2563EB')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (4, 'Other Income', 'more_horiz', 'INCOME', '#71717A')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (5, 'Food & Groceries', 'restaurant', 'EXPENSE', '#DC2626')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (6, 'Rent & Housing', 'home', 'EXPENSE', '#D97706')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (7, 'Utilities', 'bolt', 'EXPENSE', '#EA580C')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (8, 'Transport & Fuel', 'directions_car', 'EXPENSE', '#2563EB')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (9, 'Entertainment', 'sports_esports', 'EXPENSE', '#9333EA')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (10, 'Shopping', 'shopping_bag', 'EXPENSE', '#DB2777')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (11, 'Healthcare', 'medical_services', 'EXPENSE', '#0D9488')")
-            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (12, 'Other Expense', 'more_horiz', 'EXPENSE', '#71717A')")
+            try {
+                // Categories
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (1, 'Salary', 'work', 'INCOME', '#16A34A')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (2, 'Investments', 'trending_up', 'INCOME', '#0D9488')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (3, 'Gifts', 'card_giftcard', 'INCOME', '#2563EB')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (4, 'Other Income', 'more_horiz', 'INCOME', '#71717A')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (5, 'Food & Groceries', 'restaurant', 'EXPENSE', '#DC2626')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (6, 'Rent & Housing', 'home', 'EXPENSE', '#D97706')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (7, 'Utilities', 'bolt', 'EXPENSE', '#EA580C')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (8, 'Transport & Fuel', 'directions_car', 'EXPENSE', '#2563EB')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (9, 'Entertainment', 'sports_esports', 'EXPENSE', '#9333EA')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (10, 'Shopping', 'shopping_bag', 'EXPENSE', '#DB2777')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (11, 'Healthcare', 'medical_services', 'EXPENSE', '#0D9488')")
+                db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (12, 'Other Expense', 'more_horiz', 'EXPENSE', '#71717A')")
 
-            // Default account
-            db.execSQL("INSERT INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (1, 'Cash Wallet', 'CASH', 0.0, 'USD', NULL, NULL, 'account_balance_wallet')")
+                // Default account
+                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (1, 'Cash Wallet', 'CASH', 0.0, 'USD', NULL, NULL, 'account_balance_wallet')")
 
-            // Default payment methods
-            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (1, 'Cash', 1)")
-            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (2, 'Debit Card', 0)")
-            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (3, 'Credit Card', 0)")
-            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (4, 'UPI', 0)")
-            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (5, 'Bank Transfer', 0)")
-            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (6, 'Wallet', 0)")
+                // Default payment methods
+                db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (1, 'Cash', 1)")
+                db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (2, 'Debit Card', 0)")
+                db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (3, 'Credit Card', 0)")
+                db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (4, 'UPI', 0)")
+                db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (5, 'Bank Transfer', 0)")
+                db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (6, 'Wallet', 0)")
+            } catch (e: Exception) {
+                android.util.Log.e("AppDatabase", "Error seeding database: ${e.message}", e)
+            }
         }
     }
 }
