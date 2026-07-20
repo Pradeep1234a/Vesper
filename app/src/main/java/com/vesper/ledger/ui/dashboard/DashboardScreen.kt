@@ -68,11 +68,11 @@ fun DashboardScreen(
     viewModel: DashboardViewModel,
     currencySymbol: String,
     userName: String,
+    onMenuClick: () -> Unit,
     onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onSavingsClick: () -> Unit,
-    onReportsClick: () -> Unit
+    onSavingsClick: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -145,6 +145,7 @@ fun DashboardScreen(
         ) {
             RootHeader(
                 title = "Vesper Ledger",
+                onMenuClick = onMenuClick,
                 actions = {
                     Box(
                         modifier = Modifier
@@ -443,67 +444,7 @@ fun DashboardScreen(
                 }
             }
 
-            item {
-                ShCard(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Quick Actions",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                        Icon(
-                            imageVector = Icons.Outlined.Bolt,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        QuickActionItem(
-                            icon = Icons.Outlined.RemoveCircleOutline,
-                            label = "Expense",
-                            containerColor = Color(0xFFDC2626).copy(alpha = 0.08f),
-                            iconColor = Color(0xFFDC2626),
-                            onClick = { onAddTransactionClick("EXPENSE", null) }
-                        )
-                        QuickActionItem(
-                            icon = Icons.Outlined.AddCircleOutline,
-                            label = "Income",
-                            containerColor = Color(0xFF16A34A).copy(alpha = 0.08f),
-                            iconColor = Color(0xFF16A34A),
-                            onClick = { onAddTransactionClick("INCOME", null) }
-                        )
-                        QuickActionItem(
-                            icon = Icons.Outlined.BarChart,
-                            label = "Charts",
-                            containerColor = Color(0xFF2563EB).copy(alpha = 0.08f),
-                            iconColor = Color(0xFF2563EB),
-                            onClick = onReportsClick
-                        )
-                        QuickActionItem(
-                            icon = Icons.Outlined.Savings,
-                            label = "Goals",
-                            containerColor = Color(0xFFF59E0B).copy(alpha = 0.08f),
-                            iconColor = Color(0xFFF59E0B),
-                            onClick = onSavingsClick
-                        )
-                    }
-                }
-            }
+
 
             item {
                 val topCats = uiState.topCategories
@@ -511,7 +452,6 @@ fun DashboardScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
@@ -521,16 +461,6 @@ fun DashboardScreen(
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                            )
-                            Text(
-                                text = "See All",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.SemiBold,
-                                    textDecoration = TextDecoration.Underline
-                                ),
-                                modifier = Modifier.clickable { onReportsClick() }
                             )
                         }
 

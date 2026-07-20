@@ -10,9 +10,7 @@ sealed class Screen(val route: String) {
     }
     object Savings : Screen("savings")
     object Settings : Screen("settings")
-    object Reports : Screen("reports")
     object Budgets : Screen("budgets")
-    object Accounts : Screen("accounts")
     object Recurring : Screen("recurring")
     object AuthWelcome : Screen("auth_welcome")
     object AuthSignIn : Screen("auth_sign_in")

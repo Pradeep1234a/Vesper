@@ -42,11 +42,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
 enum class SettingsSubView {
-    MAIN, UPDATES, APP_ICON
+    MAIN, UPDATES
 }
 
 enum class SettingsDialogType {
-    THEME, CURRENCY, LANGUAGE, DEFAULT_TX_TYPE, DEFAULT_ACCOUNT, DEFAULT_PAYMENT_METHOD, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, EDIT_NAME
+    THEME, ABOUT_APP, PRIVACY_POLICY, OPEN_SOURCE, TERMS, EDIT_NAME
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,11 +54,11 @@ enum class SettingsDialogType {
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
+    onMenuClick: () -> Unit,
     onBackClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     onSignOutClick: () -> Unit
 ) {
-    val currency by viewModel.currency.collectAsState()
     val updateUiState by updateViewModel.uiState.collectAsState()
     val isUpdateAvailable = updateUiState.updateInfo != null && updateUiState.updateInfo!!.updateAvailable
 
@@ -66,14 +66,6 @@ fun SettingsScreen(
         updateViewModel.checkForUpdatesOnLaunch()
     }
     val theme by viewModel.theme.collectAsState()
-    val language by viewModel.language.collectAsState()
-    val defaultTransactionType by viewModel.defaultTransactionType.collectAsState()
-    val quickAddPreferences by viewModel.quickAddPreferences.collectAsState()
-    val defaultAccount by viewModel.defaultAccount.collectAsState()
-    val defaultPaymentMethod by viewModel.defaultPaymentMethod.collectAsState()
-    val accountsList by viewModel.accounts.collectAsState()
-    val paymentMethodsList by viewModel.paymentMethods.collectAsState()
-    val appIcon by viewModel.appIcon.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
 
@@ -92,53 +84,6 @@ fun SettingsScreen(
                 onOptionSelected = { viewModel.saveTheme(it) },
                 onDismissRequest = { activeDialog = null },
                 labelProvider = { it.replaceFirstChar { char -> char.uppercase() } }
-            )
-        }
-        SettingsDialogType.CURRENCY -> {
-            SettingsSelectionDialog(
-                title = "Select Currency",
-                options = listOf("USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD", "CHF", "CNY", "BRL", "MXN", "ZAR", "RUB", "SAR", "AED", "SGD", "AUD", "NZD", "CHF", "ILS", "BDT"),
-                selectedOption = currency,
-                onOptionSelected = { viewModel.saveCurrency(it) },
-                onDismissRequest = { activeDialog = null }
-            )
-        }
-        SettingsDialogType.LANGUAGE -> {
-            SettingsSelectionDialog(
-                title = "Select Language",
-                options = listOf("English", "Hindi", "Español", "Français", "Deutsch", "Italiano", "Português", "Русский", "日本語", "한국어", "中文"),
-                selectedOption = language,
-                onOptionSelected = { viewModel.saveLanguage(it) },
-                onDismissRequest = { activeDialog = null }
-            )
-        }
-        SettingsDialogType.DEFAULT_TX_TYPE -> {
-            SettingsSelectionDialog(
-                title = "Default Transaction Type",
-                options = listOf("Expense", "Income", "Transfer"),
-                selectedOption = defaultTransactionType,
-                onOptionSelected = { viewModel.saveDefaultTransactionType(it) },
-                onDismissRequest = { activeDialog = null }
-            )
-        }
-        SettingsDialogType.DEFAULT_ACCOUNT -> {
-            val accountNames = accountsList.map { it.name }
-            SettingsSelectionDialog(
-                title = "Default Account",
-                options = accountNames,
-                selectedOption = defaultAccount,
-                onOptionSelected = { viewModel.saveDefaultAccount(it) },
-                onDismissRequest = { activeDialog = null }
-            )
-        }
-        SettingsDialogType.DEFAULT_PAYMENT_METHOD -> {
-            val pmNames = paymentMethodsList.map { it.name }
-            SettingsSelectionDialog(
-                title = "Default Payment Method",
-                options = pmNames,
-                selectedOption = defaultPaymentMethod,
-                onOptionSelected = { viewModel.saveDefaultPaymentMethod(it) },
-                onDismissRequest = { activeDialog = null }
             )
         }
         SettingsDialogType.ABOUT_APP -> {
@@ -242,7 +187,8 @@ fun SettingsScreen(
             when (subView) {
                 SettingsSubView.MAIN -> {
                     RootHeader(
-                        title = "Settings"
+                        title = "Settings",
+                        onMenuClick = onMenuClick
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Column(
@@ -317,32 +263,6 @@ fun SettingsScreen(
                                 trailing = { Text(theme.replaceFirstChar { char -> char.uppercase() }, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
                                 onClick = { activeDialog = SettingsDialogType.THEME }
                             )
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.AttachMoney,
-                                title = "Currency",
-                                trailing = { Text(currency, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                                onClick = { activeDialog = SettingsDialogType.CURRENCY }
-                            )
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.Translate,
-                                title = "Language",
-                                trailing = { Text(language, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                                onClick = { activeDialog = SettingsDialogType.LANGUAGE }
-                            )
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.Layers,
-                                title = "App Icon",
-                                trailing = {
-                                    Text(
-                                        text = appIcon.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    )
-                                },
-                                onClick = { subView = SettingsSubView.APP_ICON }
-                            )
                         }
 
                         // Transactions Section
@@ -353,38 +273,6 @@ fun SettingsScreen(
                                 subtitle = "Manage standard and customized transaction tags",
                                 trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = { onCategoriesClick() }
-                            )
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.SwapHoriz,
-                                title = "Default Transaction Type",
-                                trailing = { Text(defaultTransactionType, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                                onClick = { activeDialog = SettingsDialogType.DEFAULT_TX_TYPE }
-                            )
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.Bolt,
-                                title = "Quick Add Preferences",
-                                trailing = {
-                                    Switch(
-                                        checked = quickAddPreferences,
-                                        onCheckedChange = { viewModel.saveQuickAddPreferences(it) }
-                                    )
-                                }
-                            )
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.AccountBalanceWallet,
-                                title = "Default Account",
-                                trailing = { Text(defaultAccount, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                                onClick = { activeDialog = SettingsDialogType.DEFAULT_ACCOUNT }
-                            )
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SettingsRow(
-                                icon = Icons.Outlined.Payment,
-                                title = "Default Payment Method",
-                                trailing = { Text(defaultPaymentMethod, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)) },
-                                onClick = { activeDialog = SettingsDialogType.DEFAULT_PAYMENT_METHOD }
                             )
                         }
 
@@ -487,17 +375,6 @@ fun SettingsScreen(
                         )
                         Box(modifier = Modifier.fillMaxSize()) {
                             com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
-                        }
-                    }
-                }
-                SettingsSubView.APP_ICON -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        ChildHeader(
-                            title = "App Icon",
-                            onBackClick = { subView = SettingsSubView.MAIN }
-                        )
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            AppIconSelectionScreen(viewModel = viewModel)
                         }
                     }
                 }
@@ -737,299 +614,4 @@ fun SettingsInfoDialog(
     )
 }
 
-@Composable
-fun AppIconSelectionScreen(
-    viewModel: SettingsViewModel
-) {
-    val activeIcon by viewModel.appIcon.collectAsState()
-    val context = LocalContext.current
-    
-    data class IconVariantItem(
-        val key: String,
-        val name: String,
-        val desc: String,
-        val bgRes: Int,
-        val fgRes: Int
-    )
 
-    val variants = remember {
-        listOf(
-            IconVariantItem("default", "Official", "Default installation balance scale logo", com.vesper.ledger.R.drawable.ic_launcher_background, com.vesper.ledger.R.drawable.ic_launcher_foreground),
-            IconVariantItem("flux", "Flux", "Smooth violet-pink gradient cashflow wave", com.vesper.ledger.R.drawable.ic_flux_background, com.vesper.ledger.R.drawable.ic_flux_foreground),
-            IconVariantItem("material", "Material 3", "Teal adaptive geometric wallet outline", com.vesper.ledger.R.drawable.ic_material_background, com.vesper.ledger.R.drawable.ic_material_foreground),
-            IconVariantItem("glass", "iOS Glass", "Translucent glass diamond prism highlights", com.vesper.ledger.R.drawable.ic_glass_background, com.vesper.ledger.R.drawable.ic_glass_foreground),
-            IconVariantItem("coin", "Coin", "Premium gold rupee coin branding", com.vesper.ledger.R.drawable.ic_coin_background, com.vesper.ledger.R.drawable.ic_coin_foreground),
-            IconVariantItem("analytics", "Analytics", "Deep royal blue trending growth chart", com.vesper.ledger.R.drawable.ic_analytics_background, com.vesper.ledger.R.drawable.ic_analytics_foreground),
-            IconVariantItem("vault", "Vault", "Charcoal secure lock & privacy shield", com.vesper.ledger.R.drawable.ic_vault_background, com.vesper.ledger.R.drawable.ic_vault_foreground),
-            IconVariantItem("ledger", "Ledger", "Forest green open book bookkeeping mark", com.vesper.ledger.R.drawable.ic_ledger_background, com.vesper.ledger.R.drawable.ic_ledger_foreground)
-        )
-    }
-
-    var previewKey by remember(activeIcon) { mutableStateOf(activeIcon) }
-    val previewVariant = variants.find { it.key == previewKey } ?: variants[0]
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium),
-            shape = MaterialTheme.shapes.medium,
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Black
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "HOME SCREEN PREVIEW",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Gray,
-                        letterSpacing = 1.5.sp
-                    )
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "10:42",
-                        style = MaterialTheme.typography.displayMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            letterSpacing = (-1).sp
-                        )
-                    )
-                    Text(
-                        text = "Monday, July 13",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium,
-                            color = Color.LightGray
-                        )
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(36.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    MockAppIcon(name = "Phone", icon = Icons.Outlined.Phone, color = Color(0xFF10B981))
-                    
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(60.dp)
-                                .clip(RoundedCornerShape(14.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = previewVariant.bgRes),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                            Image(
-                                painter = painterResource(id = previewVariant.fgRes),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                        Text(
-                            text = "Vesper",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White
-                            )
-                        )
-                    }
-
-                    MockAppIcon(name = "Messages", icon = Icons.Outlined.ChatBubbleOutline, color = Color(0xFF3B82F6))
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                val isActive = previewKey == activeIcon
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.DarkGray.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = if (isActive) "● Active Identity" else "Previewing Selection",
-                        color = if (isActive) MaterialTheme.colorScheme.primary else Color.LightGray,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                    )
-                }
-            }
-        }
-
-        Text(
-            text = "Choose App Identity",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            val rows = variants.chunked(2)
-            rows.forEach { rowItems ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    rowItems.forEach { item ->
-                        val isSelected = item.key == previewKey
-                        Card(
-                            modifier = Modifier
-                                .weight(1f)
-                                .border(
-                                    width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                    shape = MaterialTheme.shapes.medium
-                                )
-                                .clickable { previewKey = item.key },
-                            shape = MaterialTheme.shapes.medium,
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) {
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
-                                } else {
-                                    MaterialTheme.colorScheme.surface
-                                }
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(11.dp)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = item.bgRes),
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                    Image(
-                                        painter = painterResource(id = item.fgRes),
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                                
-                                Text(
-                                    text = item.name,
-                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                    textAlign = TextAlign.Center
-                                )
-                                
-                                Text(
-                                    text = item.desc,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 11.sp
-                                    ),
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 2,
-                                    minLines = 2
-                                )
-                            }
-                        }
-                    }
-                    if (rowItems.size < 2) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            ShButton(
-                text = "Apply Identity",
-                onClick = {
-                    viewModel.saveAppIcon(previewKey)
-                    Toast.makeText(context, "App icon updated successfully!", Toast.LENGTH_SHORT).show()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = previewKey != activeIcon
-            )
-
-            TextButton(
-                onClick = {
-                    viewModel.saveAppIcon("default")
-                    previewKey = "default"
-                    Toast.makeText(context, "Official Vesper icon restored", Toast.LENGTH_SHORT).show()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            ) {
-                Text("Restore Default")
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
-fun MockAppIcon(
-    name: String,
-    icon: ImageVector,
-    color: Color
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .background(color.copy(alpha = 0.15f), RoundedCornerShape(14.dp))
-                .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(28.dp)
-            )
-        }
-        Text(
-            text = name,
-            style = MaterialTheme.typography.labelMedium.copy(color = Color.LightGray)
-        )
-    }
-}

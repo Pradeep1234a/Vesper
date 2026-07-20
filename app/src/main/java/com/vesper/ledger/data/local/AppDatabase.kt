@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
         PaymentMethod::class,
         RecurringTransaction::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -77,11 +77,11 @@ abstract class AppDatabase : RoomDatabase() {
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
-                        seedDatabase(context)
+                        seedDatabase(db)
                     }
                     override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
                         super.onDestructiveMigration(db)
-                        seedDatabase(context)
+                        seedDatabase(db)
                     }
                 })
                 .build()
@@ -91,51 +91,31 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private fun seedDatabase(context: Context) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val dbInstance = getDatabase(context)
-                val dao = dbInstance.transactionDao()
-                dao.insertCategories(defaultCategories)
+        private fun seedDatabase(db: SupportSQLiteDatabase) {
+            // Categories
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (1, 'Salary', 'work', 'INCOME', '#16A34A')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (2, 'Investments', 'trending_up', 'INCOME', '#0D9488')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (3, 'Gifts', 'card_giftcard', 'INCOME', '#2563EB')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (4, 'Other Income', 'more_horiz', 'INCOME', '#71717A')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (5, 'Food & Groceries', 'restaurant', 'EXPENSE', '#DC2626')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (6, 'Rent & Housing', 'home', 'EXPENSE', '#D97706')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (7, 'Utilities', 'bolt', 'EXPENSE', '#EA580C')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (8, 'Transport & Fuel', 'directions_car', 'EXPENSE', '#2563EB')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (9, 'Entertainment', 'sports_esports', 'EXPENSE', '#9333EA')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (10, 'Shopping', 'shopping_bag', 'EXPENSE', '#DB2777')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (11, 'Healthcare', 'medical_services', 'EXPENSE', '#0D9488')")
+            db.execSQL("INSERT INTO categories (id, name, iconName, type, colorHex) VALUES (12, 'Other Expense', 'more_horiz', 'EXPENSE', '#71717A')")
 
-                // Seed default account
-                dbInstance.accountDao().insertAccount(
-                    Account(
-                        name = "Cash Wallet",
-                        type = "CASH",
-                        initialBalance = 0.0,
-                        currency = "USD",
-                        iconName = "account_balance_wallet"
-                    )
-                )
+            // Default account
+            db.execSQL("INSERT INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (1, 'Cash Wallet', 'CASH', 0.0, 'USD', NULL, NULL, 'account_balance_wallet')")
 
-                // Seed default payment methods
-                dbInstance.paymentMethodDao().insertPaymentMethods(
-                    listOf(
-                        PaymentMethod(name = "Cash", isDefault = true),
-                        PaymentMethod(name = "Debit Card"),
-                        PaymentMethod(name = "Credit Card"),
-                        PaymentMethod(name = "UPI"),
-                        PaymentMethod(name = "Bank Transfer"),
-                        PaymentMethod(name = "Wallet")
-                    )
-                )
-            }
+            // Default payment methods
+            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (1, 'Cash', 1)")
+            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (2, 'Debit Card', 0)")
+            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (3, 'Credit Card', 0)")
+            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (4, 'UPI', 0)")
+            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (5, 'Bank Transfer', 0)")
+            db.execSQL("INSERT INTO payment_methods (id, name, isDefault) VALUES (6, 'Wallet', 0)")
         }
-
-        private val defaultCategories = listOf(
-            Category(id = 1, name = "Salary", iconName = "work", type = TransactionType.INCOME, colorHex = "#16A34A"),
-            Category(id = 2, name = "Investments", iconName = "trending_up", type = TransactionType.INCOME, colorHex = "#0D9488"),
-            Category(id = 3, name = "Gifts", iconName = "card_giftcard", type = TransactionType.INCOME, colorHex = "#2563EB"),
-            Category(id = 4, name = "Other Income", iconName = "more_horiz", type = TransactionType.INCOME, colorHex = "#71717A"),
-            
-            Category(id = 5, name = "Food & Groceries", iconName = "restaurant", type = TransactionType.EXPENSE, colorHex = "#DC2626"),
-            Category(id = 6, name = "Rent & Housing", iconName = "home", type = TransactionType.EXPENSE, colorHex = "#D97706"),
-            Category(id = 7, name = "Utilities", iconName = "bolt", type = TransactionType.EXPENSE, colorHex = "#EA580C"),
-            Category(id = 8, name = "Transport & Fuel", iconName = "directions_car", type = TransactionType.EXPENSE, colorHex = "#2563EB"),
-            Category(id = 9, name = "Entertainment", iconName = "sports_esports", type = TransactionType.EXPENSE, colorHex = "#9333EA"),
-            Category(id = 10, name = "Shopping", iconName = "shopping_bag", type = TransactionType.EXPENSE, colorHex = "#DB2777"),
-            Category(id = 11, name = "Healthcare", iconName = "medical_services", type = TransactionType.EXPENSE, colorHex = "#0D9488"),
-            Category(id = 12, name = "Other Expense", iconName = "more_horiz", type = TransactionType.EXPENSE, colorHex = "#71717A")
-        )
     }
 }
