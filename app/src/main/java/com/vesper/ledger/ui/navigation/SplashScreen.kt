@@ -23,7 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vesper.ledger.data.secure.AppIconManager
+import com.vesper.ledger.R
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import kotlinx.coroutines.delay
 
@@ -35,10 +35,8 @@ fun SplashScreen(
     val alpha = remember { Animatable(0f) }
     val context = LocalContext.current
 
-    // Read the active launcher icon and get its foreground drawable
     val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
-    val appIcon = sharedPrefs.getString("appIcon", "default") ?: "default"
-    val logoForegroundRes = AppIconManager.getIconForegroundRes(appIcon)
+    val logoForegroundRes = R.drawable.ic_launcher_foreground
 
     LaunchedEffect(key1 = true) {
         // 1. Entry Animation: Scale and fade in

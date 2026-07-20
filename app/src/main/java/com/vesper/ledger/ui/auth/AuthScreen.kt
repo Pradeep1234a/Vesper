@@ -237,10 +237,7 @@ fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
     onSignInClick: () -> Unit
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val sharedPrefs = context.getSharedPreferences("vesper_settings", android.content.Context.MODE_PRIVATE)
-    val appIcon = sharedPrefs.getString("appIcon", "default") ?: "default"
-    val logoForegroundRes = com.vesper.ledger.data.secure.AppIconManager.getIconForegroundRes(appIcon)
+    val logoForegroundRes = com.vesper.ledger.R.drawable.ic_launcher_foreground
     var activeDialog by remember { mutableStateOf<String?>(null) }
 
     // Dynamic Theme Colors

@@ -79,9 +79,6 @@ import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.ReceiptLong
 import kotlinx.coroutines.delay
 
-enum class FilterSheetView {
-    FILTERS, CATEGORIES
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

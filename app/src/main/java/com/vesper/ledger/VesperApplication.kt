@@ -12,7 +12,6 @@ class VesperApplication : Application() {
     private var cachedSavingsRepo: SavingsRepository? = null
     private var cachedAccountRepo: com.vesper.ledger.data.repository.AccountRepository? = null
     private var cachedBudgetRepo: com.vesper.ledger.data.repository.BudgetRepository? = null
-    private var cachedRecurringRepo: com.vesper.ledger.data.repository.RecurringTransactionRepository? = null
 
     val database: AppDatabase
         get() {
@@ -23,7 +22,6 @@ class VesperApplication : Application() {
                 cachedSavingsRepo = SavingsRepository(current.savingsDao())
                 cachedAccountRepo = com.vesper.ledger.data.repository.AccountRepository(current.accountDao(), current.paymentMethodDao())
                 cachedBudgetRepo = com.vesper.ledger.data.repository.BudgetRepository(current.budgetDao())
-                cachedRecurringRepo = com.vesper.ledger.data.repository.RecurringTransactionRepository(current.recurringTransactionDao())
             }
             return current
         }
@@ -52,11 +50,7 @@ class VesperApplication : Application() {
             return cachedBudgetRepo!!
         }
 
-    val recurringRepository: com.vesper.ledger.data.repository.RecurringTransactionRepository
-        get() {
-            database
-            return cachedRecurringRepo!!
-        }
+
 
     val updateRepository by lazy { UpdateRepository(this) }
 
@@ -66,7 +60,6 @@ class VesperApplication : Application() {
         cachedSavingsRepo = null
         cachedAccountRepo = null
         cachedBudgetRepo = null
-        cachedRecurringRepo = null
     }
 
     companion object {
