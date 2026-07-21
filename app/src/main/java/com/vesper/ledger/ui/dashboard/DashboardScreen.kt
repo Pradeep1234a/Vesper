@@ -64,7 +64,6 @@ fun DashboardScreen(
     currencySymbol: String,
     userName: String,
     onMenuClick: () -> Unit,
-    onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSavingsClick: () -> Unit
@@ -89,50 +88,7 @@ fun DashboardScreen(
         if (name.isEmpty()) "User" else name
     }
 
-    Scaffold(
-        floatingActionButton = {
-            val fabInteractionSource = remember { MutableInteractionSource() }
-            val isFabPressed by fabInteractionSource.collectIsPressedAsState()
-            val fabScale by animateFloatAsState(
-                targetValue = if (isFabPressed) 0.96f else 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                ),
-                label = "fabScale"
-            )
-
-            Box(
-                modifier = Modifier
-                    .scale(fabScale)
-                    .size(64.dp)
-                    .shadow(
-                        elevation = if (isFabPressed) 1.dp else 3.dp,
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.onBackground)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .clickable(
-                        interactionSource = fabInteractionSource,
-                        indication = rememberRipple(color = MaterialTheme.colorScheme.background),
-                        onClick = { onAddTransactionClick(null, null) }
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Transaction",
-                    tint = MaterialTheme.colorScheme.background,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-        }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -277,9 +233,7 @@ fun DashboardScreen(
                 ) {
                     // Income Card
                     ShCard(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onAddTransactionClick("INCOME", null) },
+                        modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(12.dp)
                     ) {
                         Row(
@@ -316,9 +270,7 @@ fun DashboardScreen(
 
                     // Expenses Card
                     ShCard(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onAddTransactionClick("EXPENSE", null) },
+                        modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(12.dp)
                     ) {
                         Row(
@@ -898,24 +850,7 @@ fun DashboardScreen(
                                             expanded = showMenu,
                                             onDismissRequest = { showMenu = false }
                                         ) {
-                                            DropdownMenuItem(
-                                                text = {
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(
-                                                            imageVector = Icons.Outlined.Edit,
-                                                            contentDescription = null,
-                                                            tint = MaterialTheme.colorScheme.onSurface,
-                                                            modifier = Modifier.size(18.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(8.dp))
-                                                        Text("Edit", style = MaterialTheme.typography.bodyMedium)
-                                                    }
-                                                },
-                                                onClick = {
-                                                    showMenu = false
-                                                    onAddTransactionClick(tx.type.name, tx.id)
-                                                }
-                                            )
+
                                             DropdownMenuItem(
                                                 text = {
                                                     Row(verticalAlignment = Alignment.CenterVertically) {

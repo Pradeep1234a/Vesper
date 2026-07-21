@@ -62,7 +62,6 @@ data class BottomNavItem(
 fun MainScreen(
     settingsViewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
-    onAddTransactionClick: (type: String?, id: Long?) -> Unit,
     onSavingsClick: () -> Unit,
     onCategoryManagementClick: () -> Unit,
     onSignOutClick: () -> Unit
@@ -293,7 +292,6 @@ fun MainScreen(
                         currencySymbol = currencySymbol,
                         userName = userName,
                         onMenuClick = { scope.launch { drawerState.open() } },
-                        onAddTransactionClick = onAddTransactionClick,
                         onSeeAllTransactionsClick = {
                             navController.navigate(Screen.Transactions.route) {
                                 popUpTo(Screen.Dashboard.route) { saveState = true }
@@ -324,9 +322,7 @@ fun MainScreen(
                         viewModel = transactionsViewModel,
                         currencySymbol = currencySymbol,
                         onMenuClick = { scope.launch { drawerState.open() } },
-                        onBackClick = { navController.popBackStack() },
-                        onAddTransactionClick = onAddTransactionClick,
-                        onAddCategoryClick = onCategoryManagementClick
+                        onBackClick = { navController.popBackStack() }
                     )
                 }
 

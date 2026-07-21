@@ -13,9 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.vesper.ledger.VesperApplication
-import com.vesper.ledger.ui.addtransaction.AddTransactionScreen
-import com.vesper.ledger.ui.addtransaction.AddTransactionViewModel
-import com.vesper.ledger.ui.addtransaction.AddTransactionViewModelFactory
+
 import com.vesper.ledger.ui.savings.SavingsScreen
 import com.vesper.ledger.ui.savings.SavingsViewModel
 import com.vesper.ledger.ui.savings.SavingsViewModelFactory
@@ -25,7 +23,6 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.settings.SettingsViewModelFactory
 import com.vesper.ledger.ui.category.CategoriesScreen
-import com.vesper.ledger.ui.category.AddCategoryScreen
 import com.vesper.ledger.ui.category.CategoryViewModel
 import com.vesper.ledger.ui.category.CategoryViewModelFactory
 import com.vesper.ledger.ui.auth.WelcomeScreen
@@ -51,7 +48,6 @@ fun NavGraph(
     val context = LocalContext.current
     val app = context.applicationContext as VesperApplication
 
-    val addTransactionFactory = AddTransactionViewModelFactory(app.transactionRepository, app.accountRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
     val categoryFactory = CategoryViewModelFactory(app, app.transactionRepository)
     val categoryViewModel: CategoryViewModel = viewModel(factory = categoryFactory)
@@ -78,7 +74,6 @@ fun NavGraph(
             MainScreen(
                 settingsViewModel = settingsViewModel,
                 updateViewModel = updateViewModel,
-                onAddTransactionClick = { type, id -> navController.navigate(Screen.AddTransaction.createRoute(type ?: "EXPENSE", id)) },
                 onSavingsClick = { navController.navigate(Screen.Savings.route) },
                 onCategoryManagementClick = { navController.navigate("categories") },
                 onSignOutClick = {
@@ -110,66 +105,6 @@ fun NavGraph(
         composable("categories") {
             CategoriesScreen(
                 viewModel = categoryViewModel,
-                onBackClick = { navController.popBackStack() },
-                onAddCategoryClick = { id ->
-                    if (id != null) {
-                        navController.navigate("add_category?id=$id")
-                    } else {
-                        navController.navigate("add_category")
-                    }
-                }
-            )
-        }
-
-        composable(
-            route = "add_category?id={id}",
-            arguments = listOf(
-                navArgument("id") {
-                    type = NavType.LongType
-                    defaultValue = -1L
-                }
-            )
-        ) { backStackEntry ->
-            val catId = backStackEntry.arguments?.getLong("id") ?: -1L
-            val finalId = if (catId == -1L) null else catId
-            AddCategoryScreen(
-                viewModel = categoryViewModel,
-                categoryId = finalId,
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(
-            route = Screen.AddTransaction.route,
-            arguments = listOf(
-                navArgument("type") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
-                navArgument("id") {
-                    type = NavType.LongType
-                    defaultValue = -1L
-                }
-            )
-        ) { backStackEntry ->
-            val typeStr = backStackEntry.arguments?.getString("type")
-            val txId = backStackEntry.arguments?.getLong("id") ?: -1L
-            val initialType = when (typeStr) {
-                "INCOME" -> TransactionType.INCOME
-                "EXPENSE" -> TransactionType.EXPENSE
-                else -> null
-            }
-            val addTransactionViewModel: AddTransactionViewModel = viewModel(factory = addTransactionFactory)
-            
-            // Load the transaction for editing or reset state if new
-            LaunchedEffect(txId) {
-                addTransactionViewModel.loadTransaction(txId, initialType)
-            }
-            
-            AddTransactionScreen(
-                viewModel = addTransactionViewModel,
-                currencySymbol = currencySymbol,
                 onBackClick = { navController.popBackStack() }
             )
         }
