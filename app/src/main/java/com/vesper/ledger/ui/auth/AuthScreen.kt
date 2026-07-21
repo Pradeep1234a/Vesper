@@ -470,7 +470,6 @@ fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
     onSignInClick: () -> Unit
 ) {
-    val logoForegroundRes = com.vesper.ledger.R.drawable.ic_launcher_foreground
     var activeDialog by remember { mutableStateOf<String?>(null) }
 
     var animTrigger by remember { mutableStateOf(false) }
@@ -544,7 +543,7 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top
             ) {
-                // Header (Brand Logo + Title & Accent Line)
+                // Header (Clean Brand Title & Accent Line)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -553,27 +552,16 @@ fun WelcomeScreen(
                             translationY = heroTranslationY
                         }
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                    Text(
+                        text = "Vesper Ledger",
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColorPrimary
+                        ),
                         modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-                    ) {
-                        Icon(
-                            painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
-                            contentDescription = "Vesper Brand Logo",
-                            tint = textColorPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            text = "Vesper Ledger",
-                            style = androidx.compose.ui.text.TextStyle(
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textColorPrimary
-                            )
-                        )
-                    }
+                    )
 
                     Divider(
                         color = outlineColor.copy(alpha = 0.3f),
