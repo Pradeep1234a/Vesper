@@ -254,12 +254,12 @@ private fun WelcomeBenefitCard(
     alpha: Float,
     translationY: Float
 ) {
-    val textColorPrimary = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.88f)
-    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.68f)
-    val cardBgColor = MaterialTheme.colorScheme.surface
-    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+    val textColorPrimary = MaterialTheme.colorScheme.onSurface
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+    val cardBgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.20f)
     val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.20f)
 
     Box(
         modifier = Modifier
@@ -268,11 +268,11 @@ private fun WelcomeBenefitCard(
                 this.alpha = alpha
                 this.translationY = translationY
             }
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(cardBgColor)
             .border(
                 BorderStroke(1.dp, cardBorderColor),
-                RoundedCornerShape(16.dp)
+                RoundedCornerShape(18.dp)
             )
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
@@ -281,7 +281,7 @@ private fun WelcomeBenefitCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
                     .background(iconBgColor)
                     .border(
@@ -355,8 +355,8 @@ private fun WelcomeBenefitCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp,
                         color = textColorPrimary
                     )
                 )
@@ -398,17 +398,17 @@ private fun WelcomePremiumButton(
 
     val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else Color.Transparent
     val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
-    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.6f))
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp)
+            .height(54.dp)
             .scale(scalePress)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(containerColor)
             .then(
-                if (border != null) Modifier.border(border, RoundedCornerShape(20.dp))
+                if (border != null) Modifier.border(border, RoundedCornerShape(22.dp))
                 else Modifier
             )
             .clickable(
@@ -425,7 +425,7 @@ private fun WelcomePremiumButton(
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontFamily = SpaceGroteskFamily,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     color = contentColor
                 ),
                 modifier = Modifier.align(Alignment.Center)
@@ -556,7 +556,7 @@ fun WelcomeScreen(
                         text = "Vesper Ledger",
                         style = androidx.compose.ui.text.TextStyle(
                             fontFamily = SpaceGroteskFamily,
-                            fontSize = 20.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = textColorPrimary
                         ),
@@ -564,7 +564,7 @@ fun WelcomeScreen(
                     )
 
                     Divider(
-                        color = outlineColor.copy(alpha = 0.3f),
+                        color = outlineColor.copy(alpha = 0.25f),
                         thickness = 1.dp,
                         modifier = Modifier.width(48.dp)
                     )
@@ -586,7 +586,7 @@ fun WelcomeScreen(
                         style = MaterialTheme.typography.displayLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 44.sp,
+                            fontSize = 46.sp,
                             color = textColorPrimary
                         )
                     )
@@ -603,7 +603,7 @@ fun WelcomeScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Divider(
-                        color = outlineColor.copy(alpha = 0.3f),
+                        color = outlineColor.copy(alpha = 0.25f),
                         thickness = 1.dp,
                         modifier = Modifier.width(48.dp)
                     )
@@ -652,11 +652,11 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Divider(
-                    color = outlineColor.copy(alpha = 0.2f),
+                    color = outlineColor.copy(alpha = 0.20f),
                     thickness = 1.dp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = 14.dp)
                 )
 
                 Column(
@@ -678,11 +678,11 @@ fun WelcomeScreen(
                 }
 
                 Divider(
-                    color = outlineColor.copy(alpha = 0.2f),
+                    color = outlineColor.copy(alpha = 0.20f),
                     thickness = 1.dp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 14.dp)
+                        .padding(top = 14.dp, bottom = 12.dp)
                 )
 
                 Row(
