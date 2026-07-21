@@ -642,29 +642,48 @@ fun WelcomeScreen(
                 }
             }
 
-            // Integrated Action Buttons
+            // 4. Action Buttons & Legal Links with Separator Lines
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer {
                         alpha = heroAlpha
                     },
-                verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                WelcomePremiumButton(
-                    text = "Create Account",
-                    onClick = onCreateAccountClick,
-                    isPrimary = true
+                Divider(
+                    color = outlineColor.copy(alpha = 0.2f),
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
                 )
 
-                WelcomePremiumButton(
-                    text = "Sign In",
-                    onClick = onSignInClick,
-                    isPrimary = false
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    WelcomePremiumButton(
+                        text = "Create Account",
+                        onClick = onCreateAccountClick,
+                        isPrimary = true
+                    )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                    WelcomePremiumButton(
+                        text = "Sign In",
+                        onClick = onSignInClick,
+                        isPrimary = false
+                    )
+                }
+
+                Divider(
+                    color = outlineColor.copy(alpha = 0.2f),
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, bottom = 14.dp)
+                )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -674,7 +693,7 @@ fun WelcomeScreen(
                     Text(
                         text = "Terms of Service",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.9f),
+                            color = textColorSecondary.copy(alpha = 0.8f),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
@@ -685,13 +704,13 @@ fun WelcomeScreen(
                     Text(
                         text = "   ·   ",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = outlineColor
+                            color = outlineColor.copy(alpha = 0.5f)
                         )
                     )
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.9f),
+                            color = textColorSecondary.copy(alpha = 0.8f),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
