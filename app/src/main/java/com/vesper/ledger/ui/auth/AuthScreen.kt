@@ -254,6 +254,13 @@ private fun WelcomeBenefitCard(
     alpha: Float,
     translationY: Float
 ) {
+    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val cardBgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+    val iconBgColor = textColorPrimary.copy(alpha = 0.06f)
+    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -262,9 +269,9 @@ private fun WelcomeBenefitCard(
                 this.translationY = translationY
             }
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFF0B0B0B))
+            .background(cardBgColor)
             .border(
-                BorderStroke(1.dp, Color.White.copy(alpha = 0.04f)),
+                BorderStroke(1.dp, cardBorderColor),
                 RoundedCornerShape(18.dp)
             )
             .padding(18.dp)
@@ -276,16 +283,16 @@ private fun WelcomeBenefitCard(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.05f))
+                    .background(iconBgColor)
                     .border(
-                        BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                        BorderStroke(1.dp, iconBorderColor),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
                     val stroke = 1.5.dp.toPx()
-                    val color = Color.White.copy(alpha = 0.90f)
+                    val color = textColorPrimary
 
                     when (iconType) {
                         BenefitIconType.LOCK -> {
@@ -350,7 +357,7 @@ private fun WelcomeBenefitCard(
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp,
-                        color = Color.White
+                        color = textColorPrimary
                     )
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -358,7 +365,7 @@ private fun WelcomeBenefitCard(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontSize = 13.sp,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = textColorSecondary,
                         lineHeight = 18.sp
                     )
                 )
@@ -389,9 +396,9 @@ private fun WelcomePremiumButton(
         label = "arrowOffset"
     )
 
-    val containerColor = if (isPrimary) Color(0xFFF6F5F2) else Color(0xFF0D0D0D)
-    val contentColor = if (isPrimary) Color(0xFF050505) else Color.White
-    val border = if (isPrimary) null else BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+    val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surface
+    val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
 
     Box(
         modifier = modifier
@@ -399,10 +406,8 @@ private fun WelcomePremiumButton(
             .height(56.dp)
             .scale(scalePress)
             .shadow(
-                elevation = if (isPrimary) 10.dp else 0.dp,
-                shape = RoundedCornerShape(22.dp),
-                ambientColor = Color.Black.copy(alpha = 0.18f),
-                spotColor = Color.Black.copy(alpha = 0.18f)
+                elevation = if (isPrimary) 6.dp else 0.dp,
+                shape = RoundedCornerShape(22.dp)
             )
             .clip(RoundedCornerShape(22.dp))
             .background(containerColor)
@@ -469,7 +474,6 @@ fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
     onSignInClick: () -> Unit
 ) {
-    val logoForegroundRes = com.vesper.ledger.R.drawable.ic_launcher_foreground
     var activeDialog by remember { mutableStateOf<String?>(null) }
 
     var animTrigger by remember { mutableStateOf(false) }
@@ -521,163 +525,117 @@ fun WelcomeScreen(
         label = "card3TranslationY"
     )
 
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val surfaceColor = MaterialTheme.colorScheme.surface
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF050505))
+            .background(backgroundColor)
     ) {
-        // Layer 1 Background Radial Gradient Glow
-        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-            val radius = size.width * 0.85f
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.05f),
-                        Color(0xFF101010).copy(alpha = 0.25f),
-                        Color(0xFF050505)
-                    ),
-                    center = Offset(size.width * 0.5f, size.height * 0.2f),
-                    radius = radius
-                ),
-                radius = radius,
-                center = Offset(size.width * 0.5f, size.height * 0.2f)
-            )
-
-            // Blur glow circle behind hero
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.04f),
-                        Color.Transparent
-                    ),
-                    center = Offset(size.width * 0.5f, size.height * 0.15f),
-                    radius = 280.dp.toPx()
-                ),
-                radius = 280.dp.toPx(),
-                center = Offset(size.width * 0.5f, size.height * 0.15f)
-            )
-        }
-
-        // Layer 2: Main Luxury Panel / Content Container Card
+        // Main Scrollable Content Area
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
                 .padding(horizontal = 16.dp)
-                .padding(top = 12.dp, bottom = 180.dp)
+                .padding(top = 16.dp, bottom = 180.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top
         ) {
-            Box(
+            // Header (Clean Brand Title without Logo Icon)
+            Text(
+                text = "Vesper Ledger",
+                style = androidx.compose.ui.text.TextStyle(
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColorPrimary
+                ),
+                modifier = Modifier
+                    .graphicsLayer {
+                        alpha = heroAlpha
+                        translationY = heroTranslationY
+                    }
+                    .padding(vertical = 12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Hero Section
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer {
                         alpha = heroAlpha
                         translationY = heroTranslationY
                     }
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(Color(0xFF0D0D0D))
-                    .border(
-                        BorderStroke(1.dp, Color.White.copy(alpha = 0.04f)),
-                        RoundedCornerShape(28.dp)
-                    )
-                    .padding(24.dp)
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    // Header (Brand Logo)
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
-                            contentDescription = "Vesper Brand Logo",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = "Vesper Ledger",
-                            style = androidx.compose.ui.text.TextStyle(
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Divider(
-                        color = Color.White.copy(alpha = 0.08f),
-                        thickness = 1.dp,
-                        modifier = Modifier.width(48.dp)
+                Text(
+                    text = "Welcome.",
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 50.sp,
+                        color = textColorPrimary
                     )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text(
-                        text = "Welcome.",
-                        style = MaterialTheme.typography.displayLarge.copy(
-                            fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 48.sp,
-                            color = Color.White
-                        )
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "A private space built for thoughtful money management.",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = textColorSecondary,
+                        lineHeight = 24.sp,
+                        fontSize = 16.sp
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "A private space built for thoughtful money management.",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.White.copy(alpha = 0.7f),
-                            lineHeight = 24.sp,
-                            fontSize = 16.sp
-                        )
-                    )
+                )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                    Divider(
-                        color = Color.White.copy(alpha = 0.08f),
-                        thickness = 1.dp,
-                        modifier = Modifier.width(48.dp)
-                    )
+                Divider(
+                    color = outlineColor.copy(alpha = 0.5f),
+                    thickness = 1.dp,
+                    modifier = Modifier.width(60.dp)
+                )
+            }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-                    // Benefit Cards
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        WelcomeBenefitCard(
-                            title = "Your Money. Your Rules.",
-                            description = "Your financial life stays entirely yours.",
-                            iconType = BenefitIconType.LOCK,
-                            alpha = card1Alpha,
-                            translationY = card1TranslationY
-                        )
+            // Layered Benefit Cards
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                WelcomeBenefitCard(
+                    title = "Your Money. Your Rules.",
+                    description = "Your financial life stays entirely yours.",
+                    iconType = BenefitIconType.LOCK,
+                    alpha = card1Alpha,
+                    translationY = card1TranslationY
+                )
 
-                        WelcomeBenefitCard(
-                            title = "Slow Down. Notice More.",
-                            description = "Recording each expense builds lasting awareness.",
-                            iconType = BenefitIconType.CROSSHAIR,
-                            alpha = card2Alpha,
-                            translationY = card2TranslationY
-                        )
+                WelcomeBenefitCard(
+                    title = "Slow Down. Notice More.",
+                    description = "Recording each expense builds lasting awareness.",
+                    iconType = BenefitIconType.CROSSHAIR,
+                    alpha = card2Alpha,
+                    translationY = card2TranslationY
+                )
 
-                        WelcomeBenefitCard(
-                            title = "Less Noise. More Clarity.",
-                            description = "A calm space to understand your finances.",
-                            iconType = BenefitIconType.CIRCLE,
-                            alpha = card3Alpha,
-                            translationY = card3TranslationY
-                        )
-                    }
-                }
+                WelcomeBenefitCard(
+                    title = "Less Noise. More Clarity.",
+                    description = "A calm space to understand your finances.",
+                    iconType = BenefitIconType.CIRCLE,
+                    alpha = card3Alpha,
+                    translationY = card3TranslationY
+                )
             }
         }
 
-        // Layer 3: Floating Bottom CTA Area
+        // Floating Bottom CTA Panel
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -685,14 +643,14 @@ fun WelcomeScreen(
                 .graphicsLayer {
                     alpha = heroAlpha
                 }
-                .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                .background(Color(0xFF090909))
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(surfaceColor)
                 .border(
-                    BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
-                    RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+                    BorderStroke(1.dp, outlineColor.copy(alpha = 0.2f)),
+                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                 )
                 .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -720,7 +678,7 @@ fun WelcomeScreen(
                     Text(
                         text = "Terms of Service",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color.White.copy(alpha = 0.6f),
+                            color = textColorSecondary.copy(alpha = 0.8f),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
@@ -731,13 +689,13 @@ fun WelcomeScreen(
                     Text(
                         text = "   ·   ",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color.White.copy(alpha = 0.3f)
+                            color = outlineColor
                         )
                     )
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color.White.copy(alpha = 0.6f),
+                            color = textColorSecondary.copy(alpha = 0.8f),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
