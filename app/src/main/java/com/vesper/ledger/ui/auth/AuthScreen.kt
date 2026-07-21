@@ -470,6 +470,7 @@ fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
     onSignInClick: () -> Unit
 ) {
+    val logoForegroundRes = com.vesper.ledger.R.drawable.ic_launcher_foreground
     var activeDialog by remember { mutableStateOf<String?>(null) }
 
     var animTrigger by remember { mutableStateOf(false) }
@@ -536,31 +537,54 @@ fun WelcomeScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top
             ) {
-                // Header (Subtle Brand Title)
-                Text(
-                    text = "Vesper Ledger",
-                    style = androidx.compose.ui.text.TextStyle(
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = textColorSecondary.copy(alpha = 0.70f)
-                    ),
+                // Header (Brand Logo + Title & Accent Line)
+                Column(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .graphicsLayer {
                             alpha = heroAlpha
                             translationY = heroTranslationY
                         }
-                        .padding(top = 4.dp, bottom = 16.dp)
-                )
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                    ) {
+                        Icon(
+                            painter = androidx.compose.ui.res.painterResource(id = logoForegroundRes),
+                            contentDescription = "Vesper Brand Logo",
+                            tint = textColorPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Vesper Ledger",
+                            style = androidx.compose.ui.text.TextStyle(
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textColorPrimary
+                            )
+                        )
+                    }
 
-                // Hero Section
+                    Divider(
+                        color = outlineColor.copy(alpha = 0.3f),
+                        thickness = 1.dp,
+                        modifier = Modifier.width(48.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Hero Section & Accent Line
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -587,11 +611,19 @@ fun WelcomeScreen(
                             fontSize = 15.sp
                         )
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Divider(
+                        color = outlineColor.copy(alpha = 0.3f),
+                        thickness = 1.dp,
+                        modifier = Modifier.width(48.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // High Contrast Layered Benefit Cards
+                // Layered Benefit Cards
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
