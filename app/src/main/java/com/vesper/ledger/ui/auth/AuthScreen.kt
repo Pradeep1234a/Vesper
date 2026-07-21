@@ -543,14 +543,14 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top
             ) {
-                // Header (Clean, Bright Brand Title)
+                // Header (Subtle Brand Title)
                 Text(
                     text = "Vesper Ledger",
                     style = androidx.compose.ui.text.TextStyle(
                         fontFamily = SpaceGroteskFamily,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColorPrimary
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = textColorSecondary.copy(alpha = 0.70f)
                     ),
                     modifier = Modifier
                         .graphicsLayer {
