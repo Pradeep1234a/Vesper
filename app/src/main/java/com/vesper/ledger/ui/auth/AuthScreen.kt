@@ -254,12 +254,12 @@ private fun WelcomeBenefitCard(
     alpha: Float,
     translationY: Float
 ) {
-    val textColorPrimary = MaterialTheme.colorScheme.onBackground
+    val textColorPrimary = MaterialTheme.colorScheme.onSurface
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val cardBgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
-    val iconBgColor = textColorPrimary.copy(alpha = 0.06f)
-    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+    val cardBgColor = MaterialTheme.colorScheme.surface
+    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+    val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
 
     Box(
         modifier = Modifier
@@ -268,20 +268,20 @@ private fun WelcomeBenefitCard(
                 this.alpha = alpha
                 this.translationY = translationY
             }
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(cardBgColor)
             .border(
                 BorderStroke(1.dp, cardBorderColor),
-                RoundedCornerShape(18.dp)
+                RoundedCornerShape(16.dp)
             )
-            .padding(18.dp)
+            .padding(20.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(46.dp)
                     .clip(CircleShape)
                     .background(iconBgColor)
                     .border(
@@ -291,7 +291,7 @@ private fun WelcomeBenefitCard(
                 contentAlignment = Alignment.Center
             ) {
                 androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
-                    val stroke = 1.5.dp.toPx()
+                    val stroke = 1.6.dp.toPx()
                     val color = textColorPrimary
 
                     when (iconType) {
@@ -355,12 +355,12 @@ private fun WelcomeBenefitCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
                         color = textColorPrimary
                     )
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -396,19 +396,15 @@ private fun WelcomePremiumButton(
         label = "arrowOffset"
     )
 
-    val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surface
+    val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else Color.Transparent
     val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
-    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.6f))
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
             .scale(scalePress)
-            .shadow(
-                elevation = if (isPrimary) 6.dp else 0.dp,
-                shape = RoundedCornerShape(22.dp)
-            )
             .clip(RoundedCornerShape(22.dp))
             .background(containerColor)
             .then(
@@ -529,130 +525,113 @@ fun WelcomeScreen(
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     val outlineColor = MaterialTheme.colorScheme.outline
-    val surfaceColor = MaterialTheme.colorScheme.surface
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        // Main Scrollable Content Area
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp, bottom = 180.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header (Clean Brand Title without Logo Icon)
-            Text(
-                text = "Vesper Ledger",
-                style = androidx.compose.ui.text.TextStyle(
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColorPrimary
-                ),
-                modifier = Modifier
-                    .graphicsLayer {
-                        alpha = heroAlpha
-                        translationY = heroTranslationY
-                    }
-                    .padding(vertical = 12.dp)
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.Top
+            ) {
+                // Header (Clean, Bright Brand Title without Logo Icon)
+                Text(
+                    text = "Vesper Ledger",
+                    style = androidx.compose.ui.text.TextStyle(
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColorPrimary
+                    ),
+                    modifier = Modifier
+                        .graphicsLayer {
+                            alpha = heroAlpha
+                            translationY = heroTranslationY
+                        }
+                        .padding(top = 8.dp, bottom = 24.dp)
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                // Hero Section (No horizontal line dividers)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            alpha = heroAlpha
+                            translationY = heroTranslationY
+                        }
+                ) {
+                    Text(
+                        text = "Welcome.",
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 52.sp,
+                            color = textColorPrimary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "A private space built for thoughtful money management.",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = textColorSecondary,
+                            lineHeight = 24.sp,
+                            fontSize = 16.sp
+                        )
+                    )
+                }
 
-            // Hero Section
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // High Contrast Layered Benefit Cards
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    WelcomeBenefitCard(
+                        title = "Your Money. Your Rules.",
+                        description = "Your financial life stays entirely yours.",
+                        iconType = BenefitIconType.LOCK,
+                        alpha = card1Alpha,
+                        translationY = card1TranslationY
+                    )
+
+                    WelcomeBenefitCard(
+                        title = "Slow Down. Notice More.",
+                        description = "Recording each expense builds lasting awareness.",
+                        iconType = BenefitIconType.CROSSHAIR,
+                        alpha = card2Alpha,
+                        translationY = card2TranslationY
+                    )
+
+                    WelcomeBenefitCard(
+                        title = "Less Noise. More Clarity.",
+                        description = "A calm space to understand your finances.",
+                        iconType = BenefitIconType.CIRCLE,
+                        alpha = card3Alpha,
+                        translationY = card3TranslationY
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(36.dp))
+
+            // Integrated Action Buttons (Naturally part of layout without bottom-sheet enclosure)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer {
                         alpha = heroAlpha
-                        translationY = heroTranslationY
-                    }
-            ) {
-                Text(
-                    text = "Welcome.",
-                    style = MaterialTheme.typography.displayLarge.copy(
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 50.sp,
-                        color = textColorPrimary
-                    )
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "A private space built for thoughtful money management.",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = textColorSecondary,
-                        lineHeight = 24.sp,
-                        fontSize = 16.sp
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Divider(
-                    color = outlineColor.copy(alpha = 0.5f),
-                    thickness = 1.dp,
-                    modifier = Modifier.width(60.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Layered Benefit Cards
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                WelcomeBenefitCard(
-                    title = "Your Money. Your Rules.",
-                    description = "Your financial life stays entirely yours.",
-                    iconType = BenefitIconType.LOCK,
-                    alpha = card1Alpha,
-                    translationY = card1TranslationY
-                )
-
-                WelcomeBenefitCard(
-                    title = "Slow Down. Notice More.",
-                    description = "Recording each expense builds lasting awareness.",
-                    iconType = BenefitIconType.CROSSHAIR,
-                    alpha = card2Alpha,
-                    translationY = card2TranslationY
-                )
-
-                WelcomeBenefitCard(
-                    title = "Less Noise. More Clarity.",
-                    description = "A calm space to understand your finances.",
-                    iconType = BenefitIconType.CIRCLE,
-                    alpha = card3Alpha,
-                    translationY = card3TranslationY
-                )
-            }
-        }
-
-        // Floating Bottom CTA Panel
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .graphicsLayer {
-                    alpha = heroAlpha
-                }
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(surfaceColor)
-                .border(
-                    BorderStroke(1.dp, outlineColor.copy(alpha = 0.2f)),
-                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                )
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 20.dp)
-        ) {
-            Column(
+                    },
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -668,7 +647,7 @@ fun WelcomeScreen(
                     isPrimary = false
                 )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -678,7 +657,7 @@ fun WelcomeScreen(
                     Text(
                         text = "Terms of Service",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.8f),
+                            color = textColorSecondary.copy(alpha = 0.9f),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
@@ -695,7 +674,7 @@ fun WelcomeScreen(
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.8f),
+                            color = textColorSecondary.copy(alpha = 0.9f),
                             textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
