@@ -274,14 +274,14 @@ private fun WelcomeBenefitCard(
                 BorderStroke(1.dp, cardBorderColor),
                 RoundedCornerShape(16.dp)
             )
-            .padding(20.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(46.dp)
+                    .size(42.dp)
                     .clip(CircleShape)
                     .background(iconBgColor)
                     .border(
@@ -290,8 +290,8 @@ private fun WelcomeBenefitCard(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
-                    val stroke = 1.6.dp.toPx()
+                androidx.compose.foundation.Canvas(modifier = Modifier.size(18.dp)) {
+                    val stroke = 1.5.dp.toPx()
                     val color = textColorPrimary
 
                     when (iconType) {
@@ -348,7 +348,7 @@ private fun WelcomeBenefitCard(
                 }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Column {
                 Text(
@@ -356,17 +356,17 @@ private fun WelcomeBenefitCard(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         color = textColorPrimary
                     )
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontSize = 13.sp,
                         color = textColorSecondary,
-                        lineHeight = 18.sp
+                        lineHeight = 17.sp
                     )
                 )
             }
@@ -403,12 +403,12 @@ private fun WelcomePremiumButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(52.dp)
             .scale(scalePress)
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(containerColor)
             .then(
-                if (border != null) Modifier.border(border, RoundedCornerShape(22.dp))
+                if (border != null) Modifier.border(border, RoundedCornerShape(20.dp))
                 else Modifier
             )
             .clickable(
@@ -416,7 +416,7 @@ private fun WelcomePremiumButton(
                 indication = rememberRipple(color = contentColor.copy(alpha = 0.15f)),
                 onClick = onClick
             )
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 20.dp),
         contentAlignment = Alignment.Center
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -425,7 +425,7 @@ private fun WelcomePremiumButton(
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontFamily = SpaceGroteskFamily,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     color = contentColor
                 ),
                 modifier = Modifier.align(Alignment.Center)
@@ -536,20 +536,19 @@ fun WelcomeScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top
             ) {
-                // Header (Clean, Bright Brand Title without Logo Icon)
+                // Header (Clean, Bright Brand Title)
                 Text(
                     text = "Vesper Ledger",
                     style = androidx.compose.ui.text.TextStyle(
                         fontFamily = SpaceGroteskFamily,
-                        fontSize = 24.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = textColorPrimary
                     ),
@@ -558,10 +557,10 @@ fun WelcomeScreen(
                             alpha = heroAlpha
                             translationY = heroTranslationY
                         }
-                        .padding(top = 8.dp, bottom = 24.dp)
+                        .padding(top = 4.dp, bottom = 16.dp)
                 )
 
-                // Hero Section (No horizontal line dividers)
+                // Hero Section
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -575,27 +574,27 @@ fun WelcomeScreen(
                         style = MaterialTheme.typography.displayLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 52.sp,
+                            fontSize = 44.sp,
                             color = textColorPrimary
                         )
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "A private space built for thoughtful money management.",
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = textColorSecondary,
-                            lineHeight = 24.sp,
-                            fontSize = 16.sp
+                            lineHeight = 22.sp,
+                            fontSize = 15.sp
                         )
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // High Contrast Layered Benefit Cards
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     WelcomeBenefitCard(
                         title = "Your Money. Your Rules.",
@@ -623,16 +622,14 @@ fun WelcomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(36.dp))
-
-            // Integrated Action Buttons (Naturally part of layout without bottom-sheet enclosure)
+            // Integrated Action Buttons
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer {
                         alpha = heroAlpha
                     },
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 WelcomePremiumButton(
@@ -647,7 +644,7 @@ fun WelcomeScreen(
                     isPrimary = false
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
