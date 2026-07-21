@@ -255,11 +255,11 @@ private fun WelcomeBenefitCard(
     translationY: Float
 ) {
     val textColorPrimary = MaterialTheme.colorScheme.onSurface
-    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
-    val cardBgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.20f)
-    val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.20f)
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.80f)
+    val cardBgColor = MaterialTheme.colorScheme.surface
+    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+    val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f)
+    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
 
     Box(
         modifier = Modifier
@@ -594,9 +594,9 @@ fun WelcomeScreen(
                     Text(
                         text = "A private space built for thoughtful money management.",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            color = textColorSecondary.copy(alpha = 0.75f),
-                            lineHeight = 22.sp,
-                            fontSize = 15.sp
+                            color = textColorSecondary.copy(alpha = 0.85f),
+                            lineHeight = 23.sp,
+                            fontSize = 16.sp
                         )
                     )
 
