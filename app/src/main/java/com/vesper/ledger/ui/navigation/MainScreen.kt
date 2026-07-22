@@ -244,7 +244,11 @@ fun MainScreen(
         Scaffold(
             bottomBar = {
                 if (showBottomBar) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
                         Divider(
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                             thickness = 1.dp
@@ -253,7 +257,6 @@ fun MainScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .navigationBarsPadding()
-                                .background(MaterialTheme.colorScheme.surface)
                                 .height(56.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {

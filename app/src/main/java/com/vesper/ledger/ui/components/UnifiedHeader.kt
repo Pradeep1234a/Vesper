@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 fun RootHeader(
     title: String,
     modifier: Modifier = Modifier,
+    showLogo: Boolean = false,
     onMenuClick: (() -> Unit)? = null,
     actions: @Composable (RowScope.() -> Unit)? = null
 ) {
@@ -57,13 +58,16 @@ fun RootHeader(
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
+
+        if (showLogo) {
+            DynamicLogo(
+                size = 32.dp,
+                cornerRadius = 8.dp,
+                modifier = if (onMenuClick == null) Modifier.padding(start = 16.dp) else Modifier
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+        }
         
-        DynamicLogo(
-            size = 32.dp,
-            cornerRadius = 8.dp,
-            modifier = if (onMenuClick == null) Modifier.padding(start = 16.dp) else Modifier
-        )
-        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = title,
             style = TextStyle(
@@ -75,7 +79,9 @@ fun RootHeader(
                     includeFontPadding = false
                 )
             ),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .then(if (!showLogo && onMenuClick == null) Modifier.padding(start = 16.dp) else Modifier)
         )
         
         // Right visual group: Notification (8dp gap) + Avatar (16dp end margin)

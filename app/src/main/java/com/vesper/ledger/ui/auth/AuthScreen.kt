@@ -222,10 +222,10 @@ private fun PremiumButton(
             .fillMaxWidth()
             .height(54.dp)
             .scale(scalePress)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(containerColor)
             .then(
-                if (border != null) Modifier.border(border, RoundedCornerShape(16.dp))
+                if (border != null) Modifier.border(border, RoundedCornerShape(22.dp))
                 else Modifier
             )
             .clickable(
@@ -294,11 +294,11 @@ private fun WelcomeBenefitCard(
     translationY: Float
 ) {
     val textColorPrimary = MaterialTheme.colorScheme.onSurface
-    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
-    val cardBgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-    val cardBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
-    val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-    val iconBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val cardBgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
+    val cardBorderColor = MaterialTheme.colorScheme.outlineVariant
+    val iconBgColor = MaterialTheme.colorScheme.surface
+    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
 
     Box(
         modifier = Modifier
@@ -501,7 +501,15 @@ fun WelcomeScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            RootHeader(title = "Vesper Ledger")
+            RootHeader(
+                title = "Vesper Ledger",
+                showLogo = true
+            )
+            Divider(
+                color = lineDividerColor,
+                thickness = 1.dp,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Column(
                 modifier = Modifier

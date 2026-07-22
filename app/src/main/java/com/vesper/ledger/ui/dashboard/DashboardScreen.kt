@@ -244,59 +244,8 @@ fun DashboardScreen(
                 }
             }
 
-            // Quick Actions Container Card (1x4 Grid Tiles with Uniform Rhythm)
+            // Row 1: Income & Expenses Grid
             item {
-                ShCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(16.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            text = "Quick Actions",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontSize = 13.sp,
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            QuickActionTile(
-                                label = "Add Txn",
-                                icon = Icons.Outlined.AddCircleOutline,
-                                onClick = { showAddTxnSheet = true },
-                                modifier = Modifier.weight(1f)
-                            )
-                            QuickActionTile(
-                                label = "Category",
-                                icon = Icons.Outlined.Category,
-                                onClick = { showAddCategoryDialog = true },
-                                modifier = Modifier.weight(1f)
-                            )
-                            QuickActionTile(
-                                label = "Scan Receipt",
-                                icon = Icons.Outlined.DocumentScanner,
-                                onClick = { showScanReceiptDialog = true },
-                                modifier = Modifier.weight(1f)
-                            )
-                            QuickActionTile(
-                                label = "Split Bill",
-                                icon = Icons.Outlined.CallSplit,
-                                onClick = { showSplitBillDialog = true },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-                }
-            }
-
-            item {
-                // Row 1: Income & Expenses
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -377,8 +326,8 @@ fun DashboardScreen(
                 }
             }
 
+            // Row 2: Saved & Budget Grid
             item {
-                // Row 2: Saved & Budget
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -457,6 +406,57 @@ fun DashboardScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         )
+                    }
+                }
+            }
+
+            // Quick Actions Container Card (Placed AFTER grid, size matched to Total Balance)
+            item {
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(12.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Quick Actions",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = 13.sp,
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            QuickActionTile(
+                                label = "Add Txn",
+                                icon = Icons.Outlined.AddCircleOutline,
+                                onClick = { showAddTxnSheet = true },
+                                modifier = Modifier.weight(1f)
+                            )
+                            QuickActionTile(
+                                label = "Category",
+                                icon = Icons.Outlined.Category,
+                                onClick = { showAddCategoryDialog = true },
+                                modifier = Modifier.weight(1f)
+                            )
+                            QuickActionTile(
+                                label = "Scan Receipt",
+                                icon = Icons.Outlined.DocumentScanner,
+                                onClick = { showScanReceiptDialog = true },
+                                modifier = Modifier.weight(1f)
+                            )
+                            QuickActionTile(
+                                label = "Split Bill",
+                                icon = Icons.Outlined.CallSplit,
+                                onClick = { showSplitBillDialog = true },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }

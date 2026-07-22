@@ -31,11 +31,13 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
+import com.vesper.ledger.ui.components.ChildHeader
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreen(
     viewModel: BudgetsViewModel,
-    currencySymbol: String,
+    currencySymbol: String = "$",
     onBackClick: () -> Unit
 ) {
     val budgetsWithStatus by viewModel.budgetsWithStatus.collectAsState()
@@ -58,23 +60,9 @@ fun BudgetScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Budgets",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+            ChildHeader(
+                title = "Budgets",
+                onBackClick = onBackClick
             )
         },
         floatingActionButton = {
