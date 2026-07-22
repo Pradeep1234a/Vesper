@@ -58,30 +58,25 @@ fun RootHeader(
             Spacer(modifier = Modifier.width(12.dp))
         }
         
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .weight(1f)
-                .then(if (onMenuClick == null) Modifier.padding(start = 16.dp) else Modifier)
-        ) {
-            DynamicLogo(
-                size = 28.dp,
-                cornerRadius = 7.dp
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = title,
-                style = TextStyle(
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    platformStyle = PlatformTextStyle(
-                        includeFontPadding = false
-                    )
+        DynamicLogo(
+            size = 32.dp,
+            cornerRadius = 8.dp,
+            modifier = if (onMenuClick == null) Modifier.padding(start = 16.dp) else Modifier
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = title,
+            style = TextStyle(
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = false
                 )
-            )
-        }
+            ),
+            modifier = Modifier.weight(1f)
+        )
         
         // Right visual group: Notification (8dp gap) + Avatar (16dp end margin)
         if (actions != null) {
