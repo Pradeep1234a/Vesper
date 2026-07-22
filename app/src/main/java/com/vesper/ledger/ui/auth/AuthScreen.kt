@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import com.vesper.ledger.ui.components.ChildHeader
+import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
@@ -221,10 +222,10 @@ private fun PremiumButton(
             .fillMaxWidth()
             .height(54.dp)
             .scale(scalePress)
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(containerColor)
             .then(
-                if (border != null) Modifier.border(border, RoundedCornerShape(22.dp))
+                if (border != null) Modifier.border(border, RoundedCornerShape(16.dp))
                 else Modifier
             )
             .clickable(
@@ -294,8 +295,8 @@ private fun WelcomeBenefitCard(
 ) {
     val textColorPrimary = MaterialTheme.colorScheme.onSurface
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
-    val cardBgColor = MaterialTheme.colorScheme.surface
-    val cardBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+    val cardBgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+    val cardBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
     val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
     val iconBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
 
@@ -498,55 +499,30 @@ fun WelcomeScreen(
             .background(backgroundColor)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxSize()
         ) {
+            RootHeader(title = "Vesper Ledger")
+
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Top
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Header (Clean Brand Title & Subtle Material Divider)
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            alpha = heroAlpha
-                            translationY = heroTranslationY
-                        }
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Text(
-                        text = "Vesper Ledger",
-                        style = androidx.compose.ui.text.TextStyle(
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textColorPrimary
-                        ),
-                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-                    )
-
-                    Divider(
-                        color = lineDividerColor,
-                        thickness = 1.dp,
-                        modifier = Modifier.width(48.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Hero Section & Subtle Material Divider
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            alpha = heroAlpha
-                            translationY = heroTranslationY
-                        }
-                ) {
+                    // Hero Section & Subtle Material Divider
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                alpha = heroAlpha
+                                translationY = heroTranslationY
+                            }
+                    ) {
                     Text(
                         text = "Welcome.",
                         style = MaterialTheme.typography.displayLarge.copy(
@@ -706,6 +682,7 @@ fun WelcomeScreen(
             }
         }
     }
+}
 }
 
 // ─── Screen 2: Sign In ──────────────────────────────────────────────────────
