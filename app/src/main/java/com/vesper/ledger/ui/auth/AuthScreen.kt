@@ -293,11 +293,11 @@ private fun WelcomeBenefitCard(
     translationY: Float
 ) {
     val textColorPrimary = MaterialTheme.colorScheme.onSurface
-    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
     val cardBgColor = MaterialTheme.colorScheme.surface
     val cardBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
     val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-    val iconBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+    val iconBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
 
     Box(
         modifier = Modifier
@@ -325,13 +325,13 @@ private fun WelcomeBenefitCard(
                     .clip(CircleShape)
                     .background(iconBgColor)
                     .border(
-                        BorderStroke(1.dp, iconBorderColor),
+                        BorderStroke(1.5.dp, iconBorderColor),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                androidx.compose.foundation.Canvas(modifier = Modifier.size(18.dp)) {
-                    val stroke = 1.5.dp.toPx()
+                androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
+                    val stroke = 2.dp.toPx()
                     val color = textColorPrimary
 
                     when (iconType) {
@@ -354,14 +354,14 @@ private fun WelcomeBenefitCard(
                             )
                             drawCircle(
                                 color = color,
-                                radius = 1.5.dp.toPx(),
+                                radius = 2.dp.toPx(),
                                 center = Offset(size.width * 0.5f, size.height * 0.65f)
                             )
                         }
                         BenefitIconType.CROSSHAIR -> {
                             drawCircle(
                                 color = color,
-                                radius = 2.dp.toPx(),
+                                radius = 2.5.dp.toPx(),
                                 center = Offset(size.width * 0.5f, size.height * 0.5f)
                             )
                             drawCircle(
@@ -370,7 +370,7 @@ private fun WelcomeBenefitCard(
                                 center = Offset(size.width * 0.5f, size.height * 0.5f),
                                 style = Stroke(width = stroke)
                             )
-                            val tick = 3.dp.toPx()
+                            val tick = 3.5.dp.toPx()
                             drawLine(color, Offset(size.width * 0.5f, 0f), Offset(size.width * 0.5f, tick), stroke)
                             drawLine(color, Offset(size.width * 0.5f, size.height), Offset(size.width * 0.5f, size.height - tick), stroke)
                             drawLine(color, Offset(0f, size.height * 0.5f), Offset(tick, size.height * 0.5f), stroke)
@@ -421,86 +421,12 @@ private fun WelcomePremiumButton(
     isPrimary: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scalePress by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1.0f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "pressScale"
-    )
-
-    val arrowOffset by animateDpAsState(
-        targetValue = if (isPressed) 4.dp else 0.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "arrowOffset"
-    )
-
-    val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surface
-    val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
-    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f))
-
-    Box(
+    PremiumButton(
+        text = text,
+        onClick = onClick,
+        isPrimary = isPrimary,
         modifier = modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .scale(scalePress)
-            .clip(RoundedCornerShape(22.dp))
-            .background(containerColor)
-            .then(
-                if (border != null) Modifier.border(border, RoundedCornerShape(22.dp))
-                else Modifier
-            )
-            .clickable(
-                interactionSource = interactionSource,
-                indication = rememberRipple(color = contentColor.copy(alpha = 0.15f)),
-                onClick = onClick
-            )
-            .padding(horizontal = 20.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = contentColor
-                ),
-                modifier = Modifier.align(Alignment.Center)
-            )
-
-            androidx.compose.foundation.Canvas(
-                modifier = Modifier
-                    .size(16.dp)
-                    .offset(x = arrowOffset)
-                    .align(Alignment.CenterEnd)
-            ) {
-                val strokeWidth = 1.5.dp.toPx()
-                val color = contentColor
-
-                drawLine(
-                    color = color,
-                    start = Offset(0f, size.height / 2),
-                    end = Offset(size.width, size.height / 2),
-                    strokeWidth = strokeWidth
-                )
-                drawLine(
-                    color = color,
-                    start = Offset(size.width - size.height / 3, size.height / 2 - size.height / 3),
-                    end = Offset(size.width, size.height / 2),
-                    strokeWidth = strokeWidth
-                )
-                drawLine(
-                    color = color,
-                    start = Offset(size.width - size.height / 3, size.height / 2 + size.height / 3),
-                    end = Offset(size.width, size.height / 2),
-                    strokeWidth = strokeWidth
-                )
-            }
-        }
-    }
+    )
 }
 
 // ─── Screen 1: Welcome ──────────────────────────────────────────────────────
@@ -862,7 +788,7 @@ fun SignInScreen(
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
                                         .border(
-                                            BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                            BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)),
                                             CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
@@ -1099,7 +1025,7 @@ fun CreateAccountScreen(
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
                                         .border(
-                                            BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                            BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)),
                                             CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
@@ -1412,7 +1338,7 @@ fun ForgotPasswordScreen(
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
                                         .border(
-                                            BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                            BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)),
                                             CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
