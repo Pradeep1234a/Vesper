@@ -99,6 +99,41 @@ class DashboardViewModel(
             transactionRepository.deleteTransaction(transaction)
         }
     }
+
+    fun addTransaction(
+        title: String,
+        amount: Double,
+        type: TransactionType,
+        categoryId: Long,
+        accountName: String,
+        note: String
+    ) {
+        viewModelScope.launch {
+            val newTx = Transaction(
+                title = title.ifBlank { if (type == TransactionType.INCOME) "Income" else "Expense" },
+                amount = amount,
+                type = type,
+                categoryId = categoryId,
+                accountId = 1L,
+                accountName = accountName.ifBlank { "Cash / Wallet" },
+                dateEpochMillis = System.currentTimeMillis(),
+                note = note
+            )
+            transactionRepository.insertTransaction(newTx)
+        }
+    }
+
+    fun addCategory(name: String, iconName: String, colorHex: String, type: TransactionType = TransactionType.EXPENSE) {
+        viewModelScope.launch {
+            val newCat = Category(
+                name = name,
+                iconName = iconName,
+                type = type,
+                colorHex = colorHex
+            )
+            transactionRepository.insertCategory(newCat)
+        }
+    }
 }
 
 class DashboardViewModelFactory(
