@@ -59,6 +59,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.vesper.ledger.data.receipt.ScannedReceipt
+import com.vesper.ledger.data.receipt.ReceiptOcrEngine
+import com.vesper.ledger.ui.receipt.ReceiptCaptureScreen
+import com.vesper.ledger.ui.receipt.ReceiptProcessingScreen
+import com.vesper.ledger.ui.receipt.ReceiptReviewStudioScreen
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.RootHeader
@@ -978,15 +986,71 @@ fun DashboardScreen(
         }
 
         if (showScanReceiptDialog) {
-            DashboardScanReceiptDialog(
-                currencySymbol = currencySymbol,
+            var scannerStep by remember { mutableStateOf("capture") } // "capture", "processing", "review"
+            var scannedReceiptData by remember { mutableStateOf<ScannedReceipt?>(null) }
+            val coroutineScope = rememberCoroutineScope()
+
+            Dialog(
                 onDismissRequest = { showScanReceiptDialog = false },
-                onImportReceipt = { merchant, amt ->
-                    val defaultCatId = uiState.categories.firstOrNull()?.id ?: 1L
-                    viewModel.addTransaction(merchant, amt, TransactionType.EXPENSE, defaultCatId, "Cash", "Scanned Receipt")
-                    Toast.makeText(context, "Receipt imported to ledger!", Toast.LENGTH_SHORT).show()
+                properties = androidx.compose.ui.window.DialogProperties(
+                    usePlatformDefaultWidth = false,
+                    decorFitsSystemWindows = false
+                )
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (scannerStep) {
+                        "capture" -> {
+                            ReceiptCaptureScreen(
+                                onBackClick = { showScanReceiptDialog = false },
+                                onImageSelected = { selectedUri ->
+                                    scannerStep = "processing"
+                                    coroutineScope.launch {
+                                        val processed = ReceiptOcrEngine.processReceiptImage(context, selectedUri)
+                                        scannedReceiptData = processed
+                                    }
+                                }
+                            )
+                        }
+                        "processing" -> {
+                            ReceiptProcessingScreen(
+                                onProcessingFinished = {
+                                    if (scannedReceiptData == null) {
+                                        scannedReceiptData = ReceiptOcrEngine.fallbackSampleReceipt("sample_receipt.png")
+                                    }
+                                    scannerStep = "review"
+                                }
+                            )
+                        }
+                        "review" -> {
+                            val receiptToReview = scannedReceiptData ?: ReceiptOcrEngine.fallbackSampleReceipt("sample.png")
+                            ReceiptReviewStudioScreen(
+                                scannedReceipt = receiptToReview,
+                                onBackClick = { scannerStep = "capture" },
+                                onCommitTransactions = { committedReceipt ->
+                                    val categoriesMap = uiState.categories.associateBy { it.name.lowercase().trim() }
+                                    val defaultCatId = uiState.categories.firstOrNull()?.id ?: 1L
+
+                                    // Commit each category group as an independent, linked transaction
+                                    committedReceipt.categorizedGroups.forEach { group ->
+                                        val catId = categoriesMap[group.categoryName.lowercase().trim()]?.id ?: defaultCatId
+                                        viewModel.addTransaction(
+                                            title = "${committedReceipt.merchantName} (${group.categoryName})",
+                                            amount = group.finalTotal,
+                                            type = TransactionType.EXPENSE,
+                                            categoryId = catId,
+                                            paymentMethod = committedReceipt.paymentMethod,
+                                            note = "Receipt ${committedReceipt.receiptNumber} • ${group.items.size} items: ${group.items.joinToString { it.name }}"
+                                        )
+                                    }
+
+                                    showScanReceiptDialog = false
+                                    Toast.makeText(context, "${committedReceipt.categorizedGroups.size} category transactions saved to ledger!", Toast.LENGTH_LONG).show()
+                                }
+                            )
+                        }
+                    }
                 }
-            )
+            }
         }
 
         if (showSplitBillDialog) {
