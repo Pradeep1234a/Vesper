@@ -197,9 +197,9 @@ private fun PremiumButton(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
 
-    val containerColor = if (isPrimary) textColorPrimary else Color.Transparent
+    val containerColor = if (isPrimary) textColorPrimary else MaterialTheme.colorScheme.surface
     val contentColor = if (isPrimary) backgroundColor else textColorPrimary
-    val border = if (isPrimary) null else BorderStroke(1.dp, textColorPrimary.copy(alpha = 0.35f))
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f))
 
     Box(
         modifier = modifier
@@ -421,9 +421,9 @@ private fun WelcomePremiumButton(
         label = "arrowOffset"
     )
 
-    val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else Color.Transparent
+    val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surface
     val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
-    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.35f))
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f))
 
     Box(
         modifier = modifier
