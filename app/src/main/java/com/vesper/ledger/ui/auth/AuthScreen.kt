@@ -12,12 +12,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
@@ -76,6 +80,7 @@ private fun AuthTextField(
     label: String,
     modifier: Modifier = Modifier,
     placeholder: String = "",
+    leadingIcon: ImageVector? = null,
     isPassword: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
@@ -129,6 +134,16 @@ private fun AuthTextField(
                 onNext = { onImeAction() },
                 onDone = { onImeAction() }
             ),
+            leadingIcon = if (leadingIcon != null) {
+                {
+                    Icon(
+                        imageVector = leadingIcon,
+                        contentDescription = null,
+                        tint = textColorSecondary.copy(alpha = 0.7f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            } else null,
             trailingIcon = if (isPassword) {
                 {
                     Icon(
@@ -287,7 +302,7 @@ private fun WelcomeBenefitCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(76.dp)
+            .defaultMinSize(minHeight = 76.dp)
             .graphicsLayer {
                 this.alpha = alpha
                 this.translationY = translationY
@@ -298,7 +313,7 @@ private fun WelcomeBenefitCard(
                 BorderStroke(1.dp, cardBorderColor),
                 RoundedCornerShape(18.dp)
             )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -803,41 +818,11 @@ fun SignInScreen(
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
-                title = "Vesper Ledger",
+                title = "Sign In",
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Hero Section: Serif Title & Subtle Divider
-            Text(
-                text = "Sign In.",
-                style = MaterialTheme.typography.displayLarge.copy(
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 42.sp,
-                    color = textColorPrimary
-                )
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Welcome back. Sign in to access your private financial ledger.",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = textColorSecondary.copy(alpha = 0.75f),
-                    lineHeight = 22.sp,
-                    fontSize = 15.sp
-                )
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Divider(
-                color = borderDividerColor,
-                thickness = 1.dp,
-                modifier = Modifier.width(48.dp)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (errorMessage != null) {
                 Text(
@@ -850,7 +835,7 @@ fun SignInScreen(
                 )
             }
 
-            // Elevated Card Panel
+            // Elevated Card Panel matching Image 1 mockup
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -860,14 +845,64 @@ fun SignInScreen(
                         BorderStroke(1.dp, borderDividerColor),
                         RoundedCornerShape(18.dp)
                     )
-                    .padding(horizontal = 18.dp, vertical = 18.dp)
+                    .padding(horizontal = 18.dp, vertical = 20.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
+                    // Card Header with Circular Icon
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                .border(
+                                    BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = textColorPrimary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column {
+                            Text(
+                                text = "Welcome Back",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    color = textColorPrimary
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Sign in to continue managing your finances.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontSize = 13.sp,
+                                    color = textColorSecondary.copy(alpha = 0.75f),
+                                    lineHeight = 17.sp
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     AuthTextField(
                         value = email,
                         onValueChange = { email = it },
                         label = "Email Address",
                         placeholder = "you@example.com",
+                        leadingIcon = Icons.Outlined.Email,
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next,
                         onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
@@ -881,6 +916,7 @@ fun SignInScreen(
                         onValueChange = { password = it },
                         label = "Password",
                         placeholder = "••••••••",
+                        leadingIcon = Icons.Outlined.Lock,
                         isPassword = true,
                         imeAction = ImeAction.Done,
                         onImeAction = { focusManager.clearFocus() },
@@ -1013,41 +1049,11 @@ fun CreateAccountScreen(
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
-                title = "Vesper Ledger",
+                title = "Create Account",
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Hero Section: Serif Title & Subtle Divider
-            Text(
-                text = "Create Account.",
-                style = MaterialTheme.typography.displayLarge.copy(
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 38.sp,
-                    color = textColorPrimary
-                )
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Start managing your finances with privacy, awareness, and clarity.",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = textColorSecondary.copy(alpha = 0.75f),
-                    lineHeight = 22.sp,
-                    fontSize = 15.sp
-                )
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Divider(
-                color = borderDividerColor,
-                thickness = 1.dp,
-                modifier = Modifier.width(48.dp)
-            )
-
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (errorMessage != null) {
                 Text(
@@ -1060,7 +1066,7 @@ fun CreateAccountScreen(
                 )
             }
 
-            // Elevated Card Panel
+            // Elevated Card Panel matching Image 1 mockup
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1070,14 +1076,64 @@ fun CreateAccountScreen(
                         BorderStroke(1.dp, borderDividerColor),
                         RoundedCornerShape(18.dp)
                     )
-                    .padding(horizontal = 18.dp, vertical = 16.dp)
+                    .padding(horizontal = 18.dp, vertical = 20.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
+                    // Card Header with Circular Icon
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                .border(
+                                    BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = textColorPrimary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column {
+                            Text(
+                                text = "Get Started",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    color = textColorPrimary
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Create your secure Vesper Ledger account.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontSize = 13.sp,
+                                    color = textColorSecondary.copy(alpha = 0.75f),
+                                    lineHeight = 17.sp
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     AuthTextField(
                         value = fullName,
                         onValueChange = { fullName = it },
                         label = "Full Name",
                         placeholder = "e.g. John Doe",
+                        leadingIcon = Icons.Outlined.Person,
                         imeAction = ImeAction.Next,
                         onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
                         errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter first and last name (letters only)." else null
@@ -1090,6 +1146,7 @@ fun CreateAccountScreen(
                         onValueChange = { email = it },
                         label = "Email Address",
                         placeholder = "you@example.com",
+                        leadingIcon = Icons.Outlined.Email,
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next,
                         onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
@@ -1103,6 +1160,7 @@ fun CreateAccountScreen(
                         onValueChange = { password = it },
                         label = "Password",
                         placeholder = "Min 8 chars, letter & number",
+                        leadingIcon = Icons.Outlined.Lock,
                         isPassword = true,
                         imeAction = ImeAction.Next,
                         onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
@@ -1116,6 +1174,7 @@ fun CreateAccountScreen(
                         onValueChange = { confirmPassword = it },
                         label = "Confirm Password",
                         placeholder = "••••••••",
+                        leadingIcon = Icons.Outlined.Lock,
                         isPassword = true,
                         imeAction = ImeAction.Done,
                         onImeAction = { focusManager.clearFocus() },
@@ -1297,41 +1356,11 @@ fun ForgotPasswordScreen(
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
-                title = "Vesper Ledger",
+                title = "Reset Password",
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Hero Section: Serif Title & Subtle Divider
-            Text(
-                text = "Reset Password.",
-                style = MaterialTheme.typography.displayLarge.copy(
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 38.sp,
-                    color = textColorPrimary
-                )
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Enter your account email and a new password to recover access.",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = textColorSecondary.copy(alpha = 0.75f),
-                    lineHeight = 22.sp,
-                    fontSize = 15.sp
-                )
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Divider(
-                color = borderDividerColor,
-                thickness = 1.dp,
-                modifier = Modifier.width(48.dp)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (statusMessage != null) {
                 Text(
@@ -1344,7 +1373,7 @@ fun ForgotPasswordScreen(
                 )
             }
 
-            // Elevated Card Panel
+            // Elevated Card Panel matching Image 1 mockup exactly
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1354,14 +1383,64 @@ fun ForgotPasswordScreen(
                         BorderStroke(1.dp, borderDividerColor),
                         RoundedCornerShape(18.dp)
                     )
-                    .padding(horizontal = 18.dp, vertical = 18.dp)
+                    .padding(horizontal = 18.dp, vertical = 20.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
+                    // Card Header with Circular Icon matching Image 1 mockup
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                .border(
+                                    BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = textColorPrimary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column {
+                            Text(
+                                text = "Reset Password",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    color = textColorPrimary
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Enter your email address and a new password to reset your login credentials.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontSize = 13.sp,
+                                    color = textColorSecondary.copy(alpha = 0.75f),
+                                    lineHeight = 17.sp
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     AuthTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = "Account Email",
+                        label = "Email Address",
                         placeholder = "you@example.com",
+                        leadingIcon = Icons.Outlined.Email,
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next,
                         onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
@@ -1375,6 +1454,7 @@ fun ForgotPasswordScreen(
                         onValueChange = { newPassword = it },
                         label = "New Password",
                         placeholder = "Min 8 chars, letter & number",
+                        leadingIcon = Icons.Outlined.Lock,
                         isPassword = true,
                         imeAction = ImeAction.Done,
                         onImeAction = { focusManager.clearFocus() },
