@@ -281,191 +281,217 @@ private fun PremiumButton(
     }
 }
 
-// ─── Artistic Line-Art Canvas Illustrations ─────────────────────────────────
+// ─── Welcome Screen Premium Composables ───────────────────────────────────────
+
+private enum class BenefitIconType { LOCK, CROSSHAIR, CIRCLE }
 
 @Composable
-private fun TakeControlIllustration(color: Color, modifier: Modifier = Modifier) {
-    androidx.compose.foundation.Canvas(modifier = modifier) {
-        val stroke = 2.dp.toPx()
-        val w = size.width
-        val h = size.height
+private fun WelcomeBenefitCard(
+    title: String,
+    description: String,
+    iconType: BenefitIconType,
+    alpha: Float,
+    translationY: Float
+) {
+    val textColorPrimary = MaterialTheme.colorScheme.onSurface
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+    val cardBgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+    val cardBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+    val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+    val iconBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
 
-        // Figure torso / arm pointing up
-        val path = androidx.compose.ui.graphics.Path().apply {
-            // Head
-            addOval(androidx.compose.ui.geometry.Rect(w * 0.42f, h * 0.22f, w * 0.58f, h * 0.42f))
-            // Body
-            moveTo(w * 0.5f, h * 0.42f)
-            lineTo(w * 0.5f, h * 0.72f)
-            // Left arm pointing up
-            moveTo(w * 0.5f, h * 0.52f)
-            lineTo(w * 0.35f, h * 0.35f)
-            lineTo(w * 0.35f, h * 0.15f)
-            // Right arm extended
-            moveTo(w * 0.5f, h * 0.52f)
-            lineTo(w * 0.65f, h * 0.60f)
-            lineTo(w * 0.78f, h * 0.55f)
-            // Tie accent
-            moveTo(w * 0.5f, h * 0.45f)
-            lineTo(w * 0.48f, h * 0.62f)
-            lineTo(w * 0.52f, h * 0.62f)
-            close()
-        }
-        drawPath(path, color = color, style = Stroke(width = stroke))
-
-        // Outer control arcs / rings
-        drawArc(
-            color = color,
-            startAngle = 140f,
-            sweepAngle = 260f,
-            useCenter = false,
-            topLeft = Offset(w * 0.15f, h * 0.08f),
-            size = Size(w * 0.7f, h * 0.75f),
-            style = Stroke(width = stroke)
-        )
-        drawArc(
-            color = color.copy(alpha = 0.5f),
-            startAngle = 170f,
-            sweepAngle = 220f,
-            useCenter = false,
-            topLeft = Offset(w * 0.08f, h * 0.02f),
-            size = Size(w * 0.84f, h * 0.88f),
-            style = Stroke(width = stroke * 0.75f)
-        )
-        drawCircle(color, radius = 3.dp.toPx(), center = Offset(w * 0.35f, h * 0.12f))
-    }
-}
-
-@Composable
-private fun LogicCreativeIllustration(color: Color, modifier: Modifier = Modifier) {
-    androidx.compose.foundation.Canvas(modifier = modifier) {
-        val stroke = 2.dp.toPx()
-        val w = size.width
-        val h = size.height
-
-        // Abstract face contour
-        val facePath = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.45f, h * 0.1f)
-            lineTo(w * 0.75f, h * 0.1f)
-            lineTo(w * 0.75f, h * 0.45f)
-            lineTo(w * 0.55f, h * 0.45f)
-            lineTo(w * 0.55f, h * 0.75f)
-            lineTo(w * 0.35f, h * 0.75f)
-            lineTo(w * 0.35f, h * 0.3f)
-            close()
-        }
-        drawPath(facePath, color = color, style = Stroke(width = stroke))
-
-        // Eye detail top right
-        drawOval(
-            color = color,
-            topLeft = Offset(w * 0.58f, h * 0.20f),
-            size = Size(w * 0.22f, h * 0.12f),
-            style = Stroke(width = stroke)
-        )
-        drawCircle(color, radius = 3.dp.toPx(), center = Offset(w * 0.69f, h * 0.26f))
-
-        // Ear detail left
-        drawArc(
-            color = color,
-            startAngle = 90f,
-            sweepAngle = 180f,
-            useCenter = false,
-            topLeft = Offset(w * 0.24f, h * 0.32f),
-            size = Size(w * 0.14f, h * 0.22f),
-            style = Stroke(width = stroke)
-        )
-        drawCircle(color, radius = 2.dp.toPx(), center = Offset(w * 0.28f, h * 0.52f))
-
-        // Fish / Creative motif bottom
-        drawArc(
-            color = color,
-            startAngle = 0f,
-            sweepAngle = 360f,
-            useCenter = false,
-            topLeft = Offset(w * 0.42f, h * 0.62f),
-            size = Size(w * 0.28f, h * 0.16f),
-            style = Stroke(width = stroke)
-        )
-        drawLine(color, Offset(w * 0.70f, h * 0.66f), Offset(w * 0.80f, h * 0.60f), stroke)
-        drawLine(color, Offset(w * 0.70f, h * 0.74f), Offset(w * 0.80f, h * 0.80f), stroke)
-        drawLine(color, Offset(w * 0.80f, h * 0.60f), Offset(w * 0.80f, h * 0.80f), stroke)
-    }
-}
-
-@Composable
-private fun SteadyRaceIllustration(color: Color, modifier: Modifier = Modifier) {
-    androidx.compose.foundation.Canvas(modifier = modifier) {
-        val stroke = 2.dp.toPx()
-        val w = size.width
-        val h = size.height
-
-        // S-shaped winding road path
-        val path = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.15f, h * 0.85f)
-            cubicTo(
-                w * 0.85f, h * 0.85f,
-                w * 0.85f, h * 0.55f,
-                w * 0.50f, h * 0.55f
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 76.dp)
+            .graphicsLayer {
+                this.alpha = alpha
+                this.translationY = translationY
+            }
+            .clip(RoundedCornerShape(18.dp))
+            .background(cardBgColor)
+            .border(
+                BorderStroke(1.dp, cardBorderColor),
+                RoundedCornerShape(18.dp)
             )
-            cubicTo(
-                w * 0.15f, h * 0.55f,
-                w * 0.15f, h * 0.25f,
-                w * 0.75f, h * 0.25f
-            )
-        }
-        drawPath(path, color = color, style = Stroke(width = stroke))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(iconBgColor)
+                    .border(
+                        BorderStroke(1.5.dp, iconBorderColor),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.foundation.Canvas(modifier = Modifier.size(20.dp)) {
+                    val stroke = 2.dp.toPx()
+                    val color = textColorPrimary
 
-        // Finish flag top right
-        drawLine(color, Offset(w * 0.75f, h * 0.25f), Offset(w * 0.75f, h * 0.08f), stroke)
-        val flagPath = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.75f, h * 0.08f)
-            lineTo(w * 0.90f, h * 0.13f)
-            lineTo(w * 0.75f, h * 0.18f)
-            close()
-        }
-        drawPath(flagPath, color = color, style = Stroke(width = stroke))
+                    when (iconType) {
+                        BenefitIconType.LOCK -> {
+                            drawArc(
+                                color = color,
+                                startAngle = 180f,
+                                sweepAngle = 180f,
+                                useCenter = false,
+                                style = Stroke(width = stroke),
+                                topLeft = Offset(size.width * 0.25f, size.height * 0.15f),
+                                size = Size(size.width * 0.5f, size.height * 0.5f)
+                            )
+                            drawRoundRect(
+                                color = color,
+                                topLeft = Offset(size.width * 0.15f, size.height * 0.45f),
+                                size = Size(size.width * 0.7f, size.height * 0.45f),
+                                cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx()),
+                                style = Stroke(width = stroke)
+                            )
+                            drawCircle(
+                                color = color,
+                                radius = 2.dp.toPx(),
+                                center = Offset(size.width * 0.5f, size.height * 0.65f)
+                            )
+                        }
+                        BenefitIconType.CROSSHAIR -> {
+                            drawCircle(
+                                color = color,
+                                radius = 2.5.dp.toPx(),
+                                center = Offset(size.width * 0.5f, size.height * 0.5f)
+                            )
+                            drawCircle(
+                                color = color,
+                                radius = size.width * 0.35f,
+                                center = Offset(size.width * 0.5f, size.height * 0.5f),
+                                style = Stroke(width = stroke)
+                            )
+                            val tick = 3.5.dp.toPx()
+                            drawLine(color, Offset(size.width * 0.5f, 0f), Offset(size.width * 0.5f, tick), stroke)
+                            drawLine(color, Offset(size.width * 0.5f, size.height), Offset(size.width * 0.5f, size.height - tick), stroke)
+                            drawLine(color, Offset(0f, size.height * 0.5f), Offset(tick, size.height * 0.5f), stroke)
+                            drawLine(color, Offset(size.width, size.height * 0.5f), Offset(size.width - tick, size.height * 0.5f), stroke)
+                        }
+                        BenefitIconType.CIRCLE -> {
+                            drawCircle(
+                                color = color,
+                                radius = size.width * 0.4f,
+                                center = Offset(size.width * 0.5f, size.height * 0.5f),
+                                style = Stroke(width = stroke)
+                            )
+                        }
+                    }
+                }
+            }
 
-        // Snail / steady figure on path
-        drawCircle(color, radius = 5.dp.toPx(), center = Offset(w * 0.45f, h * 0.55f))
-        drawArc(
-            color = color,
-            startAngle = 180f,
-            sweepAngle = 180f,
-            useCenter = false,
-            topLeft = Offset(w * 0.38f, h * 0.45f),
-            size = Size(w * 0.14f, h * 0.20f),
-            style = Stroke(width = stroke)
-        )
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 15.sp,
+                        color = textColorPrimary
+                    )
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 13.sp,
+                        color = textColorSecondary,
+                        lineHeight = 17.sp
+                    )
+                )
+            }
+        }
     }
 }
 
-// ─── Screen 1: Welcome / Onboarding ──────────────────────────────────────────
+@Composable
+private fun WelcomePremiumButton(
+    text: String,
+    onClick: () -> Unit,
+    isPrimary: Boolean,
+    modifier: Modifier = Modifier
+) {
+    PremiumButton(
+        text = text,
+        onClick = onClick,
+        isPrimary = isPrimary,
+        modifier = modifier
+    )
+}
+
+// ─── Screen 1: Welcome ──────────────────────────────────────────────────────
 
 @Composable
 fun WelcomeScreen(
     onCreateAccountClick: () -> Unit,
     onSignInClick: () -> Unit
 ) {
-    var currentPage by remember { mutableIntStateOf(0) }
     var activeDialog by remember { mutableStateOf<String?>(null) }
+
+    var animTrigger by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        animTrigger = true
+    }
+
+    val heroAlpha by animateFloatAsState(
+        targetValue = if (animTrigger) 1f else 0f,
+        animationSpec = tween(durationMillis = 450, easing = LinearOutSlowInEasing),
+        label = "heroAlpha"
+    )
+    val heroTranslationY by animateFloatAsState(
+        targetValue = if (animTrigger) 0f else 20f,
+        animationSpec = tween(durationMillis = 450, easing = LinearOutSlowInEasing),
+        label = "heroTranslationY"
+    )
+
+    val card1Alpha by animateFloatAsState(
+        targetValue = if (animTrigger) 1f else 0f,
+        animationSpec = tween(durationMillis = 400, delayMillis = 100, easing = LinearOutSlowInEasing),
+        label = "card1Alpha"
+    )
+    val card1TranslationY by animateFloatAsState(
+        targetValue = if (animTrigger) 0f else 24f,
+        animationSpec = tween(durationMillis = 400, delayMillis = 100, easing = LinearOutSlowInEasing),
+        label = "card1TranslationY"
+    )
+
+    val card2Alpha by animateFloatAsState(
+        targetValue = if (animTrigger) 1f else 0f,
+        animationSpec = tween(durationMillis = 400, delayMillis = 140, easing = LinearOutSlowInEasing),
+        label = "card2Alpha"
+    )
+    val card2TranslationY by animateFloatAsState(
+        targetValue = if (animTrigger) 0f else 24f,
+        animationSpec = tween(durationMillis = 400, delayMillis = 140, easing = LinearOutSlowInEasing),
+        label = "card2TranslationY"
+    )
+
+    val card3Alpha by animateFloatAsState(
+        targetValue = if (animTrigger) 1f else 0f,
+        animationSpec = tween(durationMillis = 400, delayMillis = 180, easing = LinearOutSlowInEasing),
+        label = "card3Alpha"
+    )
+    val card3TranslationY by animateFloatAsState(
+        targetValue = if (animTrigger) 0f else 24f,
+        animationSpec = tween(durationMillis = 400, delayMillis = 180, easing = LinearOutSlowInEasing),
+        label = "card3TranslationY"
+    )
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     val lineDividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
-
-    val pageTitles = listOf(
-        "Be the first to take control",
-        "Be logical and creative at the same time",
-        "Slow and steady wins the race"
-    )
-
-    val pageDescriptions = listOf(
-        "Discover your financial potential and take full custody of your records with local-first offline encryption.",
-        "Track spending trends, net worth, and monthly budgets with structured clarity and modern minimalism.",
-        "Build long-term financial discipline with offline privacy and zero third-party telemetry."
-    )
 
     Box(
         modifier = Modifier
@@ -475,211 +501,168 @@ fun WelcomeScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            RootHeader(
-                title = "Vesper Ledger",
-                actions = {
-                    if (currentPage < 2) {
-                        Text(
-                            text = "Skip",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.SemiBold,
-                                color = textColorSecondary,
-                                fontSize = 14.sp
-                            ),
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { currentPage = 2 }
-                        )
-                    }
-                }
-            )
+            RootHeader(title = "Vesper Ledger")
 
-            Box(
+            Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    // Upper Half: Artistic Line-Art Canvas Illustration
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1.2f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        when (currentPage) {
-                            0 -> TakeControlIllustration(
-                                color = textColorPrimary,
-                                modifier = Modifier.size(240.dp)
-                            )
-                            1 -> LogicCreativeIllustration(
-                                color = textColorPrimary,
-                                modifier = Modifier.size(240.dp)
-                            )
-                            2 -> SteadyRaceIllustration(
-                                color = textColorPrimary,
-                                modifier = Modifier.size(240.dp)
-                            )
-                        }
-                    }
-
-                    // Middle Section: Headline & Body Text
+                    // Hero Section & Subtle Material Divider
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(0.8f),
-                        verticalArrangement = Arrangement.Top
+                            .graphicsLayer {
+                                alpha = heroAlpha
+                                translationY = heroTranslationY
+                            }
                     ) {
-                        Text(
-                            text = pageTitles[currentPage],
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontFamily = FontFamily.Serif,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 26.sp,
-                                lineHeight = 32.sp,
-                                color = textColorPrimary
-                            )
+                    Text(
+                        text = "Welcome.",
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 44.sp,
+                            color = textColorPrimary
                         )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Text(
-                            text = pageDescriptions[currentPage],
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontSize = 14.sp,
-                                color = textColorSecondary.copy(alpha = 0.85f),
-                                lineHeight = 20.sp
-                            )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "A private space built for thoughtful money management.",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = textColorSecondary.copy(alpha = 0.75f),
+                            lineHeight = 23.sp,
+                            fontSize = 15.sp
                         )
-                    }
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Divider(
+                        color = lineDividerColor,
+                        thickness = 1.dp,
+                        modifier = Modifier.width(48.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Strict Uniform Layered Benefit Cards
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    WelcomeBenefitCard(
+                        title = "Your Money. Your Rules.",
+                        description = "Your financial life stays entirely yours.",
+                        iconType = BenefitIconType.LOCK,
+                        alpha = card1Alpha,
+                        translationY = card1TranslationY
+                    )
+
+                    WelcomeBenefitCard(
+                        title = "Slow Down. Notice More.",
+                        description = "Recording each expense builds lasting awareness.",
+                        iconType = BenefitIconType.CROSSHAIR,
+                        alpha = card2Alpha,
+                        translationY = card2TranslationY
+                    )
+
+                    WelcomeBenefitCard(
+                        title = "Less Noise. More Clarity.",
+                        description = "A calm space to understand your finances.",
+                        iconType = BenefitIconType.CIRCLE,
+                        alpha = card3Alpha,
+                        translationY = card3TranslationY
+                    )
                 }
             }
 
-            // Bottom Bar Controls: High-Contrast Button (Left) + Square Indicators (Right)
+            // 4. Action Buttons & Legal Links with High-Contrast Separator Lines
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 14.dp)
+                    .graphicsLayer {
+                        alpha = heroAlpha
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
+                Divider(
+                    color = lineDividerColor,
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 14.dp)
+                )
+
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    PremiumButton(
-                        text = if (currentPage < 2) "NEXT" else "GET STARTED",
-                        onClick = {
-                            if (currentPage < 2) {
-                                currentPage++
-                            } else {
-                                onCreateAccountClick()
-                            }
-                        },
-                        isPrimary = true,
-                        modifier = Modifier.width(130.dp)
+                    WelcomePremiumButton(
+                        text = "Create Account",
+                        onClick = onCreateAccountClick,
+                        isPrimary = true
                     )
 
-                    // Square Page Indicators matching User Image Spec
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(3) { index ->
-                            val active = index == currentPage
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(RoundedCornerShape(3.dp))
-                                    .background(if (active) textColorPrimary else Color.Transparent)
-                                    .then(
-                                        if (!active) Modifier.border(
-                                            BorderStroke(1.dp, textColorPrimary.copy(alpha = 0.35f)),
-                                            RoundedCornerShape(3.dp)
-                                        ) else Modifier
-                                    )
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) { currentPage = index }
-                            )
-                        }
-                    }
+                    WelcomePremiumButton(
+                        text = "Sign In",
+                        onClick = onSignInClick,
+                        isPrimary = false
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
 
                 Divider(
                     color = lineDividerColor,
                     thickness = 1.dp,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 14.dp, bottom = 12.dp)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Secondary Links
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Sign In",
+                        text = "Terms of Service",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            color = textColorPrimary,
-                            textDecoration = TextDecoration.Underline,
-                            fontSize = 13.sp
+                            color = textColorSecondary.copy(alpha = 0.8f),
+                            textDecoration = TextDecoration.Underline
                         ),
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onSignInClick
+                            indication = null
+                        ) { activeDialog = "terms" }
+                    )
+                    Text(
+                        text = "   ·   ",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = lineDividerColor
                         )
                     )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(
-                            text = "Terms",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = textColorSecondary.copy(alpha = 0.8f),
-                                textDecoration = TextDecoration.Underline,
-                                fontSize = 12.sp
-                            ),
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { activeDialog = "terms" }
-                        )
-                        Text(
-                            text = "·",
-                            style = MaterialTheme.typography.labelSmall.copy(color = lineDividerColor)
-                        )
-                        Text(
-                            text = "Privacy",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = textColorSecondary.copy(alpha = 0.8f),
-                                textDecoration = TextDecoration.Underline,
-                                fontSize = 12.sp
-                            ),
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { activeDialog = "privacy" }
-                        )
-                    }
+                    Text(
+                        text = "Privacy Policy",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = textColorSecondary.copy(alpha = 0.8f),
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { activeDialog = "privacy" }
+                    )
                 }
             }
+        }
         }
 
         // Dialog for Terms or Privacy Policy on Welcome Screen
