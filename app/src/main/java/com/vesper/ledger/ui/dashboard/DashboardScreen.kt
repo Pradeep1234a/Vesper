@@ -1038,7 +1038,7 @@ fun DashboardScreen(
                                             amount = group.finalTotal,
                                             type = TransactionType.EXPENSE,
                                             categoryId = catId,
-                                            paymentMethod = committedReceipt.paymentMethod,
+                                            accountName = committedReceipt.paymentMethod,
                                             note = "Receipt ${committedReceipt.receiptNumber} • ${group.items.size} items: ${group.items.joinToString { it.name }}"
                                         )
                                     }
