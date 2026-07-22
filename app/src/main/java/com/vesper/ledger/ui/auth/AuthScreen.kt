@@ -85,14 +85,18 @@ private fun AuthTextField(
     var passwordVisible by remember { mutableStateOf(false) }
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val outlineColor = MaterialTheme.colorScheme.outline
-    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val borderUnfocused = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+    val borderFocused = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium.copy(
-                color = textColorSecondary
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Medium,
+                color = textColorSecondary,
+                fontSize = 13.sp
             ),
             modifier = Modifier.padding(bottom = 6.dp)
         )
@@ -104,12 +108,16 @@ private fun AuthTextField(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary.copy(alpha = 0.5f)
+                        color = textColorSecondary.copy(alpha = 0.45f),
+                        fontSize = 14.sp
                     )
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = textColorPrimary),
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = textColorPrimary,
+                fontSize = 15.sp
+            ),
             singleLine = true,
             visualTransformation = if (isPassword && !passwordVisible)
                 PasswordVisualTransformation() else VisualTransformation.None,
@@ -138,14 +146,14 @@ private fun AuthTextField(
                     )
                 }
             } else null,
-            shape = MaterialTheme.shapes.small, // 6.dp curve matching buttons and inputs
+            shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = textColorPrimary,
                 unfocusedTextColor = textColorPrimary,
-                focusedContainerColor = surfaceVariantColor.copy(alpha = 0.2f),
-                unfocusedContainerColor = surfaceVariantColor.copy(alpha = 0.1f),
-                focusedBorderColor = textColorPrimary,
-                unfocusedBorderColor = outlineColor,
+                focusedContainerColor = surfaceColor,
+                unfocusedContainerColor = surfaceColor,
+                focusedBorderColor = borderFocused,
+                unfocusedBorderColor = borderUnfocused,
                 cursorColor = textColorPrimary
             )
         )
@@ -154,7 +162,7 @@ private fun AuthTextField(
             Text(
                 text = errorText,
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
             )
         }
@@ -171,66 +179,81 @@ private fun PremiumButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
-    // Dynamic theme colors
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scalePress by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1.0f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "pressScale"
+    )
+
+    val arrowOffset by animateDpAsState(
+        targetValue = if (isPressed) 4.dp else 0.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "arrowOffset"
+    )
+
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
-    val outlineColor = MaterialTheme.colorScheme.outline
 
     val containerColor = if (isPrimary) textColorPrimary else Color.Transparent
     val contentColor = if (isPrimary) backgroundColor else textColorPrimary
-    val border = if (isPrimary) null else BorderStroke(1.dp, outlineColor)
+    val border = if (isPrimary) null else BorderStroke(1.dp, textColorPrimary.copy(alpha = 0.35f))
 
-    Button(
-        onClick = onClick,
+    Box(
         modifier = modifier
-            .height(56.dp) // Touch target minimum requirement
-            .fillMaxWidth(),
-        enabled = enabled,
-        shape = MaterialTheme.shapes.small, // 6.dp rounded corners matching the dashboard family shape
-        colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-            contentColor = contentColor,
-            disabledContainerColor = containerColor.copy(alpha = 0.4f),
-            disabledContentColor = contentColor.copy(alpha = 0.4f)
-        ),
-        border = border,
-        contentPadding = PaddingValues(horizontal = 24.dp)
+            .fillMaxWidth()
+            .height(54.dp)
+            .scale(scalePress)
+            .clip(RoundedCornerShape(22.dp))
+            .background(containerColor)
+            .then(
+                if (border != null) Modifier.border(border, RoundedCornerShape(22.dp))
+                else Modifier
+            )
+            .clickable(
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = rememberRipple(color = contentColor.copy(alpha = 0.15f)),
+                onClick = onClick
+            )
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.Center
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp,
-                    letterSpacing = 0.2.sp
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f)
                 ),
                 modifier = Modifier.align(Alignment.Center)
             )
 
-            // Custom thin right arrow matching mockup
             androidx.compose.foundation.Canvas(
                 modifier = Modifier
                     .size(16.dp)
+                    .offset(x = arrowOffset)
                     .align(Alignment.CenterEnd)
             ) {
                 val strokeWidth = 1.5.dp.toPx()
-                val color = contentColor
+                val color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f)
 
-                // Line
                 drawLine(
                     color = color,
                     start = Offset(0f, size.height / 2),
                     end = Offset(size.width, size.height / 2),
                     strokeWidth = strokeWidth
                 )
-                // Chevron top
                 drawLine(
                     color = color,
                     start = Offset(size.width - size.height / 3, size.height / 2 - size.height / 3),
                     end = Offset(size.width, size.height / 2),
                     strokeWidth = strokeWidth
                 )
-                // Chevron bottom
                 drawLine(
                     color = color,
                     start = Offset(size.width - size.height / 3, size.height / 2 + size.height / 3),
@@ -255,15 +278,16 @@ private fun WelcomeBenefitCard(
     translationY: Float
 ) {
     val textColorPrimary = MaterialTheme.colorScheme.onSurface
-    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
     val cardBgColor = MaterialTheme.colorScheme.surface
-    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+    val cardBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
     val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+    val iconBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height(76.dp)
             .graphicsLayer {
                 this.alpha = alpha
                 this.translationY = translationY
@@ -274,7 +298,8 @@ private fun WelcomeBenefitCard(
                 BorderStroke(1.dp, cardBorderColor),
                 RoundedCornerShape(18.dp)
             )
-            .padding(horizontal = 18.dp, vertical = 14.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -356,7 +381,7 @@ private fun WelcomeBenefitCard(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         color = textColorPrimary
                     )
                 )
@@ -398,7 +423,7 @@ private fun WelcomePremiumButton(
 
     val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else Color.Transparent
     val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
-    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.35f))
 
     Box(
         modifier = modifier
@@ -524,7 +549,7 @@ fun WelcomeScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val lineDividerColor = MaterialTheme.colorScheme.outlineVariant
+    val lineDividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
 
     Box(
         modifier = Modifier
@@ -594,7 +619,7 @@ fun WelcomeScreen(
                     Text(
                         text = "A private space built for thoughtful money management.",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            color = textColorSecondary.copy(alpha = 0.80f),
+                            color = textColorSecondary.copy(alpha = 0.75f),
                             lineHeight = 23.sp,
                             fontSize = 16.sp
                         )
@@ -611,7 +636,7 @@ fun WelcomeScreen(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Uniform Layered Benefit Cards
+                // Strict Uniform Layered Benefit Cards
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -761,7 +786,8 @@ fun SignInScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val outlineColor = MaterialTheme.colorScheme.outline
+    val cardBgColor = MaterialTheme.colorScheme.surface
+    val borderDividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
 
     Box(
         modifier = Modifier
@@ -771,17 +797,47 @@ fun SignInScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 72.dp), // Prevents overlap with pinned link
+                .padding(bottom = 76.dp),
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
-                title = "Sign In",
+                title = "Vesper Ledger",
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Hero Section: Serif Title & Subtle Divider
+            Text(
+                text = "Sign In.",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 42.sp,
+                    color = textColorPrimary
+                )
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Welcome back. Sign in to access your private financial ledger.",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = textColorSecondary.copy(alpha = 0.75f),
+                    lineHeight = 22.sp,
+                    fontSize = 15.sp
+                )
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Divider(
+                color = borderDividerColor,
+                thickness = 1.dp,
+                modifier = Modifier.width(48.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             if (errorMessage != null) {
                 Text(
@@ -790,81 +846,73 @@ fun SignInScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 10.dp)
+                        .padding(bottom = 12.dp)
                 )
             }
 
-            ShCard(
-                modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, outlineColor),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+            // Elevated Card Panel
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(cardBgColor)
+                    .border(
+                        BorderStroke(1.dp, borderDividerColor),
+                        RoundedCornerShape(18.dp)
+                    )
+                    .padding(horizontal = 18.dp, vertical = 18.dp)
             ) {
-                Text(
-                    text = "Welcome Back",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = textColorPrimary,
-                        fontSize = 24.sp
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    AuthTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "Email Address",
+                        placeholder = "you@example.com",
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next,
+                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                        errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                     )
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Sign in to continue managing your finances.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary,
-                        fontSize = 14.sp
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    AuthTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Password",
+                        placeholder = "••••••••",
+                        isPassword = true,
+                        imeAction = ImeAction.Done,
+                        onImeAction = { focusManager.clearFocus() },
+                        errorText = if (showErrors && password.isEmpty()) "Password cannot be empty." else null
                     )
-                )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                AuthTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = "Email",
-                    placeholder = "you@example.com",
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                AuthTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = "Password",
-                    placeholder = "••••••••",
-                    isPassword = true,
-                    imeAction = ImeAction.Done,
-                    onImeAction = { focusManager.clearFocus() },
-                    errorText = if (showErrors && password.isEmpty()) "Password cannot be empty." else null
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterEnd
-                ) {
-                    Text(
-                        text = "Forgot Password?",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = textColorSecondary,
-                            fontWeight = FontWeight.SemiBold,
-                            textDecoration = TextDecoration.Underline
-                        ),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onForgotPasswordClick
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Text(
+                            text = "Forgot Password?",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.SemiBold,
+                                color = textColorSecondary,
+                                fontSize = 13.sp,
+                                textDecoration = TextDecoration.Underline
+                            ),
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = onForgotPasswordClick
+                            )
                         )
-                    )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             PremiumButton(
                 text = if (isLoading) "Signing In..." else "Sign In",
@@ -885,13 +933,13 @@ fun SignInScreen(
             )
         }
 
-        // Pin the link to the absolute bottom of the viewport
+        // Pinned Link at Bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = 12.dp),
+                .padding(bottom = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -906,7 +954,8 @@ fun SignInScreen(
                 Text(
                     text = "Don't have an account? ",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary
+                        color = textColorSecondary.copy(alpha = 0.8f),
+                        fontSize = 14.sp
                     )
                 )
                 Text(
@@ -914,6 +963,8 @@ fun SignInScreen(
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = textColorPrimary,
                         fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 14.sp,
                         textDecoration = TextDecoration.Underline
                     )
                 )
@@ -945,7 +996,8 @@ fun CreateAccountScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val outlineColor = MaterialTheme.colorScheme.outline
+    val cardBgColor = MaterialTheme.colorScheme.surface
+    val borderDividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
 
     Box(
         modifier = Modifier
@@ -955,17 +1007,47 @@ fun CreateAccountScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 72.dp), // Prevents overlap with bottom link
+                .padding(bottom = 76.dp),
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
-                title = "Create Account",
+                title = "Vesper Ledger",
                 onBackClick = onBackClick
             )
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Hero Section: Serif Title & Subtle Divider
+            Text(
+                text = "Create Account.",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 38.sp,
+                    color = textColorPrimary
+                )
+            )
             Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Start managing your finances with privacy, awareness, and clarity.",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = textColorSecondary.copy(alpha = 0.75f),
+                    lineHeight = 22.sp,
+                    fontSize = 15.sp
+                )
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Divider(
+                color = borderDividerColor,
+                thickness = 1.dp,
+                modifier = Modifier.width(48.dp)
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
 
             if (errorMessage != null) {
                 Text(
@@ -974,137 +1056,128 @@ fun CreateAccountScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = 10.dp)
                 )
             }
 
-            ShCard(
-                modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, outlineColor),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+            // Elevated Card Panel
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(cardBgColor)
+                    .border(
+                        BorderStroke(1.dp, borderDividerColor),
+                        RoundedCornerShape(18.dp)
+                    )
+                    .padding(horizontal = 18.dp, vertical = 16.dp)
             ) {
-                Text(
-                    text = "Get Started",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = textColorPrimary,
-                        fontSize = 22.sp
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    AuthTextField(
+                        value = fullName,
+                        onValueChange = { fullName = it },
+                        label = "Full Name",
+                        placeholder = "e.g. John Doe",
+                        imeAction = ImeAction.Next,
+                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                        errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter first and last name (letters only)." else null
                     )
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Create your secure Vesper Ledger account.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary,
-                        fontSize = 13.sp
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    AuthTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "Email Address",
+                        placeholder = "you@example.com",
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next,
+                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                        errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                     )
-                )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                AuthTextField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                    label = "Full Name",
-                    placeholder = "e.g. John Doe",
-                    imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter first and last name (letters only)." else null
-                )
+                    AuthTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Password",
+                        placeholder = "Min 8 chars, letter & number",
+                        isPassword = true,
+                        imeAction = ImeAction.Next,
+                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                        errorText = if (showErrors && !AuthValidator.isValidPassword(password)) "Min 8 chars with 1 letter and 1 digit." else null
+                    )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                AuthTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = "Email",
-                    placeholder = "you@example.com",
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
-                )
+                    AuthTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = "Confirm Password",
+                        placeholder = "••••••••",
+                        isPassword = true,
+                        imeAction = ImeAction.Done,
+                        onImeAction = { focusManager.clearFocus() },
+                        errorText = if (showErrors && confirmPassword != password) "Passwords do not match." else null
+                    )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                AuthTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = "Password",
-                    placeholder = "Min 8 chars, letter & number",
-                    isPassword = true,
-                    imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (showErrors && !AuthValidator.isValidPassword(password)) "Min 8 chars with 1 letter and 1 digit." else null
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                AuthTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = "Confirm Password",
-                    placeholder = "••••••••",
-                    isPassword = true,
-                    imeAction = ImeAction.Done,
-                    onImeAction = { focusManager.clearFocus() },
-                    errorText = if (showErrors && confirmPassword != password) "Passwords do not match." else null
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Terms of Service and Privacy Policy checkbox with clickable document links
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = termsAccepted,
-                        onCheckedChange = { termsAccepted = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = textColorPrimary,
-                            uncheckedColor = outlineColor,
-                            checkmarkColor = backgroundColor
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = termsAccepted,
+                            onCheckedChange = { termsAccepted = it },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = textColorPrimary,
+                                uncheckedColor = borderDividerColor,
+                                checkmarkColor = backgroundColor
+                            )
                         )
-                    )
-                    Text(
-                        text = "I accept the ",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
-                    )
-                    Text(
-                        text = "Terms",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = textColorPrimary,
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline,
-                            fontSize = 13.sp
-                        ),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { showTerms = true }
-                    )
-                    Text(
-                        text = " & ",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
-                    )
-                    Text(
-                        text = "Privacy Policy",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = textColorPrimary,
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline,
-                            fontSize = 13.sp
-                        ),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { showPrivacy = true }
-                    )
+                        Text(
+                            text = "I accept the ",
+                            style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
+                        )
+                        Text(
+                            text = "Terms",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = textColorPrimary,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = SpaceGroteskFamily,
+                                textDecoration = TextDecoration.Underline,
+                                fontSize = 13.sp
+                            ),
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { showTerms = true }
+                        )
+                        Text(
+                            text = " & ",
+                            style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
+                        )
+                        Text(
+                            text = "Privacy Policy",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = textColorPrimary,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = SpaceGroteskFamily,
+                                textDecoration = TextDecoration.Underline,
+                                fontSize = 13.sp
+                            ),
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { showPrivacy = true }
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             PremiumButton(
                 text = if (isLoading) "Creating Account..." else "Create Account",
@@ -1133,7 +1206,6 @@ fun CreateAccountScreen(
             )
         }
 
-        // Dialogs for Terms & Conditions and Privacy Policy inside Create Account
         if (showTerms) {
             AuthInfoDialog(
                 title = "Terms & Conditions",
@@ -1149,13 +1221,13 @@ fun CreateAccountScreen(
             )
         }
 
-        // Pin the link to the absolute bottom of the viewport
+        // Pinned Link at Bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = 12.dp),
+                .padding(bottom = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -1170,7 +1242,8 @@ fun CreateAccountScreen(
                 Text(
                     text = "Already have an account? ",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary
+                        color = textColorSecondary.copy(alpha = 0.8f),
+                        fontSize = 14.sp
                     )
                 )
                 Text(
@@ -1178,6 +1251,8 @@ fun CreateAccountScreen(
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = textColorPrimary,
                         fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 14.sp,
                         textDecoration = TextDecoration.Underline
                     )
                 )
@@ -1191,7 +1266,7 @@ fun CreateAccountScreen(
 @Composable
 fun ForgotPasswordScreen(
     onBackClick: () -> Unit,
-    onSendResetLinkClick: (String, String, (String?) -> Unit) -> Unit, // Uses (email, newPassword, callback)
+    onSendResetLinkClick: (String, String, (String?) -> Unit) -> Unit,
     onBackToSignInClick: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -1205,7 +1280,8 @@ fun ForgotPasswordScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val outlineColor = MaterialTheme.colorScheme.outline
+    val cardBgColor = MaterialTheme.colorScheme.surface
+    val borderDividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
 
     Box(
         modifier = Modifier
@@ -1215,17 +1291,47 @@ fun ForgotPasswordScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 72.dp), // Leaves space for bottom pinned link
+                .padding(bottom = 76.dp),
             verticalArrangement = Arrangement.Top
         ) {
             ChildHeader(
-                title = "Reset Password",
+                title = "Vesper Ledger",
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Hero Section: Serif Title & Subtle Divider
+            Text(
+                text = "Reset Password.",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 38.sp,
+                    color = textColorPrimary
+                )
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Enter your account email and a new password to recover access.",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = textColorSecondary.copy(alpha = 0.75f),
+                    lineHeight = 22.sp,
+                    fontSize = 15.sp
+                )
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Divider(
+                color = borderDividerColor,
+                thickness = 1.dp,
+                modifier = Modifier.width(48.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             if (statusMessage != null) {
                 Text(
@@ -1234,60 +1340,50 @@ fun ForgotPasswordScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 10.dp)
+                        .padding(bottom = 12.dp)
                 )
             }
 
-            ShCard(
-                modifier = Modifier.fillMaxWidth(),
-                borderStroke = BorderStroke(1.dp, outlineColor),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+            // Elevated Card Panel
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(cardBgColor)
+                    .border(
+                        BorderStroke(1.dp, borderDividerColor),
+                        RoundedCornerShape(18.dp)
+                    )
+                    .padding(horizontal = 18.dp, vertical = 18.dp)
             ) {
-                Text(
-                    text = "Reset Password",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = textColorPrimary,
-                        fontSize = 24.sp
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    AuthTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "Account Email",
+                        placeholder = "you@example.com",
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next,
+                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                        errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                     )
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Enter your email address and a new password to reset your login credentials.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary,
-                        fontSize = 14.sp
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    AuthTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it },
+                        label = "New Password",
+                        placeholder = "Min 8 chars, letter & number",
+                        isPassword = true,
+                        imeAction = ImeAction.Done,
+                        onImeAction = { focusManager.clearFocus() },
+                        errorText = if (showErrors && !AuthValidator.isValidPassword(newPassword)) "Min 8 chars with 1 letter and 1 digit." else null
                     )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                AuthTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = "Email",
-                    placeholder = "you@example.com",
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next,
-                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                    errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                AuthTextField(
-                    value = newPassword,
-                    onValueChange = { newPassword = it },
-                    label = "New Password",
-                    placeholder = "Min 8 chars, letter & number",
-                    isPassword = true,
-                    imeAction = ImeAction.Done,
-                    onImeAction = { focusManager.clearFocus() },
-                    errorText = if (showErrors && !AuthValidator.isValidPassword(newPassword)) "Min 8 chars with 1 letter and 1 digit." else null
-                )
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             PremiumButton(
                 text = if (isLoading) "Resetting Password..." else "Reset Password",
@@ -1314,13 +1410,13 @@ fun ForgotPasswordScreen(
             )
         }
 
-        // Pin the link to the absolute bottom of the viewport
+        // Pinned Link at Bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = 12.dp),
+                .padding(bottom = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -1328,6 +1424,8 @@ fun ForgotPasswordScreen(
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = textColorPrimary,
                     fontWeight = FontWeight.Bold,
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 14.sp,
                     textDecoration = TextDecoration.Underline
                 ),
                 modifier = Modifier.clickable(
