@@ -257,9 +257,9 @@ private fun WelcomeBenefitCard(
     val textColorPrimary = MaterialTheme.colorScheme.onSurface
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
     val cardBgColor = MaterialTheme.colorScheme.surface
-    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.60f)
+    val cardBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f)
     val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.60f)
+    val iconBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f)
 
     Box(
         modifier = Modifier
@@ -398,7 +398,7 @@ private fun WelcomePremiumButton(
 
     val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else Color.Transparent
     val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
-    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.75f))
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f))
 
     Box(
         modifier = modifier
@@ -524,7 +524,7 @@ fun WelcomeScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val outlineColor = MaterialTheme.colorScheme.outline
+    val lineDividerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
 
     Box(
         modifier = Modifier
@@ -564,7 +564,7 @@ fun WelcomeScreen(
                     )
 
                     Divider(
-                        color = outlineColor.copy(alpha = 0.70f),
+                        color = lineDividerColor,
                         thickness = 1.dp,
                         modifier = Modifier.width(48.dp)
                     )
@@ -603,7 +603,7 @@ fun WelcomeScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Divider(
-                        color = outlineColor.copy(alpha = 0.70f),
+                        color = lineDividerColor,
                         thickness = 1.dp,
                         modifier = Modifier.width(48.dp)
                     )
@@ -652,7 +652,7 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Divider(
-                    color = outlineColor.copy(alpha = 0.65f),
+                    color = lineDividerColor,
                     thickness = 1.dp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -678,7 +678,7 @@ fun WelcomeScreen(
                 }
 
                 Divider(
-                    color = outlineColor.copy(alpha = 0.65f),
+                    color = lineDividerColor,
                     thickness = 1.dp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -704,7 +704,7 @@ fun WelcomeScreen(
                     Text(
                         text = "   ·   ",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = outlineColor.copy(alpha = 0.5f)
+                            color = lineDividerColor
                         )
                     )
                     Text(
