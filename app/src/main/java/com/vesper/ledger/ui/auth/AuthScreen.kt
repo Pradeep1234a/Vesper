@@ -255,11 +255,11 @@ private fun WelcomeBenefitCard(
     translationY: Float
 ) {
     val textColorPrimary = MaterialTheme.colorScheme.onSurface
-    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
+    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
     val cardBgColor = MaterialTheme.colorScheme.surface
-    val cardBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f)
+    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
     val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-    val iconBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f)
+    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
 
     Box(
         modifier = Modifier
@@ -398,7 +398,7 @@ private fun WelcomePremiumButton(
 
     val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else Color.Transparent
     val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
-    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f))
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
 
     Box(
         modifier = modifier
@@ -524,7 +524,7 @@ fun WelcomeScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val lineDividerColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
+    val lineDividerColor = MaterialTheme.colorScheme.outlineVariant
 
     Box(
         modifier = Modifier
@@ -543,7 +543,7 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top
             ) {
-                // Header (Clean Brand Title & Bright High-Contrast Accent Line)
+                // Header (Clean Brand Title & Subtle Material Divider)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -572,7 +572,7 @@ fun WelcomeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Hero Section & Bright High-Contrast Accent Line
+                // Hero Section & Subtle Material Divider
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -594,7 +594,7 @@ fun WelcomeScreen(
                     Text(
                         text = "A private space built for thoughtful money management.",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            color = textColorSecondary.copy(alpha = 0.85f),
+                            color = textColorSecondary.copy(alpha = 0.80f),
                             lineHeight = 23.sp,
                             fontSize = 16.sp
                         )
