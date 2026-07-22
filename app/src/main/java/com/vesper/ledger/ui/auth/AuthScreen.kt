@@ -576,7 +576,7 @@ fun WelcomeScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
@@ -626,7 +626,7 @@ fun WelcomeScreen(
                         style = MaterialTheme.typography.displayLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 46.sp,
+                            fontSize = 44.sp,
                             color = textColorPrimary
                         )
                     )
@@ -636,7 +636,7 @@ fun WelcomeScreen(
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = textColorSecondary.copy(alpha = 0.75f),
                             lineHeight = 23.sp,
-                            fontSize = 16.sp
+                            fontSize = 15.sp
                         )
                     )
 
@@ -810,163 +810,169 @@ fun SignInScreen(
             .background(backgroundColor)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 76.dp),
-            verticalArrangement = Arrangement.Top
+            modifier = Modifier.fillMaxSize()
         ) {
             ChildHeader(
                 title = "Sign In",
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (errorMessage != null) {
-                Text(
-                    text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                )
-            }
-
-            // Elevated Card Panel matching Image 1 mockup
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(cardBgColor)
-                    .border(
-                        BorderStroke(1.dp, borderDividerColor),
-                        RoundedCornerShape(18.dp)
-                    )
-                    .padding(horizontal = 18.dp, vertical = 20.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 64.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    // Card Header with Circular Icon
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                                .border(
-                                    BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
-                                    CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Person,
-                                contentDescription = null,
-                                tint = textColorPrimary,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                        )
+                    }
 
-                        Spacer(modifier = Modifier.width(14.dp))
+                    // Elevated Card Panel matching Dashboard card margin & shape
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(cardBgColor)
+                            .border(
+                                BorderStroke(1.dp, borderDividerColor),
+                                RoundedCornerShape(18.dp)
+                            )
+                            .padding(horizontal = 18.dp, vertical = 20.dp)
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            // Card Header with Circular Icon
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                        .border(
+                                            BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Person,
+                                        contentDescription = null,
+                                        tint = textColorPrimary,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
 
-                        Column {
-                            Text(
-                                text = "Welcome Back",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = FontFamily.Serif,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
-                                    color = textColorPrimary
-                                )
+                                Spacer(modifier = Modifier.width(14.dp))
+
+                                Column {
+                                    Text(
+                                        text = "Welcome Back",
+                                        style = MaterialTheme.typography.titleLarge.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 20.sp,
+                                            color = textColorPrimary
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Sign in to continue managing your finances.",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontSize = 13.sp,
+                                            color = textColorSecondary.copy(alpha = 0.75f),
+                                            lineHeight = 17.sp
+                                        )
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            AuthTextField(
+                                value = email,
+                                onValueChange = { email = it },
+                                label = "Email Address",
+                                placeholder = "you@example.com",
+                                leadingIcon = Icons.Outlined.Email,
+                                keyboardType = KeyboardType.Email,
+                                imeAction = ImeAction.Next,
+                                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                                errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Sign in to continue managing your finances.",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontSize = 13.sp,
-                                    color = textColorSecondary.copy(alpha = 0.75f),
-                                    lineHeight = 17.sp
-                                )
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            AuthTextField(
+                                value = password,
+                                onValueChange = { password = it },
+                                label = "Password",
+                                placeholder = "••••••••",
+                                leadingIcon = Icons.Outlined.Lock,
+                                isPassword = true,
+                                imeAction = ImeAction.Done,
+                                onImeAction = { focusManager.clearFocus() },
+                                errorText = if (showErrors && password.isEmpty()) "Password cannot be empty." else null
                             )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Text(
+                                    text = "Forgot Password?",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = textColorSecondary,
+                                        fontSize = 13.sp,
+                                        textDecoration = TextDecoration.Underline
+                                    ),
+                                    modifier = Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = onForgotPasswordClick
+                                    )
+                                )
+                            }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    AuthTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = "Email Address",
-                        placeholder = "you@example.com",
-                        leadingIcon = Icons.Outlined.Email,
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next,
-                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                        errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
+                    PremiumButton(
+                        text = if (isLoading) "Signing In..." else "Sign In",
+                        onClick = {
+                            showErrors = true
+                            if (!AuthValidator.isValidEmail(email) || password.isEmpty()) {
+                                return@PremiumButton
+                            }
+                            isLoading = true
+                            errorMessage = null
+                            onSignInClick(email, password) { error ->
+                                isLoading = false
+                                errorMessage = error
+                            }
+                        },
+                        enabled = !isLoading,
+                        isPrimary = true
                     )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    AuthTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = "Password",
-                        placeholder = "••••••••",
-                        leadingIcon = Icons.Outlined.Lock,
-                        isPassword = true,
-                        imeAction = ImeAction.Done,
-                        onImeAction = { focusManager.clearFocus() },
-                        errorText = if (showErrors && password.isEmpty()) "Password cannot be empty." else null
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        Text(
-                            text = "Forgot Password?",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.SemiBold,
-                                color = textColorSecondary,
-                                fontSize = 13.sp,
-                                textDecoration = TextDecoration.Underline
-                            ),
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = onForgotPasswordClick
-                            )
-                        )
-                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            PremiumButton(
-                text = if (isLoading) "Signing In..." else "Sign In",
-                onClick = {
-                    showErrors = true
-                    if (!AuthValidator.isValidEmail(email) || password.isEmpty()) {
-                        return@PremiumButton
-                    }
-                    isLoading = true
-                    errorMessage = null
-                    onSignInClick(email, password) { error ->
-                        isLoading = false
-                        errorMessage = error
-                    }
-                },
-                enabled = !isLoading,
-                isPrimary = true
-            )
         }
 
         // Pinned Link at Bottom
@@ -1041,228 +1047,234 @@ fun CreateAccountScreen(
             .background(backgroundColor)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 76.dp),
-            verticalArrangement = Arrangement.Top
+            modifier = Modifier.fillMaxSize()
         ) {
             ChildHeader(
                 title = "Create Account",
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (errorMessage != null) {
-                Text(
-                    text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 10.dp)
-                )
-            }
-
-            // Elevated Card Panel matching Image 1 mockup
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(cardBgColor)
-                    .border(
-                        BorderStroke(1.dp, borderDividerColor),
-                        RoundedCornerShape(18.dp)
-                    )
-                    .padding(horizontal = 18.dp, vertical = 20.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 64.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    // Card Header with Circular Icon
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                                .border(
-                                    BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
-                                    CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Person,
-                                contentDescription = null,
-                                tint = textColorPrimary,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column {
-                            Text(
-                                text = "Get Started",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = FontFamily.Serif,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
-                                    color = textColorPrimary
-                                )
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Create your secure Vesper Ledger account.",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontSize = 13.sp,
-                                    color = textColorSecondary.copy(alpha = 0.75f),
-                                    lineHeight = 17.sp
-                                )
-                            )
-                        }
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    AuthTextField(
-                        value = fullName,
-                        onValueChange = { fullName = it },
-                        label = "Full Name",
-                        placeholder = "e.g. John Doe",
-                        leadingIcon = Icons.Outlined.Person,
-                        imeAction = ImeAction.Next,
-                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                        errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter first and last name (letters only)." else null
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    AuthTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = "Email Address",
-                        placeholder = "you@example.com",
-                        leadingIcon = Icons.Outlined.Email,
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next,
-                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                        errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    AuthTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = "Password",
-                        placeholder = "Min 8 chars, letter & number",
-                        leadingIcon = Icons.Outlined.Lock,
-                        isPassword = true,
-                        imeAction = ImeAction.Next,
-                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                        errorText = if (showErrors && !AuthValidator.isValidPassword(password)) "Min 8 chars with 1 letter and 1 digit." else null
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    AuthTextField(
-                        value = confirmPassword,
-                        onValueChange = { confirmPassword = it },
-                        label = "Confirm Password",
-                        placeholder = "••••••••",
-                        leadingIcon = Icons.Outlined.Lock,
-                        isPassword = true,
-                        imeAction = ImeAction.Done,
-                        onImeAction = { focusManager.clearFocus() },
-                        errorText = if (showErrors && confirmPassword != password) "Passwords do not match." else null
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                    // Elevated Card Panel matching Dashboard card margin & shape
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(cardBgColor)
+                            .border(
+                                BorderStroke(1.dp, borderDividerColor),
+                                RoundedCornerShape(18.dp)
+                            )
+                            .padding(horizontal = 18.dp, vertical = 18.dp)
                     ) {
-                        Checkbox(
-                            checked = termsAccepted,
-                            onCheckedChange = { termsAccepted = it },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = textColorPrimary,
-                                uncheckedColor = borderDividerColor,
-                                checkmarkColor = backgroundColor
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            // Card Header with Circular Icon
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                        .border(
+                                            BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Person,
+                                        contentDescription = null,
+                                        tint = textColorPrimary,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(14.dp))
+
+                                Column {
+                                    Text(
+                                        text = "Get Started",
+                                        style = MaterialTheme.typography.titleLarge.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 20.sp,
+                                            color = textColorPrimary
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Create your secure Vesper Ledger account.",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontSize = 13.sp,
+                                            color = textColorSecondary.copy(alpha = 0.75f),
+                                            lineHeight = 17.sp
+                                        )
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            AuthTextField(
+                                value = fullName,
+                                onValueChange = { fullName = it },
+                                label = "Full Name",
+                                placeholder = "e.g. John Doe",
+                                leadingIcon = Icons.Outlined.Person,
+                                imeAction = ImeAction.Next,
+                                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                                errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter first and last name (letters only)." else null
                             )
-                        )
-                        Text(
-                            text = "I accept the ",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
-                        )
-                        Text(
-                            text = "Terms",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = textColorPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = SpaceGroteskFamily,
-                                textDecoration = TextDecoration.Underline,
-                                fontSize = 13.sp
-                            ),
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { showTerms = true }
-                        )
-                        Text(
-                            text = " & ",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
-                        )
-                        Text(
-                            text = "Privacy Policy",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = textColorPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = SpaceGroteskFamily,
-                                textDecoration = TextDecoration.Underline,
-                                fontSize = 13.sp
-                            ),
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { showPrivacy = true }
-                        )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            AuthTextField(
+                                value = email,
+                                onValueChange = { email = it },
+                                label = "Email Address",
+                                placeholder = "you@example.com",
+                                leadingIcon = Icons.Outlined.Email,
+                                keyboardType = KeyboardType.Email,
+                                imeAction = ImeAction.Next,
+                                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                                errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            AuthTextField(
+                                value = password,
+                                onValueChange = { password = it },
+                                label = "Password",
+                                placeholder = "Min 8 chars, letter & number",
+                                leadingIcon = Icons.Outlined.Lock,
+                                isPassword = true,
+                                imeAction = ImeAction.Next,
+                                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                                errorText = if (showErrors && !AuthValidator.isValidPassword(password)) "Min 8 chars with 1 letter and 1 digit." else null
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            AuthTextField(
+                                value = confirmPassword,
+                                onValueChange = { confirmPassword = it },
+                                label = "Confirm Password",
+                                placeholder = "••••••••",
+                                leadingIcon = Icons.Outlined.Lock,
+                                isPassword = true,
+                                imeAction = ImeAction.Done,
+                                onImeAction = { focusManager.clearFocus() },
+                                errorText = if (showErrors && confirmPassword != password) "Passwords do not match." else null
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = termsAccepted,
+                                    onCheckedChange = { termsAccepted = it },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = textColorPrimary,
+                                        uncheckedColor = borderDividerColor,
+                                        checkmarkColor = backgroundColor
+                                    )
+                                )
+                                Text(
+                                    text = "I accept the ",
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
+                                )
+                                Text(
+                                    text = "Terms",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = textColorPrimary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = SpaceGroteskFamily,
+                                        textDecoration = TextDecoration.Underline,
+                                        fontSize = 13.sp
+                                    ),
+                                    modifier = Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) { showTerms = true }
+                                )
+                                Text(
+                                    text = " & ",
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
+                                )
+                                Text(
+                                    text = "Privacy Policy",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = textColorPrimary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = SpaceGroteskFamily,
+                                        textDecoration = TextDecoration.Underline,
+                                        fontSize = 13.sp
+                                    ),
+                                    modifier = Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) { showPrivacy = true }
+                                )
+                            }
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    PremiumButton(
+                        text = if (isLoading) "Creating Account..." else "Create Account",
+                        onClick = {
+                            showErrors = true
+                            if (!AuthValidator.isValidFullName(fullName) ||
+                                !AuthValidator.isValidEmail(email) ||
+                                !AuthValidator.isValidPassword(password) ||
+                                confirmPassword != password
+                            ) {
+                                return@PremiumButton
+                            }
+                            if (!termsAccepted) {
+                                errorMessage = "You must accept the Terms of Service & Privacy Policy."
+                                return@PremiumButton
+                            }
+                            isLoading = true
+                            errorMessage = null
+                            onCreateAccountClick(fullName, email, password) { error ->
+                                isLoading = false
+                                errorMessage = error
+                            }
+                        },
+                        enabled = !isLoading,
+                        isPrimary = true
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            PremiumButton(
-                text = if (isLoading) "Creating Account..." else "Create Account",
-                onClick = {
-                    showErrors = true
-                    if (!AuthValidator.isValidFullName(fullName) ||
-                        !AuthValidator.isValidEmail(email) ||
-                        !AuthValidator.isValidPassword(password) ||
-                        confirmPassword != password
-                    ) {
-                        return@PremiumButton
-                    }
-                    if (!termsAccepted) {
-                        errorMessage = "You must accept the Terms of Service & Privacy Policy."
-                        return@PremiumButton
-                    }
-                    isLoading = true
-                    errorMessage = null
-                    onCreateAccountClick(fullName, email, password) { error ->
-                        isLoading = false
-                        errorMessage = error
-                    }
-                },
-                enabled = !isLoading,
-                isPrimary = true
-            )
         }
 
         if (showTerms) {
@@ -1348,146 +1360,152 @@ fun ForgotPasswordScreen(
             .background(backgroundColor)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 76.dp),
-            verticalArrangement = Arrangement.Top
+            modifier = Modifier.fillMaxSize()
         ) {
             ChildHeader(
                 title = "Reset Password",
                 onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (statusMessage != null) {
-                Text(
-                    text = statusMessage!!,
-                    color = if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                )
-            }
-
-            // Elevated Card Panel matching Image 1 mockup exactly
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(cardBgColor)
-                    .border(
-                        BorderStroke(1.dp, borderDividerColor),
-                        RoundedCornerShape(18.dp)
-                    )
-                    .padding(horizontal = 18.dp, vertical = 20.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 64.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    // Card Header with Circular Icon matching Image 1 mockup
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (statusMessage != null) {
+                        Text(
+                            text = statusMessage!!,
+                            color = if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                                .border(
-                                    BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
-                                    CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Lock,
-                                contentDescription = null,
-                                tint = textColorPrimary,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                        )
+                    }
 
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column {
-                            Text(
-                                text = "Reset Password",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = FontFamily.Serif,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
-                                    color = textColorPrimary
-                                )
+                    // Elevated Card Panel matching Dashboard card margin & shape
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(cardBgColor)
+                            .border(
+                                BorderStroke(1.dp, borderDividerColor),
+                                RoundedCornerShape(18.dp)
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Enter your email address and a new password to reset your login credentials.",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontSize = 13.sp,
-                                    color = textColorSecondary.copy(alpha = 0.75f),
-                                    lineHeight = 17.sp
-                                )
+                            .padding(horizontal = 18.dp, vertical = 20.dp)
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            // Card Header with Circular Icon
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                        .border(
+                                            BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Lock,
+                                        contentDescription = null,
+                                        tint = textColorPrimary,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(14.dp))
+
+                                Column {
+                                    Text(
+                                        text = "Reset Password",
+                                        style = MaterialTheme.typography.titleLarge.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 20.sp,
+                                            color = textColorPrimary
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Enter your email address and a new password to reset your login credentials.",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontSize = 13.sp,
+                                            color = textColorSecondary.copy(alpha = 0.75f),
+                                            lineHeight = 17.sp
+                                        )
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            AuthTextField(
+                                value = email,
+                                onValueChange = { email = it },
+                                label = "Email Address",
+                                placeholder = "you@example.com",
+                                leadingIcon = Icons.Outlined.Email,
+                                keyboardType = KeyboardType.Email,
+                                imeAction = ImeAction.Next,
+                                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+                                errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
+                            )
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            AuthTextField(
+                                value = newPassword,
+                                onValueChange = { newPassword = it },
+                                label = "New Password",
+                                placeholder = "Min 8 chars, letter & number",
+                                leadingIcon = Icons.Outlined.Lock,
+                                isPassword = true,
+                                imeAction = ImeAction.Done,
+                                onImeAction = { focusManager.clearFocus() },
+                                errorText = if (showErrors && !AuthValidator.isValidPassword(newPassword)) "Min 8 chars with 1 letter and 1 digit." else null
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    AuthTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = "Email Address",
-                        placeholder = "you@example.com",
-                        leadingIcon = Icons.Outlined.Email,
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next,
-                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                        errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    AuthTextField(
-                        value = newPassword,
-                        onValueChange = { newPassword = it },
-                        label = "New Password",
-                        placeholder = "Min 8 chars, letter & number",
-                        leadingIcon = Icons.Outlined.Lock,
-                        isPassword = true,
-                        imeAction = ImeAction.Done,
-                        onImeAction = { focusManager.clearFocus() },
-                        errorText = if (showErrors && !AuthValidator.isValidPassword(newPassword)) "Min 8 chars with 1 letter and 1 digit." else null
+                    PremiumButton(
+                        text = if (isLoading) "Resetting Password..." else "Reset Password",
+                        onClick = {
+                            showErrors = true
+                            if (!AuthValidator.isValidEmail(email) || !AuthValidator.isValidPassword(newPassword)) {
+                                return@PremiumButton
+                            }
+                            isLoading = true
+                            statusMessage = null
+                            onSendResetLinkClick(email, newPassword) { error ->
+                                isLoading = false
+                                if (error == null) {
+                                    isSuccess = true
+                                    statusMessage = "Password reset successfully!"
+                                } else {
+                                    isSuccess = false
+                                    statusMessage = error
+                                }
+                            }
+                        },
+                        enabled = !isLoading,
+                        isPrimary = true
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            PremiumButton(
-                text = if (isLoading) "Resetting Password..." else "Reset Password",
-                onClick = {
-                    showErrors = true
-                    if (!AuthValidator.isValidEmail(email) || !AuthValidator.isValidPassword(newPassword)) {
-                        return@PremiumButton
-                    }
-                    isLoading = true
-                    statusMessage = null
-                    onSendResetLinkClick(email, newPassword) { error ->
-                        isLoading = false
-                        if (error == null) {
-                            isSuccess = true
-                            statusMessage = "Password reset successfully!"
-                        } else {
-                            isSuccess = false
-                            statusMessage = error
-                        }
-                    }
-                },
-                enabled = !isLoading,
-                isPrimary = true
-            )
         }
 
         // Pinned Link at Bottom
