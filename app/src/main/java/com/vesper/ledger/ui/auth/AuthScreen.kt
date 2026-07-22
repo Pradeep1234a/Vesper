@@ -257,9 +257,9 @@ private fun WelcomeBenefitCard(
     val textColorPrimary = MaterialTheme.colorScheme.onSurface
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
     val cardBgColor = MaterialTheme.colorScheme.surface
-    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.40f)
+    val cardBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.60f)
     val iconBgColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.40f)
+    val iconBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.60f)
 
     Box(
         modifier = Modifier
@@ -398,7 +398,7 @@ private fun WelcomePremiumButton(
 
     val containerColor = if (isPrimary) MaterialTheme.colorScheme.onBackground else Color.Transparent
     val contentColor = if (isPrimary) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
-    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.60f))
+    val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.75f))
 
     Box(
         modifier = modifier
@@ -543,7 +543,7 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top
             ) {
-                // Header (Clean Brand Title & Bright Accent Line)
+                // Header (Clean Brand Title & Bright High-Contrast Accent Line)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -564,7 +564,7 @@ fun WelcomeScreen(
                     )
 
                     Divider(
-                        color = outlineColor.copy(alpha = 0.50f),
+                        color = outlineColor.copy(alpha = 0.70f),
                         thickness = 1.dp,
                         modifier = Modifier.width(48.dp)
                     )
@@ -572,7 +572,7 @@ fun WelcomeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Hero Section & Bright Accent Line
+                // Hero Section & Bright High-Contrast Accent Line
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -603,7 +603,7 @@ fun WelcomeScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Divider(
-                        color = outlineColor.copy(alpha = 0.50f),
+                        color = outlineColor.copy(alpha = 0.70f),
                         thickness = 1.dp,
                         modifier = Modifier.width(48.dp)
                     )
@@ -642,7 +642,7 @@ fun WelcomeScreen(
                 }
             }
 
-            // 4. Action Buttons & Legal Links with Bright Separator Lines
+            // 4. Action Buttons & Legal Links with High-Contrast Separator Lines
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -652,7 +652,7 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Divider(
-                    color = outlineColor.copy(alpha = 0.45f),
+                    color = outlineColor.copy(alpha = 0.65f),
                     thickness = 1.dp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -678,7 +678,7 @@ fun WelcomeScreen(
                 }
 
                 Divider(
-                    color = outlineColor.copy(alpha = 0.45f),
+                    color = outlineColor.copy(alpha = 0.65f),
                     thickness = 1.dp,
                     modifier = Modifier
                         .fillMaxWidth()
