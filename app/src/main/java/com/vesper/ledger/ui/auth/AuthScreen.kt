@@ -139,7 +139,7 @@ private fun AuthTextField(
                     Icon(
                         imageVector = leadingIcon,
                         contentDescription = null,
-                        tint = textColorSecondary.copy(alpha = 0.7f),
+                        tint = textColorPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -151,7 +151,7 @@ private fun AuthTextField(
                             Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                         contentDescription = if (passwordVisible)
                             "Hide password" else "Show password",
-                        tint = textColorSecondary,
+                        tint = textColorPrimary,
                         modifier = Modifier
                             .size(20.dp)
                             .clickable(
@@ -212,7 +212,7 @@ private fun PremiumButton(
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
 
-    val containerColor = if (isPrimary) textColorPrimary else MaterialTheme.colorScheme.surface
+    val containerColor = if (isPrimary) textColorPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
     val contentColor = if (isPrimary) backgroundColor else textColorPrimary
     val border = if (isPrimary) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f))
 
@@ -743,25 +743,24 @@ fun SignInScreen(
                 onBackClick = onBackClick
             )
 
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 64.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     if (errorMessage != null) {
                         Text(
                             text = errorMessage!!,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 12.dp)
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
 
@@ -825,7 +824,7 @@ fun SignInScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(20.dp))
+                            Spacer(modifier = Modifier.height(18.dp))
 
                             AuthTextField(
                                 value = email,
@@ -839,7 +838,7 @@ fun SignInScreen(
                                 errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                             )
 
-                            Spacer(modifier = Modifier.height(14.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             AuthTextField(
                                 value = password,
@@ -853,7 +852,7 @@ fun SignInScreen(
                                 errorText = if (showErrors && password.isEmpty()) "Password cannot be empty." else null
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
 
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
@@ -878,8 +877,6 @@ fun SignInScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
-
                     PremiumButton(
                         text = if (isLoading) "Signing In..." else "Sign In",
                         onClick = {
@@ -899,43 +896,42 @@ fun SignInScreen(
                     )
                 }
             }
-        }
 
-        // Pinned Link at Bottom
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onCreateAccountClick
-                ),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+            // Pinned Link at Bottom
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp, top = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Don't have an account? ",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary.copy(alpha = 0.8f),
-                        fontSize = 14.sp
+                Row(
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onCreateAccountClick
+                    ),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Don't have an account? ",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = textColorSecondary.copy(alpha = 0.8f),
+                            fontSize = 14.sp
+                        )
                     )
-                )
-                Text(
-                    text = "Create Account",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 14.sp,
-                        textDecoration = TextDecoration.Underline
+                    Text(
+                        text = "Create Account",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = textColorPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 14.sp,
+                            textDecoration = TextDecoration.Underline
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -980,25 +976,24 @@ fun CreateAccountScreen(
                 onBackClick = onBackClick
             )
 
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 64.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     if (errorMessage != null) {
                         Text(
                             text = errorMessage!!,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 10.dp)
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
 
@@ -1012,7 +1007,7 @@ fun CreateAccountScreen(
                                 BorderStroke(1.dp, borderDividerColor),
                                 RoundedCornerShape(18.dp)
                             )
-                            .padding(horizontal = 18.dp, vertical = 18.dp)
+                            .padding(horizontal = 18.dp, vertical = 14.dp)
                     ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             // Card Header with Circular Icon
@@ -1021,7 +1016,7 @@ fun CreateAccountScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(48.dp)
+                                        .size(44.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
                                         .border(
@@ -1034,11 +1029,11 @@ fun CreateAccountScreen(
                                         imageVector = Icons.Outlined.Person,
                                         contentDescription = null,
                                         tint = textColorPrimary,
-                                        modifier = Modifier.size(22.dp)
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.width(14.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
 
                                 Column {
                                     Text(
@@ -1046,7 +1041,7 @@ fun CreateAccountScreen(
                                         style = MaterialTheme.typography.titleLarge.copy(
                                             fontFamily = FontFamily.Serif,
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 20.sp,
+                                            fontSize = 19.sp,
                                             color = textColorPrimary
                                         )
                                     )
@@ -1054,15 +1049,15 @@ fun CreateAccountScreen(
                                     Text(
                                         text = "Create your secure Vesper Ledger account.",
                                         style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontSize = 13.sp,
+                                            fontSize = 12.sp,
                                             color = textColorSecondary.copy(alpha = 0.75f),
-                                            lineHeight = 17.sp
+                                            lineHeight = 15.sp
                                         )
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
 
                             AuthTextField(
                                 value = fullName,
@@ -1075,7 +1070,7 @@ fun CreateAccountScreen(
                                 errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter first and last name (letters only)." else null
                             )
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             AuthTextField(
                                 value = email,
@@ -1089,7 +1084,7 @@ fun CreateAccountScreen(
                                 errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                             )
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             AuthTextField(
                                 value = password,
@@ -1103,7 +1098,7 @@ fun CreateAccountScreen(
                                 errorText = if (showErrors && !AuthValidator.isValidPassword(password)) "Min 8 chars with 1 letter and 1 digit." else null
                             )
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             AuthTextField(
                                 value = confirmPassword,
@@ -1117,7 +1112,7 @@ fun CreateAccountScreen(
                                 errorText = if (showErrors && confirmPassword != password) "Passwords do not match." else null
                             )
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -1134,7 +1129,7 @@ fun CreateAccountScreen(
                                 )
                                 Text(
                                     text = "I accept the ",
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 12.sp)
                                 )
                                 Text(
                                     text = "Terms",
@@ -1143,7 +1138,7 @@ fun CreateAccountScreen(
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = SpaceGroteskFamily,
                                         textDecoration = TextDecoration.Underline,
-                                        fontSize = 13.sp
+                                        fontSize = 12.sp
                                     ),
                                     modifier = Modifier.clickable(
                                         interactionSource = remember { MutableInteractionSource() },
@@ -1152,7 +1147,7 @@ fun CreateAccountScreen(
                                 )
                                 Text(
                                     text = " & ",
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 13.sp)
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = textColorSecondary, fontSize = 12.sp)
                                 )
                                 Text(
                                     text = "Privacy Policy",
@@ -1161,7 +1156,7 @@ fun CreateAccountScreen(
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = SpaceGroteskFamily,
                                         textDecoration = TextDecoration.Underline,
-                                        fontSize = 13.sp
+                                        fontSize = 12.sp
                                     ),
                                     modifier = Modifier.clickable(
                                         interactionSource = remember { MutableInteractionSource() },
@@ -1171,8 +1166,6 @@ fun CreateAccountScreen(
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
 
                     PremiumButton(
                         text = if (isLoading) "Creating Account..." else "Create Account",
@@ -1201,6 +1194,43 @@ fun CreateAccountScreen(
                     )
                 }
             }
+
+            // Pinned Link at Bottom
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp, top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onSignInClick
+                    ),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Already have an account? ",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = textColorSecondary.copy(alpha = 0.8f),
+                            fontSize = 14.sp
+                        )
+                    )
+                    Text(
+                        text = "Sign In",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = textColorPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 14.sp,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    )
+                }
+            }
         }
 
         if (showTerms) {
@@ -1216,44 +1246,6 @@ fun CreateAccountScreen(
                 text = PRIVACY_POLICY_TEXT,
                 onDismissRequest = { showPrivacy = false }
             )
-        }
-
-        // Pinned Link at Bottom
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onSignInClick
-                ),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Already have an account? ",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorSecondary.copy(alpha = 0.8f),
-                        fontSize = 14.sp
-                    )
-                )
-                Text(
-                    text = "Sign In",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColorPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 14.sp,
-                        textDecoration = TextDecoration.Underline
-                    )
-                )
-            }
         }
     }
 }
@@ -1293,25 +1285,24 @@ fun ForgotPasswordScreen(
                 onBackClick = onBackClick
             )
 
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 64.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     if (statusMessage != null) {
                         Text(
                             text = statusMessage!!,
                             color = if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 12.dp)
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
 
@@ -1375,7 +1366,7 @@ fun ForgotPasswordScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(20.dp))
+                            Spacer(modifier = Modifier.height(18.dp))
 
                             AuthTextField(
                                 value = email,
@@ -1389,7 +1380,7 @@ fun ForgotPasswordScreen(
                                 errorText = if (showErrors && !AuthValidator.isValidEmail(email)) "Please enter a valid email address." else null
                             )
 
-                            Spacer(modifier = Modifier.height(14.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             AuthTextField(
                                 value = newPassword,
@@ -1404,8 +1395,6 @@ fun ForgotPasswordScreen(
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(20.dp))
 
                     PremiumButton(
                         text = if (isLoading) "Resetting Password..." else "Reset Password",
@@ -1432,32 +1421,31 @@ fun ForgotPasswordScreen(
                     )
                 }
             }
-        }
 
-        // Pinned Link at Bottom
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Back to Sign In",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = textColorPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 14.sp,
-                    textDecoration = TextDecoration.Underline
-                ),
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onBackToSignInClick
+            // Pinned Link at Bottom
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp, top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Back to Sign In",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = textColorPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 14.sp,
+                        textDecoration = TextDecoration.Underline
+                    ),
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onBackToSignInClick
+                    )
                 )
-            )
+            }
         }
     }
 }
