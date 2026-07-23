@@ -119,32 +119,7 @@ fun DashboardScreen(
     var showSplitBillDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = {
-            RootHeader(
-                title = "Vesper Ledger",
-                onMenuClick = onMenuClick,
-                actions = {
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                            .clickable { onSettingsClick() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = userName.take(1).uppercase(),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                    }
-                }
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -280,7 +255,7 @@ fun DashboardScreen(
                             Icon(
                                 imageVector = Icons.Outlined.TrendingUp,
                                 contentDescription = null,
-                                tint = Color(0xFF16A34A),
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -317,7 +292,7 @@ fun DashboardScreen(
                             Icon(
                                 imageVector = Icons.Outlined.TrendingDown,
                                 contentDescription = null,
-                                tint = Color(0xFFDC2626),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -401,7 +376,7 @@ fun DashboardScreen(
                             Icon(
                                 imageVector = Icons.Outlined.AccountBalanceWallet,
                                 contentDescription = null,
-                                tint = Color(0xFFF59E0B),
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -828,8 +803,8 @@ fun DashboardScreen(
                             uiState.recentTransactions.forEach { tx ->
                                 var showMenu by remember { mutableStateOf(false) }
                                 val isIncome = tx.type == TransactionType.INCOME
-                                val accentColor = if (isIncome) Color(0xFF16A34A) else Color(0xFFDC2626)
-                                val accentBg = if (isIncome) Color(0xFF16A34A).copy(alpha = 0.08f) else Color(0xFFDC2626).copy(alpha = 0.08f)
+                                val accentColor = if (isIncome) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                                val accentBg = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                                 val cat = uiState.categories.find { it.id == tx.categoryId }
                                 val iconName = cat?.iconName ?: "category"
                                 val categoryLabel = cat?.name ?: tx.note.ifBlank { "Misc" }
@@ -936,14 +911,14 @@ fun DashboardScreen(
                                                         Icon(
                                                             imageVector = Icons.Outlined.DeleteOutline,
                                                             contentDescription = null,
-                                                            tint = Color(0xFFDC2626),
+                                                            tint = MaterialTheme.colorScheme.onSurface,
                                                             modifier = Modifier.size(18.dp)
                                                         )
                                                         Spacer(modifier = Modifier.width(8.dp))
                                                         Text(
                                                             "Delete",
                                                             style = MaterialTheme.typography.bodyMedium.copy(
-                                                                color = Color(0xFFDC2626)
+                                                                color = MaterialTheme.colorScheme.onSurface
                                                             )
                                                         )
                                                     }
@@ -1250,7 +1225,7 @@ private fun DashboardAddTransactionDialog(
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = if (type == TransactionType.EXPENSE) Color(0xFFDC2626) else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (type == TransactionType.EXPENSE) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                     }
@@ -1269,7 +1244,7 @@ private fun DashboardAddTransactionDialog(
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = if (type == TransactionType.INCOME) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (type == TransactionType.INCOME) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                     }

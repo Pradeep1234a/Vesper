@@ -201,13 +201,13 @@ fun ReceiptReviewStudioScreen(
                             Icon(
                                 imageVector = Icons.Filled.Warning,
                                 contentDescription = null,
-                                tint = Color(0xFFF59E0B),
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(22.dp)
                             )
                             Text(
                                 text = "Possible duplicate receipt detected for ${scannedReceipt.merchantName} on ${scannedReceipt.dateString}.",
                                 style = MaterialTheme.typography.bodySmall.copy(
-                                    color = Color(0xFFF59E0B),
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontSize = 12.sp
                                 )
                             )
@@ -343,13 +343,14 @@ fun ReceiptReviewStudioScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(Color(0xFFDC2626).copy(alpha = 0.2f))
+                                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
                                         Text(
                                             text = "Needs Review",
                                             style = MaterialTheme.typography.labelSmall.copy(
-                                                color = Color(0xFFEF4444),
+                                                color = MaterialTheme.colorScheme.onSurface,
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Bold
                                             )
@@ -359,15 +360,16 @@ fun ReceiptReviewStudioScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(Color(0xFF16A34A).copy(alpha = 0.2f))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
                                         Text(
                                             text = "High Confidence",
                                             style = MaterialTheme.typography.labelSmall.copy(
-                                                color = Color(0xFF22C55E),
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 fontSize = 10.sp,
-                                                fontWeight = FontWeight.Bold
+                                                fontWeight = FontWeight.Medium
                                             )
                                         )
                                     }

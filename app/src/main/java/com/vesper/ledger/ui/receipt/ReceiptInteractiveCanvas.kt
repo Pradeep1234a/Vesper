@@ -81,7 +81,7 @@ fun ReceiptInteractiveCanvas(
                     val rect = item.boundingBox
                     if (rect != null) {
                         val isSelected = item.id == selectedItemId
-                        val boxColor = if (isSelected) Color(0xFF2563EB) else if (item.isNeedsReview) Color(0xFFEF4444) else Color(0xFF16A34A)
+                        val boxColor = if (isSelected) Color.White else if (item.isNeedsReview) Color(0xFFA1A1AA) else Color(0xFF71717A)
                         val strokeWidth = if (isSelected) 4f else 2f
 
                         drawRect(

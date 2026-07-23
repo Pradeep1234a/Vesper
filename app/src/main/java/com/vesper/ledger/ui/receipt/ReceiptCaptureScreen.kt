@@ -105,7 +105,7 @@ fun ReceiptCaptureScreen(
                         Icon(
                             imageVector = if (isFlashOn) Icons.Filled.FlashOn else Icons.Outlined.FlashOff,
                             contentDescription = "Torch",
-                            tint = if (isFlashOn) Color(0xFFF59E0B) else Color.White
+                            tint = if (isFlashOn) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }

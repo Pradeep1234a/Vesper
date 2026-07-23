@@ -242,6 +242,29 @@ fun MainScreen(
         }
     ) {
         Scaffold(
+            topBar = {
+                val headerTitle = when (currentRoute) {
+                    Screen.Dashboard.route -> "Dashboard"
+                    Screen.Transactions.route -> "Transactions"
+                    Screen.Budgets.route -> "Budgets"
+                    Screen.Savings.route -> "Savings Goals"
+                    Screen.Settings.route -> "Settings"
+                    else -> "Vesper Ledger"
+                }
+                val isRootRoute = currentRoute in listOf(Screen.Dashboard.route, Screen.Transactions.route, Screen.Settings.route)
+
+                com.vesper.ledger.ui.components.VesperTopBar(
+                    title = headerTitle,
+                    isRoot = isRootRoute,
+                    onNavigationClick = {
+                        if (isRootRoute) {
+                            scope.launch { drawerState.open() }
+                        } else {
+                            navController.popBackStack()
+                        }
+                    }
+                )
+            },
             bottomBar = {
                 if (showBottomBar) {
                     Column(

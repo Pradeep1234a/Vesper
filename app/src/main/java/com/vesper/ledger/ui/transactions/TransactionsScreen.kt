@@ -109,12 +109,7 @@ fun TransactionsScreen(
     }
 
     Scaffold(
-        topBar = {
-            RootHeader(
-                title = "Transactions",
-                onMenuClick = onMenuClick
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -185,8 +180,8 @@ fun TransactionsScreen(
                                 var showMenu by remember { mutableStateOf(false) }
                                 val category = categories.find { it.id == tx.categoryId }
                                 val isIncome = tx.type == TransactionType.INCOME
-                                val accentColor = if (isIncome) Color(0xFF16A34A) else Color(0xFFDC2626)
-                                val accentBg = if (isIncome) Color(0xFF16A34A).copy(alpha = 0.08f) else Color(0xFFDC2626).copy(alpha = 0.08f)
+                                val accentColor = if (isIncome) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                                val accentBg = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                                 val iconName = category?.iconName ?: "category"
                                 val categoryLabel = category?.name ?: "Uncategorized"
 
@@ -291,14 +286,14 @@ fun TransactionsScreen(
                                                         Icon(
                                                             imageVector = Icons.Outlined.DeleteOutline,
                                                             contentDescription = null,
-                                                            tint = Color(0xFFDC2626),
+                                                            tint = MaterialTheme.colorScheme.onSurface,
                                                             modifier = Modifier.size(18.dp)
                                                         )
                                                         Spacer(modifier = Modifier.width(8.dp))
                                                         Text(
                                                             "Delete",
                                                             style = MaterialTheme.typography.bodyMedium.copy(
-                                                                color = Color(0xFFDC2626)
+                                                                color = MaterialTheme.colorScheme.onSurface
                                                             )
                                                         )
                                                     }

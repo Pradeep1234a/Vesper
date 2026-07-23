@@ -91,7 +91,7 @@ fun UpdateDialog(
                             text = "✓ You're up to date",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF16A34A) // Green
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
 
@@ -165,11 +165,11 @@ fun UpdateDialog(
 
                         // Update Type Badge
                         val badgeColor = when (updateInfo.updateType) {
-                            UpdateType.MAJOR -> Color(0xFFDC2626) // Red
-                            UpdateType.FEATURE -> Color(0xFF2563EB) // Blue
-                            UpdateType.STABILITY -> Color(0xFF71717A) // Gray
-                            UpdateType.SECURITY -> Color(0xFFD97706) // Amber
-                            UpdateType.HOTFIX -> Color(0xFF16A34A) // Green
+                            UpdateType.MAJOR -> MaterialTheme.colorScheme.onBackground
+                            UpdateType.FEATURE -> MaterialTheme.colorScheme.onSurface
+                            UpdateType.STABILITY -> MaterialTheme.colorScheme.onSurfaceVariant
+                            UpdateType.SECURITY -> MaterialTheme.colorScheme.onSurface
+                            UpdateType.HOTFIX -> MaterialTheme.colorScheme.onSurfaceVariant
                         }
                         Box(
                             modifier = Modifier
@@ -503,7 +503,7 @@ fun SettingsUpdatesScreen(
                     Icon(
                         imageVector = Icons.Outlined.CheckCircle,
                         contentDescription = null,
-                        tint = Color(0xFF16A34A),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(48.dp)
                     )
                     Text(
@@ -650,7 +650,7 @@ fun SettingsUpdatesScreen(
                 } else {
                     "You're running the latest version of Vesper Ledger."
                 }
-                val iconColor = if (isNewerBuild) MaterialTheme.colorScheme.primary else Color(0xFF16A34A)
+                val iconColor = MaterialTheme.colorScheme.primary
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),

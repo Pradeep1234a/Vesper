@@ -59,12 +59,7 @@ fun BudgetScreen(
     }
 
     Scaffold(
-        topBar = {
-            ChildHeader(
-                title = "Budgets",
-                onBackClick = onBackClick
-            )
-        },
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {

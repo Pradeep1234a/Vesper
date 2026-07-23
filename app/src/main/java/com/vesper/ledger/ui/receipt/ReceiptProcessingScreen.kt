@@ -128,7 +128,7 @@ fun ReceiptProcessingScreen(
                             Icon(
                                 imageVector = Icons.Filled.CheckCircle,
                                 contentDescription = null,
-                                tint = Color(0xFF16A34A),
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                         } else if (isCurrent) {

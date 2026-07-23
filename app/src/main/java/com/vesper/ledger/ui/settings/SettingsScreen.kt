@@ -177,17 +177,9 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            if (subView == SettingsSubView.MAIN) {
-                RootHeader(
-                    title = "Settings",
-                    onMenuClick = onMenuClick
-                )
-            } else {
+            if (subView != SettingsSubView.MAIN) {
                 ChildHeader(
-                    title = when (subView) {
-                        SettingsSubView.UPDATES -> "Software Updates"
-                        else -> "Settings"
-                    },
+                    title = "Software Updates",
                     onBackClick = { subView = SettingsSubView.MAIN }
                 )
             }

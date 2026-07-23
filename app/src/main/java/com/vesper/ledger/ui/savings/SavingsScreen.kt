@@ -200,17 +200,7 @@ fun SavingsScreen(
     }
 
     Scaffold(
-        topBar = {
-            ChildHeader(
-                title = "Savings Goals",
-                onBackClick = onBackClick,
-                actions = {
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Goal", tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                }
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
