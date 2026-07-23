@@ -36,12 +36,16 @@ import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.transactions.TransactionsScreen
 import com.vesper.ledger.ui.transactions.TransactionsViewModel
 import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
+import com.vesper.ledger.ui.transactions.AddTransactionScreen
+import com.vesper.ledger.ui.transactions.CategorySelectionScreen
+import com.vesper.ledger.ui.transactions.CategoryOption
 import com.vesper.ledger.ui.savings.SavingsScreen
 import com.vesper.ledger.ui.savings.SavingsViewModel
 import com.vesper.ledger.ui.savings.SavingsViewModelFactory
 import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
+import com.vesper.ledger.data.model.TransactionType
 import kotlinx.coroutines.launch
 
 data class DrawerItem(
@@ -85,6 +89,8 @@ fun MainScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    var activeSelectedCategory by remember { mutableStateOf<CategoryOption?>(null) }
+
     val drawerItems = listOf(
         DrawerItem(Screen.Dashboard.route, "Dashboard", Icons.Outlined.Dashboard),
         DrawerItem(Screen.Transactions.route, "Transactions", Icons.Outlined.ListAlt),
@@ -101,6 +107,10 @@ fun MainScreen(
     )
 
     val showBottomBar = currentRoute in bottomNavItems.map { it.route }
+    val showTopBar = currentRoute in listOf(
+        Screen.Dashboard.route, Screen.Transactions.route, Screen.Budgets.route,
+        Screen.Savings.route, Screen.Settings.route
+    )
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -243,27 +253,29 @@ fun MainScreen(
     ) {
         Scaffold(
             topBar = {
-                val headerTitle = when (currentRoute) {
-                    Screen.Dashboard.route -> "Dashboard"
-                    Screen.Transactions.route -> "Transactions"
-                    Screen.Budgets.route -> "Budgets"
-                    Screen.Savings.route -> "Savings Goals"
-                    Screen.Settings.route -> "Settings"
-                    else -> "Vesper Ledger"
-                }
-                val isRootRoute = currentRoute in listOf(Screen.Dashboard.route, Screen.Transactions.route, Screen.Settings.route)
-
-                com.vesper.ledger.ui.components.VesperTopBar(
-                    title = headerTitle,
-                    isRoot = isRootRoute,
-                    onNavigationClick = {
-                        if (isRootRoute) {
-                            scope.launch { drawerState.open() }
-                        } else {
-                            navController.popBackStack()
-                        }
+                if (showTopBar) {
+                    val headerTitle = when (currentRoute) {
+                        Screen.Dashboard.route -> "Dashboard"
+                        Screen.Transactions.route -> "Transactions"
+                        Screen.Budgets.route -> "Budgets"
+                        Screen.Savings.route -> "Savings Goals"
+                        Screen.Settings.route -> "Settings"
+                        else -> "Vesper Ledger"
                     }
-                )
+                    val isRootRoute = currentRoute in listOf(Screen.Dashboard.route, Screen.Transactions.route, Screen.Settings.route)
+
+                    com.vesper.ledger.ui.components.VesperTopBar(
+                        title = headerTitle,
+                        isRoot = isRootRoute,
+                        onNavigationClick = {
+                            if (isRootRoute) {
+                                scope.launch { drawerState.open() }
+                            } else {
+                                navController.popBackStack()
+                            }
+                        }
+                    )
+                }
             },
             bottomBar = {
                 if (showBottomBar) {
@@ -342,6 +354,9 @@ fun MainScreen(
                                 launchSingleTop = true
                                 restoreState = true
                             }
+                        },
+                        onAddTransactionClick = {
+                            navController.navigate(Screen.AddTransaction.route)
                         }
                     )
                 }
@@ -352,7 +367,46 @@ fun MainScreen(
                         viewModel = transactionsViewModel,
                         currencySymbol = currencySymbol,
                         onMenuClick = { scope.launch { drawerState.open() } },
-                        onBackClick = { navController.popBackStack() }
+                        onBackClick = { navController.popBackStack() },
+                        onAddTransactionClick = {
+                            navController.navigate(Screen.AddTransaction.route)
+                        }
+                    )
+                }
+
+                composable(Screen.AddTransaction.route) {
+                    val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
+
+                    AddTransactionScreen(
+                        currencySymbol = currencySymbol,
+                        onBackClick = { navController.popBackStack() },
+                        onOpenCategorySelection = { type, currentCatName ->
+                            navController.navigate(Screen.CategorySelection.route)
+                        },
+                        selectedCategory = activeSelectedCategory,
+                        onSaveTransaction = { title, amount, type, categoryId, dateEpochMillis, accountName, paymentMethod, note ->
+                            transactionsViewModel.addTransaction(
+                                title = title,
+                                amount = amount,
+                                type = type,
+                                categoryId = categoryId,
+                                accountName = accountName,
+                                note = note
+                            )
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                composable(Screen.CategorySelection.route) {
+                    CategorySelectionScreen(
+                        initialType = TransactionType.EXPENSE,
+                        selectedCategoryName = activeSelectedCategory?.name ?: "Groceries",
+                        onBackClick = { navController.popBackStack() },
+                        onCategorySelected = { cat ->
+                            activeSelectedCategory = cat
+                            navController.popBackStack()
+                        }
                     )
                 }
 

@@ -82,6 +82,28 @@ class TransactionsViewModel(
         sortBy.value = SortOption.DATE_DESC
     }
 
+    fun addTransaction(
+        title: String,
+        amount: Double,
+        type: TransactionType,
+        categoryId: Long,
+        accountName: String = "Cash Wallet",
+        note: String = ""
+    ) {
+        viewModelScope.launch {
+            val tx = Transaction(
+                title = title,
+                amount = amount,
+                type = type,
+                categoryId = categoryId,
+                dateEpochMillis = System.currentTimeMillis(),
+                note = note,
+                accountName = accountName
+            )
+            transactionRepository.insertTransaction(tx)
+        }
+    }
+
     fun deleteTransaction(transaction: Transaction) {
         viewModelScope.launch {
             transactionRepository.deleteTransaction(transaction)

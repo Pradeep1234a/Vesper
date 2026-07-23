@@ -91,7 +91,8 @@ fun DashboardScreen(
     onMenuClick: () -> Unit,
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onSavingsClick: () -> Unit
+    onSavingsClick: () -> Unit,
+    onAddTransactionClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -419,7 +420,7 @@ fun DashboardScreen(
                             QuickActionTile(
                                 label = "Add Txn",
                                 icon = Icons.Outlined.AddCircleOutline,
-                                onClick = { showAddTxnSheet = true },
+                                onClick = { onAddTransactionClick() },
                                 modifier = Modifier.weight(1f)
                             )
                             QuickActionTile(
