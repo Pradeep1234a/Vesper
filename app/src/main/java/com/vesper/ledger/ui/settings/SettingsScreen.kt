@@ -176,6 +176,22 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        topBar = {
+            if (subView == SettingsSubView.MAIN) {
+                RootHeader(
+                    title = "Settings",
+                    onMenuClick = onMenuClick
+                )
+            } else {
+                ChildHeader(
+                    title = when (subView) {
+                        SettingsSubView.UPDATES -> "Software Updates"
+                        else -> "Settings"
+                    },
+                    onBackClick = { subView = SettingsSubView.MAIN }
+                )
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
@@ -186,11 +202,6 @@ fun SettingsScreen(
         ) {
             when (subView) {
                 SettingsSubView.MAIN -> {
-                    RootHeader(
-                        title = "Settings",
-                        onMenuClick = onMenuClick
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -368,14 +379,8 @@ fun SettingsScreen(
                     LaunchedEffect(Unit) {
                         updateViewModel.checkForUpdatesOnLaunch()
                     }
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        ChildHeader(
-                            title = "Updates",
-                            onBackClick = { subView = SettingsSubView.MAIN }
-                        )
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
-                        }
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
                     }
                 }
             }

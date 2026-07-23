@@ -199,12 +199,8 @@ fun SavingsScreen(
         )
     }
 
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+    Scaffold(
+        topBar = {
             ChildHeader(
                 title = "Savings Goals",
                 onBackClick = onBackClick,
@@ -214,6 +210,14 @@ fun SavingsScreen(
                     }
                 }
             )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
             if (goals.isEmpty()) {
                 Box(
                     modifier = Modifier

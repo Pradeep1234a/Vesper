@@ -108,19 +108,20 @@ fun TransactionsScreen(
         )
     }
 
-    Scaffold { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize()
+    Scaffold(
+        topBar = {
+            RootHeader(
+                title = "Transactions",
+                onMenuClick = onMenuClick
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                RootHeader(
-                    title = "Transactions",
-                    onMenuClick = onMenuClick
-                )
 
                 // Search Input Field
                 Row(
@@ -317,4 +318,3 @@ fun TransactionsScreen(
             }
         }
     }
-}
