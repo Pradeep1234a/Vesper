@@ -182,9 +182,9 @@ fun AddTransactionScreen(
         topBar = {
             ChildHeader(
                 title = when (selectedType) {
-                    TransactionType.EXPENSE -> "New Expense"
-                    TransactionType.INCOME -> "New Income"
-                    TransactionType.TRANSFER -> "New Transfer"
+                    TransactionType.EXPENSE -> "Expense"
+                    TransactionType.INCOME -> "Income"
+                    TransactionType.TRANSFER -> "Transfer"
                 },
                 onBackClick = onBackClick
             )
