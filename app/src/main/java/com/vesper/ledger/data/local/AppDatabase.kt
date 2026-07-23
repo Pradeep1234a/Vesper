@@ -104,8 +104,12 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (11, 'Healthcare', 'medical_services', 'EXPENSE', '#0D9488')")
                 db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (12, 'Other Expense', 'more_horiz', 'EXPENSE', '#71717A')")
 
-                // Default account
-                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (1, 'Cash Wallet', 'CASH', 0.0, 'USD', NULL, NULL, 'account_balance_wallet')")
+                // Accounts
+                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (1, 'Cash Wallet', 'CASH', 3420.0, 'USD', NULL, NULL, 'payments')")
+                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (2, 'HDFC Bank Account', 'BANK', 45280.0, 'USD', NULL, NULL, 'account_balance')")
+                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (3, 'ICICI Bank Account', 'BANK', 28150.0, 'USD', NULL, NULL, 'account_balance')")
+                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (4, 'SBI Bank Account', 'BANK', 18900.0, 'USD', NULL, NULL, 'account_balance')")
+                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (5, 'HDFC Regalia Credit Card', 'CREDIT_CARD', 65000.0, 'USD', NULL, NULL, 'credit_card')")
 
                 // Default payment methods
                 db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (1, 'Cash', 1)")

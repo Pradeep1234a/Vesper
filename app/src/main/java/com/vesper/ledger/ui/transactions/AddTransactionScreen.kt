@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShButton
@@ -45,17 +46,9 @@ import java.util.Locale
 
 data class AccountOption(
     val name: String,
-    val type: String, // CASH, BANK, CREDIT
+    val type: String, // CASH, BANK, CREDIT_CARD
     val balance: Double,
     val iconName: String = "account_balance_wallet"
-)
-
-val PRESET_ACCOUNTS = listOf(
-    AccountOption("Cash Wallet", "CASH", 3420.00, "payments"),
-    AccountOption("HDFC Bank Account", "BANK", 45280.00, "account_balance"),
-    AccountOption("ICICI Bank Account", "BANK", 28150.00, "account_balance"),
-    AccountOption("SBI Bank Account", "BANK", 18900.00, "account_balance"),
-    AccountOption("HDFC Regalia Credit Card", "CREDIT", 65000.00, "credit_card")
 )
 
 val BANK_PAYMENT_METHODS = listOf("UPI / GPay / PhonePe", "Debit Card", "Net Banking", "Bank Transfer")
@@ -64,6 +57,7 @@ val BANK_PAYMENT_METHODS = listOf("UPI / GPay / PhonePe", "Debit Card", "Net Ban
 @Composable
 fun AddTransactionScreen(
     currencySymbol: String = "$",
+    accountsList: List<Account> = emptyList(),
     onBackClick: () -> Unit,
     onOpenCategorySelection: (TransactionType, String) -> Unit,
     selectedCategory: CategoryOption?,
@@ -83,6 +77,28 @@ fun AddTransactionScreen(
     val dateFormat = SimpleDateFormat("EEE, dd MMM yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
+    // Dynamically map database accounts loaded from AccountRepository
+    val availableAccounts = remember(accountsList) {
+        if (accountsList.isNotEmpty()) {
+            accountsList.map { acc ->
+                AccountOption(
+                    name = acc.name,
+                    type = acc.type,
+                    balance = acc.initialBalance,
+                    iconName = acc.iconName
+                )
+            }
+        } else {
+            listOf(
+                AccountOption("Cash Wallet", "CASH", 3420.00, "payments"),
+                AccountOption("HDFC Bank Account", "BANK", 45280.00, "account_balance"),
+                AccountOption("ICICI Bank Account", "BANK", 28150.00, "account_balance"),
+                AccountOption("SBI Bank Account", "BANK", 18900.00, "account_balance"),
+                AccountOption("HDFC Regalia Credit Card", "CREDIT_CARD", 65000.00, "credit_card")
+            )
+        }
+    }
+
     // Form States
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
     var title by remember { mutableStateOf("") }
@@ -90,7 +106,7 @@ fun AddTransactionScreen(
     var isCalculatorExpanded by remember { mutableStateOf(false) }
 
     // Account & Payment Method Dropdown States
-    var selectedAccount by remember { mutableStateOf(PRESET_ACCOUNTS[0]) }
+    var selectedAccount by remember(availableAccounts) { mutableStateOf(availableAccounts.first()) }
     var selectedPaymentMethod by remember { mutableStateOf("Cash") }
     var expandedAccountMenu by remember { mutableStateOf(false) }
     var expandedPaymentMenu by remember { mutableStateOf(false) }
@@ -106,7 +122,7 @@ fun AddTransactionScreen(
     LaunchedEffect(selectedAccount) {
         when (selectedAccount.type) {
             "CASH" -> selectedPaymentMethod = "Cash"
-            "CREDIT" -> selectedPaymentMethod = "Credit Card"
+            "CREDIT_CARD", "CREDIT" -> selectedPaymentMethod = "Credit Card"
             "BANK" -> if (selectedPaymentMethod !in BANK_PAYMENT_METHODS) {
                 selectedPaymentMethod = BANK_PAYMENT_METHODS[0]
             }
@@ -512,7 +528,7 @@ fun AddTransactionScreen(
                         expanded = expandedAccountMenu,
                         onDismissRequest = { expandedAccountMenu = false }
                     ) {
-                        PRESET_ACCOUNTS.forEach { acc ->
+                        availableAccounts.forEach { acc ->
                             DropdownMenuItem(
                                 text = {
                                     Column {

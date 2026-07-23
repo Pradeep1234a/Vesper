@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
+import com.vesper.ledger.data.model.Account
+import com.vesper.ledger.data.repository.AccountRepository
 import com.vesper.ledger.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +21,8 @@ enum class SortOption {
 }
 
 class TransactionsViewModel(
-    private val transactionRepository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
+    private val accountRepository: AccountRepository
 ) : ViewModel() {
 
     val searchQuery = MutableStateFlow("")
@@ -29,6 +32,9 @@ class TransactionsViewModel(
     val sortBy = MutableStateFlow(SortOption.DATE_DESC)
 
     val categories: StateFlow<List<Category>> = transactionRepository.allCategories
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val dbAccounts: StateFlow<List<Account>> = accountRepository.allAccounts
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Dynamically calculate the top 3 most frequently used categories
@@ -112,12 +118,13 @@ class TransactionsViewModel(
 }
 
 class TransactionsViewModelFactory(
-    private val transactionRepository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
+    private val accountRepository: AccountRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TransactionsViewModel::class.java)) {
-            return TransactionsViewModel(transactionRepository) as T
+            return TransactionsViewModel(transactionRepository, accountRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

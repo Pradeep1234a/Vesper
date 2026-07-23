@@ -78,7 +78,7 @@ fun MainScreen(
     val app = context.applicationContext as VesperApplication
 
     val dashboardFactory = DashboardViewModelFactory(app.transactionRepository, app.savingsRepository, app.accountRepository)
-    val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository)
+    val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository, app.accountRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
     val budgetsFactory = BudgetsViewModelFactory(app)
 
@@ -376,9 +376,11 @@ fun MainScreen(
 
                 composable(Screen.AddTransaction.route) {
                     val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
+                    val dbAccounts by transactionsViewModel.dbAccounts.collectAsState()
 
                     AddTransactionScreen(
                         currencySymbol = currencySymbol,
+                        accountsList = dbAccounts,
                         onBackClick = { navController.popBackStack() },
                         onOpenCategorySelection = { type, currentCatName ->
                             navController.navigate("${Screen.CategorySelection.route}?type=${type.name}")
