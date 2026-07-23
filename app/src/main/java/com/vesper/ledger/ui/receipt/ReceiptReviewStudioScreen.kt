@@ -216,6 +216,17 @@ fun ReceiptReviewStudioScreen(
                 }
             }
 
+            // Zoomable Interactive Receipt Canvas with live OCR Bounding Boxes
+            item {
+                var selectedItemId by remember { mutableStateOf<String?>(null) }
+                ReceiptInteractiveCanvas(
+                    imageUriStr = scannedReceipt.imageUriString,
+                    lineItems = lineItems,
+                    selectedItemId = selectedItemId,
+                    onItemSelected = { id -> selectedItemId = id }
+                )
+            }
+
             // Header Info Card: Merchant, Date, Payment Method
             item {
                 ShCard(

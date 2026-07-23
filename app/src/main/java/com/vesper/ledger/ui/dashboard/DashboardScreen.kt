@@ -15,9 +15,11 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material3.*
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,6 +67,7 @@ import kotlinx.coroutines.launch
 import com.vesper.ledger.data.receipt.ScannedReceipt
 import com.vesper.ledger.data.receipt.ReceiptOcrEngine
 import com.vesper.ledger.ui.receipt.ReceiptCaptureScreen
+import com.vesper.ledger.ui.receipt.ReceiptImageEditorScreen
 import com.vesper.ledger.ui.receipt.ReceiptProcessingScreen
 import com.vesper.ledger.ui.receipt.ReceiptReviewStudioScreen
 import com.vesper.ledger.data.model.TransactionType
@@ -984,7 +987,8 @@ fun DashboardScreen(
         }
 
         if (showScanReceiptDialog) {
-            var scannerStep by remember { mutableStateOf("capture") } // "capture", "processing", "review"
+            var scannerStep by remember { mutableStateOf("capture") } // "capture", "editor", "processing", "review"
+            var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
             var scannedReceiptData by remember { mutableStateOf<ScannedReceipt?>(null) }
             val coroutineScope = rememberCoroutineScope()
 
@@ -1001,13 +1005,28 @@ fun DashboardScreen(
                             ReceiptCaptureScreen(
                                 onBackClick = { showScanReceiptDialog = false },
                                 onImageSelected = { selectedUri ->
-                                    scannerStep = "processing"
-                                    coroutineScope.launch {
-                                        val processed = ReceiptOcrEngine.processReceiptImage(context, selectedUri)
-                                        scannedReceiptData = processed
-                                    }
+                                    selectedImageUri = selectedUri
+                                    scannerStep = "editor"
                                 }
                             )
+                        }
+                        "editor" -> {
+                            val uri = selectedImageUri
+                            if (uri != null) {
+                                ReceiptImageEditorScreen(
+                                    imageUri = uri,
+                                    onRetakeClick = { scannerStep = "capture" },
+                                    onConfirmEnhancement = { confirmedUri ->
+                                        scannerStep = "processing"
+                                        coroutineScope.launch {
+                                            val processed = ReceiptOcrEngine.processReceiptImage(context, confirmedUri)
+                                            scannedReceiptData = processed
+                                        }
+                                    }
+                                )
+                            } else {
+                                scannerStep = "capture"
+                            }
                         }
                         "processing" -> {
                             ReceiptProcessingScreen(
