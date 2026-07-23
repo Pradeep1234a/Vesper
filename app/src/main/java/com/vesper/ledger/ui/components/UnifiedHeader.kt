@@ -1,14 +1,19 @@
 package com.vesper.ledger.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.PlatformTextStyle
@@ -18,21 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.runtime.remember
-import androidx.compose.ui.draw.clip
-
+/**
+ * Universal Master Top Bar for Vesper Ledger.
+ * Provides a single unified top bar component across the entire application with
+ * consistent height (56dp), status bar insets, Space Grotesk typography, and action slots.
+ */
 @Composable
-fun RootHeader(
+fun VesperTopBar(
     title: String,
     modifier: Modifier = Modifier,
+    isRoot: Boolean = true,
     showLogo: Boolean = false,
-    onMenuClick: (() -> Unit)? = null,
+    onNavigationClick: (() -> Unit)? = null,
     actions: @Composable (RowScope.() -> Unit)? = null
 ) {
     Row(
@@ -42,11 +44,13 @@ fun RootHeader(
             .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (onMenuClick != null) {
-            // Hamburger icon starts exactly at 16.dp matching left edge of cards
+        if (onNavigationClick != null) {
+            val icon = if (isRoot) Icons.Default.Menu else Icons.Default.ArrowBack
+            val contentDesc = if (isRoot) "Menu" else "Back"
+
             Icon(
-                imageVector = Icons.Default.Menu,
-                contentDescription = "Menu",
+                imageVector = icon,
+                contentDescription = contentDesc,
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .padding(start = 16.dp)
@@ -54,7 +58,7 @@ fun RootHeader(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
-                    ) { onMenuClick.invoke() }
+                    ) { onNavigationClick.invoke() }
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
@@ -63,11 +67,11 @@ fun RootHeader(
             DynamicLogo(
                 size = 32.dp,
                 cornerRadius = 8.dp,
-                modifier = if (onMenuClick == null) Modifier.padding(start = 16.dp) else Modifier
+                modifier = if (onNavigationClick == null) Modifier.padding(start = 16.dp) else Modifier
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
-        
+
         Text(
             text = title,
             style = TextStyle(
@@ -81,10 +85,9 @@ fun RootHeader(
             ),
             modifier = Modifier
                 .weight(1f)
-                .then(if (!showLogo && onMenuClick == null) Modifier.padding(start = 16.dp) else Modifier)
+                .then(if (!showLogo && onNavigationClick == null) Modifier.padding(start = 16.dp) else Modifier)
         )
-        
-        // Right visual group: Notification (8dp gap) + Avatar (16dp end margin)
+
         if (actions != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -96,6 +99,30 @@ fun RootHeader(
     }
 }
 
+/**
+ * Root Header — unified wrapper delegating to VesperTopBar
+ */
+@Composable
+fun RootHeader(
+    title: String,
+    modifier: Modifier = Modifier,
+    showLogo: Boolean = false,
+    onMenuClick: (() -> Unit)? = null,
+    actions: @Composable (RowScope.() -> Unit)? = null
+) {
+    VesperTopBar(
+        title = title,
+        modifier = modifier,
+        isRoot = true,
+        showLogo = showLogo,
+        onNavigationClick = onMenuClick,
+        actions = actions
+    )
+}
+
+/**
+ * Child Header — unified wrapper delegating to VesperTopBar
+ */
 @Composable
 fun ChildHeader(
     title: String,
@@ -103,53 +130,14 @@ fun ChildHeader(
     modifier: Modifier = Modifier,
     actions: @Composable (RowScope.() -> Unit)? = null
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .height(56.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Back icon starts exactly at 16.dp matching left edge of cards
-        Icon(
-            imageVector = Icons.Default.ArrowBack,
-            contentDescription = "Back",
-            tint = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .size(28.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) { onBackClick() }
-        )
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
-        Text(
-            text = title,
-            style = TextStyle(
-                fontFamily = SpaceGroteskFamily,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                platformStyle = PlatformTextStyle(
-                    includeFontPadding = false
-                )
-            ),
-            modifier = Modifier.weight(1f)
-        )
-        
-        // Right visual group: Actions aligned with 16dp end margin
-        if (actions != null) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(end = 16.dp),
-                content = actions
-            )
-        }
-    }
+    VesperTopBar(
+        title = title,
+        modifier = modifier,
+        isRoot = false,
+        showLogo = false,
+        onNavigationClick = onBackClick,
+        actions = actions
+    )
 }
 
 @Composable
