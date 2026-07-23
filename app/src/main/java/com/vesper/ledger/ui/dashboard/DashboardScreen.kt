@@ -1007,31 +1007,57 @@ fun DashboardScreen(
                             ReceiptProcessingScreen(
                                 onProcessingFinished = {
                                     if (scannedReceiptData == null) {
-                                        scannedReceiptData = ReceiptOcrEngine.fallbackSampleReceipt("sample_receipt.png")
+                                        scannedReceiptData = com.vesper.ledger.data.receipt.ScannedReceipt(
+                                            merchantName = "Scanned Receipt",
+                                            dateString = "Today",
+                                            currencySymbol = currencySymbol,
+                                            subtotal = 0.0,
+                                            taxAmount = 0.0,
+                                            discountAmount = 0.0,
+                                            grandTotal = 0.0,
+                                            paymentMethod = "Cash",
+                                            rawOcrText = "",
+                                            imageUriString = "",
+                                            lineItems = mutableListOf()
+                                        )
                                     }
                                     scannerStep = "review"
                                 }
                             )
                         }
                         "review" -> {
-                            val receiptToReview = scannedReceiptData ?: ReceiptOcrEngine.fallbackSampleReceipt("sample.png")
+                            val receiptToReview = scannedReceiptData ?: com.vesper.ledger.data.receipt.ScannedReceipt(
+                                merchantName = "Scanned Receipt",
+                                dateString = "Today",
+                                currencySymbol = currencySymbol,
+                                subtotal = 0.0,
+                                taxAmount = 0.0,
+                                discountAmount = 0.0,
+                                grandTotal = 0.0,
+                                paymentMethod = "Cash",
+                                rawOcrText = "",
+                                imageUriString = "",
+                                lineItems = mutableListOf()
+                            )
                             ReceiptReviewStudioScreen(
                                 scannedReceipt = receiptToReview,
+                                currencySymbol = currencySymbol,
                                 onBackClick = { scannerStep = "capture" },
-                                onCommitTransactions = { committedReceipt ->
+                                onConfirmSave = { committedReceipt ->
                                     val categoriesMap = uiState.categories.associateBy { it.name.lowercase().trim() }
                                     val defaultCatId = uiState.categories.firstOrNull()?.id ?: 1L
 
                                     // Commit each category group as an independent, linked transaction
                                     committedReceipt.categorizedGroups.forEach { group ->
                                         val catId = categoriesMap[group.categoryName.lowercase().trim()]?.id ?: defaultCatId
+                                        val itemNames = group.items.joinToString { item -> item.name }
                                         viewModel.addTransaction(
                                             title = "${committedReceipt.merchantName} (${group.categoryName})",
                                             amount = group.finalTotal,
                                             type = TransactionType.EXPENSE,
                                             categoryId = catId,
                                             accountName = committedReceipt.paymentMethod,
-                                            note = "Receipt ${committedReceipt.receiptNumber} • ${group.items.size} items: ${group.items.joinToString { it.name }}"
+                                            note = "Receipt ${committedReceipt.receiptNumber} • ${group.items.size} items: $itemNames"
                                         )
                                     }
 

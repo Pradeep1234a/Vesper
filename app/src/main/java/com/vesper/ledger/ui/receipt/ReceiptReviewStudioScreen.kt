@@ -1,7 +1,6 @@
 package com.vesper.ledger.ui.receipt
 
-import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,8 +10,14 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Redo
+import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,170 +28,176 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vesper.ledger.data.receipt.*
+import com.vesper.ledger.data.receipt.CategoryLearningEngine
+import com.vesper.ledger.data.receipt.ReceiptCategorySplitter
+import com.vesper.ledger.data.receipt.ReceiptLineItem
+import com.vesper.ledger.data.receipt.ScannedReceipt
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
+import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiptReviewStudioScreen(
     scannedReceipt: ScannedReceipt,
+    currencySymbol: String = "$",
     onBackClick: () -> Unit,
-    onCommitTransactions: (ScannedReceipt) -> Unit
+    onConfirmSave: (ScannedReceipt) -> Unit
 ) {
     val context = LocalContext.current
+    val df = DecimalFormat("#,##0.00")
 
+    val supportedCategories = listOf(
+        "Groceries", "Food & Dining", "Electronics", "Books & Stationery",
+        "Clothing & Apparel", "Beauty & Personal Care", "Health & Medical",
+        "Home Supplies", "Entertainment", "Transportation", "Pets", "General Expense"
+    )
+
+    // Form state
     var merchantName by remember { mutableStateOf(scannedReceipt.merchantName) }
     var dateString by remember { mutableStateOf(scannedReceipt.dateString) }
-    var paymentMethod by remember { mutableStateOf(scannedReceipt.paymentMethod) }
-    var currencySymbol by remember { mutableStateOf(scannedReceipt.currencySymbol) }
+    var grandTotalStr by remember { mutableStateOf(scannedReceipt.grandTotal.toString()) }
+    var taxStr by remember { mutableStateOf(scannedReceipt.taxAmount.toString()) }
+    var discountStr by remember { mutableStateOf(scannedReceipt.discountAmount.toString()) }
 
-    val lineItems = remember { mutableStateListOf<ReceiptLineItem>().apply { addAll(scannedReceipt.lineItems) } }
+    val lineItems = remember { mutableStateListOf(*scannedReceipt.lineItems.toTypedArray()) }
+    var selectedItemId by remember { mutableStateOf<String?>(lineItems.firstOrNull()?.id) }
 
-    // Undo / Redo history stacks
-    val undoStack = remember { mutableStateListOf<UndoRedoState>() }
-    val redoStack = remember { mutableStateListOf<UndoRedoState>() }
+    // Undo / Redo Stack History
+    val historyStack = remember { mutableStateListOf<List<ReceiptLineItem>>() }
+    val redoStack = remember { mutableStateListOf<List<ReceiptLineItem>>() }
 
     fun saveSnapshot() {
-        undoStack.add(
-            UndoRedoState(
-                lineItemsSnapshot = lineItems.map { it.copy() },
-                merchantName = merchantName,
-                dateString = dateString,
-                paymentMethod = paymentMethod
-            )
-        )
+        historyStack.add(lineItems.map { it.copy() })
         redoStack.clear()
     }
 
     fun recalculateTotals() {
         scannedReceipt.merchantName = merchantName
         scannedReceipt.dateString = dateString
-        scannedReceipt.paymentMethod = paymentMethod
-        scannedReceipt.currencySymbol = currencySymbol
+        scannedReceipt.grandTotal = grandTotalStr.toDoubleOrNull() ?: scannedReceipt.grandTotal
+        scannedReceipt.taxAmount = taxStr.toDoubleOrNull() ?: scannedReceipt.taxAmount
+        scannedReceipt.discountAmount = discountStr.toDoubleOrNull() ?: scannedReceipt.discountAmount
         scannedReceipt.lineItems.clear()
         scannedReceipt.lineItems.addAll(lineItems)
 
-        // Re-run category split & proportional tax/discount math
+        // Re-run category splitting & tax allocation math
         ReceiptCategorySplitter.categorizeAndSplit(scannedReceipt)
     }
-
-    // Initial calculation
-    recalculateTotals()
 
     Scaffold(
         topBar = {
             ChildHeader(
-                title = "Receipt Studio",
+                title = "Review & Edit",
                 onBackClick = onBackClick,
                 actions = {
-                    // Undo Button
+                    // Undo button
                     IconButton(
-                        enabled = undoStack.isNotEmpty(),
                         onClick = {
-                            if (undoStack.isNotEmpty()) {
-                                val state = undoStack.removeAt(undoStack.lastIndex)
-                                redoStack.add(
-                                    UndoRedoState(
-                                        lineItemsSnapshot = lineItems.map { it.copy() },
-                                        merchantName = merchantName,
-                                        dateString = dateString,
-                                        paymentMethod = paymentMethod
-                                    )
-                                )
-                                merchantName = state.merchantName
-                                dateString = state.dateString
-                                paymentMethod = state.paymentMethod
+                            if (historyStack.isNotEmpty()) {
+                                redoStack.add(lineItems.map { it.copy() })
+                                val prev = historyStack.removeAt(historyStack.size - 1)
                                 lineItems.clear()
-                                lineItems.addAll(state.lineItemsSnapshot)
+                                lineItems.addAll(prev)
                                 recalculateTotals()
                             }
-                        }
+                        },
+                        enabled = historyStack.isNotEmpty()
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Undo,
-                            contentDescription = "Undo",
-                            tint = if (undoStack.isNotEmpty()) Color.White else Color.Gray
-                        )
+                        Icon(Icons.Filled.Undo, contentDescription = "Undo", tint = if (historyStack.isNotEmpty()) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
                     }
 
-                    // Redo Button
+                    // Redo button
                     IconButton(
-                        enabled = redoStack.isNotEmpty(),
                         onClick = {
                             if (redoStack.isNotEmpty()) {
-                                val state = redoStack.removeAt(redoStack.lastIndex)
-                                undoStack.add(
-                                    UndoRedoState(
-                                        lineItemsSnapshot = lineItems.map { it.copy() },
-                                        merchantName = merchantName,
-                                        dateString = dateString,
-                                        paymentMethod = paymentMethod
-                                    )
-                                )
-                                merchantName = state.merchantName
-                                dateString = state.dateString
-                                paymentMethod = state.paymentMethod
+                                historyStack.add(lineItems.map { it.copy() })
+                                val next = redoStack.removeAt(redoStack.size - 1)
                                 lineItems.clear()
-                                lineItems.addAll(state.lineItemsSnapshot)
+                                lineItems.addAll(next)
                                 recalculateTotals()
                             }
-                        }
+                        },
+                        enabled = redoStack.isNotEmpty()
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Redo,
-                            contentDescription = "Redo",
-                            tint = if (redoStack.isNotEmpty()) Color.White else Color.Gray
-                        )
+                        Icon(Icons.Filled.Redo, contentDescription = "Redo", tint = if (redoStack.isNotEmpty()) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
                     }
                 }
             )
         },
         bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .navigationBarsPadding()
-                    .padding(16.dp)
+            Surface(
+                tonalElevation = 8.dp,
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
-                Button(
-                    onClick = {
-                        recalculateTotals()
-                        ReceiptDuplicateDetector.registerReceiptFingerprint(context, scannedReceipt)
-                        onCommitTransactions(scannedReceipt)
-                        Toast.makeText(context, "Scanned receipt committed to ledger!", Toast.LENGTH_SHORT).show()
-                    },
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onBackground,
-                        contentColor = MaterialTheme.colorScheme.background
-                    )
+                        .navigationBarsPadding()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.Check, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Import ${scannedReceipt.categorizedGroups.size} Category Transactions ($currencySymbol${String.format("%.2f", scannedReceipt.grandTotal)})",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
+                    Column {
+                        Text("Total Amount", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
+                        Text(
+                            text = "$currencySymbol${df.format(scannedReceipt.grandTotal)}",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            recalculateTotals()
+                            onConfirmSave(scannedReceipt)
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background
+                        ),
+                        modifier = Modifier.height(48.dp)
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Save Transactions", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
-    ) { padding ->
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(innerPadding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 32.dp)
         ) {
+            // Interactive Zoomable Canvas
+            item {
+                Text(
+                    text = "RECEIPT CANVAS & OCR HIGHLIGHT",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                ReceiptInteractiveCanvas(
+                    imageUriStr = scannedReceipt.imageUriString,
+                    lineItems = lineItems,
+                    selectedItemId = selectedItemId,
+                    onItemSelected = { selectedItemId = it }
+                )
+            }
+
             // Duplicate Warning Alert if detected
             if (scannedReceipt.isDuplicateDetected) {
                 item {
@@ -216,18 +227,7 @@ fun ReceiptReviewStudioScreen(
                 }
             }
 
-            // Zoomable Interactive Receipt Canvas with live OCR Bounding Boxes
-            item {
-                var selectedItemId by remember { mutableStateOf<String?>(null) }
-                ReceiptInteractiveCanvas(
-                    imageUriStr = scannedReceipt.imageUriString,
-                    lineItems = lineItems,
-                    selectedItemId = selectedItemId,
-                    onItemSelected = { id -> selectedItemId = id }
-                )
-            }
-
-            // Header Info Card: Merchant, Date, Payment Method
+            // Merchant & Overview Form
             item {
                 ShCard(
                     modifier = Modifier.fillMaxWidth(),
@@ -235,58 +235,54 @@ fun ReceiptReviewStudioScreen(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = "RECEIPT DETAILS",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            text = "Merchant & Overview",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold
                             )
                         )
 
                         OutlinedTextField(
                             value = merchantName,
                             onValueChange = {
-                                saveSnapshot()
                                 merchantName = it
                                 recalculateTotals()
                             },
                             label = { Text("Merchant Name") },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(10.dp)
                         )
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             OutlinedTextField(
                                 value = dateString,
                                 onValueChange = {
-                                    saveSnapshot()
                                     dateString = it
                                     recalculateTotals()
                                 },
                                 label = { Text("Date") },
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(14.dp)
+                                shape = RoundedCornerShape(10.dp)
                             )
-
                             OutlinedTextField(
-                                value = paymentMethod,
+                                value = grandTotalStr,
                                 onValueChange = {
-                                    saveSnapshot()
-                                    paymentMethod = it
+                                    grandTotalStr = it
                                     recalculateTotals()
                                 },
-                                label = { Text("Payment Method") },
+                                label = { Text("Grand Total ($currencySymbol)") },
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(14.dp)
+                                shape = RoundedCornerShape(10.dp)
                             )
                         }
                     }
                 }
             }
 
-            // Section Header for Items
+            // Line Items List Header
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -294,7 +290,7 @@ fun ReceiptReviewStudioScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "EXTRACTED LINE ITEMS (${lineItems.size})",
+                        text = "PURCHASED LINE ITEMS (${lineItems.size})",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
@@ -308,9 +304,10 @@ fun ReceiptReviewStudioScreen(
                                 ReceiptLineItem(
                                     name = "New Purchased Item",
                                     quantity = 1,
-                                    unitPrice = 1.00,
-                                    totalPrice = 1.00,
-                                    category = "General Expense"
+                                    unitPrice = 0.0,
+                                    totalPrice = 0.0,
+                                    category = "General Expense",
+                                    confidenceScore = 1.0f
                                 )
                             )
                             recalculateTotals()
@@ -323,10 +320,19 @@ fun ReceiptReviewStudioScreen(
                 }
             }
 
-            // Line Items List
+            // Editable Line Items
             itemsIndexed(lineItems) { idx, item ->
+                var expandedCategoryMenu by remember { mutableStateOf(false) }
+
                 ShCard(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = if (selectedItemId == item.id) 1.5.dp else 0.dp,
+                            color = if (selectedItemId == item.id) MaterialTheme.colorScheme.onBackground else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .clickable { selectedItemId = item.id },
                     contentPadding = PaddingValues(12.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -384,7 +390,7 @@ fun ReceiptReviewStudioScreen(
                                 },
                                 modifier = Modifier.size(24.dp)
                             ) {
-                                Icon(Icons.Outlined.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Outlined.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                             }
                         }
 
@@ -405,18 +411,42 @@ fun ReceiptReviewStudioScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            OutlinedTextField(
-                                value = item.category,
-                                onValueChange = { newCat ->
-                                    saveSnapshot()
-                                    item.category = newCat
-                                    CategoryLearningEngine.learnUserPreference(context, item.name, newCat)
-                                    recalculateTotals()
-                                },
-                                label = { Text("Category") },
-                                modifier = Modifier.weight(1.2f),
-                                shape = RoundedCornerShape(10.dp)
-                            )
+                            // Category Dropdown Picker
+                            Box(modifier = Modifier.weight(1.2f)) {
+                                OutlinedTextField(
+                                    value = item.category,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Category") },
+                                    trailingIcon = {
+                                        IconButton(onClick = { expandedCategoryMenu = true }) {
+                                            Icon(Icons.Outlined.ArrowDropDown, contentDescription = "Select Category")
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { expandedCategoryMenu = true },
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+
+                                DropdownMenu(
+                                    expanded = expandedCategoryMenu,
+                                    onDismissRequest = { expandedCategoryMenu = false }
+                                ) {
+                                    supportedCategories.forEach { cat ->
+                                        DropdownMenuItem(
+                                            text = { Text(cat) },
+                                            onClick = {
+                                                saveSnapshot()
+                                                item.category = cat
+                                                CategoryLearningEngine.learnUserPreference(context, item.name, cat)
+                                                expandedCategoryMenu = false
+                                                recalculateTotals()
+                                            }
+                                        )
+                                    }
+                                }
+                            }
 
                             OutlinedTextField(
                                 value = item.totalPrice.toString(),
@@ -451,42 +481,32 @@ fun ReceiptReviewStudioScreen(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(14.dp)
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
                             Text(
                                 text = group.categoryName,
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            )
-                            Text(
-                                text = "$currencySymbol${String.format("%.2f", group.finalTotal)}",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "${group.items.size} item(s) • Tax: $currencySymbol${df.format(group.allocatedTax)}",
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
                         }
 
                         Text(
-                            text = "${group.items.size} item(s): ${group.items.joinToString { it.name }}",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 12.sp
-                            )
-                        )
-
-                        Text(
-                            text = "Allocated Tax: $currencySymbol${String.format("%.2f", group.allocatedTax)}  •  Discount: -$currencySymbol${String.format("%.2f", group.allocatedDiscount)}",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                fontSize = 11.sp
+                            text = "$currencySymbol${df.format(group.finalTotal)}",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         )
                     }
