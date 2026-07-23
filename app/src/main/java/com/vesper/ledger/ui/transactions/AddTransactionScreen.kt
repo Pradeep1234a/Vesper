@@ -12,15 +12,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Payments
@@ -44,24 +41,24 @@ import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 data class AccountOption(
     val name: String,
-    val paymentMethod: String,
+    val type: String, // CASH, BANK, CREDIT
     val balance: Double,
     val iconName: String = "account_balance_wallet"
 )
 
 val PRESET_ACCOUNTS = listOf(
-    AccountOption("Cash Wallet", "Cash", 3420.00, "payments"),
-    AccountOption("UPI / GPay / PhonePe", "UPI / Wallet", 12850.00, "qr_code_scanner"),
-    AccountOption("HDFC Bank Account", "Bank Account", 45280.00, "account_balance"),
-    AccountOption("ICICI Bank Account", "Bank Account", 28150.00, "account_balance"),
-    AccountOption("SBI Bank Account", "Bank Account", 18900.00, "account_balance"),
-    AccountOption("HDFC Regalia Credit Card", "Credit Card", 65000.00, "credit_card")
+    AccountOption("Cash Wallet", "CASH", 3420.00, "payments"),
+    AccountOption("HDFC Bank Account", "BANK", 45280.00, "account_balance"),
+    AccountOption("ICICI Bank Account", "BANK", 28150.00, "account_balance"),
+    AccountOption("SBI Bank Account", "BANK", 18900.00, "account_balance"),
+    AccountOption("HDFC Regalia Credit Card", "CREDIT", 65000.00, "credit_card")
 )
+
+val BANK_PAYMENT_METHODS = listOf("UPI / GPay / PhonePe", "Debit Card", "Net Banking", "Bank Transfer")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,13 +89,29 @@ fun AddTransactionScreen(
     var amountExpr by remember { mutableStateOf("0") }
     var isCalculatorExpanded by remember { mutableStateOf(false) }
 
+    // Account & Payment Method Dropdown States
     var selectedAccount by remember { mutableStateOf(PRESET_ACCOUNTS[0]) }
+    var selectedPaymentMethod by remember { mutableStateOf("Cash") }
+    var expandedAccountMenu by remember { mutableStateOf(false) }
+    var expandedPaymentMenu by remember { mutableStateOf(false) }
+
     var note by remember { mutableStateOf("") }
 
     // Date & Time States
     var calendar by remember { mutableStateOf(Calendar.getInstance()) }
     var dateString by remember { mutableStateOf(dateFormat.format(calendar.time)) }
     var timeString by remember { mutableStateOf(timeFormat.format(calendar.time)) }
+
+    // Auto-update payment method choices when account changes
+    LaunchedEffect(selectedAccount) {
+        when (selectedAccount.type) {
+            "CASH" -> selectedPaymentMethod = "Cash"
+            "CREDIT" -> selectedPaymentMethod = "Credit Card"
+            "BANK" -> if (selectedPaymentMethod !in BANK_PAYMENT_METHODS) {
+                selectedPaymentMethod = BANK_PAYMENT_METHODS[0]
+            }
+        }
+    }
 
     // Evaluates built-in calculator mathematical expressions
     fun evaluateAmount(): Double {
@@ -176,22 +189,20 @@ fun AddTransactionScreen(
         false
     )
 
-    val category = selectedCategory ?: if (selectedType == TransactionType.INCOME) DEFAULT_INCOME_CATEGORIES.first() else DEFAULT_EXPENSE_CATEGORIES.first()
+    // Dynamically match active category based on active tab type
+    val defaultCat = if (selectedType == TransactionType.INCOME) DEFAULT_INCOME_CATEGORIES.first() else DEFAULT_EXPENSE_CATEGORIES.first()
+    val category = selectedCategory?.takeIf { it.type == selectedType } ?: defaultCat
 
     Scaffold(
         topBar = {
             ChildHeader(
-                title = when (selectedType) {
-                    TransactionType.EXPENSE -> "Expense"
-                    TransactionType.INCOME -> "Income"
-                    TransactionType.TRANSFER -> "Transfer"
-                },
+                title = "Transactions",
                 onBackClick = onBackClick
             )
         },
         bottomBar = {
             Surface(
-                tonalElevation = 8.dp,
+                tonalElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
@@ -200,25 +211,25 @@ fun AddTransactionScreen(
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     ShButton(
                         text = "Save Transaction",
                         onClick = {
                             val finalAmount = evaluateAmount()
-                            val finalTitle = title.ifBlank { category.name }
+                            val finalTitle = title.ifBlank { if (selectedType == TransactionType.TRANSFER) "Account Transfer" else category.name }
                             onSaveTransaction(
                                 finalTitle,
                                 finalAmount,
                                 selectedType,
-                                category.id,
+                                if (selectedType == TransactionType.TRANSFER) 0L else category.id,
                                 calendar.timeInMillis,
                                 selectedAccount.name,
-                                selectedAccount.paymentMethod,
+                                selectedPaymentMethod,
                                 note
                             )
                         },
-                        modifier = Modifier.fillMaxWidth().height(50.dp)
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
                     )
                 }
             }
@@ -230,10 +241,10 @@ fun AddTransactionScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Segmented Transaction Type Tab Switcher
+            // Segmented Transaction Type Tab Switcher (Expense / Income / Transfer)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -303,7 +314,7 @@ fun AddTransactionScreen(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
                             text = currencySymbol,
@@ -384,7 +395,7 @@ fun AddTransactionScreen(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Transaction Title") },
-                placeholder = { Text(if (selectedType == TransactionType.INCOME) "e.g., Monthly Salary" else "e.g., Grocery Shopping at DMart") },
+                placeholder = { Text(if (selectedType == TransactionType.INCOME) "e.g., Monthly Salary" else if (selectedType == TransactionType.TRANSFER) "e.g., Savings Transfer" else "e.g., Grocery Shopping at DMart") },
                 leadingIcon = {
                     Icon(Icons.Outlined.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -396,147 +407,181 @@ fun AddTransactionScreen(
                 )
             )
 
-            // Category Selection Row Button
-            ShCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onOpenCategorySelection(selectedType, category.name) },
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            // Category Selection Button (HIDDEN FOR TRANSFERS)
+            if (selectedType != TransactionType.TRANSFER) {
+                ShCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenCategorySelection(selectedType, category.name) },
+                    contentPadding = PaddingValues(16.dp)
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(MaterialTheme.colorScheme.onBackground),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(
-                                imageVector = getIconByName(category.iconName),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.background,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        Column {
-                            Text(
-                                text = "Category",
-                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            )
-                            Text(
-                                text = category.name,
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.onBackground),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = getIconByName(category.iconName),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.background,
+                                    modifier = Modifier.size(20.dp)
                                 )
-                            )
-                        }
-                    }
+                            }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column {
+                                Text(
+                                    text = "Category (${if (selectedType == TransactionType.INCOME) "Income" else "Expense"})",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
+                                Text(
+                                    text = category.name,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                            }
+                        }
+
                         Text(
-                            text = "Change",
+                            text = "Select",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
-                        Icon(
-                            imageVector = Icons.Filled.ChevronRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                 }
             }
 
-            // Payment Method & Bank Account Selector
-            ShCard(
+            // Separate Menu Type Selectors for Account & Payment Method
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = "PAYMENT METHOD & BANK ACCOUNT",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-
-                    PRESET_ACCOUNTS.forEach { acc ->
-                        val isSelected = selectedAccount.name == acc.name
+                // 1. Account Selection Dropdown Menu Card
+                Box(modifier = Modifier.weight(1f)) {
+                    ShCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { expandedAccountMenu = true },
+                        contentPadding = PaddingValues(14.dp)
+                    ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(
-                                    if (isSelected) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                                    else Color.Transparent
-                                )
-                                .border(
-                                    width = if (isSelected) 1.5.dp else 1.dp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outlineVariant,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .clickable { selectedAccount = acc }
-                                .padding(12.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Icon(
-                                    imageVector = getIconByName(acc.iconName),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(18.dp)
+                            Column {
+                                Text(
+                                    text = "Account",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                                 )
-                                Column {
-                                    Text(
-                                        text = acc.name,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    )
-                                    Text(
-                                        text = "${acc.paymentMethod} • Bal: $currencySymbol${df.format(acc.balance)}",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 11.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    )
-                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = selectedAccount.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = "Bal: $currencySymbol${df.format(selectedAccount.balance)}",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
                             }
+                            Icon(Icons.Outlined.ArrowDropDown, contentDescription = "Select Account", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
 
-                            if (isSelected) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(18.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.onBackground),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Check,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.background,
-                                        modifier = Modifier.size(12.dp)
-                                    )
+                    DropdownMenu(
+                        expanded = expandedAccountMenu,
+                        onDismissRequest = { expandedAccountMenu = false }
+                    ) {
+                        PRESET_ACCOUNTS.forEach { acc ->
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(acc.name, fontWeight = FontWeight.Bold)
+                                        Text("Bal: $currencySymbol${df.format(acc.balance)}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                },
+                                onClick = {
+                                    selectedAccount = acc
+                                    expandedAccountMenu = false
                                 }
+                            )
+                        }
+                    }
+                }
+
+                // 2. Payment Method Selection Dropdown Menu Card
+                Box(modifier = Modifier.weight(1f)) {
+                    val isBank = selectedAccount.type == "BANK"
+                    ShCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(enabled = isBank) { expandedPaymentMenu = true },
+                        contentPadding = PaddingValues(14.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Payment Method",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = selectedPaymentMethod,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = if (isBank) "Select Method" else "Auto-Selected",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
+                            }
+                            if (isBank) {
+                                Icon(Icons.Outlined.ArrowDropDown, contentDescription = "Select Method", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+
+                    if (isBank) {
+                        DropdownMenu(
+                            expanded = expandedPaymentMenu,
+                            onDismissRequest = { expandedPaymentMenu = false }
+                        ) {
+                            BANK_PAYMENT_METHODS.forEach { method ->
+                                DropdownMenuItem(
+                                    text = { Text(method, fontWeight = FontWeight.Medium) },
+                                    onClick = {
+                                        selectedPaymentMethod = method
+                                        expandedPaymentMenu = false
+                                    }
+                                )
                             }
                         }
                     }

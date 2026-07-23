@@ -381,7 +381,7 @@ fun MainScreen(
                         currencySymbol = currencySymbol,
                         onBackClick = { navController.popBackStack() },
                         onOpenCategorySelection = { type, currentCatName ->
-                            navController.navigate(Screen.CategorySelection.route)
+                            navController.navigate("${Screen.CategorySelection.route}?type=${type.name}")
                         },
                         selectedCategory = activeSelectedCategory,
                         onSaveTransaction = { title, amount, type, categoryId, dateEpochMillis, accountName, paymentMethod, note ->
@@ -398,9 +398,15 @@ fun MainScreen(
                     )
                 }
 
-                composable(Screen.CategorySelection.route) {
+                composable(
+                    route = "${Screen.CategorySelection.route}?type={type}",
+                    arguments = listOf(androidx.navigation.navArgument("type") { defaultValue = TransactionType.EXPENSE.name })
+                ) { backStackEntry ->
+                    val typeStr = backStackEntry.arguments?.getString("type") ?: TransactionType.EXPENSE.name
+                    val categoryType = try { TransactionType.valueOf(typeStr) } catch (e: Exception) { TransactionType.EXPENSE }
+
                     CategorySelectionScreen(
-                        initialType = TransactionType.EXPENSE,
+                        initialType = categoryType,
                         selectedCategoryName = activeSelectedCategory?.name ?: "Groceries",
                         onBackClick = { navController.popBackStack() },
                         onCategorySelected = { cat ->
