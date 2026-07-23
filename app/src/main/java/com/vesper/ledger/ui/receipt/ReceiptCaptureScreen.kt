@@ -1,7 +1,9 @@
 package com.vesper.ledger.ui.receipt
 
+import android.app.Activity
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -24,6 +26,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
@@ -36,12 +41,51 @@ fun ReceiptCaptureScreen(
     val context = LocalContext.current
     var isFlashOn by remember { mutableStateOf(false) }
 
-    // Launcher for image/photo picker
+    // Launcher for standard image/photo gallery picker
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
             onImageSelected(uri)
+        }
+    }
+
+    // Google ML Kit Document Scanner options & client
+    val docScannerOptions = remember {
+        GmsDocumentScannerOptions.Builder()
+            .setGalleryImportAllowed(true)
+            .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG, GmsDocumentScannerOptions.RESULT_FORMAT_PDF)
+            .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
+            .build()
+    }
+    val docScannerClient = remember(context) { GmsDocumentScanning.getClient(docScannerOptions) }
+
+    // Launcher for Google ML Kit Document Scanner Intent
+    val docScannerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val scanResult = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
+            val scannedUri = scanResult?.pages?.firstOrNull()?.imageUri ?: scanResult?.pdf?.uri
+            if (scannedUri != null) {
+                onImageSelected(scannedUri)
+            }
+        }
+    }
+
+    fun launchGoogleMlKitScanner() {
+        val activity = context as? Activity
+        if (activity != null) {
+            docScannerClient.getStartScanIntent(activity)
+                .addOnSuccessListener { intentSender ->
+                    docScannerLauncher.launch(IntentSenderRequest.Builder(intentSender).build())
+                }
+                .addOnFailureListener {
+                    // Fallback to gallery photo picker if Document Scanner service unavailable
+                    galleryLauncher.launch("image/*")
+                }
+        } else {
+            galleryLauncher.launch("image/*")
         }
     }
 
@@ -85,7 +129,8 @@ fun ReceiptCaptureScreen(
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                             RoundedCornerShape(22.dp)
                         )
-                        .background(Color.White.copy(alpha = 0.05f)),
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .clickable { launchGoogleMlKitScanner() },
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -110,7 +155,7 @@ fun ReceiptCaptureScreen(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Auto-enhancement & ML OCR will scan items",
+                            text = "Powered by Google ML Kit Document Scanner",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = Color.White.copy(alpha = 0.7f),
                                 fontSize = 12.sp
@@ -129,7 +174,7 @@ fun ReceiptCaptureScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Gallery / PDF import button
+                // Gallery import button
                 IconButton(
                     onClick = { galleryLauncher.launch("image/*") },
                     modifier = Modifier
@@ -145,7 +190,7 @@ fun ReceiptCaptureScreen(
                     )
                 }
 
-                // Shutter capture button
+                // Shutter capture button (triggers Google ML Kit Document Scanner API)
                 Box(
                     modifier = Modifier
                         .size(72.dp)
@@ -155,8 +200,7 @@ fun ReceiptCaptureScreen(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            // Demo trigger capture from sample
-                            galleryLauncher.launch("image/*")
+                            launchGoogleMlKitScanner()
                         },
                     contentAlignment = Alignment.Center
                 ) {

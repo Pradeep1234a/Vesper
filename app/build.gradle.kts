@@ -117,8 +117,9 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    // ML Kit Text Recognition
+    // ML Kit Text Recognition & Document Scanner
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
 
     // Coil Image Loading for Compose
     implementation("io.coil-kt:coil-compose:2.5.0")
