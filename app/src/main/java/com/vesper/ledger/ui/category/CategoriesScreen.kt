@@ -28,6 +28,8 @@ import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 fun CategoriesScreen(
     viewModel: CategoryViewModel,
     onBackClick: () -> Unit,
+    onAddCategoryClick: () -> Unit = {},
+    onEditCategoryClick: (Category) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val categoriesWithCount by viewModel.categoriesWithCount.collectAsState()
@@ -86,7 +88,12 @@ fun CategoriesScreen(
         topBar = {
             ChildHeader(
                 title = "Categories",
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                actions = {
+                    IconButton(onClick = onAddCategoryClick) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Add, contentDescription = "Add Category")
+                    }
+                }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -142,6 +149,7 @@ fun CategoriesScreen(
                             ShCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .clickable { onEditCategoryClick(cat) }
                                     .pointerInput(Unit) {
                                         detectTapGestures(
                                             onLongPress = { categoryToDelete = cat }

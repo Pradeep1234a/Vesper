@@ -92,6 +92,7 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
 
     var activeSelectedCategory by remember { mutableStateOf<CategoryOption?>(null) }
+    var editingCategoryState by remember { mutableStateOf<Category?>(null) }
 
     val drawerItems = listOf(
         DrawerItem(Screen.Dashboard.route, "Dashboard", Icons.Outlined.Dashboard),
@@ -480,6 +481,67 @@ fun MainScreen(
                         },
                         onDeleteAccount = { acc ->
                             transactionsViewModel.deleteAccount(acc)
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.Categories.route,
+                    enterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
+                    }
+                ) {
+                    val categoryViewModel: com.vesper.ledger.ui.category.CategoryViewModel = viewModel(factory = categoryFactory)
+                    com.vesper.ledger.ui.category.CategoriesScreen(
+                        viewModel = categoryViewModel,
+                        onBackClick = { navController.popBackStack() },
+                        onAddCategoryClick = {
+                            editingCategoryState = null
+                            navController.navigate(Screen.AddCategory.route)
+                        },
+                        onEditCategoryClick = { cat ->
+                            editingCategoryState = cat
+                            navController.navigate(Screen.AddCategory.route)
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.AddCategory.route,
+                    enterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
+                    }
+                ) {
+                    val categoryViewModel: com.vesper.ledger.ui.category.CategoryViewModel = viewModel(factory = categoryFactory)
+                    com.vesper.ledger.ui.categories.AddEditCategoryScreen(
+                        editingCategory = editingCategoryState,
+                        onBackClick = { navController.popBackStack() },
+                        onSaveCategory = { name, iconName, type, colorHex ->
+                            val currentEditing = editingCategoryState
+                            if (currentEditing != null) {
+                                categoryViewModel.updateCategory(currentEditing.copy(name = name, iconName = iconName, type = type, colorHex = colorHex))
+                            } else {
+                                categoryViewModel.addCategory(name = name, iconName = iconName, type = type, colorHex = colorHex)
+                            }
+                            navController.popBackStack()
                         }
                     )
                 }
