@@ -399,7 +399,7 @@ fun AddTransactionScreen(
                             )
                         }
 
-                        // Calculator Action Button
+                        val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
@@ -408,7 +408,12 @@ fun AddTransactionScreen(
                                     if (isCalculatorExpanded) MaterialTheme.colorScheme.onSurface
                                     else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                 )
-                                .clickable { isCalculatorExpanded = !isCalculatorExpanded },
+                                .clickable {
+                                    isCalculatorExpanded = !isCalculatorExpanded
+                                    if (isCalculatorExpanded) {
+                                        keyboardController?.hide()
+                                    }
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
