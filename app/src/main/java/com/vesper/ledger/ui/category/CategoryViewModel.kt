@@ -91,12 +91,7 @@ class CategoryViewModel(
     ) { cats, txs ->
         cats.map { cat ->
             val realCount = txs.count { it.categoryId == cat.id }
-            val displayCount = if (realCount > 0) realCount else {
-                val hash = cat.name.hashCode()
-                val seed = if (hash == Int.MIN_VALUE) 0 else Math.abs(hash)
-                (seed % 120) + 12
-            }
-            CategoryWithCount(cat, displayCount)
+            CategoryWithCount(cat, realCount)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
