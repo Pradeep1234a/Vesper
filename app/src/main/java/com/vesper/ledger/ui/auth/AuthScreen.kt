@@ -30,6 +30,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.res.painterResource
+import com.vesper.ledger.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -441,86 +443,65 @@ fun WelcomeScreen(
 ) {
     var activeDialog by remember { mutableStateOf<String?>(null) }
 
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val textColorPrimary = MaterialTheme.colorScheme.onBackground
-    val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-
     Scaffold(
-        containerColor = backgroundColor
+        containerColor = Color(0xFF09090B)
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 24.dp),
+                .padding(horizontal = 24.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Brand Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "VESPER LEDGER",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp,
-                        color = textColorSecondary
-                    )
-                )
-            }
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Center Hero Welcome Section (Clean, Minimalist, No Clutter)
+            // Center Hero Welcome Section (Matching reference image)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // App Logo Badge in Dashboard Curved Tile
+                // App Logo Badge in Dark Gradient Container with White App Logo
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp)),
+                        .size(96.dp)
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(Color(0xFF1C1C20))
+                        .border(BorderStroke(1.5.dp, Color(0xFF3F3F46)), RoundedCornerShape(26.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.AccountBalanceWallet,
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
                         contentDescription = "Vesper Logo",
-                        tint = textColorPrimary,
-                        modifier = Modifier.size(38.dp)
+                        tint = Color.White,
+                        modifier = Modifier.size(64.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
                         text = "Welcome to Vesper",
                         style = MaterialTheme.typography.displayMedium.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 36.sp,
-                            color = textColorPrimary
+                            fontSize = 34.sp,
+                            color = Color.White
                         ),
                         textAlign = TextAlign.Center
                     )
 
                     Text(
-                        text = "Master your money with total clarity, privacy, and effortless elegance.",
+                        text = "Your journey to financial clarity\nand security begins here.",
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontFamily = SpaceGroteskFamily,
                             fontSize = 15.sp,
-                            color = textColorSecondary,
+                            color = Color(0xFFA1A1AA),
                             lineHeight = 22.sp
                         ),
                         textAlign = TextAlign.Center,
@@ -533,18 +514,18 @@ fun WelcomeScreen(
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                // Primary CTA: Get Started (Dashboard-styled rounded button)
+                // Primary CTA: Get Started (White pill button)
                 Button(
                     onClick = onCreateAccountClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = textColorPrimary,
-                        contentColor = backgroundColor
+                        containerColor = Color.White,
+                        contentColor = Color.Black
                     )
                 ) {
                     Text(
@@ -566,7 +547,8 @@ fun WelcomeScreen(
                         text = "Already have an account? ",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = SpaceGroteskFamily,
-                            color = textColorSecondary
+                            color = Color(0xFFA1A1AA),
+                            fontSize = 13.sp
                         )
                     )
                     Text(
@@ -574,42 +556,10 @@ fun WelcomeScreen(
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = SpaceGroteskFamily,
                             fontWeight = FontWeight.Bold,
-                            color = textColorPrimary,
-                            textDecoration = TextDecoration.Underline
+                            color = Color.White,
+                            fontSize = 13.sp
                         ),
                         modifier = Modifier.clickable { onSignInClick() }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Legal Footer Links
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Terms of Service",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.7f),
-                            fontSize = 11.sp
-                        ),
-                        modifier = Modifier.clickable { activeDialog = "terms" }
-                    )
-                    Text(
-                        text = "  •  ",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.5f)
-                        )
-                    )
-                    Text(
-                        text = "Privacy Policy",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.7f),
-                            fontSize = 11.sp
-                        ),
-                        modifier = Modifier.clickable { activeDialog = "privacy" }
                     )
                 }
             }
