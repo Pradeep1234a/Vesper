@@ -483,8 +483,8 @@ fun WelcomeScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Optical Spacer (1.0f weight shifts Hero block slightly upward for perfect optical focus)
-            Spacer(modifier = Modifier.weight(1.0f))
+            // Top Optical Spacer (1.8f weight pulls Hero block down into optical center)
+            Spacer(modifier = Modifier.weight(1.8f))
 
             // Center Hero Welcome Section (Exact mockup optical alignment)
             Column(
@@ -549,7 +549,7 @@ fun WelcomeScreen(
             }
 
             // Middle Optical Spacer between Hero Section and Bottom CTA
-            Spacer(modifier = Modifier.weight(2.0f))
+            Spacer(modifier = Modifier.weight(1.2f))
 
             // Bottom Actions Section (Get Started CTA + Sign In Link)
             Column(
