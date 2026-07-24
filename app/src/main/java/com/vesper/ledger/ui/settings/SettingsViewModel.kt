@@ -22,7 +22,8 @@ class SettingsViewModel(
 
     private val sharedPrefs = application.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
 
-    val currencySymbol = MutableStateFlow("₹")
+    val currencySymbol = MutableStateFlow(sharedPrefs.getString("currencySymbol", "₹") ?: "₹")
+    val currencyCode = MutableStateFlow(sharedPrefs.getString("currencyCode", "INR") ?: "INR")
     val theme = MutableStateFlow(sharedPrefs.getString("theme", "system") ?: "system")
 
     val accounts: StateFlow<List<com.vesper.ledger.data.model.Account>> = (application as com.vesper.ledger.VesperApplication).accountRepository.allAccounts
@@ -42,6 +43,15 @@ class SettingsViewModel(
 
     val categories: StateFlow<List<Category>> = transactionRepository.allCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun saveCurrency(symbol: String, code: String) {
+        currencySymbol.value = symbol
+        currencyCode.value = code
+        sharedPrefs.edit()
+            .putString("currencySymbol", symbol)
+            .putString("currencyCode", code)
+            .apply()
+    }
 
     fun saveTheme(newTheme: String) {
         theme.value = newTheme

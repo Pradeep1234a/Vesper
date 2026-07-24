@@ -33,6 +33,8 @@ import com.vesper.ledger.ui.dashboard.DashboardViewModel
 import com.vesper.ledger.ui.dashboard.DashboardViewModelFactory
 import com.vesper.ledger.ui.settings.SettingsScreen
 import com.vesper.ledger.ui.settings.SettingsViewModel
+import com.vesper.ledger.ui.settings.CurrencySelectorScreen
+import com.vesper.ledger.ui.settings.CurrencyFlowMode
 import com.vesper.ledger.ui.transactions.TransactionsScreen
 import com.vesper.ledger.ui.transactions.TransactionsViewModel
 import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
@@ -64,6 +66,7 @@ fun MainScreen(
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
     onSavingsClick: () -> Unit,
     onCategoryManagementClick: () -> Unit,
+    onCurrencyClick: () -> Unit = {},
     onSignOutClick: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -354,7 +357,16 @@ fun MainScreen(
                         onMenuClick = { scope.launch { drawerState.open() } },
                         onBackClick = { navController.popBackStack() },
                         onCategoriesClick = onCategoryManagementClick,
+                        onCurrencyClick = { navController.navigate(Screen.CurrencySelector.route) },
                         onSignOutClick = onSignOutClick
+                    )
+                }
+
+                composable(Screen.CurrencySelector.route) {
+                    CurrencySelectorScreen(
+                        viewModel = settingsViewModel,
+                        flowMode = CurrencyFlowMode.SETTINGS,
+                        onBackClick = { navController.popBackStack() }
                     )
                 }
             }

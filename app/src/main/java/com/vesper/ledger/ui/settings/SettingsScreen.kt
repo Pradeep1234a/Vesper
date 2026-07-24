@@ -57,6 +57,7 @@ fun SettingsScreen(
     onMenuClick: () -> Unit,
     onBackClick: () -> Unit,
     onCategoriesClick: () -> Unit,
+    onCurrencyClick: () -> Unit = {},
     onSignOutClick: () -> Unit
 ) {
     val updateUiState by updateViewModel.uiState.collectAsState()
@@ -68,6 +69,8 @@ fun SettingsScreen(
     val theme by viewModel.theme.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val userEmail by viewModel.userEmail.collectAsState()
+    val currencySymbol by viewModel.currencySymbol.collectAsState()
+    val currencyCode by viewModel.currencyCode.collectAsState()
 
     var subView by remember { mutableStateOf(SettingsSubView.MAIN) }
     var activeDialog by remember { mutableStateOf<SettingsDialogType?>(null) }
@@ -257,6 +260,25 @@ fun SettingsScreen(
 
                         // Preferences Section
                         SettingsGroup(title = "Preferences") {
+                            SettingsRow(
+                                icon = Icons.Outlined.AttachMoney,
+                                title = "Currency",
+                                subtitle = "Primary currency for balances and budgets",
+                                trailing = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            text = "$currencyCode ($currencySymbol)",
+                                            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                                        )
+                                        Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                },
+                                onClick = { onCurrencyClick() }
+                            )
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
                             SettingsRow(
                                 icon = Icons.Outlined.Palette,
                                 title = "Theme",

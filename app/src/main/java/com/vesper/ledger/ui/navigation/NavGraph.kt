@@ -29,6 +29,8 @@ import com.vesper.ledger.ui.auth.WelcomeScreen
 import com.vesper.ledger.ui.auth.SignInScreen
 import com.vesper.ledger.ui.auth.CreateAccountScreen
 import com.vesper.ledger.ui.auth.ForgotPasswordScreen
+import com.vesper.ledger.ui.settings.CurrencySelectorScreen
+import com.vesper.ledger.ui.settings.CurrencyFlowMode
 import com.vesper.ledger.data.util.PasswordHasher
 import com.vesper.ledger.data.model.UserAccount
 import com.vesper.ledger.data.local.AppDatabase
@@ -229,7 +231,7 @@ fun NavGraph(
 
                             withContext(Dispatchers.Main) {
                                 onCallback(null)
-                                navController.navigate("main_screen") {
+                                navController.navigate("onboarding_currency") {
                                     popUpTo(Screen.AuthWelcome.route) { inclusive = true }
                                 }
                             }
@@ -275,6 +277,18 @@ fun NavGraph(
                     }
                 },
                 onBackToSignInClick = { navController.popBackStack() }
+            )
+        }
+
+        composable("onboarding_currency") {
+            CurrencySelectorScreen(
+                viewModel = settingsViewModel,
+                flowMode = CurrencyFlowMode.ONBOARDING,
+                onCompleteOnboarding = {
+                    navController.navigate("main_screen") {
+                        popUpTo(Screen.AuthWelcome.route) { inclusive = true }
+                    }
+                }
             )
         }
     }
