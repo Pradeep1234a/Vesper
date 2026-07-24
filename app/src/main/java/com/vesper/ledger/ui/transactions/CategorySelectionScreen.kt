@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShCard
@@ -39,31 +38,31 @@ data class CategoryOption(
 val DEFAULT_EXPENSE_CATEGORIES = listOf(
     CategoryOption(1L, "Groceries", "shopping_cart", TransactionType.EXPENSE, "Food, produce, daily essentials"),
     CategoryOption(2L, "Food & Dining", "restaurant", TransactionType.EXPENSE, "Restaurants, cafes, takeout"),
-    CategoryOption(3L, "Electronics", "devices", TransactionType.EXPENSE, "Gadgets, cables, hardware"),
+    CategoryOption(3L, "Electronics", "laptop", TransactionType.EXPENSE, "Gadgets, cables, hardware"),
     CategoryOption(4L, "Books & Stationery", "book", TransactionType.EXPENSE, "Books, notebooks, office supply"),
     CategoryOption(5L, "Clothing & Apparel", "checkroom", TransactionType.EXPENSE, "Clothes, shoes, accessories"),
-    CategoryOption(6L, "Beauty & Care", "face", TransactionType.EXPENSE, "Skincare, hair care, cosmetics"),
-    CategoryOption(7L, "Health & Medical", "medical_services", TransactionType.EXPENSE, "Pharmacy, doctor, wellness"),
+    CategoryOption(6L, "Beauty & Care", "spa", TransactionType.EXPENSE, "Skincare, hair care, cosmetics"),
+    CategoryOption(7L, "Health & Medical", "medical", TransactionType.EXPENSE, "Pharmacy, doctor, wellness"),
     CategoryOption(8L, "Home Supplies", "home", TransactionType.EXPENSE, "Furniture, cleaning, decor"),
     CategoryOption(9L, "Entertainment", "movie", TransactionType.EXPENSE, "Movies, games, events"),
-    CategoryOption(10L, "Transportation", "directions_car", TransactionType.EXPENSE, "Fuel, taxi, transit, tolls"),
+    CategoryOption(10L, "Transportation", "car", TransactionType.EXPENSE, "Fuel, taxi, transit, tolls"),
     CategoryOption(11L, "Pets", "pets", TransactionType.EXPENSE, "Pet food, vet, accessories"),
     CategoryOption(12L, "Utilities & Bills", "receipt_long", TransactionType.EXPENSE, "Electricity, water, internet"),
-    CategoryOption(13L, "Subscriptions", "card_membership", TransactionType.EXPENSE, "Software, streaming services"),
+    CategoryOption(13L, "Subscriptions", "card", TransactionType.EXPENSE, "Software, streaming services"),
     CategoryOption(14L, "General Expense", "category", TransactionType.EXPENSE, "Miscellaneous spending")
 )
 
 val DEFAULT_INCOME_CATEGORIES = listOf(
     CategoryOption(101L, "Salary", "work", TransactionType.INCOME, "Monthly payroll, wages"),
-    CategoryOption(102L, "Freelance & Business", "computer", TransactionType.INCOME, "Client work, consulting"),
+    CategoryOption(102L, "Freelance & Business", "laptop", TransactionType.INCOME, "Client work, consulting"),
     CategoryOption(103L, "Investments", "trending_up", TransactionType.INCOME, "Dividends, stock returns"),
-    CategoryOption(104L, "Bonus & Incentives", "card_giftcard", TransactionType.INCOME, "Performance bonus, prize"),
-    CategoryOption(105L, "Interest Income", "account_balance", TransactionType.INCOME, "Bank savings interest"),
-    CategoryOption(106L, "Gifts & Grants", "redeem", TransactionType.INCOME, "Cash gifts, allowances"),
-    CategoryOption(107L, "Rental Income", "domain", TransactionType.INCOME, "Property rent, leasing"),
+    CategoryOption(104L, "Bonus & Incentives", "gift", TransactionType.INCOME, "Performance bonus, prize"),
+    CategoryOption(105L, "Interest Income", "bank", TransactionType.INCOME, "Bank savings interest"),
+    CategoryOption(106L, "Gifts & Grants", "gift", TransactionType.INCOME, "Cash gifts, allowances"),
+    CategoryOption(107L, "Rental Income", "home", TransactionType.INCOME, "Property rent, leasing"),
     CategoryOption(108L, "Side Hustle", "bolt", TransactionType.INCOME, "Gig economy, secondary sales"),
     CategoryOption(109L, "Cashback & Refunds", "payments", TransactionType.INCOME, "Reimbursements, cashbacks"),
-    CategoryOption(110L, "Other Income", "attach_money", TransactionType.INCOME, "Miscellaneous earnings")
+    CategoryOption(110L, "Other Income", "money", TransactionType.INCOME, "Miscellaneous earnings")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,11 +73,10 @@ fun CategorySelectionScreen(
     onBackClick: () -> Unit,
     onCategorySelected: (CategoryOption) -> Unit
 ) {
-    var selectedTab by remember { mutableStateOf(initialType) }
     var searchQuery by remember { mutableStateOf("") }
 
-    val categoriesToDisplay = remember(selectedTab, searchQuery) {
-        val list = if (selectedTab == TransactionType.INCOME) DEFAULT_INCOME_CATEGORIES else DEFAULT_EXPENSE_CATEGORIES
+    val categoriesToDisplay = remember(initialType, searchQuery) {
+        val list = if (initialType == TransactionType.INCOME) DEFAULT_INCOME_CATEGORIES else DEFAULT_EXPENSE_CATEGORIES
         if (searchQuery.isBlank()) {
             list
         } else {
@@ -89,7 +87,7 @@ fun CategorySelectionScreen(
     Scaffold(
         topBar = {
             ChildHeader(
-                title = "Select Category",
+                title = "Select ${if (initialType == TransactionType.INCOME) "Income" else "Expense"} Category",
                 onBackClick = onBackClick
             )
         },
@@ -99,84 +97,14 @@ fun CategorySelectionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Income vs Expense Category Tab Switcher
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-                    .padding(4.dp)
-            ) {
-                // Expense Tab
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (selectedTab == TransactionType.EXPENSE) MaterialTheme.colorScheme.onBackground else Color.Transparent)
-                        .clickable { selectedTab = TransactionType.EXPENSE }
-                        .padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(if (selectedTab == TransactionType.EXPENSE) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant)
-                        )
-                        Text(
-                            text = "Expense Categories",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = if (selectedTab == TransactionType.EXPENSE) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                // Income Tab
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (selectedTab == TransactionType.INCOME) MaterialTheme.colorScheme.onBackground else Color.Transparent)
-                        .clickable { selectedTab = TransactionType.INCOME }
-                        .padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(if (selectedTab == TransactionType.INCOME) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant)
-                        )
-                        Text(
-                            text = "Income Categories",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = if (selectedTab == TransactionType.INCOME) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
             // Category Search Input Field (Shadcn UI style)
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search category name or keyword...") },
+                placeholder = { Text("Search category name or keyword...", fontFamily = SpaceGroteskFamily) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.Search,
@@ -185,10 +113,12 @@ fun CategorySelectionScreen(
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                 )
             )
 
@@ -226,7 +156,7 @@ fun CategorySelectionScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(36.dp)
+                                        .size(40.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(
                                             if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -237,24 +167,25 @@ fun CategorySelectionScreen(
                                         imageVector = getIconByName(cat.iconName),
                                         contentDescription = cat.name,
                                         tint = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
 
                                 Column {
                                     Text(
                                         text = cat.name,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                        style = TextStyle(
+                                            fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 13.sp,
+                                            fontSize = 14.sp,
                                             color = MaterialTheme.colorScheme.onSurface
                                         ),
                                         maxLines = 1
                                     )
                                     Text(
                                         text = cat.description,
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 10.sp,
+                                        style = TextStyle(
+                                            fontSize = 11.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         ),
                                         maxLines = 1

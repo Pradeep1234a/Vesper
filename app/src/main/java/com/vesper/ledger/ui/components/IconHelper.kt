@@ -218,8 +218,9 @@ fun getIconByName(name: String): ImageVector {
         "notifications" -> Icons.Outlined.Notifications
         "star" -> Icons.Outlined.Star
         "category" -> Icons.Outlined.Category
+        "pets" -> Icons.Outlined.Pets
 
-        else -> Icons.Outlined.Tag
+        else -> Icons.Outlined.Category
     }
 }
 

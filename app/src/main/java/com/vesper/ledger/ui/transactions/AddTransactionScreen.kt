@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
@@ -28,9 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Account
@@ -296,7 +299,7 @@ fun AddTransactionScreen(
                 }
             }
 
-            // 2. Amount Hero Card (Visual Focal Point + Matching Calculator Action Icon Size)
+            // 2. Amount Hero Card (System Keyboard Editable + Inline Calculator Trigger)
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(16.dp)
@@ -319,7 +322,8 @@ fun AddTransactionScreen(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(
                                 text = currencySymbol,
@@ -330,15 +334,24 @@ fun AddTransactionScreen(
                                     fontSize = 32.sp
                                 )
                             )
-                            Text(
-                                text = amountExpr,
-                                style = TextStyle(
+                            BasicTextField(
+                                value = amountExpr,
+                                onValueChange = { newValue ->
+                                    if (newValue.isEmpty()) {
+                                        amountExpr = "0"
+                                    } else if (newValue.all { it.isDigit() || it == '.' || it == '+' || it == '-' || it == '×' || it == '÷' || it == '*' || it == '/' }) {
+                                        amountExpr = if (amountExpr == "0" && newValue.length > 1 && !newValue.endsWith(".")) newValue.drop(1) else newValue
+                                    }
+                                },
+                                textStyle = TextStyle(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     fontSize = 32.sp
                                 ),
-                                maxLines = 1
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
                             )
                         }
 
@@ -579,7 +592,8 @@ fun AddTransactionScreen(
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         letterSpacing = 0.5.sp
-                                    )
+                                    ),
+                                    maxLines = 1
                                 )
                                 Text(
                                     text = selectedAccount.name,
@@ -672,7 +686,8 @@ fun AddTransactionScreen(
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         letterSpacing = 0.5.sp
-                                    )
+                                    ),
+                                    maxLines = 1
                                 )
                                 Text(
                                     text = selectedPaymentMethod,
