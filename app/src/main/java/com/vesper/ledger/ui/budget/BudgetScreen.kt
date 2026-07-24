@@ -3,16 +3,15 @@ package com.vesper.ledger.ui.budget
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.*
@@ -23,28 +22,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vesper.ledger.data.model.Budget
+import com.vesper.ledger.ui.components.ChildHeader
+import com.vesper.ledger.ui.components.getIconByName
+import com.vesper.ledger.ui.components.safeParseColor
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
-
-import com.vesper.ledger.ui.components.ChildHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreen(
     viewModel: BudgetsViewModel,
     currencySymbol: String = "$",
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onAddBudgetClick: () -> Unit = {},
+    onEditBudgetClick: (Budget) -> Unit = {}
 ) {
     val budgetsWithStatus by viewModel.budgetsWithStatus.collectAsState()
-    val categories by viewModel.categories.collectAsState()
-
-    var showAddDialog by remember { mutableStateOf(false) }
-    var editingBudget by remember { mutableStateOf<com.vesper.ledger.data.model.Budget?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedPeriodFilter by remember { mutableStateOf("ALL") }
 
@@ -58,47 +56,134 @@ fun BudgetScreen(
         matchesSearch && matchesPeriod
     }
 
+    val totalBudgetLimit = budgetsWithStatus.sumOf { it.budget.amount }
+    val totalBudgetSpent = budgetsWithStatus.sumOf { it.spentAmount }
+    val totalRemaining = totalBudgetLimit - totalBudgetSpent
+
     Scaffold(
         topBar = {
             ChildHeader(
-                title = "Budgets",
+                title = "Budgets Management",
                 onBackClick = onBackClick
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    editingBudget = null
-                    showAddDialog = true
-                },
+                onClick = onAddBudgetClick,
                 containerColor = MaterialTheme.colorScheme.onBackground,
                 contentColor = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Filled.Add, "Add Budget")
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Search & Filter controls
+            // Overall Budget Summary Banner
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "TOTAL BUDGET LIMIT",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.2.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                        Text(
+                            text = "$currencySymbol${df.format(totalBudgetLimit)}",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 22.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "Spent",
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
+                            Text(
+                                text = "$currencySymbol${df.format(totalBudgetSpent)}",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (totalBudgetSpent > totalBudgetLimit && totalBudgetLimit > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "Remaining",
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
+                            Text(
+                                text = "$currencySymbol${df.format(totalRemaining)}",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (totalRemaining >= 0) Color(0xFF16A34A) else MaterialTheme.colorScheme.error
+                                )
+                            )
+                        }
+                    }
+
+                    val overallProgress = if (totalBudgetLimit > 0) (totalBudgetSpent / totalBudgetLimit).toFloat().coerceIn(0f, 1f) else 0f
+                    LinearProgressIndicator(
+                        progress = overallProgress,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
+                        color = if (overallProgress >= 0.9f) MaterialTheme.colorScheme.error else Color(0xFF10B981),
+                        trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    )
+                }
+            }
+
+            // Search & Period Filter row
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search budgets...") },
+                    placeholder = { Text("Search budgets...", style = MaterialTheme.typography.bodyMedium) },
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(14.dp),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.onBackground,
@@ -111,7 +196,7 @@ fun BudgetScreen(
                     IconButton(
                         onClick = { showFilterMenu = true },
                         modifier = Modifier
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(14.dp))
                             .size(52.dp)
                     ) {
                         Icon(Icons.Default.FilterList, "Filter")
@@ -120,9 +205,9 @@ fun BudgetScreen(
                         expanded = showFilterMenu,
                         onDismissRequest = { showFilterMenu = false }
                     ) {
-                        listOf("ALL", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY", "CUSTOM").forEach { period ->
+                        listOf("ALL", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY").forEach { period ->
                             DropdownMenuItem(
-                                text = { Text(period) },
+                                text = { Text(period, fontFamily = SpaceGroteskFamily) },
                                 onClick = {
                                     selectedPeriodFilter = period
                                     showFilterMenu = false
@@ -133,8 +218,6 @@ fun BudgetScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
             if (filteredBudgets.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -142,337 +225,175 @@ fun BudgetScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No budgets found.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Outlined.AccountBalanceWallet,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "No budgets set up yet.",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
                     items(filteredBudgets) { item ->
                         val budget = item.budget
                         val progress = item.progress
+                        val catColor = safeParseColor(item.categoryColor)
 
-                        Column(
+                        Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-                                .padding(16.dp)
+                                .clip(RoundedCornerShape(18.dp))
+                                .clickable { onEditBudgetClick(budget) },
+                            shape = RoundedCornerShape(18.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Column {
-                                    Text(
-                                        text = budget.name,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(8.dp)
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(Color(android.graphics.Color.parseColor(item.categoryColor)))
-                                        )
-                                        Text(
-                                            text = "${item.categoryName} • ${budget.period}",
-                                            fontSize = 11.sp,
+                                                .size(40.dp)
+                                                .clip(CircleShape)
+                                                .background(catColor.copy(alpha = 0.15f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = getIconByName(item.categoryIcon),
+                                                contentDescription = null,
+                                                tint = catColor,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Column {
+                                            Text(
+                                                text = budget.name,
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 16.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            )
+                                            Text(
+                                                text = "${item.categoryName} • ${budget.period}",
+                                                style = MaterialTheme.typography.bodySmall.copy(
+                                                    fontSize = 12.sp,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            )
+                                        }
+                                    }
+
+                                    var showMoreMenu by remember { mutableStateOf(false) }
+                                    Box {
+                                        IconButton(onClick = { showMoreMenu = true }) {
+                                            Icon(Icons.Default.MoreVert, "Actions")
+                                        }
+                                        DropdownMenu(
+                                            expanded = showMoreMenu,
+                                            onDismissRequest = { showMoreMenu = false }
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text("Edit Budget") },
+                                                onClick = {
+                                                    showMoreMenu = false
+                                                    onEditBudgetClick(budget)
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text("Delete") },
+                                                onClick = {
+                                                    showMoreMenu = false
+                                                    viewModel.deleteBudget(budget)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Spent: $currencySymbol${df.format(item.spentAmount)}",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                    }
+                                    )
+                                    Text(
+                                        text = "Limit: $currencySymbol${df.format(budget.amount)}",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    )
                                 }
 
-                                var showMoreMenu by remember { mutableStateOf(false) }
-                                Box {
-                                    IconButton(onClick = { showMoreMenu = true }) {
-                                        Icon(Icons.Default.MoreVert, "Actions")
-                                    }
-                                    DropdownMenu(
-                                        expanded = showMoreMenu,
-                                        onDismissRequest = { showMoreMenu = false }
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text("Edit") },
-                                            onClick = {
-                                                editingBudget = budget
-                                                showAddDialog = true
-                                                showMoreMenu = false
-                                            }
+                                LinearProgressIndicator(
+                                    progress = progress,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(3.dp)),
+                                    color = if (progress >= 0.9f) MaterialTheme.colorScheme.error else catColor,
+                                    trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Remaining: $currencySymbol${df.format(item.remainingAmount)}",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (item.remainingAmount >= 0) Color(0xFF16A34A) else MaterialTheme.colorScheme.error
                                         )
-                                        DropdownMenuItem(
-                                            text = { Text("Duplicate") },
-                                            onClick = {
-                                                viewModel.addBudget(
-                                                    name = "${budget.name} (Copy)",
-                                                    amount = budget.amount,
-                                                    period = budget.period,
-                                                    categoryId = budget.categoryId,
-                                                    startDate = budget.startDate,
-                                                    endDate = budget.endDate,
-                                                    notes = budget.notes
-                                                )
-                                                showMoreMenu = false
-                                            }
+                                    )
+                                    Text(
+                                        text = "${dateFormat.format(Date(budget.startDate))} - ${dateFormat.format(Date(budget.endDate))}",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                        DropdownMenuItem(
-                                            text = { Text("Delete") },
-                                            onClick = {
-                                                viewModel.deleteBudget(budget)
-                                                showMoreMenu = false
-                                            }
-                                        )
-                                    }
+                                    )
                                 }
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Spent: $currencySymbol${df.format(item.spentAmount)}",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = "Limit: $currencySymbol${df.format(budget.amount)}",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            LinearProgressIndicator(
-                                progress = progress,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(6.dp)
-                                    .clip(RoundedCornerShape(3.dp)),
-                                color = if (progress >= 0.9f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground,
-                                trackColor = MaterialTheme.colorScheme.outlineVariant
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Remaining: $currencySymbol${df.format(item.remainingAmount)}",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (item.remainingAmount >= 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-                                )
-                                Text(
-                                    text = "${dateFormat.format(Date(budget.startDate))} - ${dateFormat.format(Date(budget.endDate))}",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
                             }
                         }
                     }
                 }
             }
         }
-    }
-
-    if (showAddDialog) {
-        var name by remember { mutableStateOf(editingBudget?.name ?: "") }
-        var amountStr by remember { mutableStateOf(editingBudget?.amount?.toString() ?: "") }
-        var period by remember { mutableStateOf(editingBudget?.period ?: "MONTHLY") }
-        var categoryId by remember { mutableStateOf(editingBudget?.categoryId ?: (categories.firstOrNull()?.id ?: 0L)) }
-        var notes by remember { mutableStateOf(editingBudget?.notes ?: "") }
-
-        var expandedPeriod by remember { mutableStateOf(false) }
-        var expandedCategory by remember { mutableStateOf(false) }
-
-        AlertDialog(
-            onDismissRequest = { showAddDialog = false },
-            title = {
-                Text(
-                    text = if (editingBudget == null) "Add Budget" else "Edit Budget",
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = { Text("Budget Name") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = amountStr,
-                        onValueChange = { amountStr = it },
-                        label = { Text("Limit Amount ($currencySymbol)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
-                            value = period,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Budget Period") },
-                            trailingIcon = {
-                                IconButton(onClick = { expandedPeriod = true }) {
-                                    Icon(Icons.Outlined.ArrowDropDown, null)
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth().clickable { expandedPeriod = true }
-                        )
-                        DropdownMenu(
-                            expanded = expandedPeriod,
-                            onDismissRequest = { expandedPeriod = false }
-                        ) {
-                            listOf("WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY").forEach { p ->
-                                DropdownMenuItem(
-                                    text = { Text(p) },
-                                    onClick = {
-                                        period = p
-                                        expandedPeriod = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        val activeCategoryName = categories.find { it.id == categoryId }?.name ?: "Select Category"
-                        OutlinedTextField(
-                            value = activeCategoryName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Category") },
-                            trailingIcon = {
-                                IconButton(onClick = { expandedCategory = true }) {
-                                    Icon(Icons.Outlined.ArrowDropDown, null)
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth().clickable { expandedCategory = true }
-                        )
-                        DropdownMenu(
-                            expanded = expandedCategory,
-                            onDismissRequest = { expandedCategory = false }
-                        ) {
-                            categories.forEach { cat ->
-                                DropdownMenuItem(
-                                    text = { Text(cat.name) },
-                                    onClick = {
-                                        categoryId = cat.id
-                                        expandedCategory = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    OutlinedTextField(
-                        value = notes,
-                        onValueChange = { notes = it },
-                        label = { Text("Notes (Optional)") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val amount = amountStr.toDoubleOrNull() ?: 0.0
-                        if (name.isNotBlank() && amount > 0.0) {
-                            val startCal = Calendar.getInstance()
-                            val endCal = Calendar.getInstance()
-                            when (period) {
-                                "WEEKLY" -> {
-                                    startCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek)
-                                    endCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek + 6)
-                                }
-                                "MONTHLY" -> {
-                                    startCal.set(Calendar.DAY_OF_MONTH, 1)
-                                    endCal.set(Calendar.DAY_OF_MONTH, startCal.getActualMaximum(Calendar.DAY_OF_MONTH))
-                                }
-                                "QUARTERLY" -> {
-                                    val currentMonth = startCal.get(Calendar.MONTH)
-                                    val startMonth = (currentMonth / 3) * 3
-                                    startCal.set(Calendar.MONTH, startMonth)
-                                    startCal.set(Calendar.DAY_OF_MONTH, 1)
-                                    endCal.set(Calendar.MONTH, startMonth + 2)
-                                    endCal.set(Calendar.DAY_OF_MONTH, endCal.getActualMaximum(Calendar.DAY_OF_MONTH))
-                                }
-                                "YEARLY" -> {
-                                    startCal.set(Calendar.DAY_OF_YEAR, 1)
-                                    endCal.set(Calendar.DAY_OF_YEAR, startCal.getActualMaximum(Calendar.DAY_OF_YEAR))
-                                }
-                            }
-                            // Normalize times
-                            startCal.set(Calendar.HOUR_OF_DAY, 0)
-                            startCal.set(Calendar.MINUTE, 0)
-                            startCal.set(Calendar.SECOND, 0)
-                            startCal.set(Calendar.MILLISECOND, 0)
-                            endCal.set(Calendar.HOUR_OF_DAY, 23)
-                            endCal.set(Calendar.MINUTE, 59)
-                            endCal.set(Calendar.SECOND, 59)
-                            endCal.set(Calendar.MILLISECOND, 999)
-
-                            if (editingBudget == null) {
-                                viewModel.addBudget(
-                                    name = name,
-                                    amount = amount,
-                                    period = period,
-                                    categoryId = categoryId,
-                                    startDate = startCal.timeInMillis,
-                                    endDate = endCal.timeInMillis,
-                                    notes = notes.ifBlank { null }
-                                )
-                            } else {
-                                viewModel.updateBudget(
-                                    editingBudget!!.copy(
-                                        name = name,
-                                        amount = amount,
-                                        period = period,
-                                        categoryId = categoryId,
-                                        startDate = startCal.timeInMillis,
-                                        endDate = endCal.timeInMillis,
-                                        notes = notes.ifBlank { null }
-                                    )
-                                )
-                            }
-                            showAddDialog = false
-                        }
-                    }
-                ) {
-                    Text(if (editingBudget == null) "Add" else "Save", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        )
     }
 }

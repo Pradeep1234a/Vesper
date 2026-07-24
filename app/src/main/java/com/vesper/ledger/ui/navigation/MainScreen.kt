@@ -44,6 +44,8 @@ import com.vesper.ledger.ui.savings.SavingsViewModelFactory
 import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
+import com.vesper.ledger.ui.analytics.AnalyticsScreen
+import androidx.compose.material.icons.outlined.BarChart
 import kotlinx.coroutines.launch
 
 data class DrawerItem(
@@ -93,6 +95,7 @@ fun MainScreen(
     val drawerItems = listOf(
         DrawerItem(Screen.Dashboard.route, "Dashboard", Icons.Outlined.Dashboard),
         DrawerItem(Screen.Transactions.route, "Transactions", Icons.Outlined.ListAlt),
+        DrawerItem(Screen.Analytics.route, "Analytics", Icons.Outlined.BarChart),
         DrawerItem(Screen.Budgets.route, "Budgets", Icons.Outlined.PieChart),
         DrawerItem(Screen.Savings.route, "Savings", Icons.Outlined.Savings),
         DrawerItem(Screen.Settings.route, "Settings", Icons.Outlined.Settings)
@@ -349,6 +352,24 @@ fun MainScreen(
                     val budgetsViewModel: BudgetsViewModel = viewModel(factory = budgetsFactory)
                     BudgetScreen(
                         viewModel = budgetsViewModel,
+                        currencySymbol = currencySymbol,
+                        onBackClick = { navController.popBackStack() },
+                        onAddBudgetClick = { navController.navigate(Screen.AddBudget.route) },
+                        onEditBudgetClick = { budget ->
+                            navController.navigate(Screen.AddBudget.route)
+                        }
+                    )
+                }
+
+                composable(Screen.Analytics.route) {
+                    val transactions by app.transactionRepository.allTransactions.collectAsState(initial = emptyList())
+                    val categories by app.transactionRepository.allCategories.collectAsState(initial = emptyList())
+                    val accounts by app.accountRepository.allAccounts.collectAsState(initial = emptyList())
+
+                    AnalyticsScreen(
+                        transactions = transactions,
+                        categories = categories,
+                        accounts = accounts,
                         currencySymbol = currencySymbol,
                         onBackClick = { navController.popBackStack() }
                     )

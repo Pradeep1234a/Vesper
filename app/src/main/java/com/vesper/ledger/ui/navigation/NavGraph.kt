@@ -33,6 +33,8 @@ import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.ui.accounts.AccountsScreen
 import com.vesper.ledger.ui.accounts.AddEditAccountScreen
 import com.vesper.ledger.ui.transactions.AddTransactionScreen
+import com.vesper.ledger.ui.budget.AddEditBudgetScreen
+import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.ui.auth.WelcomeScreen
 import com.vesper.ledger.ui.auth.SignInScreen
@@ -246,6 +248,53 @@ fun NavGraph(
                                 note = note
                             )
                         )
+                    }
+                }
+            )
+        }
+
+        composable(Screen.AddBudget.route) {
+            val scope = rememberCoroutineScope()
+            var editingBudgetState by remember { mutableStateOf<Budget?>(null) }
+
+            AddEditBudgetScreen(
+                budgetToEdit = editingBudgetState,
+                categories = categories,
+                currencySymbol = currencySymbol,
+                onBackClick = { navController.popBackStack() },
+                onSaveBudget = { name, amount, period, categoryId, startDate, endDate, notes, idToUpdate ->
+                    scope.launch(Dispatchers.IO) {
+                        if (idToUpdate != null) {
+                            app.budgetRepository.updateBudget(
+                                Budget(
+                                    id = idToUpdate,
+                                    name = name,
+                                    amount = amount,
+                                    period = period,
+                                    categoryId = categoryId,
+                                    startDate = startDate,
+                                    endDate = endDate,
+                                    notes = notes
+                                )
+                            )
+                        } else {
+                            app.budgetRepository.insertBudget(
+                                Budget(
+                                    name = name,
+                                    amount = amount,
+                                    period = period,
+                                    categoryId = categoryId,
+                                    startDate = startDate,
+                                    endDate = endDate,
+                                    notes = notes
+                                )
+                            )
+                        }
+                    }
+                },
+                onDeleteBudget = { budget ->
+                    scope.launch(Dispatchers.IO) {
+                        app.budgetRepository.deleteBudget(budget)
                     }
                 }
             )

@@ -20,6 +20,7 @@ data class BudgetWithStatus(
     val budget: Budget,
     val categoryName: String,
     val categoryColor: String,
+    val categoryIcon: String = "category",
     val spentAmount: Double,
     val remainingAmount: Double,
     val progress: Float
@@ -46,6 +47,7 @@ class BudgetsViewModel(
             val category = catList.find { it.id == budget.categoryId }
             val catName = category?.name ?: "Unknown"
             val catColor = category?.colorHex ?: "#71717A"
+            val catIcon = category?.iconName ?: "category"
 
             // Filter transactions of type EXPENSE for this category within budget dates
             val spent = txList.filter {
@@ -62,6 +64,7 @@ class BudgetsViewModel(
                 budget = budget,
                 categoryName = catName,
                 categoryColor = catColor,
+                categoryIcon = catIcon,
                 spentAmount = spent,
                 remainingAmount = remaining,
                 progress = prog
