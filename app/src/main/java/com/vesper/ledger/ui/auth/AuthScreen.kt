@@ -479,19 +479,19 @@ fun WelcomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = 24.dp, vertical = 28.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Center Hero Welcome Section
+            // Center Hero Welcome Section (Exact mathematical optical alignment)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(28.dp)
+                verticalArrangement = Arrangement.Top
             ) {
-                // High-End Metallic Vesper Logo Tile (Adaptive Light/Dark)
+                // High-End Metallic Vesper Logo Tile (Exact match to reference mockup)
                 Box(
                     modifier = Modifier
                         .size(112.dp)
@@ -506,62 +506,20 @@ fun WelcomeScreen(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Canvas(modifier = Modifier.size(56.dp)) {
-                        val w = size.width
-                        val h = size.height
-                        val strokeW = 4.dp.toPx()
-
-                        // Left main diagonal stem of "V"
-                        val pathLeft = Path().apply {
-                            moveTo(w * 0.20f, h * 0.22f)
-                            lineTo(w * 0.48f, h * 0.84f)
-                        }
-                        drawPath(
-                            path = pathLeft,
-                            brush = logoEmblemBrush,
-                            style = Stroke(width = strokeW + 1.5f, cap = StrokeCap.Round)
-                        )
-
-                        // Inner parallel wing line
-                        val pathWing1 = Path().apply {
-                            moveTo(w * 0.48f, h * 0.84f)
-                            lineTo(w * 0.64f, h * 0.40f)
-                        }
-                        drawPath(
-                            path = pathWing1,
-                            brush = logoEmblemBrush,
-                            style = Stroke(width = strokeW, cap = StrokeCap.Round)
-                        )
-
-                        // Middle parallel wing line
-                        val pathWing2 = Path().apply {
-                            moveTo(w * 0.44f, h * 0.62f)
-                            lineTo(w * 0.74f, h * 0.26f)
-                        }
-                        drawPath(
-                            path = pathWing2,
-                            brush = logoEmblemBrush,
-                            style = Stroke(width = strokeW, cap = StrokeCap.Round)
-                        )
-
-                        // Outer parallel wing line
-                        val pathWing3 = Path().apply {
-                            moveTo(w * 0.54f, h * 0.44f)
-                            lineTo(w * 0.84f, h * 0.16f)
-                        }
-                        drawPath(
-                            path = pathWing3,
-                            brush = logoEmblemBrush,
-                            style = Stroke(width = strokeW, cap = StrokeCap.Round)
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = "Vesper Logo",
+                        tint = if (isDark) Color.White else Color(0xFF0F172A),
+                        modifier = Modifier.size(76.dp)
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(2.dp))
+                // Exact 28.dp gap between Logo Box and Headline (Optical proportion match)
+                Spacer(modifier = Modifier.height(28.dp))
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
                         text = "Welcome to Vesper",

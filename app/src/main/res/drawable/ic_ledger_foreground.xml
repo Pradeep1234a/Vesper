@@ -4,26 +4,23 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Open Book Outline -->
+    <!-- Stylized Geometric Vesper "V" Emblem (Exact Match to Mockup) -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="3.5"
+        android:strokeWidth="5.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M 54,74 C 42,74 32,70 30,68 V 38 C 32,40 42,44 54,44 C 66,44 76,40 78,38 V 68 C 76,70 66,74 54,74 Z M 54,44 V 74" />
-        
-    <!-- Book lines on left page -->
+        android:pathData="M 32,34 L 54,76 L 67,50" />
+
     <path
-        android:strokeColor="#80FFFFFF"
-        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4.5"
         android:strokeLineCap="round"
-        android:pathData="M 36,48 H 48 M 36,54 H 48 M 36,60 H 48" />
-        
-    <!-- Book lines on right page -->
+        android:pathData="M 49,63 L 73,40" />
+
     <path
-        android:strokeColor="#80FFFFFF"
-        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4.5"
         android:strokeLineCap="round"
-        android:pathData="M 60,48 H 72 M 60,54 H 72 M 60,60 H 72" />
-        
+        android:pathData="M 55,49 L 79,30" />
 </vector>
