@@ -1,5 +1,7 @@
 package com.vesper.ledger.ui.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -58,10 +60,18 @@ fun NavGraph(
         navController = navController,
         startDestination = "splash",
         modifier = modifier.fillMaxSize(),
-        enterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220)) + androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(220)) { it / 6 } },
-        exitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220)) + androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(220)) { -it / 6 } },
-        popEnterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220)) + androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(220)) { -it / 6 } },
-        popExitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220)) + androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(220)) { it / 6 } }
+        enterTransition = {
+            slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
+        },
+        exitTransition = {
+            slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
+        },
+        popEnterTransition = {
+            slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
+        },
+        popExitTransition = {
+            slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
+        }
     ) {
         composable("splash") {
             SplashScreen(
@@ -73,7 +83,11 @@ fun NavGraph(
             )
         }
 
-        composable("main_screen") {
+        composable(
+            route = "main_screen",
+            enterTransition = { fadeIn(animationSpec = tween(250)) },
+            exitTransition = { fadeOut(animationSpec = tween(250)) }
+        ) {
             val scope = rememberCoroutineScope()
             MainScreen(
                 settingsViewModel = settingsViewModel,

@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -322,10 +324,10 @@ fun MainScreen(
                 navController = navController,
                 startDestination = Screen.Dashboard.route,
                 modifier = Modifier.padding(innerPadding),
-                enterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220)) + androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(220)) { it / 6 } },
-                exitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220)) + androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(220)) { -it / 6 } },
-                popEnterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220)) + androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(220)) { -it / 6 } },
-                popExitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220)) + androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(220)) { it / 6 } }
+                enterTransition = { fadeIn(animationSpec = tween(200, easing = LinearOutSlowInEasing)) },
+                exitTransition = { fadeOut(animationSpec = tween(200, easing = FastOutLinearInEasing)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(200, easing = LinearOutSlowInEasing)) },
+                popExitTransition = { fadeOut(animationSpec = tween(200, easing = FastOutLinearInEasing)) }
             ) {
                 composable(Screen.Dashboard.route) {
                     val dashboardViewModel: DashboardViewModel = viewModel(factory = dashboardFactory)
@@ -374,7 +376,21 @@ fun MainScreen(
                     )
                 }
 
-                composable(Screen.AddTransaction.route) {
+                composable(
+                    route = Screen.AddTransaction.route,
+                    enterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
+                    }
+                ) {
                     val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
                     val dbAccounts by transactionsViewModel.dbAccounts.collectAsState()
 
@@ -402,7 +418,19 @@ fun MainScreen(
 
                 composable(
                     route = "${Screen.CategorySelection.route}?type={type}",
-                    arguments = listOf(androidx.navigation.navArgument("type") { defaultValue = TransactionType.EXPENSE.name })
+                    arguments = listOf(androidx.navigation.navArgument("type") { defaultValue = TransactionType.EXPENSE.name }),
+                    enterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
+                    }
                 ) { backStackEntry ->
                     val typeStr = backStackEntry.arguments?.getString("type") ?: TransactionType.EXPENSE.name
                     val categoryType = try { TransactionType.valueOf(typeStr) } catch (e: Exception) { TransactionType.EXPENSE }
