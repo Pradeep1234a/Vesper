@@ -41,14 +41,14 @@ val ICON_CATEGORIES = mapOf(
 )
 
 fun getIconByName(name: String): ImageVector {
-    return when (name.lowercase()) {
-        // Food
+    return when (name.lowercase().trim()) {
+        // Food & Dining
         "restaurant" -> Icons.Outlined.Restaurant
-        "pizza" -> Icons.Outlined.LocalPizza
+        "pizza", "local_pizza" -> Icons.Outlined.LocalPizza
         "coffee" -> Icons.Outlined.Coffee
         "bakery" -> Icons.Outlined.BakeryDining
         "icecream" -> Icons.Outlined.Icecream
-        "bar" -> Icons.Outlined.LocalBar
+        "bar", "local_bar" -> Icons.Outlined.LocalBar
         "wine" -> Icons.Outlined.WineBar
         "cake" -> Icons.Outlined.Cake
         "egg" -> Icons.Outlined.Egg
@@ -64,11 +64,11 @@ fun getIconByName(name: String): ImageVector {
         "takeout" -> Icons.Outlined.TakeoutDining
         "kebab" -> Icons.Outlined.KebabDining
 
-        // Shopping
+        // Shopping & Retail
         "shopping_bag" -> Icons.Outlined.ShoppingBag
         "shopping_cart" -> Icons.Outlined.ShoppingCart
         "storefront" -> Icons.Outlined.Storefront
-        "mall" -> Icons.Outlined.LocalMall
+        "mall", "local_mall" -> Icons.Outlined.LocalMall
         "sell" -> Icons.Outlined.Sell
         "receipt" -> Icons.Outlined.Receipt
         "tag" -> Icons.Outlined.Tag
@@ -76,8 +76,8 @@ fun getIconByName(name: String): ImageVector {
         "loyalty" -> Icons.Outlined.Loyalty
         "checkroom" -> Icons.Outlined.Checkroom
         "toy" -> Icons.Outlined.SmartToy
-        "florist" -> Icons.Outlined.LocalFlorist
-        "giftcard" -> Icons.Outlined.CardGiftcard
+        "florist", "local_florist" -> Icons.Outlined.LocalFlorist
+        "giftcard", "card_giftcard" -> Icons.Outlined.CardGiftcard
         "basket" -> Icons.Outlined.ShoppingBasket
         "gift" -> Icons.Outlined.CardGiftcard
         "camera" -> Icons.Outlined.Camera
@@ -86,21 +86,21 @@ fun getIconByName(name: String): ImageVector {
         "watch" -> Icons.Outlined.Watch
         "palette" -> Icons.Outlined.Palette
 
-        // Transport
-        "car" -> Icons.Outlined.DirectionsCar
-        "bus" -> Icons.Outlined.DirectionsBus
-        "run" -> Icons.Outlined.DirectionsRun
-        "bike" -> Icons.Outlined.DirectionsBike
-        "subway" -> Icons.Outlined.DirectionsSubway
+        // Transport & Travel
+        "car", "directions_car" -> Icons.Outlined.DirectionsCar
+        "bus", "directions_bus" -> Icons.Outlined.DirectionsBus
+        "run", "directions_run" -> Icons.Outlined.DirectionsRun
+        "bike", "directions_bike" -> Icons.Outlined.DirectionsBike
+        "subway", "directions_subway" -> Icons.Outlined.DirectionsSubway
         "flight" -> Icons.Outlined.Flight
-        "taxi" -> Icons.Outlined.LocalTaxi
+        "taxi", "local_taxi" -> Icons.Outlined.LocalTaxi
         "train" -> Icons.Outlined.Train
-        "boat" -> Icons.Outlined.DirectionsBoat
+        "boat", "directions_boat" -> Icons.Outlined.DirectionsBoat
         "tram" -> Icons.Outlined.Tram
         "motorcycle" -> Icons.Outlined.TwoWheeler
         "pedal_bike" -> Icons.Outlined.PedalBike
         "ev_station" -> Icons.Outlined.EvStation
-        "gas_station" -> Icons.Outlined.LocalGasStation
+        "gas_station", "local_gas_station" -> Icons.Outlined.LocalGasStation
         "map" -> Icons.Outlined.Map
         "commute" -> Icons.Outlined.Commute
         "navigation" -> Icons.Outlined.Navigation
@@ -108,8 +108,8 @@ fun getIconByName(name: String): ImageVector {
         "luggage" -> Icons.Outlined.Luggage
         "explore" -> Icons.Outlined.Explore
 
-        // Utilities
-        "card" -> Icons.Outlined.CreditCard
+        // Utilities & Housing
+        "card", "credit_card" -> Icons.Outlined.CreditCard
         "receipt_long" -> Icons.Outlined.ReceiptLong
         "bolt" -> Icons.Outlined.Bolt
         "water" -> Icons.Outlined.WaterDrop
@@ -117,7 +117,7 @@ fun getIconByName(name: String): ImageVector {
         "router" -> Icons.Outlined.Router
         "android_phone" -> Icons.Outlined.PhoneAndroid
         "home" -> Icons.Outlined.Home
-        "work" -> Icons.Outlined.WorkOutline
+        "work", "work_outline" -> Icons.Outlined.WorkOutline
         "mail" -> Icons.Outlined.LocalPostOffice
         "call" -> Icons.Outlined.LocalPhone
         "antenna" -> Icons.Outlined.SettingsInputAntenna
@@ -130,8 +130,8 @@ fun getIconByName(name: String): ImageVector {
         "cleaning" -> Icons.Outlined.CleaningServices
         "wind" -> Icons.Outlined.WindPower
 
-        // Entertainment
-        "gamepad" -> Icons.Outlined.SportsEsports
+        // Entertainment & Media
+        "gamepad", "sports_esports" -> Icons.Outlined.SportsEsports
         "movie" -> Icons.Outlined.Movie
         "music" -> Icons.Outlined.MusicNote
         "comedy" -> Icons.Outlined.TheaterComedy
@@ -152,13 +152,13 @@ fun getIconByName(name: String): ImageVector {
         "forum" -> Icons.Outlined.Forum
         "group" -> Icons.Outlined.Group
 
-        // Health
-        "medical" -> Icons.Outlined.MedicalServices
+        // Health & Wellness
+        "medical", "medical_services" -> Icons.Outlined.MedicalServices
         "heart" -> Icons.Outlined.Favorite
         "heart_border" -> Icons.Outlined.FavoriteBorder
         "spa" -> Icons.Outlined.Spa
         "fitness" -> Icons.Outlined.FitnessCenter
-        "hospital" -> Icons.Outlined.LocalHospital
+        "hospital", "local_hospital" -> Icons.Outlined.LocalHospital
         "meditation" -> Icons.Outlined.SelfImprovement
         "virus" -> Icons.Outlined.Coronavirus
         "healing" -> Icons.Outlined.Healing
@@ -174,7 +174,7 @@ fun getIconByName(name: String): ImageVector {
         "liquid" -> Icons.Outlined.Medication
         "soccer" -> Icons.Outlined.SportsSoccer
 
-        // Education
+        // Education & Business
         "school" -> Icons.Outlined.School
         "class" -> Icons.Outlined.Class
         "book" -> Icons.Outlined.AutoStories
@@ -182,7 +182,6 @@ fun getIconByName(name: String): ImageVector {
         "contacts" -> Icons.Outlined.ImportContacts
         "cast" -> Icons.Outlined.CastForEducation
         "business" -> Icons.Outlined.Business
-        "work_outline" -> Icons.Outlined.WorkOutline
         "domain" -> Icons.Outlined.Domain
         "campaign" -> Icons.Outlined.Campaign
         "leaderboard" -> Icons.Outlined.Leaderboard
@@ -196,10 +195,10 @@ fun getIconByName(name: String): ImageVector {
         "calculate" -> Icons.Outlined.Calculate
         "analytics" -> Icons.Outlined.Analytics
 
-        // Financials
+        // Financials & Accounts
         "savings" -> Icons.Outlined.Savings
-        "bank" -> Icons.Outlined.AccountBalance
-        "wallet" -> Icons.Outlined.AccountBalanceWallet
+        "bank", "account_balance" -> Icons.Outlined.AccountBalance
+        "wallet", "account_balance_wallet" -> Icons.Outlined.AccountBalanceWallet
         "paid" -> Icons.Outlined.Paid
         "monetization" -> Icons.Outlined.MonetizationOn
         "exchange" -> Icons.Outlined.CurrencyExchange
@@ -217,9 +216,10 @@ fun getIconByName(name: String): ImageVector {
         "security" -> Icons.Outlined.Security
         "notifications" -> Icons.Outlined.Notifications
         "star" -> Icons.Outlined.Star
+        "more_horiz" -> Icons.Outlined.MoreHoriz
         "category" -> Icons.Outlined.Category
 
-        else -> Icons.Outlined.Tag
+        else -> Icons.Outlined.Category
     }
 }
 
