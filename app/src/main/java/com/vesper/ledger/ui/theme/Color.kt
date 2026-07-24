@@ -16,18 +16,18 @@ val Slate900 = Color(0xFF18181B)
 val Slate950 = Color(0xFF09090B)
 
 // Vesper Ledger Premium Monochrome Theme Palette
-val VesperDarkBg = Color(0xFF000000)
-val VesperDarkSurface = Color(0xFF0B0B0D)
+val VesperDarkBg = Color(0xFF09090B)
+val VesperDarkSurface = Color(0xFF09090B)
 val VesperDarkOutline = Color(0xFF1E1E22)
 val VesperDarkPrimaryText = Color(0xFFFFFFFF)
 val VesperDarkSecondaryText = Color(0xFF9A9A9F)
 val VesperDarkDisabledText = Color(0xFF5A5A60)
 
-val VesperLightBg = Color(0xFFFFFFFF)
-val VesperLightSurface = Color(0xFFF7F7F8)
-val VesperLightOutline = Color(0xFFE4E4E8)
-val VesperLightPrimaryText = Color(0xFF111111)
-val VesperLightSecondaryText = Color(0xFF707076)
+val VesperLightBg = Color(0xFFF8FAFC)
+val VesperLightSurface = Color(0xFFF8FAFC)
+val VesperLightOutline = Color(0xFFE2E8F0)
+val VesperLightPrimaryText = Color(0xFF0F172A)
+val VesperLightSecondaryText = Color(0xFF64748B)
 val VesperLightDisabledText = Color(0xFFA0A0A5)
 
 // Semantic colors
