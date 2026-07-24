@@ -77,7 +77,7 @@ fun AddTransactionScreen(
     onBackClick: () -> Unit,
     onOpenCategorySelection: (TransactionType, String) -> Unit,
     selectedCategory: CategoryOption?,
-    onAddNewAccount: (name: String, type: String, initialBalance: Double) -> Unit = { _, _, _ -> },
+    onAddAccountClick: () -> Unit,
     onSaveTransaction: (
         title: String,
         amount: Double,
@@ -96,27 +96,16 @@ fun AddTransactionScreen(
 
     // Filter out hidden accounts
     val availableAccounts = remember(accountsList) {
-        val visible = accountsList.filter { !it.isHidden }
-        if (visible.isNotEmpty()) {
-            visible.map { acc ->
-                AccountOption(
-                    id = acc.id,
-                    name = acc.name,
-                    type = acc.type,
-                    balance = acc.initialBalance,
-                    iconName = acc.iconName,
-                    colorHex = acc.colorHex,
-                    includeInTotal = acc.includeInTotal,
-                    isHidden = acc.isHidden
-                )
-            }
-        } else {
-            listOf(
-                AccountOption(1L, "Cash Wallet", "CASH", 3420.00, "payments", "#16A34A"),
-                AccountOption(2L, "HDFC Bank Account", "BANK", 45280.00, "account_balance", "#2563EB"),
-                AccountOption(3L, "ICICI Bank Account", "BANK", 28150.00, "account_balance", "#059669"),
-                AccountOption(4L, "SBI Bank Account", "BANK", 18900.00, "account_balance", "#D97706"),
-                AccountOption(5L, "HDFC Regalia Credit Card", "CREDIT_CARD", 65000.00, "credit_card", "#DC2626")
+        accountsList.filter { !it.isHidden }.map { acc ->
+            AccountOption(
+                id = acc.id,
+                name = acc.name,
+                type = acc.type,
+                balance = acc.initialBalance,
+                iconName = acc.iconName,
+                colorHex = acc.colorHex,
+                includeInTotal = acc.includeInTotal,
+                isHidden = acc.isHidden
             )
         }
     }
@@ -271,7 +260,7 @@ fun AddTransactionScreen(
                             val acc = selectedAccount
                             if (acc == null) {
                                 Toast.makeText(context, "Please create an account first", Toast.LENGTH_SHORT).show()
-                                showAddAccountDialog = true
+                                onAddAccountClick()
                                 return@ShButton
                             }
 
@@ -349,7 +338,7 @@ fun AddTransactionScreen(
                             }
                         }
                         Button(
-                            onClick = { showAddAccountDialog = true },
+                            onClick = onAddAccountClick,
                             modifier = Modifier.height(36.dp),
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 10.dp)
@@ -1005,7 +994,10 @@ fun AddTransactionScreen(
 
                     // Add New Account Action Button
                     TextButton(
-                        onClick = { showAddAccountDialog = true }
+                        onClick = {
+                            showAccountBottomSheet = false
+                            onAddAccountClick()
+                        }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -1055,7 +1047,8 @@ fun AddTransactionScreen(
                                             .size(42.dp)
                                             .clip(RoundedCornerShape(10.dp))
                                             .background(
-                                                if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                                if (isSelected) MaterialTheme.colorScheme.onBackground
+                                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -1110,100 +1103,5 @@ fun AddTransactionScreen(
                 }
             }
         }
-    }
-
-    // ─── Add New Account Dialog ──────────────────────────────────────
-    if (showAddAccountDialog) {
-        AlertDialog(
-            onDismissRequest = { showAddAccountDialog = false },
-            title = {
-                Text(
-                    text = "Add New Account",
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        value = newAccName,
-                        onValueChange = { newAccName = it },
-                        label = { Text("Account Name") },
-                        placeholder = { Text("e.g., Paytm Wallet, Axis Bank") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = newAccBalance,
-                        onValueChange = { newAccBalance = it },
-                        label = { Text("Initial Balance ($currencySymbol)") },
-                        placeholder = { Text("0.00") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Text(
-                        text = "Account Type",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        listOf("CASH", "BANK", "CREDIT_CARD").forEach { type ->
-                            val isSel = newAccType == type
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSel) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                    .clickable { newAccType = type }
-                                    .padding(vertical = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = type.replace("_", " "),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isSel) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val bal = newAccBalance.toDoubleOrNull() ?: 0.0
-                        if (newAccName.isNotBlank()) {
-                            val icon = when (newAccType) {
-                                "CASH" -> "payments"
-                                "CREDIT_CARD" -> "credit_card"
-                                else -> "account_balance"
-                            }
-                            onAddNewAccount(newAccName, newAccType, bal)
-                            selectedAccount = AccountOption(name = newAccName, type = newAccType, balance = bal, iconName = icon)
-                            showAddAccountDialog = false
-                            showAccountBottomSheet = false
-                            newAccName = ""
-                            newAccBalance = ""
-                        }
-                    }
-                ) {
-                    Text("Save Account", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showAddAccountDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 }

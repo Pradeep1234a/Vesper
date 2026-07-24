@@ -100,6 +100,7 @@ fun MainScreen(
 
     var activeSelectedCategory by remember { mutableStateOf<CategoryOption?>(null) }
     var editingCategoryState by remember { mutableStateOf<Category?>(null) }
+    var editingAccountState by remember { mutableStateOf<Account?>(null) }
 
     val drawerItems = listOf(
         DrawerItem(Screen.Dashboard.route, "Dashboard", Icons.Outlined.Dashboard),
@@ -342,8 +343,9 @@ fun MainScreen(
                             navController.navigate("${Screen.CategorySelection.route}?type=${type.name}")
                         },
                         selectedCategory = activeSelectedCategory,
-                        onAddNewAccount = { name, type, bal ->
-                            transactionsViewModel.addNewAccount(name, type, bal)
+                        onAddAccountClick = {
+                            editingAccountState = null
+                            navController.navigate(Screen.AddAccount.route)
                         },
                         onSaveTransaction = { title, amount, type, categoryId, dateEpochMillis, accountName, paymentMethod, note ->
                             transactionsViewModel.addTransaction(
@@ -395,14 +397,56 @@ fun MainScreen(
                         accounts = dbAccounts,
                         currencySymbol = currencySymbol,
                         onBackClick = { navController.popBackStack() },
-                        onAddAccount = { name, type, bal, color, incTotal ->
-                            transactionsViewModel.addNewAccount(name, type, bal, colorHex = color, includeInTotal = incTotal)
+                        onAddAccountClick = {
+                            editingAccountState = null
+                            navController.navigate(Screen.AddAccount.route)
+                        },
+                        onEditAccountClick = { acc ->
+                            editingAccountState = acc
+                            navController.navigate(Screen.AddAccount.route)
                         },
                         onUpdateAccount = { acc ->
                             transactionsViewModel.updateAccount(acc)
                         },
                         onDeleteAccount = { acc ->
                             transactionsViewModel.deleteAccount(acc)
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.AddAccount.route,
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
+                ) {
+                    val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
+                    com.vesper.ledger.ui.accounts.AddEditAccountScreen(
+                        editingAccount = editingAccountState,
+                        onBackClick = { navController.popBackStack() },
+                        onSaveAccount = { name, type, bal, colorHex, includeInTotal ->
+                            val currentEditing = editingAccountState
+                            if (currentEditing != null) {
+                                transactionsViewModel.updateAccount(
+                                    currentEditing.copy(
+                                        name = name,
+                                        type = type,
+                                        initialBalance = bal,
+                                        colorHex = colorHex,
+                                        includeInTotal = includeInTotal
+                                    )
+                                )
+                            } else {
+                                transactionsViewModel.addNewAccount(
+                                    name = name,
+                                    type = type,
+                                    initialBalance = bal,
+                                    colorHex = colorHex,
+                                    includeInTotal = includeInTotal
+                                )
+                            }
+                            navController.popBackStack()
                         }
                     )
                 }
