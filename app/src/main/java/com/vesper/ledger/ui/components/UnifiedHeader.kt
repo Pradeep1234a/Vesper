@@ -1,5 +1,7 @@
 package com.vesper.ledger.ui.components
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -72,10 +74,10 @@ fun VesperTopBar(
             Spacer(modifier = Modifier.width(12.dp))
         }
 
-        androidx.compose.animation.AnimatedContent(
+        AnimatedContent(
             targetState = title,
             transitionSpec = {
-                androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220)) togetherWith androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220))
+                fadeIn(tween(220)) togetherWith fadeOut(tween(220))
             },
             label = "TopBarTitleAnimation",
             modifier = Modifier.weight(1f)
