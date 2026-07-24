@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -66,8 +67,6 @@ data class AccountOption(
 )
 
 val BANK_PAYMENT_METHODS = listOf("UPI / GPay / PhonePe", "Debit Card", "Net Banking", "Bank Transfer")
-
-import androidx.compose.ui.ExperimentalComposeUiApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
