@@ -1,5 +1,6 @@
 package com.vesper.ledger.ui.navigation
 
+import android.app.Activity
 import android.content.Context
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -14,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,9 +24,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import com.vesper.ledger.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -47,11 +52,35 @@ fun SplashScreen(
     } else {
         Brush.verticalGradient(colors = listOf(Color(0xFFFFFFFF), Color(0xFFF1F5F9)))
     }
-
     val logoBorderBrush = if (isDark) {
         Brush.verticalGradient(colors = listOf(Color(0xFF4A4A52), Color(0xFF222226)))
     } else {
         Brush.verticalGradient(colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1)))
+    }
+    // Logo tint: white on dark container, dark slate on light container
+    val logoTint = if (isDark) Color.White else Color(0xFF0F172A)
+
+    // Match system status bar & navigation bar to screen background
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val activity: Activity? = view.context.let {
+                var ctx = it
+                while (ctx is android.content.ContextWrapper) {
+                    if (ctx is Activity) return@let ctx
+                    ctx = ctx.baseContext
+                }
+                null
+            }
+            if (activity != null) {
+                val window = activity.window
+                window.statusBarColor = backgroundColor.toArgb()
+                window.navigationBarColor = backgroundColor.toArgb()
+                val windowInsetsController = WindowCompat.getInsetsController(window, view)
+                windowInsetsController.isAppearanceLightStatusBars = !isDark
+                windowInsetsController.isAppearanceLightNavigationBars = !isDark
+            }
+        }
     }
 
     LaunchedEffect(key1 = true) {
@@ -119,20 +148,18 @@ fun SplashScreen(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
                         contentDescription = "Vesper Logo",
-                        tint = Color.Unspecified,
+                        tint = logoTint,
                         modifier = Modifier.size(102.5.dp)
                     )
                 }
 
-                // Invisible placeholder matching WelcomeScreen text block height (adjusted -1dp)
-                // (24dp gap + ~44dp headline + 10dp gap + ~44dp subtitle = ~121dp)
+                // Invisible placeholder matching WelcomeScreen text block height
                 Spacer(modifier = Modifier.height(121.dp))
             }
 
             Spacer(modifier = Modifier.weight(1.2f))
 
             // Invisible placeholder matching WelcomeScreen bottom CTA height
-            // (56dp button + 16dp gap + ~20dp sign-in row + 28dp bottom spacer = ~120dp)
             Spacer(modifier = Modifier.height(120.dp))
         }
     }

@@ -46,6 +46,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.foundation.shape.CircleShape
@@ -478,14 +479,34 @@ fun WelcomeScreen(
         Brush.verticalGradient(colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1)))
     }
 
-    val logoEmblemBrush = if (isDark) {
-        Brush.verticalGradient(colors = listOf(Color(0xFFFFFFFF), Color(0xFFE2E8F0), Color(0xFF94A3B8)))
-    } else {
-        Brush.verticalGradient(colors = listOf(Color(0xFF0F172A), Color(0xFF334155), Color(0xFF475569)))
-    }
+    // Logo tint: white on dark container, dark slate on light container
+    val logoTint = if (isDark) Color.White else Color(0xFF0F172A)
 
     val buttonBgColor = if (isDark) Color.White else Color(0xFF0F172A)
     val buttonTextColor = if (isDark) Color.Black else Color.White
+
+    // Match system status bar & navigation bar to screen background
+    val view = androidx.compose.ui.platform.LocalView.current
+    if (!view.isInEditMode) {
+        androidx.compose.runtime.SideEffect {
+            val activity: android.app.Activity? = view.context.let {
+                var ctx = it
+                while (ctx is android.content.ContextWrapper) {
+                    if (ctx is android.app.Activity) return@let ctx
+                    ctx = ctx.baseContext
+                }
+                null
+            }
+            if (activity != null) {
+                val window = activity.window
+                window.statusBarColor = backgroundColor.toArgb()
+                window.navigationBarColor = backgroundColor.toArgb()
+                val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, view)
+                windowInsetsController.isAppearanceLightStatusBars = !isDark
+                windowInsetsController.isAppearanceLightNavigationBars = !isDark
+            }
+        }
+    }
 
     Scaffold(
         containerColor = backgroundColor
@@ -524,7 +545,7 @@ fun WelcomeScreen(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
                         contentDescription = "Vesper Logo",
-                        tint = Color.Unspecified,
+                        tint = logoTint,
                         modifier = Modifier.size(102.5.dp)
                     )
                 }
