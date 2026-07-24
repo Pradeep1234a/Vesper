@@ -53,7 +53,7 @@ class DashboardViewModel(
         val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
         val saved = savingsGoals.sumOf { it.currentAmount }
         val target = savingsGoals.sumOf { it.targetAmount }
-        val activeBudgetTotal = budgets.filter { !it.isArchived }.sumOf { it.limitAmount }
+        val activeBudgetTotal = budgets.filter { !it.isArchived }.sumOf { it.amount }
         val recent = transactions.take(5)
 
         // Calculate total balance from included active accounts (includes opening balances)
