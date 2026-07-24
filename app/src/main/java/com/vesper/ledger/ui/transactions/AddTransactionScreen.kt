@@ -127,7 +127,7 @@ fun AddTransactionScreen(
     var isCalculatorExpanded by remember { mutableStateOf(false) }
 
     // Account Modal Bottom Sheet & Selection States
-    var selectedAccount by remember(availableAccounts) { mutableStateOf(availableAccounts.firstOrNull() ?: AccountOption(name = "Cash Wallet", type = "CASH", balance = 0.0)) }
+    var selectedAccount by remember(availableAccounts) { mutableStateOf(availableAccounts.firstOrNull()) }
     var selectedPaymentMethod by remember { mutableStateOf("Cash") }
     var showAccountBottomSheet by remember { mutableStateOf(false) }
     var showAddAccountDialog by remember { mutableStateOf(false) }
@@ -146,11 +146,14 @@ fun AddTransactionScreen(
     var timeString by remember { mutableStateOf(timeFormat.format(calendar.time)) }
 
     LaunchedEffect(selectedAccount) {
-        when (selectedAccount.type) {
-            "CASH" -> selectedPaymentMethod = "Cash"
-            "CREDIT_CARD", "CREDIT" -> selectedPaymentMethod = "Credit Card"
-            "BANK" -> if (selectedPaymentMethod !in BANK_PAYMENT_METHODS) {
-                selectedPaymentMethod = BANK_PAYMENT_METHODS[0]
+        val acc = selectedAccount
+        if (acc != null) {
+            when (acc.type) {
+                "CASH" -> selectedPaymentMethod = "Cash"
+                "CREDIT_CARD", "CREDIT" -> selectedPaymentMethod = "Credit Card"
+                "BANK" -> if (selectedPaymentMethod !in BANK_PAYMENT_METHODS) {
+                    selectedPaymentMethod = BANK_PAYMENT_METHODS[0]
+                }
             }
         }
     }
@@ -239,31 +242,37 @@ fun AddTransactionScreen(
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
     }
 
-    val isValidToSave = evaluateAmount() > 0.0
+    val parsedAmount = evaluateAmount()
+    val isValidToSave = parsedAmount > 0.0 && selectedAccount != null
 
     Scaffold(
         topBar = {
             ChildHeader(
-                title = "Transactions",
+                title = "Add Transaction",
                 onBackClick = onBackClick
             )
         },
         bottomBar = {
-            // Save Section: Seamlessly integrated into page background surface & safe area
             Surface(
-                color = MaterialTheme.colorScheme.background,
-                modifier = Modifier.fillMaxWidth()
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 3.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(16.dp)
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    contentAlignment = Alignment.Center
                 ) {
                     ShButton(
-                        text = "Save Transaction",
                         onClick = {
+                            val acc = selectedAccount
+                            if (acc == null) {
+                                Toast.makeText(context, "Please create an account first", Toast.LENGTH_SHORT).show()
+                                showAddAccountDialog = true
+                                return@ShButton
+                            }
+
                             val finalAmount = evaluateAmount()
                             if (finalAmount <= 0.0) {
                                 Toast.makeText(context, "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show()
@@ -279,7 +288,7 @@ fun AddTransactionScreen(
                                 selectedType,
                                 if (selectedType == TransactionType.TRANSFER) 0L else category.id,
                                 calendar.timeInMillis,
-                                selectedAccount.name,
+                                acc.name,
                                 selectedPaymentMethod,
                                 note
                             )
@@ -290,7 +299,16 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
-                    )
+                    ) {
+                        Text(
+                            text = "Save Transaction",
+                            style = TextStyle(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        )
+                    }
                 }
             }
         },
@@ -304,6 +322,51 @@ fun AddTransactionScreen(
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            // 0. Warning Banner when No Accounts Exist
+            if (availableAccounts.isEmpty()) {
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = "NO ACCOUNTS CREATED",
+                                    style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                                )
+                                Text(
+                                    text = "Please create an account to start adding transactions.",
+                                    style = TextStyle(fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                                )
+                            }
+                        }
+                        ShButton(
+                            onClick = { showAddAccountDialog = true },
+                            modifier = Modifier.height(36.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp)
+                        ) {
+                            Text("+ Create", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
             // 1. Transaction Type Segmented Switcher (Expense / Income / Transfer)
             Row(
                 modifier = Modifier
@@ -605,6 +668,7 @@ fun AddTransactionScreen(
             ) {
                 // Account Card
                 Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                    val currAcc = selectedAccount
                     ShCard(
                         modifier = Modifier
                             .fillMaxSize()
@@ -624,7 +688,7 @@ fun AddTransactionScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = getIconByName(selectedAccount.iconName),
+                                    imageVector = if (currAcc != null) getIconByName(currAcc.iconName) else Icons.Outlined.AccountBalanceWallet,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(18.dp)
@@ -646,17 +710,17 @@ fun AddTransactionScreen(
                                     maxLines = 1
                                 )
                                 Text(
-                                    text = selectedAccount.name,
+                                    text = currAcc?.name ?: "Select Account",
                                     style = TextStyle(
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = if (currAcc != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
                                     ),
                                     maxLines = 1
                                 )
                                 Text(
-                                    text = "Bal: $currencySymbol${df.format(selectedAccount.balance)}",
+                                    text = if (currAcc != null) "Bal: $currencySymbol${df.format(currAcc.balance)}" else "Tap to add",
                                     style = TextStyle(
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium,
@@ -678,7 +742,7 @@ fun AddTransactionScreen(
 
                 // Payment Method Card
                 Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                    val isBank = selectedAccount.type == "BANK"
+                    val isBank = selectedAccount?.type == "BANK"
                     ShCard(
                         modifier = Modifier
                             .fillMaxSize()
@@ -730,7 +794,7 @@ fun AddTransactionScreen(
                                     maxLines = 1
                                 )
                                 Text(
-                                    text = if (isBank) "Select Method" else "Auto-selected",
+                                    text = if (isBank) "Tap to change" else "Default",
                                     style = TextStyle(
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium,
@@ -743,7 +807,7 @@ fun AddTransactionScreen(
                             if (isBank) {
                                 Icon(
                                     imageVector = Icons.Outlined.ArrowDropDown,
-                                    contentDescription = "Select Method",
+                                    contentDescription = "Select Payment Method",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -968,7 +1032,7 @@ fun AddTransactionScreen(
                     contentPadding = PaddingValues(bottom = 32.dp)
                 ) {
                     items(availableAccounts) { acc ->
-                        val isSelected = acc.name.equals(selectedAccount.name, ignoreCase = true)
+                        val isSelected = acc.name.equals(selectedAccount?.name, ignoreCase = true)
 
                         ShCard(
                             modifier = Modifier

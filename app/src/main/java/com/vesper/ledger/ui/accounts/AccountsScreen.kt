@@ -150,6 +150,60 @@ fun AccountsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
+                if (accounts.isEmpty()) {
+                    item {
+                        ShCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(24.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.AccountBalanceWallet,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Text(
+                                    text = "No Accounts Created Yet",
+                                    style = TextStyle(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                                Text(
+                                    text = "You haven't created any accounts yet. Tap below to create custom accounts (Cash, Bank, Credit Card) with your real starting balances.",
+                                    style = TextStyle(
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                ShButton(
+                                    onClick = {
+                                        nameInput = ""
+                                        typeInput = "BANK"
+                                        balanceInput = ""
+                                        colorInput = "#2563EB"
+                                        includeInTotalInput = true
+                                        showAddDialog = true
+                                    }
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Add Account", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 items(accounts) { acc ->
                     ShCard(
                         modifier = Modifier

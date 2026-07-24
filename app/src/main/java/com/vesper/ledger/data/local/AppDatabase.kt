@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
         Budget::class,
         PaymentMethod::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -116,13 +116,6 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (108, 'Side Hustle', 'bolt', 'INCOME', '#EA580C')")
                 db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (109, 'Cashback & Refunds', 'payments', 'INCOME', '#16A34A')")
                 db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (110, 'Other Income', 'money', 'INCOME', '#71717A')")
-
-                // Accounts
-                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName, isHidden, includeInTotal, colorHex) VALUES (1, 'Cash Wallet', 'CASH', 3420.0, 'INR', NULL, NULL, 'payments', 0, 1, '#16A34A')")
-                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName, isHidden, includeInTotal, colorHex) VALUES (2, 'HDFC Bank Account', 'BANK', 45280.0, 'INR', NULL, NULL, 'account_balance', 0, 1, '#2563EB')")
-                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName, isHidden, includeInTotal, colorHex) VALUES (3, 'ICICI Bank Account', 'BANK', 28150.0, 'INR', NULL, NULL, 'account_balance', 0, 1, '#059669')")
-                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName, isHidden, includeInTotal, colorHex) VALUES (4, 'SBI Bank Account', 'BANK', 18900.0, 'INR', NULL, NULL, 'account_balance', 0, 1, '#D97706')")
-                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName, isHidden, includeInTotal, colorHex) VALUES (5, 'HDFC Regalia Credit Card', 'CREDIT_CARD', 65000.0, 'INR', NULL, NULL, 'credit_card', 0, 1, '#DC2626')")
 
                 // Default payment methods
                 db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (1, 'Cash', 1)")
