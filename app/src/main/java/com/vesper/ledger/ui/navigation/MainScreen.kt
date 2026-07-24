@@ -535,7 +535,7 @@ fun RowScope.TabItem(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { onClick() },
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterVertically,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
