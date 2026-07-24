@@ -38,11 +38,15 @@ import kotlinx.coroutines.launch
 fun SplashScreen(
     onNavigateNext: (String) -> Unit
 ) {
-    val scale = remember { Animatable(0.6f) }
-    val alpha = remember { Animatable(0f) }
+    // Standalone 150.dp Emblem Logo Scale & Alpha (starts small 0.6f -> 1.0f -> morphs to 0.6833f)
+    val logoScale = remember { Animatable(0.6f) }
+    val logoAlpha = remember { Animatable(0f) }
+    
+    // Squercle Box Container Alpha (starts hidden 0f -> fades in 1f during exit transition)
+    val containerAlpha = remember { Animatable(0f) }
+
     val context = LocalContext.current
     val isDark = isSystemInDarkTheme()
-
     val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
 
     // Theme-adaptive colors (identical to WelcomeScreen)
@@ -57,10 +61,9 @@ fun SplashScreen(
     } else {
         Brush.verticalGradient(colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1)))
     }
-    // Logo tint: white on dark container, dark slate on light container
     val logoTint = if (isDark) Color.White else Color(0xFF0F172A)
 
-    // Match system status bar & navigation bar to screen background
+    // Dynamic status bar & navigation bar background matching
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -84,27 +87,41 @@ fun SplashScreen(
     }
 
     LaunchedEffect(key1 = true) {
-        // 1. Initial short pause (screen opens with no logo visible — 100ms)
+        // 1. Initial short pause (screen opens clean with no logo visible — 100ms)
         delay(100)
 
-        // 2. Smoothly fade in & scale SIMULTANEOUSLY from small to final size (600ms)
+        // 2. Entrance Phase: Standalone 150.dp emblem logo fades in & scales up (500ms)
         launch {
-            scale.animateTo(
+            logoAlpha.animateTo(
                 targetValue = 1.0f,
-                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+                animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
             )
         }
+        logoScale.animateTo(
+            targetValue = 1.0f,
+            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+        )
+
+        // Hold standalone 150.dp logo centered on screen (400ms)
+        delay(400)
+
+        // 3. Morph/Exit Phase: 150.dp logo scales down to 102.5.dp size (0.6833f scale)
+        //    WHILE squercle box container smoothly fades in around it (500ms)!
+        val targetScale = 102.5f / 150.0f // 0.6833333f
         launch {
-            alpha.animateTo(
+            containerAlpha.animateTo(
                 targetValue = 1.0f,
-                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+                animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
             )
         }
+        logoScale.animateTo(
+            targetValue = targetScale,
+            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+        )
 
-        // 3. Wait for animation to complete + brief hold (total ~1s splash)
-        delay(900)
+        delay(100)
 
-        // 4. Navigate seamlessly — logo stays visible, text fades in on WelcomeScreen
+        // 4. Navigate seamlessly to Welcome Screen or Main Screen
         val isAuthenticated = sharedPrefs.getBoolean("isAuthenticated", false)
         val destination = if (!isAuthenticated) Screen.AuthWelcome.route else "main_screen"
         onNavigateNext(destination)
@@ -128,28 +145,36 @@ fun SplashScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // Logo + Container fade/scale animation (ONLY this element animates — not the whole screen)
+                // Hero Logo Container Tile (108.dp squercle container fades in during transition)
                 Box(
-                    modifier = Modifier
-                        .scale(scale.value)
-                        .alpha(alpha.value)
-                        .size(108.dp)
-                        .clip(RoundedCornerShape(26.dp))
-                        .background(logoBoxBg)
-                        .border(
-                            BorderStroke(
-                                width = 1.5.dp,
-                                brush = logoBorderBrush
-                            ),
-                            shape = RoundedCornerShape(26.dp)
-                        ),
+                    modifier = Modifier.size(108.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Squercle Container Background + Border (Fades in from 0f -> 1f during exit transition)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(containerAlpha.value)
+                            .clip(RoundedCornerShape(26.dp))
+                            .background(logoBoxBg)
+                            .border(
+                                BorderStroke(
+                                    width = 1.5.dp,
+                                    brush = logoBorderBrush
+                                ),
+                                shape = RoundedCornerShape(26.dp)
+                            )
+                    )
+
+                    // Standalone Emblem Logo (Starts 150.dp at 1.0f scale -> morphs down to 102.5.dp)
                     Icon(
                         painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
                         contentDescription = "Vesper Logo",
                         tint = logoTint,
-                        modifier = Modifier.size(102.5.dp)
+                        modifier = Modifier
+                            .size(150.dp)
+                            .scale(logoScale.value)
+                            .alpha(logoAlpha.value)
                     )
                 }
 
