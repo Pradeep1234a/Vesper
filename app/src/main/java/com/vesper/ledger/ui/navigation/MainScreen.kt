@@ -96,6 +96,7 @@ fun MainScreen(
     val drawerItems = listOf(
         DrawerItem(Screen.Dashboard.route, "Dashboard", Icons.Outlined.Dashboard),
         DrawerItem(Screen.Transactions.route, "Transactions", Icons.Outlined.ListAlt),
+        DrawerItem(Screen.Accounts.route, "Manage Accounts", Icons.Outlined.AccountBalanceWallet),
         DrawerItem(Screen.Budgets.route, "Budgets", Icons.Outlined.PieChart),
         DrawerItem(Screen.Savings.route, "Savings", Icons.Outlined.Savings),
         DrawerItem(Screen.Settings.route, "Settings", Icons.Outlined.Settings)
@@ -449,6 +450,40 @@ fun MainScreen(
                     )
                 }
 
+                composable(
+                    route = Screen.Accounts.route,
+                    enterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
+                    }
+                ) {
+                    val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
+                    val dbAccounts by transactionsViewModel.dbAccounts.collectAsState()
+
+                    com.vesper.ledger.ui.accounts.AccountsScreen(
+                        accounts = dbAccounts,
+                        currencySymbol = currencySymbol,
+                        onBackClick = { navController.popBackStack() },
+                        onAddAccount = { name, type, bal, color, incTotal ->
+                            transactionsViewModel.addNewAccount(name, type, bal, colorHex = color, includeInTotal = incTotal)
+                        },
+                        onUpdateAccount = { acc ->
+                            transactionsViewModel.updateAccount(acc)
+                        },
+                        onDeleteAccount = { acc ->
+                            transactionsViewModel.deleteAccount(acc)
+                        }
+                    )
+                }
+
                 composable(Screen.Budgets.route) {
                     val budgetsViewModel: BudgetsViewModel = viewModel(factory = budgetsFactory)
                     BudgetScreen(
@@ -474,6 +509,7 @@ fun MainScreen(
                         onMenuClick = { scope.launch { drawerState.open() } },
                         onBackClick = { navController.popBackStack() },
                         onCategoriesClick = onCategoryManagementClick,
+                        onAccountsClick = { navController.navigate(Screen.Accounts.route) },
                         onSignOutClick = onSignOutClick
                     )
                 }

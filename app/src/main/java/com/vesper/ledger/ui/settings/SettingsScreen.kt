@@ -57,6 +57,7 @@ fun SettingsScreen(
     onMenuClick: () -> Unit,
     onBackClick: () -> Unit,
     onCategoriesClick: () -> Unit,
+    onAccountsClick: (() -> Unit)? = null,
     onSignOutClick: () -> Unit
 ) {
     val updateUiState by updateViewModel.uiState.collectAsState()
@@ -268,8 +269,8 @@ fun SettingsScreen(
                             )
                         }
 
-                        // Transactions Section
-                        SettingsGroup(title = "Transactions") {
+                        // Transactions & Accounts Section
+                        SettingsGroup(title = "Transactions & Accounts") {
                             SettingsRow(
                                 icon = Icons.Outlined.Category,
                                 title = "Categories",
@@ -277,6 +278,15 @@ fun SettingsScreen(
                                 trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = { onCategoriesClick() }
                             )
+                            if (onAccountsClick != null) {
+                                SettingsRow(
+                                    icon = Icons.Outlined.AccountBalanceWallet,
+                                    title = "Accounts Management",
+                                    subtitle = "Manage accounts, starting balances, and total net worth settings",
+                                    trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                    onClick = { onAccountsClick() }
+                                )
+                            }
                         }
 
                         // About Section
