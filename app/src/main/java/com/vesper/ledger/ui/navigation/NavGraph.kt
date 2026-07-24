@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,8 +26,10 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.settings.SettingsViewModel
 import com.vesper.ledger.ui.settings.SettingsViewModelFactory
 import com.vesper.ledger.ui.category.CategoriesScreen
+import com.vesper.ledger.ui.category.AddEditCategoryScreen
 import com.vesper.ledger.ui.category.CategoryViewModel
 import com.vesper.ledger.ui.category.CategoryViewModelFactory
+import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.ui.auth.WelcomeScreen
 import com.vesper.ledger.ui.auth.SignInScreen
 import com.vesper.ledger.ui.auth.CreateAccountScreen
@@ -105,10 +110,37 @@ fun NavGraph(
         }
 
         composable("categories") {
-            CategoriesScreen(
-                viewModel = categoryViewModel,
-                onBackClick = { navController.popBackStack() }
-            )
+            var editingCategoryState by remember { mutableStateOf<Category?>(null) }
+            var isAddingCategory by remember { mutableStateOf(false) }
+
+            if (isAddingCategory || editingCategoryState != null) {
+                AddEditCategoryScreen(
+                    categoryToEdit = editingCategoryState,
+                    onBackClick = {
+                        isAddingCategory = false
+                        editingCategoryState = null
+                    },
+                    onSaveCategory = { name, iconName, type, colorHex, idToUpdate ->
+                        if (idToUpdate != null) {
+                            categoryViewModel.updateCategory(
+                                Category(id = idToUpdate, name = name, iconName = iconName, type = type, colorHex = colorHex)
+                            )
+                        } else {
+                            categoryViewModel.addCategory(name, iconName, type, colorHex)
+                        }
+                    },
+                    onDeleteCategory = { cat ->
+                        categoryViewModel.deleteCategory(cat)
+                    }
+                )
+            } else {
+                CategoriesScreen(
+                    viewModel = categoryViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onAddCategoryClick = { isAddingCategory = true },
+                    onEditCategoryClick = { cat -> editingCategoryState = cat }
+                )
+            }
         }
 
         composable(Screen.Savings.route) {

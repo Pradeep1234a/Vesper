@@ -318,7 +318,8 @@ fun MainScreen(
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
+                        onAddCategoryClick = onCategoryManagementClick
                     )
                 }
 

@@ -2,11 +2,16 @@ package com.vesper.ledger.ui.category
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +33,8 @@ import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 fun CategoriesScreen(
     viewModel: CategoryViewModel,
     onBackClick: () -> Unit,
+    onAddCategoryClick: () -> Unit = {},
+    onEditCategoryClick: (Category) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val categoriesWithCount by viewModel.categoriesWithCount.collectAsState()
@@ -38,20 +45,20 @@ fun CategoriesScreen(
     if (categoryToDelete != null) {
         AlertDialog(
             onDismissRequest = { categoryToDelete = null },
-            title = { 
+            title = {
                 Text(
-                    text = "Delete Category", 
-                    fontFamily = SpaceGroteskFamily, 
+                    text = "Delete Category",
+                    fontFamily = SpaceGroteskFamily,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
-                ) 
+                )
             },
-            text = { 
+            text = {
                 Text(
-                    text = "Are you sure you want to delete '${categoryToDelete?.name}'? Any transactions in this category will lose their category association.", 
+                    text = "Are you sure you want to delete '${categoryToDelete?.name}'? Any transactions in this category will lose their category association.",
                     fontFamily = PlusJakartaSansFamily,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                ) 
+                )
             },
             confirmButton = {
                 TextButton(
@@ -61,9 +68,9 @@ fun CategoriesScreen(
                     }
                 ) {
                     Text(
-                        text = "Delete", 
-                        color = MaterialTheme.colorScheme.error, 
-                        fontFamily = SpaceGroteskFamily, 
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.error,
+                        fontFamily = SpaceGroteskFamily,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -71,7 +78,7 @@ fun CategoriesScreen(
             dismissButton = {
                 TextButton(onClick = { categoryToDelete = null }) {
                     Text(
-                        text = "Cancel", 
+                        text = "Cancel",
                         fontFamily = SpaceGroteskFamily,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -89,6 +96,19 @@ fun CategoriesScreen(
                 onBackClick = onBackClick
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddCategoryClick,
+                containerColor = MaterialTheme.colorScheme.onBackground,
+                contentColor = MaterialTheme.colorScheme.background,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Category"
+                )
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
@@ -103,7 +123,7 @@ fun CategoriesScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // Segmented control (Expense | Income)
                 ShSegmentedControl(
@@ -122,7 +142,7 @@ fun CategoriesScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No categories found",
+                            text = "No categories found. Tap + to add one.",
                             fontFamily = PlusJakartaSansFamily,
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -142,8 +162,10 @@ fun CategoriesScreen(
                             ShCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .clickable { onEditCategoryClick(cat) }
                                     .pointerInput(Unit) {
                                         detectTapGestures(
+                                            onTap = { onEditCategoryClick(cat) },
                                             onLongPress = { categoryToDelete = cat }
                                         )
                                     },
@@ -157,7 +179,7 @@ fun CategoriesScreen(
                                         modifier = Modifier
                                             .size(48.dp)
                                             .clip(RoundedCornerShape(12.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            .background(catColor.copy(alpha = 0.12f))
                                             .border(1.dp, catColor.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -165,7 +187,7 @@ fun CategoriesScreen(
                                             imageVector = getIconByName(cat.iconName),
                                             contentDescription = null,
                                             tint = catColor,
-                                            modifier = Modifier.size(20.dp)
+                                            modifier = Modifier.size(22.dp)
                                         )
                                     }
 
@@ -179,6 +201,7 @@ fun CategoriesScreen(
                                             text = cat.name,
                                             style = MaterialTheme.typography.titleMedium.copy(
                                                 fontWeight = FontWeight.Bold,
+                                                fontFamily = SpaceGroteskFamily,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             ),
                                             maxLines = 1,
@@ -188,15 +211,22 @@ fun CategoriesScreen(
                                         Text(
                                             text = "${item.transactionCount} transactions",
                                             style = MaterialTheme.typography.bodySmall.copy(
+                                                fontFamily = PlusJakartaSansFamily,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         )
                                     }
+
+                                    Icon(
+                                        imageVector = Icons.Outlined.KeyboardArrowRight,
+                                        contentDescription = "Edit Category",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
                         item {
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(80.dp))
                         }
                     }
                 }
