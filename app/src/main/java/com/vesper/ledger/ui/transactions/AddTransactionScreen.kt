@@ -269,8 +269,8 @@ fun AddTransactionScreen(
                                 return@ShButton
                             }
 
-                            // Category Name Fallback for Title
-                            val finalTitle = title.ifBlank { category.name }
+                            // Title Resolution: Use user-typed title if present, otherwise fallback to category name
+                            val finalTitle = title.trim().ifEmpty { category.name }
 
                             onSaveTransaction(
                                 finalTitle,
