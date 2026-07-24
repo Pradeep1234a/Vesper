@@ -91,7 +91,8 @@ fun DashboardScreen(
     onSavingsClick: () -> Unit,
     onAddCategoryClick: () -> Unit = {},
     onAccountsClick: () -> Unit = {},
-    onAddTransactionClick: () -> Unit = {}
+    onAddTransactionClick: () -> Unit = {},
+    onBudgetsClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -386,7 +387,9 @@ fun DashboardScreen(
 
                     // Budget Card
                     ShCard(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onBudgetsClick() },
                         contentPadding = PaddingValues(12.dp)
                     ) {
                         Row(
@@ -395,7 +398,7 @@ fun DashboardScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Budget",
+                                text = "Budget Limit",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
@@ -411,7 +414,7 @@ fun DashboardScreen(
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "$currencySymbol${df.format(uiState.availableBalance)}",
+                            text = "$currencySymbol${df.format(uiState.totalBudget)}",
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 fontSize = 20.sp,
                                 fontFamily = SpaceGroteskFamily,

@@ -78,7 +78,7 @@ fun MainScreen(
     val context = LocalContext.current
     val app = context.applicationContext as VesperApplication
 
-    val dashboardFactory = DashboardViewModelFactory(app.transactionRepository, app.savingsRepository, app.accountRepository)
+    val dashboardFactory = DashboardViewModelFactory(app.transactionRepository, app.savingsRepository, app.accountRepository, app.budgetRepository)
     val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
     val budgetsFactory = BudgetsViewModelFactory(app)
@@ -323,7 +323,14 @@ fun MainScreen(
                         },
                         onAddCategoryClick = onCategoryManagementClick,
                         onAccountsClick = onAccountsClick,
-                        onAddTransactionClick = onAddTransactionClick
+                        onAddTransactionClick = onAddTransactionClick,
+                        onBudgetsClick = {
+                            navController.navigate(Screen.Budgets.route) {
+                                popUpTo(Screen.Dashboard.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
                 }
 
