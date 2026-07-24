@@ -1,21 +1,32 @@
 package com.vesper.ledger.ui.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.ListAlt
+import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -24,31 +35,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vesper.ledger.VesperApplication
-import com.vesper.ledger.ui.theme.SpaceGroteskFamily
-import com.vesper.ledger.ui.dashboard.DashboardScreen
-import com.vesper.ledger.ui.dashboard.DashboardViewModel
-import com.vesper.ledger.ui.dashboard.DashboardViewModelFactory
-import com.vesper.ledger.ui.settings.SettingsScreen
-import com.vesper.ledger.ui.settings.SettingsViewModel
-import com.vesper.ledger.ui.transactions.TransactionsScreen
-import com.vesper.ledger.ui.transactions.TransactionsViewModel
-import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
-import com.vesper.ledger.ui.transactions.AddTransactionScreen
-import com.vesper.ledger.ui.transactions.CategorySelectionScreen
-import com.vesper.ledger.ui.transactions.CategoryOption
-import com.vesper.ledger.ui.savings.SavingsScreen
-import com.vesper.ledger.ui.savings.SavingsViewModel
-import com.vesper.ledger.ui.savings.SavingsViewModelFactory
+import com.vesper.ledger.data.model.Category
+import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
-import com.vesper.ledger.data.model.Category
-import com.vesper.ledger.data.model.TransactionType
+import com.vesper.ledger.ui.dashboard.DashboardScreen
+import com.vesper.ledger.ui.dashboard.DashboardViewModel
+import com.vesper.ledger.ui.dashboard.DashboardViewModelFactory
+import com.vesper.ledger.ui.savings.SavingsScreen
+import com.vesper.ledger.ui.savings.SavingsViewModel
+import com.vesper.ledger.ui.savings.SavingsViewModelFactory
+import com.vesper.ledger.ui.settings.SettingsScreen
+import com.vesper.ledger.ui.settings.SettingsViewModel
+import com.vesper.ledger.ui.transactions.AddTransactionScreen
+import com.vesper.ledger.ui.transactions.CategoryOption
+import com.vesper.ledger.ui.transactions.CategorySelectionScreen
+import com.vesper.ledger.ui.transactions.TransactionsScreen
+import com.vesper.ledger.ui.transactions.TransactionsViewModel
+import com.vesper.ledger.ui.transactions.TransactionsViewModelFactory
 import kotlinx.coroutines.launch
 
 data class DrawerItem(
@@ -112,193 +123,137 @@ fun MainScreen(
         BottomNavItem(Screen.Settings.route, "Settings", Icons.Outlined.Settings, Icons.Filled.Settings)
     )
 
-    val showBottomBar = currentRoute in bottomNavItems.map { it.route }
-    val showTopBar = currentRoute in listOf(
-        Screen.Dashboard.route, Screen.Transactions.route, Screen.Budgets.route,
-        Screen.Savings.route, Screen.Settings.route
+    val isTopLevelRoute = currentRoute in listOf(
+        Screen.Dashboard.route,
+        Screen.Transactions.route,
+        Screen.Budgets.route,
+        Screen.Settings.route
     )
+
+    // Material 3 Motion Specs
+    val tabEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
+        fadeIn(animationSpec = tween(220, easing = LinearOutSlowInEasing))
+    }
+    val tabExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
+        fadeOut(animationSpec = tween(220, easing = FastOutLinearInEasing))
+    }
+
+    // Modal Sheet Creation Screen Animations (Add Transaction, Add Category)
+    val modalEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
+        slideInVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it / 3 } + fadeIn(animationSpec = tween(280))
+    }
+    val modalExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
+        slideOutVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it / 3 } + fadeOut(animationSpec = tween(280))
+    }
+
+    // Sub-screen Navigation Animations (Accounts, Categories, Savings)
+    val pageEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
+        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
+    }
+    val pageExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
+        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
+    }
+    val pagePopEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
+        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
+    }
+    val pagePopExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
+        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = isTopLevelRoute,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = MaterialTheme.colorScheme.background,
+                drawerContainerColor = MaterialTheme.colorScheme.surface,
+                drawerContentColor = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.width(300.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 24.dp, vertical = 32.dp)
+                        .padding(24.dp)
                 ) {
-                    // Drawer Header
-                    Text(
-                        text = "VESPER LEDGER",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        letterSpacing = 1.8.sp,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // User Info Row
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-                            .padding(12.dp)
+                    Column(
+                        modifier = Modifier.padding(vertical = 16.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = userName.take(1).uppercase(),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                fontFamily = SpaceGroteskFamily,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                        Column {
-                            Text(
-                                text = userName,
-                                fontSize = 14.sp,
+                        Text(
+                            text = if (userName.isNotBlank()) userName else "Vesper Ledger",
+                            style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                        )
+                        if (userEmail.isNotBlank()) {
                             Text(
-                                text = userEmail.ifBlank { "Personal Space" },
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = userEmail,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Divider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant)
 
-                    // Navigation Items
                     Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.weight(1f)
                     ) {
                         drawerItems.forEach { item ->
                             val selected = currentRoute == item.route
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        if (selected) MaterialTheme.colorScheme.onBackground else Color.Transparent
+                            NavigationDrawerItem(
+                                icon = {
+                                    Icon(
+                                        imageVector = item.icon,
+                                        contentDescription = item.label,
+                                        tint = if (selected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    .clickable {
-                                        scope.launch { drawerState.close() }
+                                },
+                                label = {
+                                    Text(
+                                        text = item.label,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (selected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                selected = selected,
+                                onClick = {
+                                    scope.launch { drawerState.close() }
+                                    if (currentRoute != item.route) {
                                         navController.navigate(item.route) {
                                             popUpTo(Screen.Dashboard.route) { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
                                         }
                                     }
-                                    .padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.label,
-                                    tint = if (selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = NavigationDrawerItemDefaults.colors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    unselectedContainerColor = Color.Transparent
                                 )
-                                Text(
-                                    text = item.label,
-                                    fontSize = 13.sp,
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                                    color = if (selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
-                                )
-                            }
+                            )
                         }
-                    }
-
-                    // Logout Button
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                scope.launch {
-                                    drawerState.close()
-                                    onSignOutClick()
-                                }
-                            }
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Logout,
-                            contentDescription = "Logout",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Text(
-                            text = "Logout",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.error
-                        )
                     }
                 }
             }
         }
     ) {
         Scaffold(
-            topBar = {
-                if (showTopBar) {
-                    val headerTitle = when (currentRoute) {
-                        Screen.Dashboard.route -> "Dashboard"
-                        Screen.Transactions.route -> "Transactions"
-                        Screen.Budgets.route -> "Budgets"
-                        Screen.Savings.route -> "Savings Goals"
-                        Screen.Settings.route -> "Settings"
-                        else -> "Vesper Ledger"
-                    }
-                    val isRootRoute = currentRoute in listOf(Screen.Dashboard.route, Screen.Transactions.route, Screen.Settings.route)
-
-                    com.vesper.ledger.ui.components.VesperTopBar(
-                        title = headerTitle,
-                        isRoot = isRootRoute,
-                        onNavigationClick = {
-                            if (isRootRoute) {
-                                scope.launch { drawerState.open() }
-                            } else {
-                                navController.popBackStack()
-                            }
-                        }
-                    )
-                }
-            },
             bottomBar = {
-                if (showBottomBar) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface)
+                if (isTopLevelRoute) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 3.dp,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     ) {
-                        Divider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                            thickness = 1.dp
-                        )
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .navigationBarsPadding()
-                                .height(56.dp),
+                                .height(64.dp)
+                                .navigationBarsPadding(),
+                            horizontalArrangement = Arrangement.SpaceAround,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             bottomNavItems.forEach { item ->
@@ -315,8 +270,7 @@ fun MainScreen(
                                                 restoreState = true
                                             }
                                         }
-                                    },
-                                    modifier = Modifier.weight(1f)
+                                    }
                                 )
                             }
                         }
@@ -328,12 +282,18 @@ fun MainScreen(
                 navController = navController,
                 startDestination = Screen.Dashboard.route,
                 modifier = Modifier.padding(innerPadding),
-                enterTransition = { fadeIn(animationSpec = tween(200, easing = LinearOutSlowInEasing)) },
-                exitTransition = { fadeOut(animationSpec = tween(200, easing = FastOutLinearInEasing)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(200, easing = LinearOutSlowInEasing)) },
-                popExitTransition = { fadeOut(animationSpec = tween(200, easing = FastOutLinearInEasing)) }
+                enterTransition = tabEnter,
+                exitTransition = tabExit,
+                popEnterTransition = tabEnter,
+                popExitTransition = tabExit
             ) {
-                composable(Screen.Dashboard.route) {
+                composable(
+                    route = Screen.Dashboard.route,
+                    enterTransition = tabEnter,
+                    exitTransition = tabExit,
+                    popEnterTransition = tabEnter,
+                    popExitTransition = tabExit
+                ) {
                     val dashboardViewModel: DashboardViewModel = viewModel(factory = dashboardFactory)
                     DashboardScreen(
                         viewModel = dashboardViewModel,
@@ -367,7 +327,13 @@ fun MainScreen(
                     )
                 }
 
-                composable(Screen.Transactions.route) {
+                composable(
+                    route = Screen.Transactions.route,
+                    enterTransition = tabEnter,
+                    exitTransition = tabExit,
+                    popEnterTransition = tabEnter,
+                    popExitTransition = tabExit
+                ) {
                     val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
                     TransactionsScreen(
                         viewModel = transactionsViewModel,
@@ -382,18 +348,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.AddTransaction.route,
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
-                    }
+                    enterTransition = modalEnter,
+                    exitTransition = modalExit,
+                    popEnterTransition = modalEnter,
+                    popExitTransition = modalExit
                 ) {
                     val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
                     val dbAccounts by transactionsViewModel.dbAccounts.collectAsState()
@@ -426,18 +384,10 @@ fun MainScreen(
                 composable(
                     route = "${Screen.CategorySelection.route}?type={type}",
                     arguments = listOf(androidx.navigation.navArgument("type") { defaultValue = TransactionType.EXPENSE.name }),
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
-                    }
+                    enterTransition = pageEnter,
+                    exitTransition = pageExit,
+                    popEnterTransition = pagePopEnter,
+                    popExitTransition = pagePopExit
                 ) { backStackEntry ->
                     val typeStr = backStackEntry.arguments?.getString("type") ?: TransactionType.EXPENSE.name
                     val categoryType = try { TransactionType.valueOf(typeStr) } catch (e: Exception) { TransactionType.EXPENSE }
@@ -455,18 +405,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.Accounts.route,
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
-                    }
+                    enterTransition = pageEnter,
+                    exitTransition = pageExit,
+                    popEnterTransition = pagePopEnter,
+                    popExitTransition = pagePopExit
                 ) {
                     val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
                     val dbAccounts by transactionsViewModel.dbAccounts.collectAsState()
@@ -489,18 +431,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.Categories.route,
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
-                    }
+                    enterTransition = pageEnter,
+                    exitTransition = pageExit,
+                    popEnterTransition = pagePopEnter,
+                    popExitTransition = pagePopExit
                 ) {
                     val categoryViewModel: com.vesper.ledger.ui.category.CategoryViewModel = viewModel(factory = categoryFactory)
                     com.vesper.ledger.ui.category.CategoriesScreen(
@@ -519,18 +453,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.AddCategory.route,
-                    enterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
-                    }
+                    enterTransition = modalEnter,
+                    exitTransition = modalExit,
+                    popEnterTransition = modalEnter,
+                    popExitTransition = modalExit
                 ) {
                     val categoryViewModel: com.vesper.ledger.ui.category.CategoryViewModel = viewModel(factory = categoryFactory)
                     com.vesper.ledger.ui.categories.AddEditCategoryScreen(
@@ -548,7 +474,13 @@ fun MainScreen(
                     )
                 }
 
-                composable(Screen.Budgets.route) {
+                composable(
+                    route = Screen.Budgets.route,
+                    enterTransition = tabEnter,
+                    exitTransition = tabExit,
+                    popEnterTransition = tabEnter,
+                    popExitTransition = tabExit
+                ) {
                     val budgetsViewModel: BudgetsViewModel = viewModel(factory = budgetsFactory)
                     BudgetScreen(
                         viewModel = budgetsViewModel,
@@ -557,7 +489,13 @@ fun MainScreen(
                     )
                 }
 
-                composable(Screen.Savings.route) {
+                composable(
+                    route = Screen.Savings.route,
+                    enterTransition = pageEnter,
+                    exitTransition = pageExit,
+                    popEnterTransition = pagePopEnter,
+                    popExitTransition = pagePopExit
+                ) {
                     val savingsViewModel: SavingsViewModel = viewModel(factory = savingsFactory)
                     SavingsScreen(
                         viewModel = savingsViewModel,
@@ -566,7 +504,13 @@ fun MainScreen(
                     )
                 }
 
-                composable(Screen.Settings.route) {
+                composable(
+                    route = Screen.Settings.route,
+                    enterTransition = tabEnter,
+                    exitTransition = tabExit,
+                    popEnterTransition = tabEnter,
+                    popExitTransition = tabExit
+                ) {
                     SettingsScreen(
                         viewModel = settingsViewModel,
                         updateViewModel = updateViewModel,
@@ -605,16 +549,14 @@ fun RowScope.TabItem(
             imageVector = icon,
             contentDescription = label,
             tint = color,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(22.dp)
         )
-        Spacer(modifier = Modifier.height(1.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 11.sp,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                color = color
-            )
+            fontSize = 11.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = color
         )
     }
 }
