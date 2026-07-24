@@ -42,6 +42,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.animation.core.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -452,17 +454,55 @@ fun WelcomeScreen(
     var activeDialog by remember { mutableStateOf<String?>(null) }
     val isDark = androidx.compose.foundation.isSystemInDarkTheme()
 
-    // Smooth entrance fade-in for text and actions
-    val textAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
+    // Staggered sequential one-by-one queue entrance animations
+    val logoAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
+    val logoScale = remember { androidx.compose.animation.core.Animatable(0.85f) }
+
+    val headlineAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
+    val headlineOffsetY = remember { androidx.compose.animation.core.Animatable(16f) }
+
+    val subtitleAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
+
+    val ctaAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
+    val ctaOffsetY = remember { androidx.compose.animation.core.Animatable(20f) }
 
     LaunchedEffect(Unit) {
-        textAlpha.animateTo(
-            targetValue = 1f,
-            animationSpec = androidx.compose.animation.core.tween(
-                durationMillis = 600,
-                easing = androidx.compose.animation.core.LinearOutSlowInEasing
-            )
-        )
+        val easingSpec = androidx.compose.animation.core.LinearOutSlowInEasing
+
+        // Queue Item 1: Logo Container Tile (0ms -> 400ms)
+        launch {
+            logoAlpha.animateTo(1f, animationSpec = androidx.compose.animation.core.tween(400, easing = easingSpec))
+        }
+        launch {
+            logoScale.animateTo(1f, animationSpec = androidx.compose.animation.core.tween(400, easing = easingSpec))
+        }
+
+        delay(120)
+
+        // Queue Item 2: Headline Text (120ms -> 520ms)
+        launch {
+            headlineAlpha.animateTo(1f, animationSpec = androidx.compose.animation.core.tween(400, easing = easingSpec))
+        }
+        launch {
+            headlineOffsetY.animateTo(0f, animationSpec = androidx.compose.animation.core.tween(400, easing = easingSpec))
+        }
+
+        delay(120)
+
+        // Queue Item 3: Subtitle Text (240ms -> 640ms)
+        launch {
+            subtitleAlpha.animateTo(1f, animationSpec = androidx.compose.animation.core.tween(400, easing = easingSpec))
+        }
+
+        delay(120)
+
+        // Queue Item 4: Bottom CTA Buttons (360ms -> 810ms)
+        launch {
+            ctaAlpha.animateTo(1f, animationSpec = androidx.compose.animation.core.tween(450, easing = easingSpec))
+        }
+        launch {
+            ctaOffsetY.animateTo(0f, animationSpec = androidx.compose.animation.core.tween(450, easing = easingSpec))
+        }
     }
 
     val backgroundColor = if (isDark) Color(0xFF09090B) else Color(0xFFF8FAFC)
@@ -537,9 +577,11 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // High-End Vesper Logo Tile (Slightly increased to 118.dp container & 112.dp golden emblem)
+                // High-End Vesper Logo Tile (Queue 1: Logo & Scale entrance)
                 Box(
                     modifier = Modifier
+                        .scale(logoScale.value)
+                        .alpha(logoAlpha.value)
                         .size(118.dp)
                         .clip(RoundedCornerShape(28.dp))
                         .background(logoBoxBg)
@@ -573,10 +615,10 @@ fun WelcomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Column(
-                    modifier = Modifier.alpha(textAlpha.value),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    // Queue 2: Headline Text (Fade + Slide Up)
                     Text(
                         text = "Welcome to Vesper",
                         style = androidx.compose.ui.text.TextStyle(
@@ -585,9 +627,13 @@ fun WelcomeScreen(
                             fontSize = 38.sp,
                             color = textColorPrimary
                         ),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .offset(y = headlineOffsetY.value.dp)
+                            .alpha(headlineAlpha.value)
                     )
 
+                    // Queue 3: Subtitle Text (Fade in)
                     Text(
                         text = "Your journey to financial clarity\nand security begins here.",
                         style = androidx.compose.ui.text.TextStyle(
@@ -598,7 +644,9 @@ fun WelcomeScreen(
                             lineHeight = 24.sp
                         ),
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .alpha(subtitleAlpha.value)
                     )
                 }
             }
@@ -606,11 +654,12 @@ fun WelcomeScreen(
             // Middle Optical Spacer between Hero Section and Bottom CTA
             Spacer(modifier = Modifier.weight(1.2f))
 
-            // Bottom Actions Section (Get Started CTA + Sign In Link)
+            // Bottom Actions Section (Queue 4: Get Started CTA + Sign In Link - Fade + Slide Up)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(textAlpha.value),
+                    .offset(y = ctaOffsetY.value.dp)
+                    .alpha(ctaAlpha.value),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
