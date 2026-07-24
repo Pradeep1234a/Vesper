@@ -521,9 +521,11 @@ fun WelcomeScreen(
             // Top Optical Spacer (1.65f weight pushes Hero block slightly upward into optical placement)
             Spacer(modifier = Modifier.weight(1.65f))
 
-            // Center Hero Welcome Section (Exact mockup optical alignment)
+            // Center Hero Welcome Section (Shifted exactly 2 dp upward from vertical center)
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = (-2).dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
