@@ -518,8 +518,8 @@ fun WelcomeScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Optical Spacer (1.65f weight pushes Hero block slightly upward into optical placement)
-            Spacer(modifier = Modifier.weight(1.65f))
+            // Top Optical Spacer (0.7f weight pushes Hero section noticeably UPWARD)
+            Spacer(modifier = Modifier.weight(0.7f))
 
             // Center Hero Welcome Section (Shifted exactly 10 dp upward)
             Column(
