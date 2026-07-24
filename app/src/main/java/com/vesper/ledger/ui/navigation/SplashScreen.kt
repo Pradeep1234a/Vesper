@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.vesper.ledger.R
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SplashScreen(
@@ -39,6 +40,7 @@ fun SplashScreen(
 
     val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
 
+    // Theme-adaptive colors (identical to WelcomeScreen)
     val backgroundColor = if (isDark) Color(0xFF09090B) else Color(0xFFF8FAFC)
     val logoBoxBg = if (isDark) {
         Brush.verticalGradient(colors = listOf(Color(0xFF2A2A30), Color(0xFF141416)))
@@ -53,23 +55,27 @@ fun SplashScreen(
     }
 
     LaunchedEffect(key1 = true) {
-        // 1. Initial short pause (screen opens with no logo visible)
+        // 1. Initial short pause (screen opens with no logo visible — 100ms)
         delay(100)
 
-        // 2. Smoothly fade in & scale from small to exact 102.5.dp container size (600ms)
-        scale.animateTo(
-            targetValue = 1.0f,
-            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
-        )
-        alpha.animateTo(
-            targetValue = 1.0f,
-            animationSpec = tween(durationMillis = 600)
-        )
+        // 2. Smoothly fade in & scale SIMULTANEOUSLY from small to final size (600ms)
+        launch {
+            scale.animateTo(
+                targetValue = 1.0f,
+                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+            )
+        }
+        launch {
+            alpha.animateTo(
+                targetValue = 1.0f,
+                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+            )
+        }
 
-        // 3. Brief hold to complete 1.0s splash screen duration
-        delay(300)
+        // 3. Wait for animation to complete + brief hold (total ~1s splash)
+        delay(900)
 
-        // 4. Navigate seamlessly to Welcome Screen or Main Screen
+        // 4. Navigate seamlessly — logo stays visible, text fades in on WelcomeScreen
         val isAuthenticated = sharedPrefs.getBoolean("isAuthenticated", false)
         val destination = if (!isAuthenticated) Screen.AuthWelcome.route else "main_screen"
         onNavigateNext(destination)
@@ -93,7 +99,7 @@ fun SplashScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // High-End Vesper Logo Tile (Exact identical screen position to WelcomeScreen)
+                // Logo + Container fade/scale animation (ONLY this element animates — not the whole screen)
                 Box(
                     modifier = Modifier
                         .scale(scale.value)
@@ -118,16 +124,15 @@ fun SplashScreen(
                     )
                 }
 
-                // Invisible placeholder matching WelcomeScreen text block height
-                // (24dp gap + ~44dp headline + 10dp gap + ~44dp subtitle = ~122dp)
-                Spacer(modifier = Modifier.height(122.dp))
+                // Invisible placeholder matching WelcomeScreen text block height (adjusted -1dp)
+                // (24dp gap + ~44dp headline + 10dp gap + ~44dp subtitle = ~121dp)
+                Spacer(modifier = Modifier.height(121.dp))
             }
 
             Spacer(modifier = Modifier.weight(1.2f))
 
             // Invisible placeholder matching WelcomeScreen bottom CTA height
             // (56dp button + 16dp gap + ~20dp sign-in row + 28dp bottom spacer = ~120dp)
-            // This ensures weighted spacers produce identical logo vertical position
             Spacer(modifier = Modifier.height(120.dp))
         }
     }
