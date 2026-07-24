@@ -67,7 +67,9 @@ data class AccountOption(
 
 val BANK_PAYMENT_METHODS = listOf("UPI / GPay / PhonePe", "Debit Card", "Net Banking", "Bank Transfer")
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.ui.ExperimentalComposeUiApi
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AddTransactionScreen(
     currencySymbol: String = "₹",
