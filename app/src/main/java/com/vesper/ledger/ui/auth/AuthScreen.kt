@@ -55,8 +55,10 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.graphicsLayer
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.RootHeader
@@ -467,20 +469,28 @@ fun WelcomeScreen(
     val textColorPrimary = if (isDark) Color.White else Color(0xFF0F172A)
     val textColorSecondary = if (isDark) Color(0xFFA1A1AA) else Color(0xFF64748B)
 
+    // High-contrast squercle container background (enhanced contrast for light theme)
     val logoBoxBg = if (isDark) {
         Brush.verticalGradient(colors = listOf(Color(0xFF2A2A30), Color(0xFF141416)))
     } else {
-        Brush.verticalGradient(colors = listOf(Color(0xFFFFFFFF), Color(0xFFF1F5F9)))
+        Brush.verticalGradient(colors = listOf(Color(0xFFFFFFFF), Color(0xFFE2E8F0)))
     }
 
+    // High-contrast squercle container border brush
     val logoBorderBrush = if (isDark) {
-        Brush.verticalGradient(colors = listOf(Color(0xFF4A4A52), Color(0xFF222226)))
+        Brush.verticalGradient(colors = listOf(Color(0xFF52525B), Color(0xFF27272A)))
     } else {
-        Brush.verticalGradient(colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1)))
+        Brush.verticalGradient(colors = listOf(Color(0xFFCBD5E1), Color(0xFF94A3B8)))
     }
 
-    // Logo tint: white on dark container, dark slate on light container
-    val logoTint = if (isDark) Color.White else Color(0xFF0F172A)
+    // Luxurious slightly golden gradient for emblem logo
+    val goldEmblemBrush = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFFFBBF24), // Warm Gold
+            Color(0xFFD97706), // Rich Amber Gold
+            Color(0xFF92400E)  // Deep Metallic Gold
+        )
+    )
 
     val buttonBgColor = if (isDark) Color.White else Color(0xFF0F172A)
     val buttonTextColor = if (isDark) Color.Black else Color.White
@@ -527,26 +537,35 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // High-End Vesper Logo Tile (Exact 90% Surface Area Fill: 102.5.dp Emblem inside 108.dp Container)
+                // High-End Vesper Logo Tile (Slightly increased to 118.dp container & 112.dp golden emblem)
                 Box(
                     modifier = Modifier
-                        .size(108.dp)
-                        .clip(RoundedCornerShape(26.dp))
+                        .size(118.dp)
+                        .clip(RoundedCornerShape(28.dp))
                         .background(logoBoxBg)
                         .border(
                             BorderStroke(
                                 width = 1.5.dp,
                                 brush = logoBorderBrush
                             ),
-                            shape = RoundedCornerShape(26.dp)
+                            shape = RoundedCornerShape(28.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
                         contentDescription = "Vesper Logo",
-                        tint = logoTint,
-                        modifier = Modifier.size(102.5.dp)
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .size(112.dp)
+                            .graphicsLayer(alpha = 0.99f)
+                            .drawWithContent {
+                                drawContent()
+                                drawRect(
+                                    brush = goldEmblemBrush,
+                                    blendMode = BlendMode.SrcAtop
+                                )
+                            }
                     )
                 }
 
@@ -562,8 +581,8 @@ fun WelcomeScreen(
                         text = "Welcome to Vesper",
                         style = androidx.compose.ui.text.TextStyle(
                             fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 34.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 38.sp,
                             color = textColorPrimary
                         ),
                         textAlign = TextAlign.Center
@@ -574,9 +593,9 @@ fun WelcomeScreen(
                         style = androidx.compose.ui.text.TextStyle(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
                             color = textColorSecondary,
-                            lineHeight = 22.sp
+                            lineHeight = 24.sp
                         ),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 16.dp)
