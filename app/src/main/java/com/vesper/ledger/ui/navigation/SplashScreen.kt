@@ -117,9 +117,18 @@ fun SplashScreen(
                         modifier = Modifier.size(102.5.dp)
                     )
                 }
+
+                // Invisible placeholder matching WelcomeScreen text block height
+                // (24dp gap + ~44dp headline + 10dp gap + ~44dp subtitle = ~122dp)
+                Spacer(modifier = Modifier.height(122.dp))
             }
 
             Spacer(modifier = Modifier.weight(1.2f))
+
+            // Invisible placeholder matching WelcomeScreen bottom CTA height
+            // (56dp button + 16dp gap + ~20dp sign-in row + 28dp bottom spacer = ~120dp)
+            // This ensures weighted spacers produce identical logo vertical position
+            Spacer(modifier = Modifier.height(120.dp))
         }
     }
 }
