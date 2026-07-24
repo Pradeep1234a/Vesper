@@ -5,12 +5,12 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 
-fun safeParseColor(colorHex: String?): Color {
-    if (colorHex.isNullOrBlank()) return Color(0xFF2563EB)
+fun safeParseColor(colorHex: String?, defaultColor: Color = Color(0xFF2563EB)): Color {
+    if (colorHex.isNullOrBlank()) return defaultColor
     return try {
         Color(android.graphics.Color.parseColor(colorHex))
     } catch (e: Exception) {
-        Color(0xFF2563EB)
+        defaultColor
     }
 }
 
