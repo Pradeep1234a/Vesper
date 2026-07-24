@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -439,202 +441,149 @@ fun WelcomeScreen(
 ) {
     var activeDialog by remember { mutableStateOf<String?>(null) }
 
-    var animTrigger by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        animTrigger = true
-    }
-
-    val heroAlpha by animateFloatAsState(
-        targetValue = if (animTrigger) 1f else 0f,
-        animationSpec = tween(durationMillis = 450, easing = LinearOutSlowInEasing),
-        label = "heroAlpha"
-    )
-    val heroTranslationY by animateFloatAsState(
-        targetValue = if (animTrigger) 0f else 20f,
-        animationSpec = tween(durationMillis = 450, easing = LinearOutSlowInEasing),
-        label = "heroTranslationY"
-    )
-
-    val card1Alpha by animateFloatAsState(
-        targetValue = if (animTrigger) 1f else 0f,
-        animationSpec = tween(durationMillis = 400, delayMillis = 100, easing = LinearOutSlowInEasing),
-        label = "card1Alpha"
-    )
-    val card1TranslationY by animateFloatAsState(
-        targetValue = if (animTrigger) 0f else 24f,
-        animationSpec = tween(durationMillis = 400, delayMillis = 100, easing = LinearOutSlowInEasing),
-        label = "card1TranslationY"
-    )
-
-    val card2Alpha by animateFloatAsState(
-        targetValue = if (animTrigger) 1f else 0f,
-        animationSpec = tween(durationMillis = 400, delayMillis = 140, easing = LinearOutSlowInEasing),
-        label = "card2Alpha"
-    )
-    val card2TranslationY by animateFloatAsState(
-        targetValue = if (animTrigger) 0f else 24f,
-        animationSpec = tween(durationMillis = 400, delayMillis = 140, easing = LinearOutSlowInEasing),
-        label = "card2TranslationY"
-    )
-
-    val card3Alpha by animateFloatAsState(
-        targetValue = if (animTrigger) 1f else 0f,
-        animationSpec = tween(durationMillis = 400, delayMillis = 180, easing = LinearOutSlowInEasing),
-        label = "card3Alpha"
-    )
-    val card3TranslationY by animateFloatAsState(
-        targetValue = if (animTrigger) 0f else 24f,
-        animationSpec = tween(durationMillis = 400, delayMillis = 180, easing = LinearOutSlowInEasing),
-        label = "card3TranslationY"
-    )
-
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColorPrimary = MaterialTheme.colorScheme.onBackground
     val textColorSecondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val lineDividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-    ) {
+    Scaffold(
+        containerColor = backgroundColor
+    ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            RootHeader(
-                title = "Vesper Ledger",
-                showLogo = true
-            )
-            Divider(
-                color = lineDividerColor,
-                thickness = 1.dp,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Column(
+            // Top Brand Header
+            Row(
                 modifier = Modifier
-                    .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .padding(top = 12.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.Top
+                Text(
+                    text = "VESPER LEDGER",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp,
+                        color = textColorSecondary
+                    )
+                )
+            }
+
+            // Center Hero Welcome Section (Clean, Minimalist, No Clutter)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // App Logo Badge in Dashboard Curved Tile
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Hero Section & Subtle Material Divider
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .graphicsLayer {
-                                alpha = heroAlpha
-                                translationY = heroTranslationY
-                            }
-                    ) {
-                    Text(
-                        text = "Welcome.",
-                        style = MaterialTheme.typography.displayLarge.copy(
-                            fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 44.sp,
-                            color = textColorPrimary
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "A private space built for thoughtful money management.",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = textColorSecondary.copy(alpha = 0.75f),
-                            lineHeight = 23.sp,
-                            fontSize = 15.sp
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Divider(
-                        color = lineDividerColor,
-                        thickness = 1.dp,
-                        modifier = Modifier.width(48.dp)
+                    Icon(
+                        imageVector = Icons.Outlined.AccountBalanceWallet,
+                        contentDescription = "Vesper Logo",
+                        tint = textColorPrimary,
+                        modifier = Modifier.size(38.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // Strict Uniform Layered Benefit Cards
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    WelcomeBenefitCard(
-                        title = "Your Money. Your Rules.",
-                        description = "Your financial life stays entirely yours.",
-                        iconType = BenefitIconType.LOCK,
-                        alpha = card1Alpha,
-                        translationY = card1TranslationY
+                    Text(
+                        text = "Welcome to Vesper",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 36.sp,
+                            color = textColorPrimary
+                        ),
+                        textAlign = TextAlign.Center
                     )
 
-                    WelcomeBenefitCard(
-                        title = "Slow Down. Notice More.",
-                        description = "Recording each expense builds lasting awareness.",
-                        iconType = BenefitIconType.CROSSHAIR,
-                        alpha = card2Alpha,
-                        translationY = card2TranslationY
-                    )
-
-                    WelcomeBenefitCard(
-                        title = "Less Noise. More Clarity.",
-                        description = "A calm space to understand your finances.",
-                        iconType = BenefitIconType.CIRCLE,
-                        alpha = card3Alpha,
-                        translationY = card3TranslationY
+                    Text(
+                        text = "Master your money with total clarity, privacy, and effortless elegance.",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 15.sp,
+                            color = textColorSecondary,
+                            lineHeight = 22.sp
+                        ),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
             }
 
-            // 4. Action Buttons & Legal Links with High-Contrast Separator Lines
+            // Bottom Actions Section (Get Started CTA + Sign In Link)
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer {
-                        alpha = heroAlpha
-                    },
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Divider(
-                    color = lineDividerColor,
-                    thickness = 1.dp,
+                // Primary CTA: Get Started (Dashboard-styled rounded button)
+                Button(
+                    onClick = onCreateAccountClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 14.dp)
-                )
-
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    WelcomePremiumButton(
-                        text = "Create Account",
-                        onClick = onCreateAccountClick,
-                        isPrimary = true
+                        .height(54.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = textColorPrimary,
+                        contentColor = backgroundColor
                     )
-
-                    WelcomePremiumButton(
-                        text = "Sign In",
-                        onClick = onSignInClick,
-                        isPrimary = false
+                ) {
+                    Text(
+                        text = "Get Started",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
                     )
                 }
 
-                Divider(
-                    color = lineDividerColor,
-                    thickness = 1.dp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 14.dp, bottom = 12.dp)
-                )
+                // Secondary Link: Sign In
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Already have an account? ",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = SpaceGroteskFamily,
+                            color = textColorSecondary
+                        )
+                    )
+                    Text(
+                        text = "Sign In",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            color = textColorPrimary,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable { onSignInClick() }
+                    )
+                }
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Legal Footer Links
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -643,52 +592,44 @@ fun WelcomeScreen(
                     Text(
                         text = "Terms of Service",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.8f),
-                            textDecoration = TextDecoration.Underline
+                            color = textColorSecondary.copy(alpha = 0.7f),
+                            fontSize = 11.sp
                         ),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { activeDialog = "terms" }
+                        modifier = Modifier.clickable { activeDialog = "terms" }
                     )
                     Text(
-                        text = "   ·   ",
+                        text = "  •  ",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = lineDividerColor
+                            color = textColorSecondary.copy(alpha = 0.5f)
                         )
                     )
                     Text(
                         text = "Privacy Policy",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = textColorSecondary.copy(alpha = 0.8f),
-                            textDecoration = TextDecoration.Underline
+                            color = textColorSecondary.copy(alpha = 0.7f),
+                            fontSize = 11.sp
                         ),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { activeDialog = "privacy" }
+                        modifier = Modifier.clickable { activeDialog = "privacy" }
                     )
                 }
             }
         }
-        }
+    }
 
-        // Dialog for Terms or Privacy Policy on Welcome Screen
-        when (activeDialog) {
-            "terms" -> {
-                AuthInfoDialog(
-                    title = "Terms & Conditions",
-                    text = TERMS_CONDITIONS_TEXT,
-                    onDismissRequest = { activeDialog = null }
-                )
-            }
-            "privacy" -> {
-                AuthInfoDialog(
-                    title = "Privacy Policy",
-                    text = PRIVACY_POLICY_TEXT,
-                    onDismissRequest = { activeDialog = null }
-                )
-            }
+    when (activeDialog) {
+        "terms" -> {
+            AuthInfoDialog(
+                title = "Terms & Conditions",
+                text = TERMS_CONDITIONS_TEXT,
+                onDismissRequest = { activeDialog = null }
+            )
+        }
+        "privacy" -> {
+            AuthInfoDialog(
+                title = "Privacy Policy",
+                text = PRIVACY_POLICY_TEXT,
+                onDismissRequest = { activeDialog = null }
+            )
         }
     }
 }
