@@ -492,7 +492,7 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // High-End Vesper Logo Tile (Exact 85% Surface Area Fill: 99.6.dp Emblem inside 108.dp Container)
+                // High-End Vesper Logo Tile (Exact 90% Surface Area Fill: 102.5.dp Emblem inside 108.dp Container)
                 Box(
                     modifier = Modifier
                         .size(108.dp)
@@ -511,7 +511,7 @@ fun WelcomeScreen(
                         painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
                         contentDescription = "Vesper Logo",
                         tint = Color.Unspecified,
-                        modifier = Modifier.size(99.6.dp)
+                        modifier = Modifier.size(102.5.dp)
                     )
                 }
 
