@@ -47,6 +47,7 @@ import com.vesper.ledger.ui.savings.SavingsViewModelFactory
 import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
+import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
 import kotlinx.coroutines.launch
 
@@ -83,6 +84,7 @@ fun MainScreen(
     val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository, app.accountRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
     val budgetsFactory = BudgetsViewModelFactory(app)
+    val categoryFactory = com.vesper.ledger.ui.category.CategoryViewModelFactory(app, app.transactionRepository)
 
     val currencySymbol by settingsViewModel.currencySymbol.collectAsState()
     val userName by settingsViewModel.userName.collectAsState()
