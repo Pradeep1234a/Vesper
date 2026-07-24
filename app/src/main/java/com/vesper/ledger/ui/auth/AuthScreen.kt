@@ -1,6 +1,7 @@
 package com.vesper.ledger.ui.auth
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -482,8 +483,8 @@ fun WelcomeScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Optical Spacer (1.8f weight pulls Hero block down into optical center)
-            Spacer(modifier = Modifier.weight(1.8f))
+            // Top Optical Spacer (1.3f weight shifts Hero block slightly upward for perfect optical focus)
+            Spacer(modifier = Modifier.weight(1.3f))
 
             // Center Hero Welcome Section (Exact mockup optical alignment)
             Column(
@@ -491,7 +492,7 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // High-End Vesper Logo Tile (Prominent 88.dp Emblem inside 108.dp Squercle Container)
+                // High-End Vesper Logo Tile (Exact 85% Fill: 92.dp Asset inside 108.dp Container)
                 Box(
                     modifier = Modifier
                         .size(108.dp)
@@ -506,11 +507,11 @@ fun WelcomeScreen(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_vesper_logo_asset),
                         contentDescription = "Vesper Logo",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(88.dp)
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                        modifier = Modifier.size(92.dp)
                     )
                 }
 
@@ -548,7 +549,7 @@ fun WelcomeScreen(
             }
 
             // Middle Optical Spacer between Hero Section and Bottom CTA
-            Spacer(modifier = Modifier.weight(1.2f))
+            Spacer(modifier = Modifier.weight(1.7f))
 
             // Bottom Actions Section (Get Started CTA + Sign In Link)
             Column(
