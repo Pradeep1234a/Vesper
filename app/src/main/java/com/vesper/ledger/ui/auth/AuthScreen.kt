@@ -41,8 +41,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowForward
@@ -50,7 +54,6 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.RootHeader
@@ -456,40 +459,108 @@ fun WelcomeScreen(
         ) {
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Center Hero Welcome Section (Matching reference image)
+            // Center Hero Welcome Section (Matching reference mockup image)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(28.dp)
             ) {
-                // App Logo Badge in Dark Gradient Container with White App Logo
+                // High-End Metallic Vesper Logo Tile (Exact match to reference image)
                 Box(
                     modifier = Modifier
-                        .size(96.dp)
-                        .clip(RoundedCornerShape(26.dp))
-                        .background(Color(0xFF1C1C20))
-                        .border(BorderStroke(1.5.dp, Color(0xFF3F3F46)), RoundedCornerShape(26.dp)),
+                        .size(112.dp)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF2A2A30),
+                                    Color(0xFF141416)
+                                )
+                            )
+                        )
+                        .border(
+                            BorderStroke(
+                                width = 1.5.dp,
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFF4A4A52),
+                                        Color(0xFF222226)
+                                    )
+                                )
+                            ),
+                            shape = RoundedCornerShape(28.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "Vesper Logo",
-                        tint = Color.White,
-                        modifier = Modifier.size(64.dp)
-                    )
+                    Canvas(modifier = Modifier.size(56.dp)) {
+                        val w = size.width
+                        val h = size.height
+                        val strokeW = 4.dp.toPx()
+                        val logoBrush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFFFFFFFF),
+                                Color(0xFFE2E8F0),
+                                Color(0xFF94A3B8)
+                            )
+                        )
+
+                        // Left main diagonal stem of "V"
+                        val pathLeft = Path().apply {
+                            moveTo(w * 0.20f, h * 0.22f)
+                            lineTo(w * 0.48f, h * 0.84f)
+                        }
+                        drawPath(
+                            path = pathLeft,
+                            brush = logoBrush,
+                            style = Stroke(width = strokeW + 1.5f, cap = StrokeCap.Round)
+                        )
+
+                        // Inner parallel wing line
+                        val pathWing1 = Path().apply {
+                            moveTo(w * 0.48f, h * 0.84f)
+                            lineTo(w * 0.64f, h * 0.40f)
+                        }
+                        drawPath(
+                            path = pathWing1,
+                            brush = logoBrush,
+                            style = Stroke(width = strokeW, cap = StrokeCap.Round)
+                        )
+
+                        // Middle parallel wing line
+                        val pathWing2 = Path().apply {
+                            moveTo(w * 0.44f, h * 0.62f)
+                            lineTo(w * 0.74f, h * 0.26f)
+                        }
+                        drawPath(
+                            path = pathWing2,
+                            brush = logoBrush,
+                            style = Stroke(width = strokeW, cap = StrokeCap.Round)
+                        )
+
+                        // Outer parallel wing line
+                        val pathWing3 = Path().apply {
+                            moveTo(w * 0.54f, h * 0.44f)
+                            lineTo(w * 0.84f, h * 0.16f)
+                        }
+                        drawPath(
+                            path = pathWing3,
+                            brush = logoBrush,
+                            style = Stroke(width = strokeW, cap = StrokeCap.Round)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(2.dp))
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "Welcome to Vesper",
-                        style = MaterialTheme.typography.displayMedium.copy(
+                        style = androidx.compose.ui.text.TextStyle(
                             fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Normal,
                             fontSize = 34.sp,
                             color = Color.White
                         ),
@@ -498,14 +569,15 @@ fun WelcomeScreen(
 
                     Text(
                         text = "Your journey to financial clarity\nand security begins here.",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontFamily = SpaceGroteskFamily,
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Normal,
                             fontSize = 15.sp,
                             color = Color(0xFFA1A1AA),
                             lineHeight = 22.sp
                         ),
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 12.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
@@ -516,13 +588,13 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                // Primary CTA: Get Started (White pill button)
+                // Primary CTA: Get Started (White rounded pill button)
                 Button(
                     onClick = onCreateAccountClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(22.dp),
+                        .height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                         contentColor = Color.Black
@@ -530,10 +602,11 @@ fun WelcomeScreen(
                 ) {
                     Text(
                         text = "Get Started",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                            fontSize = 16.sp,
+                            color = Color.Black
                         )
                     )
                 }
@@ -545,19 +618,20 @@ fun WelcomeScreen(
                 ) {
                     Text(
                         text = "Already have an account? ",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            color = Color(0xFFA1A1AA),
-                            fontSize = 13.sp
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 13.sp,
+                            color = Color(0xFFA1A1AA)
                         )
                     )
                     Text(
                         text = "Sign In",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            fontSize = 13.sp
+                            fontSize = 13.sp,
+                            color = Color.White
                         ),
                         modifier = Modifier.clickable { onSignInClick() }
                     )
