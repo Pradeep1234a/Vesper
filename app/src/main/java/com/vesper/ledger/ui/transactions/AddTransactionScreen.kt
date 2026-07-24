@@ -120,13 +120,7 @@ fun AddTransactionScreen(
     var selectedAccount by remember(availableAccounts) { mutableStateOf(availableAccounts.firstOrNull()) }
     var selectedPaymentMethod by remember { mutableStateOf("Cash") }
     var showAccountBottomSheet by remember { mutableStateOf(false) }
-    var showAddAccountDialog by remember { mutableStateOf(false) }
     var expandedPaymentMenu by remember { mutableStateOf(false) }
-
-    // Add Account Dialog Form Inputs
-    var newAccName by remember { mutableStateOf("") }
-    var newAccType by remember { mutableStateOf("BANK") }
-    var newAccBalance by remember { mutableStateOf("") }
 
     var note by remember { mutableStateOf("") }
 
