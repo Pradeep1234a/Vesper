@@ -303,6 +303,10 @@ fun MainScreen(
                         },
                         onAddTransactionClick = {
                             navController.navigate(Screen.AddTransaction.route)
+                        },
+                        onAddCategoryClick = {
+                            editingCategoryState = null
+                            navController.navigate(Screen.AddCategory.route)
                         }
                     )
                 }

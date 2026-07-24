@@ -92,7 +92,8 @@ fun DashboardScreen(
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSavingsClick: () -> Unit,
-    onAddTransactionClick: () -> Unit = {}
+    onAddTransactionClick: () -> Unit = {},
+    onAddCategoryClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -115,17 +116,10 @@ fun DashboardScreen(
     }
 
     var showAddTxnSheet by remember { mutableStateOf(false) }
-    var showAddCategoryDialog by remember { mutableStateOf(false) }
     var showScanReceiptDialog by remember { mutableStateOf(false) }
     var showSplitBillDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = {
-            RootHeader(
-                title = "Vesper Ledger",
-                onMenuClick = onMenuClick
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
@@ -432,7 +426,7 @@ fun DashboardScreen(
                             QuickActionTile(
                                 label = "Category",
                                 icon = Icons.Outlined.Category,
-                                onClick = { showAddCategoryDialog = true },
+                                onClick = { onAddCategoryClick() },
                                 modifier = Modifier.weight(1f)
                             )
                             QuickActionTile(
@@ -958,16 +952,6 @@ fun DashboardScreen(
             )
         }
 
-        if (showAddCategoryDialog) {
-            DashboardAddCategoryDialog(
-                onDismissRequest = { showAddCategoryDialog = false },
-                onSaveCategory = { name, icon, color ->
-                    viewModel.addCategory(name, icon, color)
-                    Toast.makeText(context, "Category created!", Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
-
         if (showScanReceiptDialog) {
             var scannerStep by remember { mutableStateOf("capture") } // "capture", "editor", "processing", "review"
             var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -1342,91 +1326,6 @@ private fun DashboardAddTransactionDialog(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 )
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(22.dp)
-    )
-}
-
-@Composable
-private fun DashboardAddCategoryDialog(
-    onDismissRequest: () -> Unit,
-    onSaveCategory: (String, String, String) -> Unit
-) {
-    var nameText by remember { mutableStateOf("") }
-    var selectedIcon by remember { mutableStateOf("shopping_bag") }
-    val iconOptions = listOf("shopping_bag", "restaurant", "directions_car", "flight", "movie", "local_hospital", "savings")
-    val colorHex = "#3B82F6"
-
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (nameText.isNotBlank()) {
-                        onSaveCategory(nameText, selectedIcon, colorHex)
-                        onDismissRequest()
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(22.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
-                )
-            ) {
-                Text("Create Category", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-            }
-        },
-        title = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Add Category", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold))
-                IconButton(onClick = onDismissRequest) {
-                    Icon(Icons.Outlined.Close, contentDescription = "Close")
-                }
-            }
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                OutlinedTextField(
-                    value = nameText,
-                    onValueChange = { nameText = it },
-                    label = { Text("Category Name", fontFamily = SpaceGroteskFamily) },
-                    placeholder = { Text("e.g. Subscriptions") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp)
-                )
-
-                Text("Choose Icon", style = MaterialTheme.typography.labelMedium.copy(fontFamily = SpaceGroteskFamily))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    iconOptions.forEach { iconName ->
-                        val selected = iconName == selectedIcon
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
-                                .border(1.dp, if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent, RoundedCornerShape(10.dp))
-                                .clickable { selectedIcon = iconName },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(getIconByName(iconName), contentDescription = null, modifier = Modifier.size(20.dp))
-                        }
-                    }
-                }
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,
