@@ -88,8 +88,7 @@ fun getIconByName(name: String): ImageVector {
         "kebab" -> Icons.Outlined.KebabDining
         "local_dining", "lunch" -> Icons.Outlined.LocalDining
         "burger" -> Icons.Outlined.LunchDining
-        "cookie", "donut" -> Icons.Outlined.Cookie
-        "apple" -> Icons.Outlined.Apple
+        "cookie", "donut", "apple" -> Icons.Outlined.Cookie
         "cocktail", "pub" -> Icons.Outlined.Liquor
         "supermarket" -> Icons.Outlined.Store
 
@@ -114,7 +113,7 @@ fun getIconByName(name: String): ImageVector {
         "watch", "smartwatch" -> Icons.Outlined.Watch
         "palette", "art" -> Icons.Outlined.Palette
         "diamond", "gem" -> Icons.Outlined.Diamond
-        "glasses" -> Icons.Outlined.Glasses
+        "glasses" -> Icons.Outlined.RemoveRedEye
         "shoes", "backpack" -> Icons.Outlined.ShoppingBag
         "umbrella" -> Icons.Outlined.Umbrella
         "ring", "crown" -> Icons.Outlined.CardGiftcard
@@ -147,7 +146,7 @@ fun getIconByName(name: String): ImageVector {
         "work", "business", "briefcase" -> Icons.Outlined.Work
         "mail" -> Icons.Outlined.Mail
         "call" -> Icons.Outlined.Call
-        "antenna" -> Icons.Outlined.Antenna
+        "antenna" -> Icons.Outlined.CellTower
         "thermostat", "ac" -> Icons.Outlined.Thermostat
         "plumbing" -> Icons.Outlined.Plumbing
         "construction", "handyman" -> Icons.Outlined.Construction
@@ -264,7 +263,7 @@ fun getIconByName(name: String): ImageVector {
         "cloud" -> Icons.Outlined.Cloud
         "code", "terminal" -> Icons.Outlined.Code
         "hard_drive" -> Icons.Outlined.Storage
-        "printer" -> Icons.Outlined.Printer
+        "printer" -> Icons.Outlined.Print
         "scanner" -> Icons.Outlined.Scanner
         "drone" -> Icons.Outlined.AirplanemodeActive
         "smart_home" -> Icons.Outlined.SmartButton
