@@ -2,92 +2,124 @@ package com.vesper.ledger.ui.navigation
 
 import android.content.Context
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vesper.ledger.R
-import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     onNavigateNext: (String) -> Unit
 ) {
-    val scale = remember { Animatable(0.7f) }
+    val scale = remember { Animatable(0.6f) }
     val alpha = remember { Animatable(0f) }
     val context = LocalContext.current
+    val isDark = isSystemInDarkTheme()
 
     val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
-    val logoForegroundRes = R.drawable.ic_launcher_foreground
+
+    val backgroundColor = if (isDark) Color(0xFF09090B) else Color(0xFFF8FAFC)
+    val logoBoxBg = if (isDark) {
+        Brush.verticalGradient(colors = listOf(Color(0xFF2A2A30), Color(0xFF141416)))
+    } else {
+        Brush.verticalGradient(colors = listOf(Color(0xFFFFFFFF), Color(0xFFF1F5F9)))
+    }
+
+    val logoBorderBrush = if (isDark) {
+        Brush.verticalGradient(colors = listOf(Color(0xFF4A4A52), Color(0xFF222226)))
+    } else {
+        Brush.verticalGradient(colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1)))
+    }
 
     LaunchedEffect(key1 = true) {
-        // 1. Entry Animation: Scale and fade in
+        // 1. Initial short pause (screen opens with no logo visible)
+        delay(100)
+
+        // 2. Smoothly fade in & scale from small to exact 102.5.dp container size (600ms)
         scale.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 800, easing = LinearOutSlowInEasing)
+            targetValue = 1.0f,
+            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
         )
         alpha.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 800)
+            targetValue = 1.0f,
+            animationSpec = tween(durationMillis = 600)
         )
-        
-        // 2. Display Hold State
-        delay(1200)
-        
-        // 3. Exit Animation: Scale down slightly and fade out
-        scale.animateTo(
-            targetValue = 0.85f,
-            animationSpec = tween(durationMillis = 500, easing = FastOutLinearInEasing)
-        )
-        alpha.animateTo(
-            targetValue = 0f,
-            animationSpec = tween(durationMillis = 500)
-        )
-        
-        // 4. Navigation: Check authentication state
+
+        // 3. Brief hold to complete 1.0s splash screen duration
+        delay(300)
+
+        // 4. Navigate seamlessly to Welcome Screen or Main Screen
         val isAuthenticated = sharedPrefs.getBoolean("isAuthenticated", false)
         val destination = if (!isAuthenticated) Screen.AuthWelcome.route else "main_screen"
         onNavigateNext(destination)
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
-    ) {
+    Scaffold(
+        containerColor = backgroundColor
+    ) { innerPadding ->
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .scale(scale.value)
-                .alpha(alpha.value)
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Monochrome logo matching the active launcher icon
-            Image(
-                painter = painterResource(id = logoForegroundRes),
-                contentDescription = "Vesper Logo",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.size(240.dp)
-            )
+            // Exact identical top spacer (1.8f weight) matching WelcomeScreen vertical position
+            Spacer(modifier = Modifier.weight(1.8f))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                // High-End Vesper Logo Tile (Exact identical screen position to WelcomeScreen)
+                Box(
+                    modifier = Modifier
+                        .scale(scale.value)
+                        .alpha(alpha.value)
+                        .size(108.dp)
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(logoBoxBg)
+                        .border(
+                            BorderStroke(
+                                width = 1.5.dp,
+                                brush = logoBorderBrush
+                            ),
+                            shape = RoundedCornerShape(26.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
+                        contentDescription = "Vesper Logo",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(102.5.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1.2f))
         }
     }
 }

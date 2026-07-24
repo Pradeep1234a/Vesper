@@ -52,6 +52,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -448,6 +449,19 @@ fun WelcomeScreen(
     var activeDialog by remember { mutableStateOf<String?>(null) }
     val isDark = androidx.compose.foundation.isSystemInDarkTheme()
 
+    // Smooth entrance fade-in for text and actions
+    val textAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        textAlpha.animateTo(
+            targetValue = 1f,
+            animationSpec = androidx.compose.animation.core.tween(
+                durationMillis = 600,
+                easing = androidx.compose.animation.core.LinearOutSlowInEasing
+            )
+        )
+    }
+
     val backgroundColor = if (isDark) Color(0xFF09090B) else Color(0xFFF8FAFC)
     val textColorPrimary = if (isDark) Color.White else Color(0xFF0F172A)
     val textColorSecondary = if (isDark) Color(0xFFA1A1AA) else Color(0xFF64748B)
@@ -519,6 +533,7 @@ fun WelcomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Column(
+                    modifier = Modifier.alpha(textAlpha.value),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -553,7 +568,9 @@ fun WelcomeScreen(
 
             // Bottom Actions Section (Get Started CTA + Sign In Link)
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(textAlpha.value),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
