@@ -282,7 +282,7 @@ fun SettingsScreen(
                                 SettingsRow(
                                     icon = Icons.Outlined.AccountBalanceWallet,
                                     title = "Accounts Management",
-                                    subtitle = "Manage accounts, starting balances, and total net worth settings",
+                                    subtitle = "Manage accounts, starting balances, and total balance settings",
                                     trailing = { Icon(Icons.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                     onClick = { onAccountsClick() }
                                 )

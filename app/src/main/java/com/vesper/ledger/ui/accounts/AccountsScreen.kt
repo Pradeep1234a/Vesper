@@ -65,7 +65,7 @@ fun AccountsScreen(
         includeInTotalInput = acc.includeInTotal
     }
 
-    val totalNetWorth = remember(accounts) {
+    val totalAccountBalance = remember(accounts) {
         accounts.filter { it.includeInTotal && !it.isHidden }.sumOf { it.initialBalance }
     }
 
@@ -116,7 +116,7 @@ fun AccountsScreen(
                         )
                     )
                     Text(
-                        text = "$currencySymbol${df.format(totalNetWorth)}",
+                        text = "$currencySymbol${df.format(totalAccountBalance)}",
                         style = TextStyle(
                             fontFamily = SpaceGroteskFamily,
                             fontWeight = FontWeight.Bold,
