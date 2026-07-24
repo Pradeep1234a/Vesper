@@ -86,7 +86,7 @@ fun MainScreen(
     val context = LocalContext.current
     val app = context.applicationContext as VesperApplication
 
-    val dashboardFactory = DashboardViewModelFactory(app.transactionRepository, app.savingsRepository, app.accountRepository)
+    val dashboardFactory = DashboardViewModelFactory(app.transactionRepository, app.savingsRepository, app.accountRepository, app.budgetRepository)
     val transactionsFactory = TransactionsViewModelFactory(app.transactionRepository, app.accountRepository)
     val savingsFactory = SavingsViewModelFactory(app.savingsRepository)
     val budgetsFactory = BudgetsViewModelFactory(app)
@@ -126,18 +126,18 @@ fun MainScreen(
         Screen.Settings.route
     )
 
-    // 100% Uniform Transition Specs Across ALL Screens & Routes
+    // 100% Symmetric Uniform Transition Specs Across ALL Screens & Routes
     val uniformEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
-        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
+        slideInHorizontally(animationSpec = tween(300, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(300))
     }
     val uniformExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
-        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
+        slideOutHorizontally(animationSpec = tween(300, easing = FastOutSlowInEasing)) { -it } + fadeOut(animationSpec = tween(300))
     }
     val uniformPopEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
-        slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
+        slideInHorizontally(animationSpec = tween(300, easing = FastOutSlowInEasing)) { -it } + fadeIn(animationSpec = tween(300))
     }
     val uniformPopExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
-        slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
+        slideOutHorizontally(animationSpec = tween(300, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(300))
     }
 
     ModalNavigationDrawer(

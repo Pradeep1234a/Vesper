@@ -120,6 +120,12 @@ fun DashboardScreen(
     var showSplitBillDialog by remember { mutableStateOf(false) }
 
     Scaffold(
+        topBar = {
+            RootHeader(
+                title = "Vesper Ledger",
+                onMenuClick = onMenuClick
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
@@ -383,7 +389,7 @@ fun DashboardScreen(
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "$currencySymbol${df.format(uiState.availableBalance)}",
+                            text = if (uiState.totalBudget > 0.0) "$currencySymbol${df.format(uiState.totalBudget)}" else "Not Set",
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 fontSize = 20.sp,
                                 fontFamily = SpaceGroteskFamily,

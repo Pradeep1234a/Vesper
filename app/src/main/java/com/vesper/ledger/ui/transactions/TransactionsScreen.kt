@@ -111,6 +111,12 @@ fun TransactionsScreen(
     }
 
     Scaffold(
+        topBar = {
+            RootHeader(
+                title = "Transactions",
+                onMenuClick = onMenuClick
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(

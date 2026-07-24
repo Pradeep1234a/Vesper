@@ -8,6 +8,7 @@ import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.data.repository.AccountRepository
+import com.vesper.ledger.data.repository.BudgetRepository
 import com.vesper.ledger.data.repository.SavingsRepository
 import com.vesper.ledger.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,6 +28,7 @@ data class DashboardUiState(
     val totalExpense: Double = 0.0,
     val totalSaved: Double = 0.0,
     val totalTarget: Double = 0.0,
+    val totalBudget: Double = 0.0,
     val availableBalance: Double = 0.0,
     val recentTransactions: List<Transaction> = emptyList(),
     val topCategories: List<CategorySpending> = emptyList(),
@@ -36,19 +38,22 @@ data class DashboardUiState(
 class DashboardViewModel(
     private val transactionRepository: TransactionRepository,
     private val savingsRepository: SavingsRepository,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val budgetRepository: BudgetRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<DashboardUiState> = combine(
         transactionRepository.allTransactions,
         savingsRepository.allSavingsGoals,
         transactionRepository.allCategories,
-        accountRepository.allAccounts
-    ) { transactions, savingsGoals, categories, accounts ->
+        accountRepository.allAccounts,
+        budgetRepository.allBudgets
+    ) { transactions, savingsGoals, categories, accounts, budgets ->
         val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
         val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
         val saved = savingsGoals.sumOf { it.currentAmount }
         val target = savingsGoals.sumOf { it.targetAmount }
+        val activeBudgetTotal = budgets.filter { !it.isArchived }.sumOf { it.limitAmount }
         val recent = transactions.take(5)
 
         // Calculate total balance from included active accounts (includes opening balances)
@@ -83,6 +88,7 @@ class DashboardViewModel(
             totalExpense = expense,
             totalSaved = saved,
             totalTarget = target,
+            totalBudget = activeBudgetTotal,
             availableBalance = available,
             recentTransactions = recent,
             topCategories = topCats,
@@ -139,12 +145,13 @@ class DashboardViewModel(
 class DashboardViewModelFactory(
     private val transactionRepository: TransactionRepository,
     private val savingsRepository: SavingsRepository,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val budgetRepository: BudgetRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DashboardViewModel(transactionRepository, savingsRepository, accountRepository) as T
+            return DashboardViewModel(transactionRepository, savingsRepository, accountRepository, budgetRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
