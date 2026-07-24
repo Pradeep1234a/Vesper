@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
         Budget::class,
         PaymentMethod::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
