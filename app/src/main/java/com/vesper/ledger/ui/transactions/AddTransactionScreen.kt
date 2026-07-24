@@ -16,8 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material3.*
@@ -549,7 +551,7 @@ fun AddTransactionScreen(
                 }
             }
 
-            // 5. Account & Payment Method Cards (Breathing Room & Separation)
+            // 5. Account & Payment Method Cards (Breathing Room & Explicit Layout)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -560,48 +562,67 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { expandedAccountMenu = true },
-                        contentPadding = PaddingValues(14.dp)
+                        contentPadding = PaddingValues(12.dp)
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text(
-                                text = "ACCOUNT",
-                                style = TextStyle(
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    letterSpacing = 1.sp
-                                )
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center
                             ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.AccountBalanceWallet,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(
+                                    text = "ACCOUNT",
+                                    style = TextStyle(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                )
                                 Text(
                                     text = selectedAccount.name,
                                     style = TextStyle(
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
+                                        fontSize = 13.sp,
                                         color = MaterialTheme.colorScheme.onSurface
                                     ),
-                                    maxLines = 1,
-                                    modifier = Modifier.weight(1f, fill = false)
+                                    maxLines = 1
                                 )
-                                Icon(
-                                    imageVector = Icons.Outlined.ArrowDropDown,
-                                    contentDescription = "Select Account",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
+                                Text(
+                                    text = "Bal: $currencySymbol${df.format(selectedAccount.balance)}",
+                                    style = TextStyle(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    ),
+                                    maxLines = 1
                                 )
                             }
-                            Text(
-                                text = "Bal: $currencySymbol${df.format(selectedAccount.balance)}",
-                                style = TextStyle(
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowDropDown,
+                                contentDescription = "Select Account",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
@@ -634,51 +655,70 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable(enabled = isBank) { expandedPaymentMenu = true },
-                        contentPadding = PaddingValues(14.dp)
+                        contentPadding = PaddingValues(12.dp)
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text(
-                                text = "PAYMENT METHOD",
-                                style = TextStyle(
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    letterSpacing = 1.sp
-                                )
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center
                             ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.CreditCard,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(
+                                    text = "PAYMENT METHOD",
+                                    style = TextStyle(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                )
                                 Text(
                                     text = selectedPaymentMethod,
                                     style = TextStyle(
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
+                                        fontSize = 13.sp,
                                         color = MaterialTheme.colorScheme.onSurface
                                     ),
-                                    maxLines = 1,
-                                    modifier = Modifier.weight(1f, fill = false)
+                                    maxLines = 1
                                 )
-                                if (isBank) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ArrowDropDown,
-                                        contentDescription = "Select Method",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
+                                Text(
+                                    text = if (isBank) "Select Method" else "Auto-selected",
+                                    style = TextStyle(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    ),
+                                    maxLines = 1
+                                )
                             }
-                            Text(
-                                text = if (isBank) "Select Method" else "Auto-Selected",
-                                style = TextStyle(
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+
+                            if (isBank) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowDropDown,
+                                    contentDescription = "Select Method",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
                                 )
-                            )
+                            }
                         }
                     }
 
