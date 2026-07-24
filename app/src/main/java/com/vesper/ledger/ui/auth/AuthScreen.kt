@@ -618,15 +618,17 @@ fun WelcomeScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Queue 2: Headline Text (Fade + Slide Up)
+                    // Queue 2: Headline Text (Fade + Slide Up - Guaranteed Single Line)
                     Text(
                         text = "Welcome to Vesper",
                         style = androidx.compose.ui.text.TextStyle(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 38.sp,
+                            fontSize = 32.sp,
                             color = textColorPrimary
                         ),
+                        maxLines = 1,
+                        softWrap = false,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .offset(y = headlineOffsetY.value.dp)
