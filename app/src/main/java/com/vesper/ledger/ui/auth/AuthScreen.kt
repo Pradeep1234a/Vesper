@@ -483,8 +483,8 @@ fun WelcomeScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Optical Spacer (1.3f weight shifts Hero block slightly upward for perfect optical focus)
-            Spacer(modifier = Modifier.weight(1.3f))
+            // Top Optical Spacer (1.0f weight shifts Hero block slightly upward for perfect optical focus)
+            Spacer(modifier = Modifier.weight(1.0f))
 
             // Center Hero Welcome Section (Exact mockup optical alignment)
             Column(
@@ -492,7 +492,7 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // High-End Vesper Logo Tile (Exact 85% Fill: 92.dp Asset inside 108.dp Container)
+                // High-End Vesper Logo Tile (Exact 85% Surface Area Fill: 99.6.dp Emblem inside 108.dp Container)
                 Box(
                     modifier = Modifier
                         .size(108.dp)
@@ -507,11 +507,11 @@ fun WelcomeScreen(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_vesper_logo_asset),
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
                         contentDescription = "Vesper Logo",
-                        contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-                        modifier = Modifier.size(92.dp)
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(99.6.dp)
                     )
                 }
 
@@ -549,7 +549,7 @@ fun WelcomeScreen(
             }
 
             // Middle Optical Spacer between Hero Section and Bottom CTA
-            Spacer(modifier = Modifier.weight(1.7f))
+            Spacer(modifier = Modifier.weight(2.0f))
 
             // Bottom Actions Section (Get Started CTA + Sign In Link)
             Column(
