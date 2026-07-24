@@ -9,8 +9,11 @@ data class Account(
     val name: String,
     val type: String, // CASH, BANK, SAVINGS, CREDIT_CARD, DEBIT_CARD, DIGITAL_WALLET, INVESTMENT, LOAN, CUSTOM
     val initialBalance: Double,
-    val currency: String = "USD",
+    val currency: String = "INR",
     val bankInfo: String? = null,
     val notes: String? = null,
-    val iconName: String = "account_balance_wallet"
+    val iconName: String = "account_balance_wallet",
+    val isHidden: Boolean = false,
+    val includeInTotal: Boolean = true,
+    val colorHex: String = "#2563EB"
 )

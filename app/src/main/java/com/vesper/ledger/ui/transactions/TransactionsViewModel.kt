@@ -122,15 +122,36 @@ class TransactionsViewModel(
         }
     }
 
-    fun addNewAccount(name: String, type: String, initialBalance: Double, iconName: String = "account_balance_wallet") {
+    fun addNewAccount(
+        name: String,
+        type: String,
+        initialBalance: Double,
+        iconName: String = "account_balance_wallet",
+        colorHex: String = "#2563EB",
+        includeInTotal: Boolean = true
+    ) {
         viewModelScope.launch {
             val newAccount = Account(
                 name = name,
                 type = type,
                 initialBalance = initialBalance,
-                iconName = iconName
+                iconName = iconName,
+                colorHex = colorHex,
+                includeInTotal = includeInTotal
             )
             accountRepository.insertAccount(newAccount)
+        }
+    }
+
+    fun updateAccount(account: Account) {
+        viewModelScope.launch {
+            accountRepository.updateAccount(account)
+        }
+    }
+
+    fun deleteAccount(account: Account) {
+        viewModelScope.launch {
+            accountRepository.deleteAccount(account)
         }
     }
 

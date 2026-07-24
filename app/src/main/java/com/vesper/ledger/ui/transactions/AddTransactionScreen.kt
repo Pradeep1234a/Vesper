@@ -2,6 +2,7 @@ package com.vesper.ledger.ui.transactions
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -53,10 +55,14 @@ import java.util.Calendar
 import java.util.Locale
 
 data class AccountOption(
+    val id: Long = 0,
     val name: String,
     val type: String, // CASH, BANK, CREDIT_CARD
     val balance: Double,
-    val iconName: String = "account_balance_wallet"
+    val iconName: String = "account_balance_wallet",
+    val colorHex: String = "#2563EB",
+    val includeInTotal: Boolean = true,
+    val isHidden: Boolean = false
 )
 
 val BANK_PAYMENT_METHODS = listOf("UPI / GPay / PhonePe", "Debit Card", "Net Banking", "Bank Transfer")
@@ -86,23 +92,29 @@ fun AddTransactionScreen(
     val dateFormat = SimpleDateFormat("EEE, dd MMM yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
+    // Filter out hidden accounts
     val availableAccounts = remember(accountsList) {
-        if (accountsList.isNotEmpty()) {
-            accountsList.map { acc ->
+        val visible = accountsList.filter { !it.isHidden }
+        if (visible.isNotEmpty()) {
+            visible.map { acc ->
                 AccountOption(
+                    id = acc.id,
                     name = acc.name,
                     type = acc.type,
                     balance = acc.initialBalance,
-                    iconName = acc.iconName
+                    iconName = acc.iconName,
+                    colorHex = acc.colorHex,
+                    includeInTotal = acc.includeInTotal,
+                    isHidden = acc.isHidden
                 )
             }
         } else {
             listOf(
-                AccountOption("Cash Wallet", "CASH", 3420.00, "payments"),
-                AccountOption("HDFC Bank Account", "BANK", 45280.00, "account_balance"),
-                AccountOption("ICICI Bank Account", "BANK", 28150.00, "account_balance"),
-                AccountOption("SBI Bank Account", "BANK", 18900.00, "account_balance"),
-                AccountOption("HDFC Regalia Credit Card", "CREDIT_CARD", 65000.00, "credit_card")
+                AccountOption(1L, "Cash Wallet", "CASH", 3420.00, "payments", "#16A34A"),
+                AccountOption(2L, "HDFC Bank Account", "BANK", 45280.00, "account_balance", "#2563EB"),
+                AccountOption(3L, "ICICI Bank Account", "BANK", 28150.00, "account_balance", "#059669"),
+                AccountOption(4L, "SBI Bank Account", "BANK", 18900.00, "account_balance", "#D97706"),
+                AccountOption(5L, "HDFC Regalia Credit Card", "CREDIT_CARD", 65000.00, "credit_card", "#DC2626")
             )
         }
     }
@@ -114,7 +126,7 @@ fun AddTransactionScreen(
     var isCalculatorExpanded by remember { mutableStateOf(false) }
 
     // Account Modal Bottom Sheet & Selection States
-    var selectedAccount by remember(availableAccounts) { mutableStateOf(availableAccounts.first()) }
+    var selectedAccount by remember(availableAccounts) { mutableStateOf(availableAccounts.firstOrNull() ?: AccountOption(name = "Cash Wallet", type = "CASH", balance = 0.0)) }
     var selectedPaymentMethod by remember { mutableStateOf("Cash") }
     var showAccountBottomSheet by remember { mutableStateOf(false) }
     var showAddAccountDialog by remember { mutableStateOf(false) }
@@ -215,11 +227,18 @@ fun AddTransactionScreen(
         false
     )
 
+    // Category Resolution Fix: Ensure correct default category for Income vs Expense
     val defaultCat = if (selectedType == TransactionType.INCOME) DEFAULT_INCOME_CATEGORIES.first() else DEFAULT_EXPENSE_CATEGORIES.first()
     val category = selectedCategory?.takeIf { it.type == selectedType } ?: defaultCat
 
     val isAmountEntered = amountExpr.isNotBlank() && amountExpr != "0"
-    val amountTextColor = if (isAmountEntered) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+    val amountTextColor = if (isAmountEntered) {
+        if (selectedType == TransactionType.EXPENSE) Color(0xFFEF4444) else if (selectedType == TransactionType.INCOME) Color(0xFF10B981) else MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+    }
+
+    val isValidToSave = evaluateAmount() > 0.0
 
     Scaffold(
         topBar = {
@@ -238,14 +257,21 @@ fun AddTransactionScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     ShButton(
                         text = "Save Transaction",
                         onClick = {
                             val finalAmount = evaluateAmount()
-                            val finalTitle = title.ifBlank { if (selectedType == TransactionType.TRANSFER) "Account Transfer" else category.name }
+                            if (finalAmount <= 0.0) {
+                                Toast.makeText(context, "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show()
+                                return@ShButton
+                            }
+
+                            // Category Name Fallback for Title
+                            val finalTitle = title.ifBlank { category.name }
+
                             onSaveTransaction(
                                 finalTitle,
                                 finalAmount,
@@ -257,11 +283,12 @@ fun AddTransactionScreen(
                                 note
                             )
                         },
-                        containerColor = MaterialTheme.colorScheme.onBackground,
-                        contentColor = MaterialTheme.colorScheme.background,
+                        containerColor = if (isValidToSave) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (isValidToSave) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant,
+                        enabled = isValidToSave,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp)
+                            .height(50.dp)
                     )
                 }
             }
@@ -273,8 +300,8 @@ fun AddTransactionScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // 1. Transaction Type Segmented Switcher (Expense / Income / Transfer)
             Row(
@@ -299,7 +326,7 @@ fun AddTransactionScreen(
                             .clip(RoundedCornerShape(8.dp))
                             .background(if (isSelected) MaterialTheme.colorScheme.onBackground else Color.Transparent)
                             .clickable { selectedType = type }
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 9.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -313,12 +340,12 @@ fun AddTransactionScreen(
                 }
             }
 
-            // 2. Amount Hero Card (Color Roles Based on Amount Typed + Calculator Toggle)
+            // 2. Amount Hero Card (Vibrant Red/Green Color Roles + Keyboard Suppressed when Calculator Open)
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(16.dp)
+                contentPadding = PaddingValues(14.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = "AMOUNT",
                         style = TextStyle(
@@ -345,31 +372,34 @@ fun AddTransactionScreen(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
                                     color = amountTextColor,
-                                    fontSize = 32.sp
+                                    fontSize = 30.sp
                                 )
                             )
                             BasicTextField(
                                 value = amountExpr,
                                 onValueChange = { newValue ->
-                                    if (newValue.isEmpty()) {
-                                        amountExpr = "0"
-                                    } else if (newValue.all { it.isDigit() || it == '.' || it == '+' || it == '-' || it == '×' || it == '÷' || it == '*' || it == '/' }) {
-                                        amountExpr = if (amountExpr == "0" && newValue.length > 1 && !newValue.endsWith(".")) newValue.drop(1) else newValue
+                                    if (!isCalculatorExpanded) {
+                                        if (newValue.isEmpty()) {
+                                            amountExpr = "0"
+                                        } else if (newValue.all { it.isDigit() || it == '.' || it == '+' || it == '-' || it == '×' || it == '÷' || it == '*' || it == '/' }) {
+                                            amountExpr = if (amountExpr == "0" && newValue.length > 1 && !newValue.endsWith(".")) newValue.drop(1) else newValue
+                                        }
                                     }
                                 },
                                 textStyle = TextStyle(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
                                     color = amountTextColor,
-                                    fontSize = 32.sp
+                                    fontSize = 30.sp
                                 ),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 singleLine = true,
+                                readOnly = isCalculatorExpanded,
                                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
                             )
                         }
 
-                        // Calculator Action Button: Refined 40.dp badge with smooth active container color
+                        // Calculator Action Button
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
@@ -396,7 +426,7 @@ fun AddTransactionScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 12.dp)
+                                .padding(top = 10.dp)
                         ) {
                             val keypadRows = listOf(
                                 listOf("7", "8", "9", "÷"),
@@ -416,7 +446,7 @@ fun AddTransactionScreen(
                                         Box(
                                             modifier = Modifier
                                                 .weight(1f)
-                                                .height(44.dp)
+                                                .height(42.dp)
                                                 .clip(RoundedCornerShape(10.dp))
                                                 .background(
                                                     if (key == "=") MaterialTheme.colorScheme.onSurface
@@ -445,7 +475,7 @@ fun AddTransactionScreen(
                 }
             }
 
-            // 3. Title Input Field (With Floating Animated Motion & Non-Black Background Surface)
+            // 3. Title Input Field (Category Name Fallback if Blank)
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -458,7 +488,7 @@ fun AddTransactionScreen(
                 },
                 placeholder = {
                     Text(
-                        text = if (selectedType == TransactionType.INCOME) "e.g., Monthly Salary" else if (selectedType == TransactionType.TRANSFER) "e.g., Savings Transfer" else "e.g., Grocery Shopping",
+                        text = "e.g., ${category.name}",
                         fontFamily = SpaceGroteskFamily,
                         fontSize = 14.sp
                     )
@@ -468,7 +498,7 @@ fun AddTransactionScreen(
                         imageVector = Icons.Outlined.Edit,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -483,13 +513,13 @@ fun AddTransactionScreen(
                 )
             )
 
-            // 4. Category Card (Balanced Hierarchy, Icon Badge & Chevron Action)
+            // 4. Category Card (Vibrant Icon Badges & Selection)
             if (selectedType != TransactionType.TRANSFER) {
                 ShCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onOpenCategorySelection(selectedType, category.name) },
-                    contentPadding = PaddingValues(14.dp)
+                    contentPadding = PaddingValues(12.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -498,11 +528,11 @@ fun AddTransactionScreen(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(42.dp)
+                                    .size(40.dp)
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
                                 contentAlignment = Alignment.Center
@@ -511,7 +541,7 @@ fun AddTransactionScreen(
                                     imageVector = getIconByName(category.iconName),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(22.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
 
@@ -530,7 +560,7 @@ fun AddTransactionScreen(
                                     style = TextStyle(
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp,
+                                        fontSize = 14.sp,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 )
@@ -544,7 +574,7 @@ fun AddTransactionScreen(
                             Text(
                                 text = "Select",
                                 style = TextStyle(
-                                    fontSize = 13.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -553,21 +583,21 @@ fun AddTransactionScreen(
                                 imageVector = Icons.Outlined.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
                 }
             }
 
-            // 5. Account & Payment Method Cards (Modal Bottom Sheet Account Selector)
+            // 5. Account & Payment Method Cards (No Hardcoded Account Fallbacks)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(IntrinsicSize.Max),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Account Card (Opens ModalBottomSheet Account Selector)
+                // Account Card
                 Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                     ShCard(
                         modifier = Modifier
@@ -578,11 +608,11 @@ fun AddTransactionScreen(
                         Row(
                             modifier = Modifier.fillMaxSize(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(38.dp)
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                 contentAlignment = Alignment.Center
@@ -591,7 +621,7 @@ fun AddTransactionScreen(
                                     imageVector = getIconByName(selectedAccount.iconName),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
 
@@ -652,11 +682,11 @@ fun AddTransactionScreen(
                         Row(
                             modifier = Modifier.fillMaxSize(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(38.dp)
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                                 contentAlignment = Alignment.Center
@@ -665,7 +695,7 @@ fun AddTransactionScreen(
                                     imageVector = Icons.Outlined.CreditCard,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
 
@@ -737,9 +767,9 @@ fun AddTransactionScreen(
             // 6. Date & Time Selection Card
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(14.dp)
+                contentPadding = PaddingValues(12.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "DATE & TIME",
                         style = TextStyle(
@@ -754,7 +784,7 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(IntrinsicSize.Max),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         // Date Button Container
                         Box(
@@ -765,17 +795,17 @@ fun AddTransactionScreen(
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
                                 .clickable { datePickerDialog.show() }
-                                .padding(12.dp)
+                                .padding(10.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.CalendarToday,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
                                 Column {
                                     Text("Date", style = TextStyle(fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant))
@@ -793,17 +823,17 @@ fun AddTransactionScreen(
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
                                 .clickable { timePickerDialog.show() }
-                                .padding(12.dp)
+                                .padding(10.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.AccessTime,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
                                 Column {
                                     Text("Time", style = TextStyle(fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant))
@@ -818,9 +848,9 @@ fun AddTransactionScreen(
             // 7. Add Note Card
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(14.dp)
+                contentPadding = PaddingValues(12.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = "ADD NOTE (OPTIONAL)",
                         style = TextStyle(
@@ -839,7 +869,7 @@ fun AddTransactionScreen(
                             imageVector = Icons.Outlined.Notes,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                         BasicTextField(
                             value = note,
@@ -902,7 +932,7 @@ fun AddTransactionScreen(
                             )
                         )
                         Text(
-                            text = "${availableAccounts.size} Accounts Available",
+                            text = "${availableAccounts.size} Active Accounts",
                             style = TextStyle(
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -985,7 +1015,7 @@ fun AddTransactionScreen(
                                             )
                                         )
                                         Text(
-                                            text = "Balance: $currencySymbol${df.format(acc.balance)}",
+                                            text = "Account Balance: $currencySymbol${df.format(acc.balance)}",
                                             style = TextStyle(
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Medium,
@@ -1095,7 +1125,7 @@ fun AddTransactionScreen(
                                 else -> "account_balance"
                             }
                             onAddNewAccount(newAccName, newAccType, bal)
-                            selectedAccount = AccountOption(newAccName, newAccType, bal, icon)
+                            selectedAccount = AccountOption(name = newAccName, type = newAccType, balance = bal, iconName = icon)
                             showAddAccountDialog = false
                             showAccountBottomSheet = false
                             newAccName = ""
