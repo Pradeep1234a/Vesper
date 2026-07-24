@@ -26,10 +26,13 @@ import com.vesper.ledger.ui.update.UpdateDialog
 import com.vesper.ledger.ui.update.UpdateViewModel
 import com.vesper.ledger.ui.update.UpdateViewModelFactory
 
+import androidx.activity.enableEdgeToEdge
+
 class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
             val app = applicationContext as VesperApplication

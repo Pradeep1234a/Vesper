@@ -75,18 +75,23 @@ fun VesperLedgerTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val activity = view.context.let {
+            val activity: Activity? = view.context.let {
                 var ctx = it
                 while (ctx is android.content.ContextWrapper) {
                     if (ctx is Activity) return@let ctx
                     ctx = ctx.baseContext
                 }
                 null
-            } as? Activity
+            }
             if (activity != null) {
                 val window = activity.window
-                window.statusBarColor = colorScheme.background.toArgb()
-                window.navigationBarColor = colorScheme.background.toArgb()
+                val bgColor = colorScheme.background.toArgb()
+                window.statusBarColor = bgColor
+                window.navigationBarColor = bgColor
+                
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    window.isNavigationBarContrastEnforced = false
+                }
                 
                 val windowInsetsController = WindowCompat.getInsetsController(window, view)
                 windowInsetsController.isAppearanceLightStatusBars = !darkTheme
