@@ -479,19 +479,19 @@ fun WelcomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 28.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            // Top Optical Spacer to position Hero at 42% height (matching mockup focus)
+            Spacer(modifier = Modifier.weight(1.2f))
 
-            // Center Hero Welcome Section (Exact mathematical optical alignment)
+            // Center Hero Welcome Section (Exact mockup optical alignment)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // High-End Metallic Vesper Logo Tile (Exact match to reference mockup)
+                // High-End Metallic Vesper Gold Logo Tile (Exact match to Image 2)
                 Box(
                     modifier = Modifier
                         .size(112.dp)
@@ -509,12 +509,12 @@ fun WelcomeScreen(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_launcher_foreground),
                         contentDescription = "Vesper Logo",
-                        tint = if (isDark) Color.White else Color(0xFF0F172A),
-                        modifier = Modifier.size(76.dp)
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(84.dp)
                     )
                 }
 
-                // Exact 28.dp gap between Logo Box and Headline (Optical proportion match)
+                // Exact 28.dp gap between Logo Box and Headline
                 Spacer(modifier = Modifier.height(28.dp))
 
                 Column(
@@ -546,6 +546,9 @@ fun WelcomeScreen(
                     )
                 }
             }
+
+            // Middle Optical Spacer between Hero and Bottom CTA
+            Spacer(modifier = Modifier.weight(1.8f))
 
             // Bottom Actions Section (Get Started CTA + Sign In Link)
             Column(
@@ -602,6 +605,8 @@ fun WelcomeScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 
