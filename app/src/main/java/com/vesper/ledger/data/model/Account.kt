@@ -12,5 +12,6 @@ data class Account(
     val currency: String = "USD",
     val bankInfo: String? = null,
     val notes: String? = null,
-    val iconName: String = "account_balance_wallet"
+    val iconName: String = "account_balance_wallet",
+    val isHidden: Boolean = false
 )

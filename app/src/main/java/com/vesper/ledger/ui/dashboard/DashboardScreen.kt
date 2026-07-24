@@ -89,7 +89,9 @@ fun DashboardScreen(
     onSeeAllTransactionsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSavingsClick: () -> Unit,
-    onAddCategoryClick: () -> Unit = {}
+    onAddCategoryClick: () -> Unit = {},
+    onAccountsClick: () -> Unit = {},
+    onAddTransactionClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -111,7 +113,6 @@ fun DashboardScreen(
         if (name.isEmpty()) "User" else name
     }
 
-    var showAddTxnSheet by remember { mutableStateOf(false) }
     var showScanReceiptDialog by remember { mutableStateOf(false) }
     var showSplitBillDialog by remember { mutableStateOf(false) }
 
@@ -213,7 +214,11 @@ fun DashboardScreen(
                 }
 
                 item {
-                ShCard {
+                ShCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onAccountsClick() }
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -443,7 +448,7 @@ fun DashboardScreen(
                             QuickActionTile(
                                 label = "Add Txn",
                                 icon = Icons.Outlined.AddCircleOutline,
-                                onClick = { showAddTxnSheet = true },
+                                onClick = onAddTransactionClick,
                                 modifier = Modifier.weight(1f)
                             )
                             QuickActionTile(
@@ -963,17 +968,6 @@ fun DashboardScreen(
         }
 
         // Dialogs for Quick Actions
-        if (showAddTxnSheet) {
-            DashboardAddTransactionDialog(
-                currencySymbol = currencySymbol,
-                categories = uiState.categories,
-                onDismissRequest = { showAddTxnSheet = false },
-                onSaveTransaction = { title, amt, type, catId, acct, note ->
-                    viewModel.addTransaction(title, amt, type, catId, acct, note)
-                    Toast.makeText(context, "Transaction saved!", Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
 
         if (showScanReceiptDialog) {
             var scannerStep by remember { mutableStateOf("capture") } // "capture", "processing", "review"
@@ -1028,7 +1022,10 @@ fun DashboardScreen(
                                             amount = group.finalTotal,
                                             type = TransactionType.EXPENSE,
                                             categoryId = catId,
+                                            accountId = 1L,
                                             accountName = committedReceipt.paymentMethod,
+                                            paymentMethod = committedReceipt.paymentMethod,
+                                            dateEpochMillis = System.currentTimeMillis(),
                                             note = "Receipt ${committedReceipt.receiptNumber} • ${group.items.size} items: ${group.items.joinToString { it.name }}"
                                         )
                                     }
@@ -1049,7 +1046,17 @@ fun DashboardScreen(
                 onDismissRequest = { showSplitBillDialog = false },
                 onSaveSplit = { title, myShare ->
                     val defaultCatId = uiState.categories.firstOrNull()?.id ?: 1L
-                    viewModel.addTransaction(title, myShare, TransactionType.EXPENSE, defaultCatId, "Cash", "Split Bill")
+                    viewModel.addTransaction(
+                        title = title,
+                        amount = myShare,
+                        type = TransactionType.EXPENSE,
+                        categoryId = defaultCatId,
+                        accountId = 1L,
+                        accountName = "Cash Wallet",
+                        paymentMethod = "Cash",
+                        dateEpochMillis = System.currentTimeMillis(),
+                        note = "Split Bill"
+                    )
                     Toast.makeText(context, "Split expense saved to ledger!", Toast.LENGTH_SHORT).show()
                 }
             )
@@ -1131,190 +1138,6 @@ private fun QuickActionTile(
 // ─── Dialog Composables for Quick Actions ─────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DashboardAddTransactionDialog(
-    currencySymbol: String,
-    categories: List<com.vesper.ledger.data.model.Category>,
-    onDismissRequest: () -> Unit,
-    onSaveTransaction: (String, Double, TransactionType, Long, String, String) -> Unit
-) {
-    var type by remember { mutableStateOf(TransactionType.EXPENSE) }
-    var amountText by remember { mutableStateOf("") }
-    var titleText by remember { mutableStateOf("") }
-    var selectedCategoryId by remember { mutableStateOf(categories.firstOrNull()?.id ?: 1L) }
-    var accountName by remember { mutableStateOf("Cash / Wallet") }
-    var noteText by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            Button(
-                onClick = {
-                    val amt = amountText.toDoubleOrNull() ?: 0.0
-                    if (amt > 0) {
-                        onSaveTransaction(titleText, amt, type, selectedCategoryId, accountName, noteText)
-                        onDismissRequest()
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(22.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
-                )
-            ) {
-                Text(
-                    text = "Save Transaction",
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
-                )
-            }
-        },
-        dismissButton = null,
-        title = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Add Transaction",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                )
-                IconButton(onClick = onDismissRequest) {
-                    Icon(Icons.Outlined.Close, contentDescription = "Close")
-                }
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                // Segmented Type Selector (Expense vs Income)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                        .padding(4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (type == TransactionType.EXPENSE) MaterialTheme.colorScheme.surface else Color.Transparent)
-                            .clickable { type = TransactionType.EXPENSE },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Expense",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = if (type == TransactionType.EXPENSE) Color(0xFFDC2626) else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (type == TransactionType.INCOME) MaterialTheme.colorScheme.surface else Color.Transparent)
-                            .clickable { type = TransactionType.INCOME },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Income",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = if (type == TransactionType.INCOME) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                }
-
-                // Amount Input Field
-                OutlinedTextField(
-                    value = amountText,
-                    onValueChange = { amountText = it },
-                    label = { Text("Amount ($currencySymbol)", fontFamily = SpaceGroteskFamily) },
-                    placeholder = { Text("0.00") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp)
-                )
-
-                // Title Input Field
-                OutlinedTextField(
-                    value = titleText,
-                    onValueChange = { titleText = it },
-                    label = { Text("Title / Merchant", fontFamily = SpaceGroteskFamily) },
-                    placeholder = { Text("e.g. Coffee, Salary, Groceries") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp)
-                )
-
-                // Category Selector
-                Text(
-                    text = "Category",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    categories.forEach { cat ->
-                        val selected = cat.id == selectedCategoryId
-                        FilterChip(
-                            selected = selected,
-                            onClick = { selectedCategoryId = cat.id },
-                            label = { Text(cat.name, fontFamily = SpaceGroteskFamily, fontSize = 12.sp) },
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                    }
-                }
-
-                // Account Name Input Field
-                OutlinedTextField(
-                    value = accountName,
-                    onValueChange = { accountName = it },
-                    label = { Text("Account", fontFamily = SpaceGroteskFamily) },
-                    placeholder = { Text("Cash / Wallet, Bank, Card") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp)
-                )
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(22.dp)
-    )
-}
-
 @Composable
 private fun DashboardScanReceiptDialog(
     currencySymbol: String,

@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
         Budget::class,
         PaymentMethod::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -103,9 +103,6 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (10, 'Shopping', 'shopping_bag', 'EXPENSE', '#DB2777')")
                 db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (11, 'Healthcare', 'medical_services', 'EXPENSE', '#0D9488')")
                 db.execSQL("INSERT OR IGNORE INTO categories (id, name, iconName, type, colorHex) VALUES (12, 'Other Expense', 'more_horiz', 'EXPENSE', '#71717A')")
-
-                // Default account
-                db.execSQL("INSERT OR IGNORE INTO financial_accounts (id, name, type, initialBalance, currency, bankInfo, notes, iconName) VALUES (1, 'Cash Wallet', 'CASH', 0.0, 'USD', NULL, NULL, 'account_balance_wallet')")
 
                 // Default payment methods
                 db.execSQL("INSERT OR IGNORE INTO payment_methods (id, name, isDefault) VALUES (1, 'Cash', 1)")

@@ -67,6 +67,8 @@ fun MainScreen(
     onSavingsClick: () -> Unit,
     onCategoryManagementClick: () -> Unit,
     onCurrencyClick: () -> Unit = {},
+    onAccountsClick: () -> Unit = {},
+    onAddTransactionClick: () -> Unit = {},
     onSignOutClick: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -319,7 +321,9 @@ fun MainScreen(
                                 restoreState = true
                             }
                         },
-                        onAddCategoryClick = onCategoryManagementClick
+                        onAddCategoryClick = onCategoryManagementClick,
+                        onAccountsClick = onAccountsClick,
+                        onAddTransactionClick = onAddTransactionClick
                     )
                 }
 
@@ -329,7 +333,8 @@ fun MainScreen(
                         viewModel = transactionsViewModel,
                         currencySymbol = currencySymbol,
                         onMenuClick = { scope.launch { drawerState.open() } },
-                        onBackClick = { navController.popBackStack() }
+                        onBackClick = { navController.popBackStack() },
+                        onAddTransactionClick = onAddTransactionClick
                     )
                 }
 

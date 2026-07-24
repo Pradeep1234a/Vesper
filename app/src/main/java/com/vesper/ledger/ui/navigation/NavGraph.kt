@@ -30,6 +30,10 @@ import com.vesper.ledger.ui.category.AddEditCategoryScreen
 import com.vesper.ledger.ui.category.CategoryViewModel
 import com.vesper.ledger.ui.category.CategoryViewModelFactory
 import com.vesper.ledger.data.model.Category
+import com.vesper.ledger.ui.accounts.AccountsScreen
+import com.vesper.ledger.ui.accounts.AddEditAccountScreen
+import com.vesper.ledger.ui.transactions.AddTransactionScreen
+import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.ui.auth.WelcomeScreen
 import com.vesper.ledger.ui.auth.SignInScreen
 import com.vesper.ledger.ui.auth.CreateAccountScreen
@@ -60,6 +64,10 @@ fun NavGraph(
     val categoryViewModel: CategoryViewModel = viewModel(factory = categoryFactory)
 
     val currencySymbol by settingsViewModel.currencySymbol.collectAsState()
+    val accounts by app.accountRepository.allAccounts.collectAsState(initial = emptyList())
+    val paymentMethods by app.accountRepository.allPaymentMethods.collectAsState(initial = emptyList())
+    val transactions by app.transactionRepository.allTransactions.collectAsState(initial = emptyList())
+    val categories by app.transactionRepository.allCategories.collectAsState(initial = emptyList())
 
     NavHost(
         navController = navController,
@@ -83,6 +91,8 @@ fun NavGraph(
                 updateViewModel = updateViewModel,
                 onSavingsClick = { navController.navigate(Screen.Savings.route) },
                 onCategoryManagementClick = { navController.navigate("categories") },
+                onAccountsClick = { navController.navigate("accounts") },
+                onAddTransactionClick = { navController.navigate("add_transaction") },
                 onSignOutClick = {
                     scope.launch(Dispatchers.IO) {
                         val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
@@ -141,6 +151,104 @@ fun NavGraph(
                     onEditCategoryClick = { cat -> editingCategoryState = cat }
                 )
             }
+        }
+
+        composable("accounts") {
+            val scope = rememberCoroutineScope()
+            var editingAccountState by remember { mutableStateOf<Account?>(null) }
+            var isAddingAccount by remember { mutableStateOf(false) }
+
+            if (isAddingAccount || editingAccountState != null) {
+                AddEditAccountScreen(
+                    accountToEdit = editingAccountState,
+                    currencySymbol = currencySymbol,
+                    onBackClick = {
+                        isAddingAccount = false
+                        editingAccountState = null
+                    },
+                    onSaveAccount = { name, type, initialBalance, iconName, notes, isHidden, idToUpdate ->
+                        scope.launch(Dispatchers.IO) {
+                            if (idToUpdate != null) {
+                                app.accountRepository.updateAccount(
+                                    Account(
+                                        id = idToUpdate,
+                                        name = name,
+                                        type = type,
+                                        initialBalance = initialBalance,
+                                        currency = "USD",
+                                        bankInfo = null,
+                                        notes = notes,
+                                        iconName = iconName,
+                                        isHidden = isHidden
+                                    )
+                                )
+                            } else {
+                                app.accountRepository.insertAccount(
+                                    Account(
+                                        name = name,
+                                        type = type,
+                                        initialBalance = initialBalance,
+                                        currency = "USD",
+                                        bankInfo = null,
+                                        notes = notes,
+                                        iconName = iconName,
+                                        isHidden = isHidden
+                                    )
+                                )
+                            }
+                        }
+                    },
+                    onDeleteAccount = { acct ->
+                        scope.launch(Dispatchers.IO) {
+                            app.accountRepository.deleteAccount(acct)
+                        }
+                    }
+                )
+            } else {
+                AccountsScreen(
+                    accounts = accounts,
+                    transactions = transactions,
+                    currencySymbol = currencySymbol,
+                    onBackClick = { navController.popBackStack() },
+                    onAddAccountClick = { isAddingAccount = true },
+                    onEditAccountClick = { acct -> editingAccountState = acct },
+                    onToggleHideAccount = { acct ->
+                        scope.launch(Dispatchers.IO) {
+                            app.accountRepository.updateAccount(acct.copy(isHidden = !acct.isHidden))
+                        }
+                    }
+                )
+            }
+        }
+
+        composable("add_transaction") {
+            val scope = rememberCoroutineScope()
+            AddTransactionScreen(
+                currencySymbol = currencySymbol,
+                categories = categories,
+                accounts = accounts,
+                paymentMethods = paymentMethods,
+                onBackClick = { navController.popBackStack() },
+                onAddCategoryClick = { navController.navigate("categories") },
+                onAddAccountClick = { navController.navigate("accounts") },
+                onSaveTransaction = { title, amount, type, categoryId, accountId, accountName, paymentMethod, dateEpochMillis, note ->
+                    scope.launch(Dispatchers.IO) {
+                        app.transactionRepository.insertTransaction(
+                            com.vesper.ledger.data.model.Transaction(
+                                title = title.ifBlank { if (type == TransactionType.INCOME) "Income" else "Expense" },
+                                amount = amount,
+                                type = type,
+                                categoryId = categoryId,
+                                accountId = accountId,
+                                accountName = accountName,
+                                paymentMethod = paymentMethod,
+                                dateEpochMillis = dateEpochMillis,
+                                note = note
+                            )
+                        )
+                    }
+                }
+            )
         }
 
         composable(Screen.Savings.route) {

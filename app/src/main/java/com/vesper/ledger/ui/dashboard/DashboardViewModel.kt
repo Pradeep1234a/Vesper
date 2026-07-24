@@ -105,7 +105,10 @@ class DashboardViewModel(
         amount: Double,
         type: TransactionType,
         categoryId: Long,
+        accountId: Long,
         accountName: String,
+        paymentMethod: String,
+        dateEpochMillis: Long,
         note: String
     ) {
         viewModelScope.launch {
@@ -114,9 +117,10 @@ class DashboardViewModel(
                 amount = amount,
                 type = type,
                 categoryId = categoryId,
-                accountId = 1L,
-                accountName = accountName.ifBlank { "Cash / Wallet" },
-                dateEpochMillis = System.currentTimeMillis(),
+                accountId = accountId,
+                accountName = accountName.ifBlank { "Cash Wallet" },
+                paymentMethod = paymentMethod.ifBlank { "Cash" },
+                dateEpochMillis = if (dateEpochMillis > 0) dateEpochMillis else System.currentTimeMillis(),
                 note = note
             )
             transactionRepository.insertTransaction(newTx)
