@@ -1,18 +1,13 @@
 package com.vesper.ledger.ui.navigation
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.PieChart
@@ -27,7 +22,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -130,33 +124,17 @@ fun MainScreen(
         Screen.Settings.route
     )
 
-    // Material 3 Motion Specs
-    val tabEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
-        fadeIn(animationSpec = tween(220, easing = LinearOutSlowInEasing))
-    }
-    val tabExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
-        fadeOut(animationSpec = tween(220, easing = FastOutLinearInEasing))
-    }
-
-    // Modal Sheet Creation Screen Animations (Add Transaction, Add Category)
-    val modalEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
-        slideInVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it / 3 } + fadeIn(animationSpec = tween(280))
-    }
-    val modalExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
-        slideOutVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it / 3 } + fadeOut(animationSpec = tween(280))
-    }
-
-    // Sub-screen Navigation Animations (Accounts, Categories, Savings)
-    val pageEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
+    // 100% Uniform Transition Specs Across ALL Screens & Routes
+    val uniformEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
         slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeIn(animationSpec = tween(280))
     }
-    val pageExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
+    val uniformExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
         slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeOut(animationSpec = tween(280))
     }
-    val pagePopEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
+    val uniformPopEnter: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
         slideInHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { -it / 4 } + fadeIn(animationSpec = tween(280))
     }
-    val pagePopExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
+    val uniformPopExit: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
         slideOutHorizontally(animationSpec = tween(280, easing = FastOutSlowInEasing)) { it } + fadeOut(animationSpec = tween(280))
     }
 
@@ -282,17 +260,17 @@ fun MainScreen(
                 navController = navController,
                 startDestination = Screen.Dashboard.route,
                 modifier = Modifier.padding(innerPadding),
-                enterTransition = tabEnter,
-                exitTransition = tabExit,
-                popEnterTransition = tabEnter,
-                popExitTransition = tabExit
+                enterTransition = uniformEnter,
+                exitTransition = uniformExit,
+                popEnterTransition = uniformPopEnter,
+                popExitTransition = uniformPopExit
             ) {
                 composable(
                     route = Screen.Dashboard.route,
-                    enterTransition = tabEnter,
-                    exitTransition = tabExit,
-                    popEnterTransition = tabEnter,
-                    popExitTransition = tabExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     val dashboardViewModel: DashboardViewModel = viewModel(factory = dashboardFactory)
                     DashboardScreen(
@@ -329,10 +307,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.Transactions.route,
-                    enterTransition = tabEnter,
-                    exitTransition = tabExit,
-                    popEnterTransition = tabEnter,
-                    popExitTransition = tabExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
                     TransactionsScreen(
@@ -348,10 +326,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.AddTransaction.route,
-                    enterTransition = modalEnter,
-                    exitTransition = modalExit,
-                    popEnterTransition = modalEnter,
-                    popExitTransition = modalExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
                     val dbAccounts by transactionsViewModel.dbAccounts.collectAsState()
@@ -384,10 +362,10 @@ fun MainScreen(
                 composable(
                     route = "${Screen.CategorySelection.route}?type={type}",
                     arguments = listOf(androidx.navigation.navArgument("type") { defaultValue = TransactionType.EXPENSE.name }),
-                    enterTransition = pageEnter,
-                    exitTransition = pageExit,
-                    popEnterTransition = pagePopEnter,
-                    popExitTransition = pagePopExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) { backStackEntry ->
                     val typeStr = backStackEntry.arguments?.getString("type") ?: TransactionType.EXPENSE.name
                     val categoryType = try { TransactionType.valueOf(typeStr) } catch (e: Exception) { TransactionType.EXPENSE }
@@ -405,10 +383,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.Accounts.route,
-                    enterTransition = pageEnter,
-                    exitTransition = pageExit,
-                    popEnterTransition = pagePopEnter,
-                    popExitTransition = pagePopExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     val transactionsViewModel: TransactionsViewModel = viewModel(factory = transactionsFactory)
                     val dbAccounts by transactionsViewModel.dbAccounts.collectAsState()
@@ -431,10 +409,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.Categories.route,
-                    enterTransition = pageEnter,
-                    exitTransition = pageExit,
-                    popEnterTransition = pagePopEnter,
-                    popExitTransition = pagePopExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     val categoryViewModel: com.vesper.ledger.ui.category.CategoryViewModel = viewModel(factory = categoryFactory)
                     com.vesper.ledger.ui.category.CategoriesScreen(
@@ -453,10 +431,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.AddCategory.route,
-                    enterTransition = modalEnter,
-                    exitTransition = modalExit,
-                    popEnterTransition = modalEnter,
-                    popExitTransition = modalExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     val categoryViewModel: com.vesper.ledger.ui.category.CategoryViewModel = viewModel(factory = categoryFactory)
                     com.vesper.ledger.ui.categories.AddEditCategoryScreen(
@@ -476,10 +454,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.Budgets.route,
-                    enterTransition = tabEnter,
-                    exitTransition = tabExit,
-                    popEnterTransition = tabEnter,
-                    popExitTransition = tabExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     val budgetsViewModel: BudgetsViewModel = viewModel(factory = budgetsFactory)
                     BudgetScreen(
@@ -491,10 +469,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.Savings.route,
-                    enterTransition = pageEnter,
-                    exitTransition = pageExit,
-                    popEnterTransition = pagePopEnter,
-                    popExitTransition = pagePopExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     val savingsViewModel: SavingsViewModel = viewModel(factory = savingsFactory)
                     SavingsScreen(
@@ -506,10 +484,10 @@ fun MainScreen(
 
                 composable(
                     route = Screen.Settings.route,
-                    enterTransition = tabEnter,
-                    exitTransition = tabExit,
-                    popEnterTransition = tabEnter,
-                    popExitTransition = tabExit
+                    enterTransition = uniformEnter,
+                    exitTransition = uniformExit,
+                    popEnterTransition = uniformPopEnter,
+                    popExitTransition = uniformPopExit
                 ) {
                     SettingsScreen(
                         viewModel = settingsViewModel,
