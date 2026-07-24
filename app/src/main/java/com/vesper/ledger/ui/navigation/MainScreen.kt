@@ -402,6 +402,9 @@ fun MainScreen(
                             navController.navigate("${Screen.CategorySelection.route}?type=${type.name}")
                         },
                         selectedCategory = activeSelectedCategory,
+                        onAddNewAccount = { name, type, bal ->
+                            transactionsViewModel.addNewAccount(name, type, bal)
+                        },
                         onSaveTransaction = { title, amount, type, categoryId, dateEpochMillis, accountName, paymentMethod, note ->
                             transactionsViewModel.addTransaction(
                                 title = title,

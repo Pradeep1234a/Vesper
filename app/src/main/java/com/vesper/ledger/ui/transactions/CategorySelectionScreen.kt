@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ChildHeader
+import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
@@ -76,12 +77,21 @@ fun CategorySelectionScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
-    val categoriesToDisplay = remember(initialType, searchQuery) {
-        val list = if (initialType == TransactionType.INCOME) DEFAULT_INCOME_CATEGORIES else DEFAULT_EXPENSE_CATEGORIES
+    val categoryList = remember(initialType) {
+        if (initialType == TransactionType.INCOME) DEFAULT_INCOME_CATEGORIES else DEFAULT_EXPENSE_CATEGORIES
+    }
+
+    val initialSelected = remember(selectedCategoryName, categoryList) {
+        categoryList.find { it.name.equals(selectedCategoryName, ignoreCase = true) } ?: categoryList.first()
+    }
+
+    var selectedCat by remember { mutableStateOf(initialSelected) }
+
+    val categoriesToDisplay = remember(categoryList, searchQuery) {
         if (searchQuery.isBlank()) {
-            list
+            categoryList
         } else {
-            list.filter { it.name.contains(searchQuery, ignoreCase = true) || it.description.contains(searchQuery, ignoreCase = true) }
+            categoryList.filter { it.name.contains(searchQuery, ignoreCase = true) || it.description.contains(searchQuery, ignoreCase = true) }
         }
     }
 
@@ -91,6 +101,30 @@ fun CategorySelectionScreen(
                 title = "Select ${if (initialType == TransactionType.INCOME) "Income" else "Expense"} Category",
                 onBackClick = onBackClick
             )
+        },
+        bottomBar = {
+            Surface(
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ShButton(
+                        text = "Select Category",
+                        onClick = { onCategorySelected(selectedCat) },
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                    )
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
@@ -129,10 +163,10 @@ fun CategorySelectionScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 32.dp)
+                contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(categoriesToDisplay) { cat ->
-                    val isSelected = cat.name.equals(selectedCategoryName, ignoreCase = true)
+                    val isSelected = cat.id == selectedCat.id
 
                     ShCard(
                         modifier = Modifier
@@ -142,7 +176,7 @@ fun CategorySelectionScreen(
                                 color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outlineVariant,
                                 shape = RoundedCornerShape(14.dp)
                             )
-                            .clickable { onCategorySelected(cat) },
+                            .clickable { selectedCat = cat },
                         contentPadding = PaddingValues(14.dp)
                     ) {
                         Row(

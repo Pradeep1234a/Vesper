@@ -72,21 +72,28 @@ fun VesperTopBar(
             Spacer(modifier = Modifier.width(12.dp))
         }
 
-        Text(
-            text = title,
-            style = TextStyle(
-                fontFamily = SpaceGroteskFamily,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                platformStyle = PlatformTextStyle(
-                    includeFontPadding = false
-                )
-            ),
-            modifier = Modifier
-                .weight(1f)
-                .then(if (!showLogo && onNavigationClick == null) Modifier.padding(start = 16.dp) else Modifier)
-        )
+        androidx.compose.animation.AnimatedContent(
+            targetState = title,
+            transitionSpec = {
+                androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(220)) togetherWith androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220))
+            },
+            label = "TopBarTitleAnimation",
+            modifier = Modifier.weight(1f)
+        ) { targetTitle ->
+            Text(
+                text = targetTitle,
+                style = TextStyle(
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    platformStyle = PlatformTextStyle(
+                        includeFontPadding = false
+                    )
+                ),
+                modifier = Modifier.then(if (!showLogo && onNavigationClick == null) Modifier.padding(start = 16.dp) else Modifier)
+            )
+        }
 
         if (actions != null) {
             Row(

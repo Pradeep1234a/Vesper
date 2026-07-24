@@ -7,6 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,9 +16,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -65,6 +69,7 @@ fun AddTransactionScreen(
     onBackClick: () -> Unit,
     onOpenCategorySelection: (TransactionType, String) -> Unit,
     selectedCategory: CategoryOption?,
+    onAddNewAccount: (name: String, type: String, initialBalance: Double) -> Unit = { _, _, _ -> },
     onSaveTransaction: (
         title: String,
         amount: Double,
@@ -108,11 +113,17 @@ fun AddTransactionScreen(
     var amountExpr by remember { mutableStateOf("0") }
     var isCalculatorExpanded by remember { mutableStateOf(false) }
 
-    // Account & Payment Method Dropdown States
+    // Account Modal Bottom Sheet & Selection States
     var selectedAccount by remember(availableAccounts) { mutableStateOf(availableAccounts.first()) }
     var selectedPaymentMethod by remember { mutableStateOf("Cash") }
-    var expandedAccountMenu by remember { mutableStateOf(false) }
+    var showAccountBottomSheet by remember { mutableStateOf(false) }
+    var showAddAccountDialog by remember { mutableStateOf(false) }
     var expandedPaymentMenu by remember { mutableStateOf(false) }
+
+    // Add Account Dialog Form Inputs
+    var newAccName by remember { mutableStateOf("") }
+    var newAccType by remember { mutableStateOf("BANK") }
+    var newAccBalance by remember { mutableStateOf("") }
 
     var note by remember { mutableStateOf("") }
 
@@ -207,6 +218,9 @@ fun AddTransactionScreen(
     val defaultCat = if (selectedType == TransactionType.INCOME) DEFAULT_INCOME_CATEGORIES.first() else DEFAULT_EXPENSE_CATEGORIES.first()
     val category = selectedCategory?.takeIf { it.type == selectedType } ?: defaultCat
 
+    val isAmountEntered = amountExpr.isNotBlank() && amountExpr != "0"
+    val amountTextColor = if (isAmountEntered) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+
     Scaffold(
         topBar = {
             ChildHeader(
@@ -299,7 +313,7 @@ fun AddTransactionScreen(
                 }
             }
 
-            // 2. Amount Hero Card (System Keyboard Editable + Inline Calculator Trigger)
+            // 2. Amount Hero Card (Color Roles Based on Amount Typed + Calculator Toggle)
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(16.dp)
@@ -330,7 +344,7 @@ fun AddTransactionScreen(
                                 style = TextStyle(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = amountTextColor,
                                     fontSize = 32.sp
                                 )
                             )
@@ -346,7 +360,7 @@ fun AddTransactionScreen(
                                 textStyle = TextStyle(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = amountTextColor,
                                     fontSize = 32.sp
                                 ),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -355,10 +369,10 @@ fun AddTransactionScreen(
                             )
                         }
 
-                        // Calculator Action Button: Matching text height with 42.dp size container & 22.dp icon
+                        // Calculator Action Button: Refined 40.dp badge with smooth active container color
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
+                                .size(40.dp)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     if (isCalculatorExpanded) MaterialTheme.colorScheme.onSurface
@@ -371,7 +385,7 @@ fun AddTransactionScreen(
                                 imageVector = Icons.Filled.Calculate,
                                 contentDescription = "Calculator",
                                 tint = if (isCalculatorExpanded) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -546,19 +560,19 @@ fun AddTransactionScreen(
                 }
             }
 
-            // 5. Account & Payment Method Cards (Identical Height & Symmetric Grid)
+            // 5. Account & Payment Method Cards (Modal Bottom Sheet Account Selector)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Account Card
+                // Account Card (Opens ModalBottomSheet Account Selector)
                 Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                     ShCard(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clickable { expandedAccountMenu = true },
+                            .clickable { showAccountBottomSheet = true },
                         contentPadding = PaddingValues(12.dp)
                     ) {
                         Row(
@@ -574,7 +588,7 @@ fun AddTransactionScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Outlined.AccountBalanceWallet,
+                                    imageVector = getIconByName(selectedAccount.iconName),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(20.dp)
@@ -621,26 +635,6 @@ fun AddTransactionScreen(
                                 contentDescription = "Select Account",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-
-                    DropdownMenu(
-                        expanded = expandedAccountMenu,
-                        onDismissRequest = { expandedAccountMenu = false }
-                    ) {
-                        availableAccounts.forEach { acc ->
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(acc.name, fontWeight = FontWeight.Bold)
-                                        Text("Bal: $currencySymbol${df.format(acc.balance)}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                },
-                                onClick = {
-                                    selectedAccount = acc
-                                    expandedAccountMenu = false
-                                }
                             )
                         }
                     }
@@ -740,7 +734,7 @@ fun AddTransactionScreen(
                 }
             }
 
-            // 6. Date & Time Selection Card (Identical Height Picker Buttons)
+            // 6. Date & Time Selection Card
             ShCard(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(14.dp)
@@ -877,5 +871,246 @@ fun AddTransactionScreen(
                 }
             }
         }
+    }
+
+    // ─── Modal Bottom Sheet Account Selector ─────────────────────────
+    if (showAccountBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showAccountBottomSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Select Account",
+                            style = TextStyle(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        Text(
+                            text = "${availableAccounts.size} Accounts Available",
+                            style = TextStyle(
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+
+                    // Add New Account Action Button
+                    TextButton(
+                        onClick = { showAddAccountDialog = true }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Text("Add Account", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
+                    items(availableAccounts) { acc ->
+                        val isSelected = acc.name.equals(selectedAccount.name, ignoreCase = true)
+
+                        ShCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    width = if (isSelected) 1.5.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outlineVariant,
+                                    shape = RoundedCornerShape(14.dp)
+                                )
+                                .clickable {
+                                    selectedAccount = acc
+                                    showAccountBottomSheet = false
+                                },
+                            contentPadding = PaddingValues(14.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(42.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(
+                                                if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(acc.iconName),
+                                            contentDescription = null,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+
+                                    Column {
+                                        Text(
+                                            text = acc.name,
+                                            style = TextStyle(
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 15.sp,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        )
+                                        Text(
+                                            text = "Balance: $currencySymbol${df.format(acc.balance)}",
+                                            style = TextStyle(
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        )
+                                    }
+                                }
+
+                                if (isSelected) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.onBackground),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.background,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ─── Add New Account Dialog ──────────────────────────────────────
+    if (showAddAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddAccountDialog = false },
+            title = {
+                Text(
+                    text = "Add New Account",
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = newAccName,
+                        onValueChange = { newAccName = it },
+                        label = { Text("Account Name") },
+                        placeholder = { Text("e.g., Paytm Wallet, Axis Bank") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = newAccBalance,
+                        onValueChange = { newAccBalance = it },
+                        label = { Text("Initial Balance ($currencySymbol)") },
+                        placeholder = { Text("0.00") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = "Account Type",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        listOf("CASH", "BANK", "CREDIT_CARD").forEach { type ->
+                            val isSel = newAccType == type
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSel) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                    .clickable { newAccType = type }
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = type.replace("_", " "),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSel) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val bal = newAccBalance.toDoubleOrNull() ?: 0.0
+                        if (newAccName.isNotBlank()) {
+                            val icon = when (newAccType) {
+                                "CASH" -> "payments"
+                                "CREDIT_CARD" -> "credit_card"
+                                else -> "account_balance"
+                            }
+                            onAddNewAccount(newAccName, newAccType, bal)
+                            selectedAccount = AccountOption(newAccName, newAccType, bal, icon)
+                            showAddAccountDialog = false
+                            showAccountBottomSheet = false
+                            newAccName = ""
+                            newAccBalance = ""
+                        }
+                    }
+                ) {
+                    Text("Save Account", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddAccountDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

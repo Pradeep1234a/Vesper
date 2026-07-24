@@ -107,6 +107,30 @@ class TransactionsViewModel(
                 accountName = accountName
             )
             transactionRepository.insertTransaction(tx)
+
+            // Dynamic account balance update
+            val currentAccounts = dbAccounts.value
+            val targetAccount = currentAccounts.find { it.name.equals(accountName, ignoreCase = true) }
+            if (targetAccount != null) {
+                val updatedBalance = when (type) {
+                    TransactionType.EXPENSE -> targetAccount.initialBalance - amount
+                    TransactionType.INCOME -> targetAccount.initialBalance + amount
+                    TransactionType.TRANSFER -> targetAccount.initialBalance - amount
+                }
+                accountRepository.updateAccount(targetAccount.copy(initialBalance = updatedBalance))
+            }
+        }
+    }
+
+    fun addNewAccount(name: String, type: String, initialBalance: Double, iconName: String = "account_balance_wallet") {
+        viewModelScope.launch {
+            val newAccount = Account(
+                name = name,
+                type = type,
+                initialBalance = initialBalance,
+                iconName = iconName
+            )
+            accountRepository.insertAccount(newAccount)
         }
     }
 
