@@ -603,7 +603,7 @@ fun WelcomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = buttonBgColor,
                         contentColor = buttonTextColor
