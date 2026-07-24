@@ -482,8 +482,8 @@ fun WelcomeScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Optical Spacer to position Hero at 42% height (matching mockup focus)
-            Spacer(modifier = Modifier.weight(1.2f))
+            // Top Optical Spacer (1.8f weight pulls Hero block down into optical center)
+            Spacer(modifier = Modifier.weight(1.8f))
 
             // Center Hero Welcome Section (Exact mockup optical alignment)
             Column(
@@ -491,18 +491,18 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // High-End Metallic Vesper Gold Logo Tile (Exact match to Image 2)
+                // High-End Vesper Logo Tile (Prominent 88.dp Emblem inside 108.dp Squercle Container)
                 Box(
                     modifier = Modifier
-                        .size(112.dp)
-                        .clip(RoundedCornerShape(28.dp))
+                        .size(108.dp)
+                        .clip(RoundedCornerShape(26.dp))
                         .background(logoBoxBg)
                         .border(
                             BorderStroke(
                                 width = 1.5.dp,
                                 brush = logoBorderBrush
                             ),
-                            shape = RoundedCornerShape(28.dp)
+                            shape = RoundedCornerShape(26.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -510,12 +510,12 @@ fun WelcomeScreen(
                         painter = painterResource(id = R.drawable.ic_launcher_foreground),
                         contentDescription = "Vesper Logo",
                         tint = Color.Unspecified,
-                        modifier = Modifier.size(84.dp)
+                        modifier = Modifier.size(88.dp)
                     )
                 }
 
-                // Exact 28.dp gap between Logo Box and Headline
-                Spacer(modifier = Modifier.height(28.dp))
+                // 24.dp gap between Logo Box Tile and Headline
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -547,14 +547,14 @@ fun WelcomeScreen(
                 }
             }
 
-            // Middle Optical Spacer between Hero and Bottom CTA
-            Spacer(modifier = Modifier.weight(1.8f))
+            // Middle Optical Spacer between Hero Section and Bottom CTA
+            Spacer(modifier = Modifier.weight(1.2f))
 
             // Bottom Actions Section (Get Started CTA + Sign In Link)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Primary CTA: Get Started Button
                 Button(

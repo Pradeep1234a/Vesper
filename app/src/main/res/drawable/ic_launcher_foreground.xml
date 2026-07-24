@@ -1,69 +1,23 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Stylized Gold Vesper "V" Emblem (Exact Match to Mockup Image 2) -->
-    
-    <!-- 1. Outer V Shell & Top Fold -->
-    <path
-        android:strokeWidth="4"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M 30,32 C 30,28 36,28 40,28 L 56,52 L 48,76 L 78,24">
-        <aapt:attr name="android:strokeColor">
-            <gradient
-                android:startX="30"
-                android:startY="24"
-                android:endX="78"
-                android:endY="76"
-                android:type="linear">
-                <item android:offset="0.0" android:color="#FFF59D" />
-                <item android:offset="0.5" android:color="#FBC02D" />
-                <item android:offset="1.0" android:color="#F57F17" />
-            </gradient>
-        </aapt:attr>
-    </path>
+    <!-- Official White 3-Wing Vesper Emblem (Exact Match to Image 2 & Mockup) -->
 
-    <!-- 2. Inner Parallel Wing 1 -->
+    <!-- Top Wing Leaf -->
     <path
-        android:strokeWidth="3.5"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M 48,76 L 68,36">
-        <aapt:attr name="android:strokeColor">
-            <gradient
-                android:startX="48"
-                android:startY="36"
-                android:endX="68"
-                android:endY="76"
-                android:type="linear">
-                <item android:offset="0.0" android:color="#FFF59D" />
-                <item android:offset="0.5" android:color="#FBC02D" />
-                <item android:offset="1.0" android:color="#F57F17" />
-            </gradient>
-        </aapt:attr>
-    </path>
+        android:fillColor="#FFFFFF"
+        android:pathData="M 66.5,24 C 66.5,24 50,38.5 44,53 C 40.5,61.5 39,69 38.5,74.5 C 44,64 53.5,51.5 65.5,43 C 70.5,39.5 73,34.5 73,34.5 C 73,34.5 70,28.5 66.5,24 Z" />
 
-    <!-- 3. Inner Parallel Wing 2 -->
+    <!-- Middle Wing Leaf -->
     <path
-        android:strokeWidth="3.5"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M 48,60 L 73,28">
-        <aapt:attr name="android:strokeColor">
-            <gradient
-                android:startX="48"
-                android:startY="28"
-                android:endX="73"
-                android:endY="60"
-                android:type="linear">
-                <item android:offset="0.0" android:color="#FFF59D" />
-                <item android:offset="0.5" android:color="#FBC02D" />
-                <item android:offset="1.0" android:color="#F57F17" />
-            </gradient>
-        </aapt:attr>
-    </path>
+        android:fillColor="#FFFFFF"
+        android:pathData="M 72.5,39 C 72.5,39 54,52.5 47,67 C 43.5,75 42,82 41.5,87.5 C 47,77 56.5,64.5 68.5,56 C 73.5,52.5 76,47.5 76,47.5 C 76,47.5 75,42.5 72.5,39 Z" />
+
+    <!-- Bottom Wing Leaf -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 78.5,54 C 78.5,54 58,66.5 50,81 C 46.5,88.5 45,94.5 44.5,99 C 50,89 59.5,76.5 71.5,68 C 76.5,64.5 79,59.5 79,59.5 C 79,59.5 81,57.5 78.5,54 Z" />
 </vector>
