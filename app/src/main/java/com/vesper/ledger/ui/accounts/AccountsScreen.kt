@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
@@ -186,6 +188,7 @@ fun AccountsScreen(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 ShButton(
+                                    text = "+ Add Account",
                                     onClick = {
                                         nameInput = ""
                                         typeInput = "BANK"
@@ -194,11 +197,7 @@ fun AccountsScreen(
                                         includeInTotalInput = true
                                         showAddDialog = true
                                     }
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Add Account", fontWeight = FontWeight.Bold)
-                                }
+                                )
                             }
                         }
                     }

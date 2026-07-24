@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.Toast
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,13 +23,13 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Notes
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -265,6 +266,7 @@ fun AddTransactionScreen(
                         .navigationBarsPadding()
                 ) {
                     ShButton(
+                        text = "Save Transaction",
                         onClick = {
                             val acc = selectedAccount
                             if (acc == null) {
@@ -299,16 +301,7 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
-                    ) {
-                        Text(
-                            text = "Save Transaction",
-                            style = TextStyle(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                        )
-                    }
+                    )
                 }
             }
         },
@@ -355,7 +348,7 @@ fun AddTransactionScreen(
                                 )
                             }
                         }
-                        ShButton(
+                        Button(
                             onClick = { showAddAccountDialog = true },
                             modifier = Modifier.height(36.dp),
                             shape = RoundedCornerShape(10.dp),
