@@ -445,9 +445,35 @@ fun WelcomeScreen(
     onSignInClick: () -> Unit
 ) {
     var activeDialog by remember { mutableStateOf<String?>(null) }
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+
+    val backgroundColor = if (isDark) Color(0xFF09090B) else Color(0xFFF8FAFC)
+    val textColorPrimary = if (isDark) Color.White else Color(0xFF0F172A)
+    val textColorSecondary = if (isDark) Color(0xFFA1A1AA) else Color(0xFF64748B)
+
+    val logoBoxBg = if (isDark) {
+        Brush.verticalGradient(colors = listOf(Color(0xFF2A2A30), Color(0xFF141416)))
+    } else {
+        Brush.verticalGradient(colors = listOf(Color(0xFFFFFFFF), Color(0xFFF1F5F9)))
+    }
+
+    val logoBorderBrush = if (isDark) {
+        Brush.verticalGradient(colors = listOf(Color(0xFF4A4A52), Color(0xFF222226)))
+    } else {
+        Brush.verticalGradient(colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1)))
+    }
+
+    val logoEmblemBrush = if (isDark) {
+        Brush.verticalGradient(colors = listOf(Color(0xFFFFFFFF), Color(0xFFE2E8F0), Color(0xFF94A3B8)))
+    } else {
+        Brush.verticalGradient(colors = listOf(Color(0xFF0F172A), Color(0xFF334155), Color(0xFF475569)))
+    }
+
+    val buttonBgColor = if (isDark) Color.White else Color(0xFF0F172A)
+    val buttonTextColor = if (isDark) Color.Black else Color.White
 
     Scaffold(
-        containerColor = Color(0xFF09090B)
+        containerColor = backgroundColor
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -459,34 +485,22 @@ fun WelcomeScreen(
         ) {
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Center Hero Welcome Section (Matching reference mockup image)
+            // Center Hero Welcome Section
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(28.dp)
             ) {
-                // High-End Metallic Vesper Logo Tile (Exact match to reference image)
+                // High-End Metallic Vesper Logo Tile (Adaptive Light/Dark)
                 Box(
                     modifier = Modifier
                         .size(112.dp)
                         .clip(RoundedCornerShape(28.dp))
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF2A2A30),
-                                    Color(0xFF141416)
-                                )
-                            )
-                        )
+                        .background(logoBoxBg)
                         .border(
                             BorderStroke(
                                 width = 1.5.dp,
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFF4A4A52),
-                                        Color(0xFF222226)
-                                    )
-                                )
+                                brush = logoBorderBrush
                             ),
                             shape = RoundedCornerShape(28.dp)
                         ),
@@ -496,13 +510,6 @@ fun WelcomeScreen(
                         val w = size.width
                         val h = size.height
                         val strokeW = 4.dp.toPx()
-                        val logoBrush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFFFFFFFF),
-                                Color(0xFFE2E8F0),
-                                Color(0xFF94A3B8)
-                            )
-                        )
 
                         // Left main diagonal stem of "V"
                         val pathLeft = Path().apply {
@@ -511,7 +518,7 @@ fun WelcomeScreen(
                         }
                         drawPath(
                             path = pathLeft,
-                            brush = logoBrush,
+                            brush = logoEmblemBrush,
                             style = Stroke(width = strokeW + 1.5f, cap = StrokeCap.Round)
                         )
 
@@ -522,7 +529,7 @@ fun WelcomeScreen(
                         }
                         drawPath(
                             path = pathWing1,
-                            brush = logoBrush,
+                            brush = logoEmblemBrush,
                             style = Stroke(width = strokeW, cap = StrokeCap.Round)
                         )
 
@@ -533,7 +540,7 @@ fun WelcomeScreen(
                         }
                         drawPath(
                             path = pathWing2,
-                            brush = logoBrush,
+                            brush = logoEmblemBrush,
                             style = Stroke(width = strokeW, cap = StrokeCap.Round)
                         )
 
@@ -544,7 +551,7 @@ fun WelcomeScreen(
                         }
                         drawPath(
                             path = pathWing3,
-                            brush = logoBrush,
+                            brush = logoEmblemBrush,
                             style = Stroke(width = strokeW, cap = StrokeCap.Round)
                         )
                     }
@@ -562,7 +569,7 @@ fun WelcomeScreen(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Normal,
                             fontSize = 34.sp,
-                            color = Color.White
+                            color = textColorPrimary
                         ),
                         textAlign = TextAlign.Center
                     )
@@ -573,7 +580,7 @@ fun WelcomeScreen(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Normal,
                             fontSize = 15.sp,
-                            color = Color(0xFFA1A1AA),
+                            color = textColorSecondary,
                             lineHeight = 22.sp
                         ),
                         textAlign = TextAlign.Center,
@@ -588,7 +595,7 @@ fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                // Primary CTA: Get Started (White rounded pill button)
+                // Primary CTA: Get Started Button
                 Button(
                     onClick = onCreateAccountClick,
                     modifier = Modifier
@@ -596,8 +603,8 @@ fun WelcomeScreen(
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
+                        containerColor = buttonBgColor,
+                        contentColor = buttonTextColor
                     )
                 ) {
                     Text(
@@ -606,7 +613,7 @@ fun WelcomeScreen(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
-                            color = Color.Black
+                            color = buttonTextColor
                         )
                     )
                 }
@@ -622,7 +629,7 @@ fun WelcomeScreen(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Normal,
                             fontSize = 13.sp,
-                            color = Color(0xFFA1A1AA)
+                            color = textColorSecondary
                         )
                     )
                     Text(
@@ -631,7 +638,7 @@ fun WelcomeScreen(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
-                            color = Color.White
+                            color = textColorPrimary
                         ),
                         modifier = Modifier.clickable { onSignInClick() }
                     )
