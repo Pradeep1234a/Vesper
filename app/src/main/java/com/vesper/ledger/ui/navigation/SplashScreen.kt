@@ -38,11 +38,11 @@ import kotlinx.coroutines.launch
 fun SplashScreen(
     onNavigateNext: (String) -> Unit
 ) {
-    // Standalone 150.dp Emblem Logo Scale & Alpha (starts small 0.6f -> 1.0f -> morphs to 0.6833f)
+    // Big Standalone 220.dp Emblem Logo Scale & Alpha
     val logoScale = remember { Animatable(0.6f) }
     val logoAlpha = remember { Animatable(0f) }
     
-    // Squercle Box Container Alpha (starts hidden 0f -> fades in 1f during exit transition)
+    // Squercle Box Container Alpha (fades in 0f -> 1f during exit transition)
     val containerAlpha = remember { Animatable(0f) }
 
     val context = LocalContext.current
@@ -90,7 +90,7 @@ fun SplashScreen(
         // 1. Initial short pause (screen opens clean with no logo visible — 100ms)
         delay(100)
 
-        // 2. Entrance Phase: Standalone 150.dp emblem logo fades in & scales up (500ms)
+        // 2. Entrance Phase: Big standalone 220.dp emblem logo fades in & scales up at true center (500ms)
         launch {
             logoAlpha.animateTo(
                 targetValue = 1.0f,
@@ -102,12 +102,12 @@ fun SplashScreen(
             animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
         )
 
-        // Hold standalone 150.dp logo centered on screen (400ms)
+        // Hold big standalone 220.dp logo centered on screen (400ms)
         delay(400)
 
-        // 3. Morph/Exit Phase: 150.dp logo scales down to 102.5.dp size (0.6833f scale)
+        // 3. Exit Phase: 220.dp logo scales down to 102.5.dp size (0.4659f scale)
         //    WHILE squercle box container smoothly fades in around it (500ms)!
-        val targetScale = 102.5f / 150.0f // 0.6833333f
+        val targetScale = 102.5f / 220.0f // 0.4659f
         launch {
             containerAlpha.animateTo(
                 targetValue = 1.0f,
@@ -130,62 +130,45 @@ fun SplashScreen(
     Scaffold(
         containerColor = backgroundColor
     ) { innerPadding ->
-        Column(
+        // Dead center screen alignment without invisible placeholders
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
         ) {
-            // Exact identical top spacer (1.8f weight) matching WelcomeScreen vertical position
-            Spacer(modifier = Modifier.weight(1.8f))
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+            // Hero Logo Container Box Tile (108.dp squercle container fades in during transition)
+            Box(
+                modifier = Modifier.size(108.dp),
+                contentAlignment = Alignment.Center
             ) {
-                // Hero Logo Container Tile (108.dp squercle container fades in during transition)
+                // Squercle Container Background + Border (Fades in from 0f -> 1f during exit transition)
                 Box(
-                    modifier = Modifier.size(108.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Squercle Container Background + Border (Fades in from 0f -> 1f during exit transition)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .alpha(containerAlpha.value)
-                            .clip(RoundedCornerShape(26.dp))
-                            .background(logoBoxBg)
-                            .border(
-                                BorderStroke(
-                                    width = 1.5.dp,
-                                    brush = logoBorderBrush
-                                ),
-                                shape = RoundedCornerShape(26.dp)
-                            )
-                    )
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(containerAlpha.value)
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(logoBoxBg)
+                        .border(
+                            BorderStroke(
+                                width = 1.5.dp,
+                                brush = logoBorderBrush
+                            ),
+                            shape = RoundedCornerShape(26.dp)
+                        )
+                )
 
-                    // Standalone Emblem Logo (Starts 150.dp at 1.0f scale -> morphs down to 102.5.dp)
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
-                        contentDescription = "Vesper Logo",
-                        tint = logoTint,
-                        modifier = Modifier
-                            .size(150.dp)
-                            .scale(logoScale.value)
-                            .alpha(logoAlpha.value)
-                    )
-                }
-
-                // Invisible placeholder matching WelcomeScreen text block height
-                Spacer(modifier = Modifier.height(121.dp))
+                // Big Standalone Emblem Logo (Starts 220.dp at 1.0f scale -> morphs down to 102.5.dp)
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
+                    contentDescription = "Vesper Logo",
+                    tint = logoTint,
+                    modifier = Modifier
+                        .size(220.dp)
+                        .scale(logoScale.value)
+                        .alpha(logoAlpha.value)
+                )
             }
-
-            Spacer(modifier = Modifier.weight(1.2f))
-
-            // Invisible placeholder matching WelcomeScreen bottom CTA height
-            Spacer(modifier = Modifier.height(120.dp))
         }
     }
 }
