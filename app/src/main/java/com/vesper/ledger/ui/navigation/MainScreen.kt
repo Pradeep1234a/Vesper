@@ -373,10 +373,18 @@ fun MainScreen(
                     val typeStr = backStackEntry.arguments?.getString("type") ?: TransactionType.EXPENSE.name
                     val categoryType = try { TransactionType.valueOf(typeStr) } catch (e: Exception) { TransactionType.EXPENSE }
 
+                    val categoryViewModel: com.vesper.ledger.ui.category.CategoryViewModel = viewModel(factory = categoryFactory)
+                    val dbCategories by categoryViewModel.categories.collectAsState()
+
                     CategorySelectionScreen(
+                        categoriesList = dbCategories,
                         initialType = categoryType,
                         selectedCategoryName = activeSelectedCategory?.name ?: "Groceries",
                         onBackClick = { navController.popBackStack() },
+                        onAddCategoryClick = {
+                            editingCategoryState = null
+                            navController.navigate(Screen.AddCategory.route)
+                        },
                         onCategorySelected = { cat ->
                             activeSelectedCategory = cat
                             navController.popBackStack()
