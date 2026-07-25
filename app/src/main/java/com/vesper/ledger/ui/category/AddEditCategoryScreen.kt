@@ -141,13 +141,7 @@ fun AddEditCategoryScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            ChildHeader(
-                title = if (isEditMode) "Edit Category" else "Add Category",
-                onBackClick = onBackClick
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier

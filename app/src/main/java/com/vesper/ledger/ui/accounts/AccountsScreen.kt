@@ -49,12 +49,6 @@ fun AccountsScreen(
     }
 
     Scaffold(
-        topBar = {
-            ChildHeader(
-                title = "Accounts",
-                onBackClick = onBackClick
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddAccountClick,

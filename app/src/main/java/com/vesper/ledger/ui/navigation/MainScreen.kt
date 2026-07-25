@@ -50,6 +50,14 @@ import com.vesper.ledger.ui.savings.SavingsViewModelFactory
 import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
+import com.vesper.ledger.ui.category.CategoriesScreen
+import com.vesper.ledger.ui.category.AddEditCategoryScreen
+import com.vesper.ledger.ui.category.CategoryViewModel
+import com.vesper.ledger.ui.category.CategoryViewModelFactory
+import com.vesper.ledger.data.model.Category
+import com.vesper.ledger.ui.accounts.AccountsScreen
+import com.vesper.ledger.ui.accounts.AddEditAccountScreen
+import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.ui.analytics.AnalyticsScreen
 import com.vesper.ledger.ui.transactions.AddTransactionScreen
 import com.vesper.ledger.data.model.TransactionType
@@ -139,7 +147,7 @@ fun MainScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = MaterialTheme.colorScheme.background,
+                drawerContainerColor = MaterialTheme.colorScheme.surface,
                 drawerTonalElevation = 0.dp,
                 modifier = Modifier.width(300.dp)
             ) {
@@ -298,7 +306,8 @@ fun MainScreen(
             Screen.Savings.route -> "Savings Goals"
             Screen.AddTransaction.route -> "New Transaction"
             Screen.CurrencySelector.route -> "Select Currency"
-            Screen.AddCategory.route -> "New Category"
+            Screen.AddCategory.route -> "Categories"
+            Screen.Accounts.route -> "Accounts"
             Screen.AddAccount.route -> "New Account"
             Screen.AddBudget.route -> "New Budget"
             else -> "Vesper Ledger"
@@ -420,8 +429,8 @@ fun MainScreen(
                                 restoreState = true
                             }
                         },
-                        onAddCategoryClick = onCategoryManagementClick,
-                        onAccountsClick = onAccountsClick,
+                        onAddCategoryClick = { navController.navigate(Screen.AddCategory.route) },
+                        onAccountsClick = { navController.navigate(Screen.Accounts.route) },
                         onAddTransactionClick = { navController.navigate(Screen.AddTransaction.route) },
                         onBudgetsClick = {
                             navController.navigate(Screen.Budgets.route) {
@@ -513,8 +522,8 @@ fun MainScreen(
                         accounts = accounts,
                         paymentMethods = paymentMethods,
                         onBackClick = { navController.popBackStack() },
-                        onAddCategoryClick = onCategoryManagementClick,
-                        onAddAccountClick = onAccountsClick,
+                        onAddCategoryClick = { navController.navigate(Screen.AddCategory.route) },
+                        onAddAccountClick = { navController.navigate(Screen.Accounts.route) },
                         onSaveTransaction = { title, amount, type, categoryId, accountId, accountName, paymentMethod, dateEpochMillis, note ->
                             scope.launch(Dispatchers.IO) {
                                 app.transactionRepository.insertTransaction(
@@ -533,6 +542,111 @@ fun MainScreen(
                             }
                         }
                     )
+                }
+
+                composable(Screen.AddCategory.route) {
+                    val categoryFactory = CategoryViewModelFactory(app, app.transactionRepository)
+                    val categoryViewModel: CategoryViewModel = viewModel(factory = categoryFactory)
+                    var editingCategoryState by remember { mutableStateOf<Category?>(null) }
+                    var isAddingCategory by remember { mutableStateOf(false) }
+
+                    if (isAddingCategory || editingCategoryState != null) {
+                        AddEditCategoryScreen(
+                            categoryToEdit = editingCategoryState,
+                            onBackClick = {
+                                isAddingCategory = false
+                                editingCategoryState = null
+                            },
+                            onSaveCategory = { name, iconName, type, colorHex, idToUpdate ->
+                                if (idToUpdate != null) {
+                                    categoryViewModel.updateCategory(
+                                        Category(id = idToUpdate, name = name, iconName = iconName, type = type, colorHex = colorHex)
+                                    )
+                                } else {
+                                    categoryViewModel.addCategory(name, iconName, type, colorHex)
+                                }
+                            },
+                            onDeleteCategory = { cat ->
+                                categoryViewModel.deleteCategory(cat)
+                            }
+                        )
+                    } else {
+                        CategoriesScreen(
+                            viewModel = categoryViewModel,
+                            onBackClick = { navController.popBackStack() },
+                            onAddCategoryClick = { isAddingCategory = true },
+                            onEditCategoryClick = { cat -> editingCategoryState = cat }
+                        )
+                    }
+                }
+
+                composable(Screen.Accounts.route) {
+                    val transactions by app.transactionRepository.allTransactions.collectAsState(initial = emptyList())
+                    val accounts by app.accountRepository.allAccounts.collectAsState(initial = emptyList())
+                    var editingAccountState by remember { mutableStateOf<Account?>(null) }
+                    var isAddingAccount by remember { mutableStateOf(false) }
+
+                    if (isAddingAccount || editingAccountState != null) {
+                        AddEditAccountScreen(
+                            accountToEdit = editingAccountState,
+                            currencySymbol = currencySymbol,
+                            onBackClick = {
+                                isAddingAccount = false
+                                editingAccountState = null
+                            },
+                            onSaveAccount = { name, type, initialBalance, iconName, notes, isHidden, idToUpdate ->
+                                scope.launch(Dispatchers.IO) {
+                                    if (idToUpdate != null) {
+                                        app.accountRepository.updateAccount(
+                                            Account(
+                                                id = idToUpdate,
+                                                name = name,
+                                                type = type,
+                                                initialBalance = initialBalance,
+                                                currency = "USD",
+                                                bankInfo = null,
+                                                notes = notes,
+                                                iconName = iconName,
+                                                isHidden = isHidden
+                                            )
+                                        )
+                                    } else {
+                                        app.accountRepository.insertAccount(
+                                            Account(
+                                                name = name,
+                                                type = type,
+                                                initialBalance = initialBalance,
+                                                currency = "USD",
+                                                bankInfo = null,
+                                                notes = notes,
+                                                iconName = iconName,
+                                                isHidden = isHidden
+                                            )
+                                        )
+                                    }
+                                }
+                            },
+                            onDeleteAccount = { acct ->
+                                scope.launch(Dispatchers.IO) {
+                                    app.accountRepository.deleteAccount(acct)
+                                }
+                            }
+                        )
+                    } else {
+                        AccountsScreen(
+                            accounts = accounts,
+                            transactions = transactions,
+                            currencySymbol = currencySymbol,
+                            onBackClick = { navController.popBackStack() },
+                            onAddAccountClick = { isAddingAccount = true },
+                            onEditAccountClick = { acct -> editingAccountState = acct },
+                            onToggleHideAccount = { acct ->
+                                scope.launch(Dispatchers.IO) {
+                                    app.accountRepository.updateAccount(acct.copy(isHidden = !acct.isHidden))
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }

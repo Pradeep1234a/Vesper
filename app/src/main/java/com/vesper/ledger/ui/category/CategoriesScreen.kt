@@ -90,12 +90,6 @@ fun CategoriesScreen(
     }
 
     Scaffold(
-        topBar = {
-            ChildHeader(
-                title = "Categories",
-                onBackClick = onBackClick
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddCategoryClick,

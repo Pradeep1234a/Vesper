@@ -121,13 +121,7 @@ fun AddEditAccountScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            ChildHeader(
-                title = if (isEditMode) "Edit Account" else "Add Account",
-                onBackClick = onBackClick
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
