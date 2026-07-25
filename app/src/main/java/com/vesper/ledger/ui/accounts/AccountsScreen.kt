@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -49,7 +50,11 @@ fun ElasticBounceContainer(
 
     Box(
         modifier = modifier
-            .offset { IntOffset(0, animatedOffsetY.roundToInt()) }
+            .graphicsLayer {
+                translationY = animatedOffsetY
+                scaleY = 1f + (kotlin.math.abs(animatedOffsetY) * 0.0012f)
+                scaleX = (1f - (kotlin.math.abs(animatedOffsetY) * 0.0004f)).coerceAtLeast(0.92f)
+            }
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
                     onDragEnd = { dragOffsetY = 0f },

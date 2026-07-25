@@ -26,6 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShButton
@@ -387,7 +394,7 @@ fun AddEditAccountScreen(
                     )
                 )
 
-                // ACCOUNT ICON SELECTOR
+                // ACCOUNT ICON SELECTOR WITH HORIZONTAL RUBBER-BAND ELASTIC CONTAINER
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = "ACCOUNT ICON",
@@ -400,36 +407,45 @@ fun AddEditAccountScreen(
                         )
                     )
 
-                    Row(
+                    HorizontalElasticBounceContainer(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                            .padding(8.dp)
                     ) {
-                        ACCOUNT_ICONS.forEach { (iconKey, vector) ->
-                            val isSelected = iconKey == selectedIcon
-                            Box(
-                                modifier = Modifier
-                                    .size(46.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
-                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            ACCOUNT_ICONS.forEach { (iconKey, vector) ->
+                                val isSelected = iconKey == selectedIcon
+                                Box(
+                                    modifier = Modifier
+                                        .size(46.dp)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(
+                                            if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+                                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
+                                        )
+                                        .border(
+                                            width = if (isSelected) 2.dp else 1.dp,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outlineVariant,
+                                            shape = RoundedCornerShape(6.dp)
+                                        )
+                                        .clickable { selectedIcon = iconKey },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = vector,
+                                        contentDescription = iconKey,
+                                        tint = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.size(22.dp)
                                     )
-                                    .border(
-                                        width = if (isSelected) 2.dp else 1.dp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outlineVariant,
-                                        shape = RoundedCornerShape(6.dp)
-                                    )
-                                    .clickable { selectedIcon = iconKey },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = vector,
-                                    contentDescription = iconKey,
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(22.dp)
-                                )
+                                }
                             }
                         }
                     }
@@ -520,5 +536,42 @@ fun AddEditAccountScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
+    }
+}
+
+@Composable
+fun HorizontalElasticBounceContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    var dragOffsetX by remember { mutableFloatStateOf(0f) }
+    val animatedOffsetX by animateFloatAsState(
+        targetValue = dragOffsetX,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "horizontalElasticBounce"
+    )
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                translationX = animatedOffsetX
+                scaleX = 1f + (kotlin.math.abs(animatedOffsetX) * 0.002f)
+                scaleY = (1f - (kotlin.math.abs(animatedOffsetX) * 0.0005f)).coerceAtLeast(0.92f)
+            }
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = { dragOffsetX = 0f },
+                    onDragCancel = { dragOffsetX = 0f },
+                    onHorizontalDrag = { change, dragAmount ->
+                        change.consume()
+                        dragOffsetX += dragAmount * 0.35f
+                    }
+                )
+            }
+    ) {
+        content()
     }
 }
