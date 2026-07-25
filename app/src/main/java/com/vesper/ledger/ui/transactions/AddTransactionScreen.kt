@@ -19,7 +19,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -900,7 +905,7 @@ fun AddTransactionScreen(
                     }
                 }
             }            // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 1: SELECT CATEGORY SHEET (OFFICIAL M3 MODAL BOTTOM SHEET)
+            // MODAL SHEET 1: SELECT CATEGORY SHEET (PINNED ZERO-JUMPING M3 BOTTOM SHEET)
             // ────────────────────────────────────────────────────────────────────────
             if (showCategorySheet) {
                 ModalBottomSheet(
@@ -922,6 +927,18 @@ fun AddTransactionScreen(
                     var searchCatQuery by remember { mutableStateOf("") }
                     val suggestedCats = filteredCategories.take(6)
                     val allCats = filteredCategories.filter { it.name.contains(searchCatQuery, ignoreCase = true) }
+
+                    // Absorbs fast inner scroll/fling so the bottom sheet NEVER jumps or leaks background
+                    val noSheetDragConnection = remember {
+                        object : NestedScrollConnection {
+                            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                                return available
+                            }
+                            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                                return available
+                            }
+                        }
+                    }
 
                     Column(
                         modifier = Modifier
@@ -967,7 +984,8 @@ fun AddTransactionScreen(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 400.dp),
+                                .heightIn(max = 400.dp)
+                                .nestedScroll(noSheetDragConnection),
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             if (searchCatQuery.isBlank()) {
@@ -1078,7 +1096,7 @@ fun AddTransactionScreen(
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // DIALOG 4: OFFICIAL MATERIAL 3 TIME PICKER DIALOG (WITH DIAL & KEYBOARD MODES)
+            // DIALOG 4: OFFICIAL MATERIAL 3 TIME PICKER DIALOG (EXACT SPEC MATCH)
             // ────────────────────────────────────────────────────────────────────────
             if (showTimePickerSheet) {
                 val timePickerState = rememberTimePickerState(
@@ -1088,93 +1106,112 @@ fun AddTransactionScreen(
                 )
                 var showKeyboardInputMode by remember { mutableStateOf(false) }
 
-                AlertDialog(
-                    onDismissRequest = { showTimePickerSheet = false },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
-                                    set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                                    set(Calendar.MINUTE, timePickerState.minute)
-                                }
-                                showTimePickerSheet = false
-                            }
+                Dialog(onDismissRequest = { showTimePickerSheet = false }) {
+                    Surface(
+                        shape = RoundedCornerShape(28.dp),
+                        color = Color(0xFF18181B),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A)),
+                        modifier = Modifier.wrapContentSize()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFF38BDF8))
-                        }
-                    },
-                    dismissButton = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { showKeyboardInputMode = !showKeyboardInputMode }) {
-                                Icon(
-                                    imageVector = if (showKeyboardInputMode) Icons.Outlined.Schedule else Icons.Outlined.Keyboard,
-                                    contentDescription = if (showKeyboardInputMode) "Switch to clock dial" else "Switch to keyboard input",
-                                    tint = Color.White
+                            Text(
+                                text = if (showKeyboardInputMode) "Enter time" else "Select time",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = Color(0xFFA1A1AA)
                                 )
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            TextButton(onClick = { showTimePickerSheet = false }) {
-                                Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
-                            }
-                        }
-                    },
-                    containerColor = Color(0xFF18181B),
-                    shape = RoundedCornerShape(28.dp),
-                    title = {
-                        Text(
-                            text = if (showKeyboardInputMode) "Enter time" else "Select time",
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    },
-                    text = {
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            if (showKeyboardInputMode) {
-                                TimeInput(
-                                    state = timePickerState,
-                                    colors = TimePickerDefaults.colors(
-                                        clockDialColor = Color(0xFF09090B),
-                                        clockDialSelectedContentColor = Color.Black,
-                                        clockDialUnselectedContentColor = Color.White,
-                                        selectorColor = Color.White,
-                                        containerColor = Color(0xFF18181B),
-                                        periodSelectorBorderColor = Color(0xFF27272A),
-                                        periodSelectorSelectedContainerColor = Color.White,
-                                        periodSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                        periodSelectorSelectedContentColor = Color.Black,
-                                        periodSelectorUnselectedContentColor = Color.White,
-                                        timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
-                                        timeSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                        timeSelectorSelectedContentColor = Color.White,
-                                        timeSelectorUnselectedContentColor = Color.White
+                            )
+
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (showKeyboardInputMode) {
+                                    TimeInput(
+                                        state = timePickerState,
+                                        colors = TimePickerDefaults.colors(
+                                            clockDialColor = Color(0xFF09090B),
+                                            clockDialSelectedContentColor = Color.Black,
+                                            clockDialUnselectedContentColor = Color.White,
+                                            selectorColor = Color.White,
+                                            containerColor = Color(0xFF18181B),
+                                            periodSelectorBorderColor = Color(0xFF27272A),
+                                            periodSelectorSelectedContainerColor = Color.White,
+                                            periodSelectorUnselectedContainerColor = Color(0xFF09090B),
+                                            periodSelectorSelectedContentColor = Color.Black,
+                                            periodSelectorUnselectedContentColor = Color.White,
+                                            timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
+                                            timeSelectorUnselectedContainerColor = Color(0xFF09090B),
+                                            timeSelectorSelectedContentColor = Color.White,
+                                            timeSelectorUnselectedContentColor = Color.White
+                                        )
                                     )
-                                )
-                            } else {
-                                TimePicker(
-                                    state = timePickerState,
-                                    colors = TimePickerDefaults.colors(
-                                        clockDialColor = Color(0xFF09090B),
-                                        clockDialSelectedContentColor = Color.Black,
-                                        clockDialUnselectedContentColor = Color.White,
-                                        selectorColor = Color.White,
-                                        containerColor = Color(0xFF18181B),
-                                        periodSelectorBorderColor = Color(0xFF27272A),
-                                        periodSelectorSelectedContainerColor = Color.White,
-                                        periodSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                        periodSelectorSelectedContentColor = Color.Black,
-                                        periodSelectorUnselectedContentColor = Color.White,
-                                        timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
-                                        timeSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                        timeSelectorSelectedContentColor = Color.White,
-                                        timeSelectorUnselectedContentColor = Color.White
+                                } else {
+                                    TimePicker(
+                                        state = timePickerState,
+                                        colors = TimePickerDefaults.colors(
+                                            clockDialColor = Color(0xFF09090B),
+                                            clockDialSelectedContentColor = Color.Black,
+                                            clockDialUnselectedContentColor = Color.White,
+                                            selectorColor = Color.White,
+                                            containerColor = Color(0xFF18181B),
+                                            periodSelectorBorderColor = Color(0xFF27272A),
+                                            periodSelectorSelectedContainerColor = Color.White,
+                                            periodSelectorUnselectedContainerColor = Color(0xFF09090B),
+                                            periodSelectorSelectedContentColor = Color.Black,
+                                            periodSelectorUnselectedContentColor = Color.White,
+                                            timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
+                                            timeSelectorUnselectedContainerColor = Color(0xFF09090B),
+                                            timeSelectorSelectedContentColor = Color.White,
+                                            timeSelectorUnselectedContentColor = Color.White
+                                        )
                                     )
-                                )
+                                }
+                            }
+
+                            // Bottom row: Mode toggle icon on left, Cancel / OK buttons on right
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(onClick = { showKeyboardInputMode = !showKeyboardInputMode }) {
+                                    Icon(
+                                        imageVector = if (showKeyboardInputMode) Icons.Outlined.Schedule else Icons.Outlined.Keyboard,
+                                        contentDescription = if (showKeyboardInputMode) "Switch to clock dial" else "Switch to keyboard input",
+                                        tint = Color.White
+                                    )
+                                }
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TextButton(onClick = { showTimePickerSheet = false }) {
+                                        Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
+                                    }
+                                    TextButton(
+                                        onClick = {
+                                            selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                                set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                                                set(Calendar.MINUTE, timePickerState.minute)
+                                            }
+                                            showTimePickerSheet = false
+                                        }
+                                    ) {
+                                        Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFF38BDF8))
+                                    }
+                                }
                             }
                         }
                     }
-                )
+                }
             }
 
             // ────────────────────────────────────────────────────────────────────────
