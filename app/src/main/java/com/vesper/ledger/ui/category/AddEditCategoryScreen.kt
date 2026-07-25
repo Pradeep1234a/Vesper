@@ -203,7 +203,7 @@ fun AddEditCategoryScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // LIVE PREVIEW CARD
                 Text(

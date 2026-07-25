@@ -83,6 +83,7 @@ fun BudgetScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
             // Overall Budget Summary Banner
             ShCard(
                 modifier = Modifier.fillMaxWidth(),

@@ -117,6 +117,7 @@ fun AnalyticsScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
+        Spacer(modifier = Modifier.height(8.dp))
             // Period Filter Selector
             Row(
                 modifier = Modifier

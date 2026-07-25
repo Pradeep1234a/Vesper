@@ -118,7 +118,7 @@ fun CategoriesScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Segmented control (Expense | Income)
                 ShSegmentedControl(
