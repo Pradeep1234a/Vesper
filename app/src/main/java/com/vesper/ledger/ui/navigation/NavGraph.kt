@@ -15,6 +15,8 @@ import android.content.Context
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import com.vesper.ledger.VesperApplication
 
 import com.vesper.ledger.ui.savings.SavingsScreen
@@ -74,7 +76,11 @@ fun NavGraph(
     NavHost(
         navController = navController,
         startDestination = "splash",
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
+        enterTransition = { fadeIn(animationSpec = tween(220)) },
+        exitTransition = { fadeOut(animationSpec = tween(180)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(220)) },
+        popExitTransition = { fadeOut(animationSpec = tween(180)) }
     ) {
         composable("splash") {
             SplashScreen(
