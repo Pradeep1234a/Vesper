@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
-import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
@@ -65,21 +64,17 @@ fun AccountsScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 16.dp)
+                .background(MaterialTheme.colorScheme.background),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // TOTAL ACCOUNTS BALANCE BANNER CARD
+            // 1. TOTAL ACCOUNTS BALANCE BANNER CARD
+            item {
                 ShCard(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(6.dp),
@@ -121,12 +116,15 @@ fun AccountsScreen(
                         )
                     }
                 }
+            }
 
-                if (accounts.isEmpty()) {
+            // 2. ACCOUNTS LIST ITEMS OR EMPTY STATE
+            if (accounts.isEmpty()) {
+                item {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
+                            .padding(vertical = 48.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -155,171 +153,164 @@ fun AccountsScreen(
                             )
                         }
                     }
-                } else {
-                    LazyColumn(
+                }
+            } else {
+                items(accounts, key = { it.id }) { account ->
+                    val currentAccountBalance = remember(account, transactions) {
+                        val acctIncome = transactions.filter { it.accountId == account.id && it.type == TransactionType.INCOME }.sumOf { it.amount }
+                        val acctExpense = transactions.filter { it.accountId == account.id && it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+                        val transfersOut = transactions.filter { it.accountId == account.id && it.type == TransactionType.TRANSFER }.sumOf { it.amount }
+                        val transfersIn = transactions.filter { it.targetAccountId == account.id && it.type == TransactionType.TRANSFER }.sumOf { it.amount }
+                        account.initialBalance + acctIncome - acctExpense - transfersOut + transfersIn
+                    }
+
+                    ShCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                            .clickable { onEditAccountClick(account) },
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
                     ) {
-                        items(accounts, key = { it.id }) { account ->
-                            val currentAccountBalance = remember(account, transactions) {
-                                val acctIncome = transactions.filter { it.accountId == account.id && it.type == TransactionType.INCOME }.sumOf { it.amount }
-                                val acctExpense = transactions.filter { it.accountId == account.id && it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-                                val transfersOut = transactions.filter { it.accountId == account.id && it.type == TransactionType.TRANSFER }.sumOf { it.amount }
-                                val transfersIn = transactions.filter { it.targetAccountId == account.id && it.type == TransactionType.TRANSFER }.sumOf { it.amount }
-                                account.initialBalance + acctIncome - acctExpense - transfersOut + transfersIn
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(
+                                        if (account.isHidden) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (account.isHidden) MaterialTheme.colorScheme.outlineVariant
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+                                        RoundedCornerShape(6.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = getAccountIcon(account.iconName),
+                                    contentDescription = null,
+                                    tint = if (account.isHidden) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(22.dp)
+                                )
                             }
 
-                            ShCard(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onEditAccountClick(account) },
-                                shape = RoundedCornerShape(6.dp),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
-                            ) {
+                            Spacer(modifier = Modifier.width(14.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
+                                    Text(
+                                        text = account.name,
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp,
+                                            color = if (account.isHidden) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    )
+
                                     Box(
                                         modifier = Modifier
-                                            .size(48.dp)
                                             .clip(RoundedCornerShape(6.dp))
-                                            .background(
-                                                if (account.isHidden) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-                                            )
-                                            .border(
-                                                1.dp,
-                                                if (account.isHidden) MaterialTheme.colorScheme.outlineVariant
-                                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
-                                                RoundedCornerShape(6.dp)
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = getAccountIcon(account.iconName),
-                                            contentDescription = null,
-                                            tint = if (account.isHidden) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.size(22.dp)
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.width(14.dp))
-
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                        ) {
-                                            Text(
-                                                text = account.name,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontFamily = SpaceGroteskFamily,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 15.sp,
-                                                    color = if (account.isHidden) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
-                                                )
-                                            )
-
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(6.dp))
-                                                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                                            ) {
-                                                Text(
-                                                    text = account.type.replace("_", " "),
-                                                    style = MaterialTheme.typography.labelSmall.copy(
-                                                        fontFamily = SpaceGroteskFamily,
-                                                        fontWeight = FontWeight.Bold,
-                                                        fontSize = 10.sp,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    )
-                                                )
-                                            }
-
-                                            if (account.isHidden) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .clip(RoundedCornerShape(6.dp))
-                                                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f))
-                                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                                ) {
-                                                    Text(
-                                                        text = "HIDDEN",
-                                                        style = MaterialTheme.typography.labelSmall.copy(
-                                                            fontFamily = SpaceGroteskFamily,
-                                                            fontWeight = FontWeight.Bold,
-                                                            fontSize = 10.sp,
-                                                            color = MaterialTheme.colorScheme.error
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        }
-
-                                        Spacer(modifier = Modifier.height(2.dp))
-
-                                        Text(
-                                            text = account.notes?.takeIf { it.isNotBlank() } ?: "Initial balance: $currencySymbol${String.format("%.2f", account.initialBalance)}",
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                fontFamily = PlusJakartaSansFamily,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                fontSize = 12.sp
-                                            )
-                                        )
-                                    }
-
-                                    Column(
-                                        horizontalAlignment = Alignment.End,
-                                        verticalArrangement = Arrangement.Center
+                                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
                                         Text(
-                                            text = "$currencySymbol${String.format("%,.2f", currentAccountBalance)}",
-                                            style = MaterialTheme.typography.titleMedium.copy(
+                                            text = account.type.replace("_", " "),
+                                            style = MaterialTheme.typography.labelSmall.copy(
                                                 fontFamily = SpaceGroteskFamily,
                                                 fontWeight = FontWeight.Bold,
-                                                fontSize = 15.sp,
-                                                color = if (account.isHidden) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onBackground
+                                                fontSize = 10.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         )
+                                    }
 
-                                        Spacer(modifier = Modifier.height(4.dp))
-
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    if (account.isHidden) {
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
-                                            IconButton(
-                                                onClick = { onToggleHideAccount(account) },
-                                                modifier = Modifier.size(28.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = if (account.isHidden) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                                    contentDescription = "Toggle Hide",
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    modifier = Modifier.size(16.dp)
+                                            Text(
+                                                text = "HIDDEN",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 10.sp,
+                                                    color = MaterialTheme.colorScheme.error
                                                 )
-                                            }
-
-                                            Icon(
-                                                imageVector = Icons.Outlined.Edit,
-                                                contentDescription = "Edit Account",
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(16.dp)
                                             )
                                         }
                                     }
                                 }
+
+                                Spacer(modifier = Modifier.height(2.dp))
+
+                                Text(
+                                    text = account.notes?.takeIf { it.isNotBlank() } ?: "Initial balance: $currencySymbol${String.format("%.2f", account.initialBalance)}",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = PlusJakartaSansFamily,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 12.sp
+                                    )
+                                )
+                            }
+
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "$currencySymbol${String.format("%,.2f", currentAccountBalance)}",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 15.sp,
+                                        color = if (account.isHidden) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onBackground
+                                    )
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    IconButton(
+                                        onClick = { onToggleHideAccount(account) },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (account.isHidden) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                            contentDescription = "Toggle Hide",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+
+                                    Icon(
+                                        imageVector = Icons.Outlined.Edit,
+                                        contentDescription = "Edit Account",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
-
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
                     }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }

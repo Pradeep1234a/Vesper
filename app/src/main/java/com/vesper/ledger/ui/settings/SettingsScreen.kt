@@ -181,18 +181,14 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .background(MaterialTheme.colorScheme.background),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         when (subView) {
             SettingsSubView.MAIN -> {
                 Spacer(modifier = Modifier.height(8.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
 
                         // Personal Profile Card
                         Card(
@@ -375,16 +371,15 @@ fun SettingsScreen(
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
-                    }
-                }
+            }
 
-                SettingsSubView.UPDATES -> {
-                    LaunchedEffect(Unit) {
-                        updateViewModel.checkForUpdatesOnLaunch()
-                    }
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
-                    }
+            SettingsSubView.UPDATES -> {
+                LaunchedEffect(Unit) {
+                    updateViewModel.checkForUpdatesOnLaunch()
+                }
+                Box(modifier = Modifier.fillMaxSize()) {
+                    com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
+                }
             }
         }
     }

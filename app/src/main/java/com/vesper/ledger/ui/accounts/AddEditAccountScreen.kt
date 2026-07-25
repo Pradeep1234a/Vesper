@@ -177,16 +177,12 @@ fun AddEditAccountScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+                .background(MaterialTheme.colorScheme.background),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
                 // LIVE ACCOUNT PREVIEW CARD (Cleaned without duplicate heading)
                 val parsedBalance = initialBalanceText.toDoubleOrNull() ?: 0.0
@@ -518,7 +514,6 @@ fun AddEditAccountScreen(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-            }
         }
     }
 }
