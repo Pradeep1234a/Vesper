@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Budget
+import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
@@ -38,7 +39,8 @@ import java.util.*
 fun BudgetScreen(
     viewModel: BudgetsViewModel,
     currencySymbol: String = "$",
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null,
     onAddBudgetClick: () -> Unit = {},
     onEditBudgetClick: (Budget) -> Unit = {}
 ) {
@@ -62,10 +64,17 @@ fun BudgetScreen(
 
     Scaffold(
         topBar = {
-            ChildHeader(
-                title = "Budgets Management",
-                onBackClick = onBackClick
-            )
+            if (onMenuClick != null) {
+                RootHeader(
+                    title = "Budgets",
+                    onMenuClick = onMenuClick
+                )
+            } else {
+                ChildHeader(
+                    title = "Budgets",
+                    onBackClick = { onBackClick?.invoke() }
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(

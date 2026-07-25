@@ -26,6 +26,7 @@ import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
+import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
@@ -40,7 +41,8 @@ fun AnalyticsScreen(
     categories: List<Category>,
     accounts: List<Account>,
     currencySymbol: String = "$",
-    onBackClick: () -> Unit
+    onBackClick: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null
 ) {
     var selectedFilter by remember { mutableStateOf("THIS_MONTH") } // ALL, THIS_MONTH, LAST_30_DAYS, THIS_WEEK
 
@@ -110,10 +112,17 @@ fun AnalyticsScreen(
 
     Scaffold(
         topBar = {
-            ChildHeader(
-                title = "Analytics & Reports",
-                onBackClick = onBackClick
-            )
+            if (onMenuClick != null) {
+                RootHeader(
+                    title = "Analytics",
+                    onMenuClick = onMenuClick
+                )
+            } else {
+                ChildHeader(
+                    title = "Analytics",
+                    onBackClick = { onBackClick?.invoke() }
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->

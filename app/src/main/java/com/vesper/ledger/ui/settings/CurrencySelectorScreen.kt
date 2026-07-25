@@ -75,12 +75,10 @@ fun CurrencySelectorScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            if (flowMode == CurrencyFlowMode.SETTINGS) {
-                ChildHeader(
-                    title = "Currency",
-                    onBackClick = onBackClick
-                )
-            }
+            ChildHeader(
+                title = "Select Currency",
+                onBackClick = onBackClick
+            )
         },
         bottomBar = {
             if (flowMode == CurrencyFlowMode.ONBOARDING) {
@@ -128,7 +126,6 @@ fun CurrencySelectorScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .statusBarsPadding()
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     Box(
