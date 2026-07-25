@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ChildHeader
+import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
@@ -83,11 +84,9 @@ fun BudgetScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Overall Budget Summary Banner
-            Surface(
+            ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp
+                contentPadding = PaddingValues(18.dp)
             ) {
                 Column(
                     modifier = Modifier

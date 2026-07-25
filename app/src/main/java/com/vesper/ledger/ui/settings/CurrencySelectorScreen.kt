@@ -75,36 +75,47 @@ fun CurrencySelectorScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (flowMode == CurrencyFlowMode.ONBOARDING) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 6.dp,
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .navigationBarsPadding(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp,
+                shadowElevation = 8.dp
+            ) {
+                Button(
+                    onClick = {
+                        viewModel.saveCurrency(selectedCurrency.symbol, selectedCurrency.code)
+                        Toast.makeText(
+                            context,
+                            "Currency set to ${selectedCurrency.code} (${selectedCurrency.symbol})",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        if (flowMode == CurrencyFlowMode.ONBOARDING) {
+                            onCompleteOnboarding()
+                        } else {
+                            onBackClick()
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
                     )
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(16.dp)
-                    ) {
-                        ShButton(
-                            text = "Save & Continue to Dashboard",
-                            onClick = {
-                                viewModel.saveCurrency(selectedCurrency.symbol, selectedCurrency.code)
-                                Toast.makeText(
-                                    context,
-                                    "Primary currency set to ${selectedCurrency.code} (${selectedCurrency.symbol})",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                onCompleteOnboarding()
-                            },
-                            containerColor = MaterialTheme.colorScheme.onBackground,
-                            contentColor = MaterialTheme.colorScheme.background
-                        )
-                    }
+                    Icon(imageVector = Icons.Outlined.CheckCircle, contentDescription = "Save")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (flowMode == CurrencyFlowMode.ONBOARDING) "Save & Continue" else "Save Currency",
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
                 }
             }
         }

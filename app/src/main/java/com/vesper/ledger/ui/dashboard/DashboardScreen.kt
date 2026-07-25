@@ -76,6 +76,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextOverflow
+import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -138,7 +139,7 @@ fun DashboardScreen(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 14.sp
+                                fontSize = 16.sp
                             )
                         )
                         Spacer(modifier = Modifier.height(2.dp))
@@ -148,15 +149,16 @@ fun DashboardScreen(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground,
-                                fontSize = 26.sp
+                                fontSize = 30.sp
                             )
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Here is your money summary.",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                fontSize = 13.sp
+                                fontFamily = PlusJakartaSansFamily,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp
                             )
                         )
                     }

@@ -121,7 +121,54 @@ fun AddEditAccountScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .navigationBarsPadding(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp,
+                shadowElevation = 8.dp
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    ShButton(
+                        text = if (isEditMode) "Save Changes" else "Create Account",
+                        onClick = {
+                            val trimmedName = nameText.trim()
+                            val balance = initialBalanceText.toDoubleOrNull() ?: 0.0
+
+                            if (trimmedName.isNotBlank()) {
+                                onSaveAccount(
+                                    trimmedName,
+                                    selectedType,
+                                    balance,
+                                    selectedIcon,
+                                    notesText.ifBlank { null },
+                                    isHidden,
+                                    accountToEdit?.id
+                                )
+                                Toast.makeText(
+                                    context,
+                                    if (isEditMode) "Account updated!" else "Account created!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                onBackClick()
+                            } else {
+                                Toast.makeText(context, "Please enter an account name", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
+                    )
+                }
+            }
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -420,36 +467,7 @@ fun AddEditAccountScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // SAVE BUTTON
-                ShButton(
-                    text = if (isEditMode) "Save Changes" else "Create Account",
-                    onClick = {
-                        val trimmedName = nameText.trim()
-                        val balance = initialBalanceText.toDoubleOrNull() ?: 0.0
-
-                        if (trimmedName.isNotBlank()) {
-                            onSaveAccount(
-                                trimmedName,
-                                selectedType,
-                                balance,
-                                selectedIcon,
-                                notesText.ifBlank { null },
-                                isHidden,
-                                accountToEdit?.id
-                            )
-                            Toast.makeText(
-                                context,
-                                if (isEditMode) "Account updated!" else "Account created!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            onBackClick()
-                        } else {
-                            Toast.makeText(context, "Please enter an account name", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
-                )
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // DELETE BUTTON (If Edit Mode)
                 if (isEditMode && accountToEdit != null && onDeleteAccount != null) {

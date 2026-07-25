@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.ui.components.ShCard
@@ -140,7 +141,9 @@ fun ProfileManagementScreen(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
-                            )
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
@@ -197,23 +200,6 @@ fun ProfileManagementScreen(
                             Text("Primary Currency", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                         }
                         Text(currencySymbol, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-                    // Accent Color Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Icon(imageVector = Icons.Outlined.Palette, contentDescription = "Accent Color", tint = MaterialTheme.colorScheme.onSurface)
-                            Text("Theme Accent", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                        }
-                        Text(selectedAccent.replaceFirstChar { it.uppercase() }, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }

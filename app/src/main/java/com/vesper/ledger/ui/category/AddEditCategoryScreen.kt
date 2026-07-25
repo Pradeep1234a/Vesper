@@ -141,7 +141,50 @@ fun AddEditCategoryScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .navigationBarsPadding(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp,
+                shadowElevation = 8.dp
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    ShButton(
+                        text = if (isEditMode) "Save Changes" else "Create Category",
+                        onClick = {
+                            val trimmedName = nameText.trim()
+                            if (trimmedName.isNotBlank()) {
+                                onSaveCategory(
+                                    trimmedName,
+                                    selectedIcon,
+                                    selectedType,
+                                    selectedColorHex,
+                                    categoryToEdit?.id
+                                )
+                                Toast.makeText(
+                                    context,
+                                    if (isEditMode) "Category updated!" else "Category created!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                onBackClick()
+                            } else {
+                                Toast.makeText(context, "Please enter a category name", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
+                    )
+                }
+            }
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -492,34 +535,7 @@ fun AddEditCategoryScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // SAVE BUTTON
-                ShButton(
-                    text = if (isEditMode) "Save Changes" else "Create Category",
-                    onClick = {
-                        val trimmedName = nameText.trim()
-                        if (trimmedName.isNotBlank()) {
-                            onSaveCategory(
-                                trimmedName,
-                                selectedIcon,
-                                selectedType,
-                                selectedColorHex,
-                                categoryToEdit?.id
-                            )
-                            Toast.makeText(
-                                context,
-                                if (isEditMode) "Category updated!" else "Category created!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            onBackClick()
-                        } else {
-                            Toast.makeText(context, "Please enter a category name", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
-                )
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // DELETE BUTTON (If Edit Mode)
                 if (isEditMode && categoryToEdit != null && onDeleteCategory != null) {
