@@ -115,6 +115,7 @@ fun AddTransactionScreen(
     val parsedAmount = amountText.replace(",", "").toDoubleOrNull() ?: 0.0
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Surface(
