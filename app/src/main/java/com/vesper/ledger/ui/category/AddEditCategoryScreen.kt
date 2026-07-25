@@ -6,6 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -141,6 +144,7 @@ fun AddEditCategoryScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Surface(
@@ -447,36 +451,12 @@ fun AddEditCategoryScreen(
                         )
                     )
 
-                    // Icon Category Filter Chips
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        iconGroups.forEach { group ->
-                            val isGroupSelected = group == selectedGroup
-                            FilterChip(
-                                selected = isGroupSelected,
-                                onClick = { selectedGroup = group },
-                                label = {
-                                    Text(
-                                        text = group,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 12.sp
-                                    )
-                                },
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                        }
-                    }
-
-                    // Icon Grid Box
+                    // Icon Grid Box (Clean 4-column layout without crowded chips)
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFF18181B),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                     ) {
                         if (filteredIcons.isEmpty()) {
                             Box(
@@ -489,35 +469,35 @@ fun AddEditCategoryScreen(
                                     text = "No icons found matching \"$iconSearchQuery\"",
                                     fontFamily = SpaceGroteskFamily,
                                     fontSize = 13.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = Color(0xFFA1A1AA)
                                 )
                             }
                         } else {
-                            FlowRow(
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(4),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(max = 240.dp)
-                                    .verticalScroll(rememberScrollState())
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    .height(200.dp)
+                                    .padding(12.dp)
                             ) {
-                                filteredIcons.forEach { iconName ->
+                                items(filteredIcons) { iconName ->
                                     val isSelected = iconName.equals(selectedIcon, ignoreCase = true)
                                     val iconImageVector = getIconByName(iconName)
 
                                     Box(
                                         modifier = Modifier
-                                            .size(46.dp)
-                                            .clip(RoundedCornerShape(10.dp))
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(12.dp))
                                             .background(
-                                                if (isSelected) parsedColor.copy(alpha = 0.15f)
-                                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
+                                                if (isSelected) parsedColor.copy(alpha = 0.2f)
+                                                else Color(0xFF27272A).copy(alpha = 0.5f)
                                             )
                                             .border(
                                                 width = if (isSelected) 2.dp else 1.dp,
-                                                color = if (isSelected) parsedColor else MaterialTheme.colorScheme.outlineVariant,
-                                                shape = RoundedCornerShape(10.dp)
+                                                color = if (isSelected) parsedColor else Color(0xFF27272A),
+                                                shape = RoundedCornerShape(12.dp)
                                             )
                                             .clickable { selectedIcon = iconName },
                                         contentAlignment = Alignment.Center
@@ -525,7 +505,7 @@ fun AddEditCategoryScreen(
                                         Icon(
                                             imageVector = iconImageVector,
                                             contentDescription = iconName,
-                                            tint = if (isSelected) parsedColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            tint = if (isSelected) parsedColor else Color(0xFFA1A1AA),
                                             modifier = Modifier.size(22.dp)
                                         )
                                     }
@@ -544,7 +524,7 @@ fun AddEditCategoryScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        shape = MaterialTheme.shapes.small,
+                        shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
                         ),
@@ -565,7 +545,7 @@ fun AddEditCategoryScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(4.dp))
             }
         }
     }
