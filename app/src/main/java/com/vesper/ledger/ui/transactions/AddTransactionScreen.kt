@@ -75,8 +75,8 @@ fun AddTransactionScreen(
     val context = LocalContext.current
 
     var type by remember { mutableStateOf(TransactionType.EXPENSE) }
-    var amountText by remember { mutableStateOf("2,450") }
-    var titleText by remember { mutableStateOf("Grocery Shopping") }
+    var amountText by remember { mutableStateOf("") }
+    var titleText by remember { mutableStateOf("") }
 
     // Filter categories by selected transaction type
     val filteredCategories = remember(categories, type) {
@@ -114,9 +114,72 @@ fun AddTransactionScreen(
     val selectedCategory = categories.find { it.id == selectedCategoryId } ?: categories.firstOrNull()
     val parsedAmount = amountText.replace(",", "").toDoubleOrNull() ?: 0.0
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF121215))
+                    .navigationBarsPadding(),
+                color = Color(0xFF121215),
+                tonalElevation = 6.dp,
+                shadowElevation = 8.dp
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            val acct = selectedAccount
+                            if (parsedAmount <= 0.0) {
+                                Toast.makeText(context, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
+                            } else if (acct == null) {
+                                Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show()
+                            } else {
+                                onSaveTransaction(
+                                    titleText.ifBlank { if (type == TransactionType.INCOME) "Income" else "Expense" },
+                                    parsedAmount,
+                                    type,
+                                    selectedCategoryId,
+                                    acct.id,
+                                    acct.name,
+                                    selectedPaymentMethod,
+                                    selectedCalendar.timeInMillis,
+                                    noteText.trim()
+                                )
+                                showSuccessSheet = true
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Text(
+                            text = "Save Transaction",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -685,49 +748,7 @@ fun AddTransactionScreen(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // 8. SAVE TRANSACTION BUTTON
-                Button(
-                    onClick = {
-                        val acct = selectedAccount
-                        if (parsedAmount <= 0.0) {
-                            Toast.makeText(context, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
-                        } else if (acct == null) {
-                            Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show()
-                        } else {
-                            onSaveTransaction(
-                                titleText.ifBlank { if (type == TransactionType.INCOME) "Income" else "Expense" },
-                                parsedAmount,
-                                type,
-                                selectedCategoryId,
-                                acct.id,
-                                acct.name,
-                                selectedPaymentMethod,
-                                selectedCalendar.timeInMillis,
-                                noteText.trim()
-                            )
-                            showSuccessSheet = true
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
-                    )
-                ) {
-                    Text(
-                        text = "Save Transaction",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             // ────────────────────────────────────────────────────────────────────────
@@ -1325,6 +1346,7 @@ fun AddTransactionScreen(
             }
         }
     }
+}
 
 @Composable
 private fun CategoryRowItem(
