@@ -837,73 +837,112 @@ fun AddTransactionScreen(
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 1: SELECT CATEGORY SHEET
+            // MODAL SHEET 1: SELECT CATEGORY SHEET (ANCHORED NON-JUMPING FLUSH OVERLAY)
             // ────────────────────────────────────────────────────────────────────────
             if (showCategorySheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showCategorySheet = false },
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                    containerColor = Color(0xFF18181B),
-                    scrimColor = Color.Black.copy(alpha = 0.6f),
-                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF52525B)) },
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .clickable(onClick = { showCategorySheet = false }),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
-                    var searchCatQuery by remember { mutableStateOf("") }
-                    val suggestedCats = filteredCategories.take(6)
-                    val allCats = filteredCategories.filter { it.name.contains(searchCatQuery, ignoreCase = true) }
-
-                    Column(
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(horizontal = 20.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                            .clickable(enabled = false) {},
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                        color = Color(0xFF18181B)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Select Category",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = FontFamily.Serif,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            )
-                            IconButton(onClick = { showCategorySheet = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
-                            }
-                        }
+                        var searchCatQuery by remember { mutableStateOf("") }
+                        val suggestedCats = filteredCategories.take(6)
+                        val allCats = filteredCategories.filter { it.name.contains(searchCatQuery, ignoreCase = true) }
 
-                        // Search Input
-                        OutlinedTextField(
-                            value = searchCatQuery,
-                            onValueChange = { searchCatQuery = it },
-                            placeholder = { Text("Search categories", color = Color(0xFF71717A)) },
-                            leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFFA1A1AA)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color(0xFF27272A),
-                                focusedContainerColor = Color(0xFF09090B),
-                                unfocusedContainerColor = Color(0xFF09090B)
-                            )
-                        )
-
-                        LazyColumn(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 420.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                                .navigationBarsPadding()
+                                .padding(horizontal = 20.dp, vertical = 14.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            if (searchCatQuery.isBlank()) {
+                            // Drag Indicator Handle
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(36.dp)
+                                        .height(4.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF52525B))
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Select Category",
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                )
+                                IconButton(onClick = { showCategorySheet = false }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                                }
+                            }
+
+                            // Search Input
+                            OutlinedTextField(
+                                value = searchCatQuery,
+                                onValueChange = { searchCatQuery = it },
+                                placeholder = { Text("Search categories", color = Color(0xFF71717A)) },
+                                leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFFA1A1AA)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.White,
+                                    unfocusedBorderColor = Color(0xFF27272A),
+                                    focusedContainerColor = Color(0xFF09090B),
+                                    unfocusedContainerColor = Color(0xFF09090B)
+                                )
+                            )
+
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 400.dp),
+                                verticalArrangement = Arrangement.spacedBy(14.dp)
+                            ) {
+                                if (searchCatQuery.isBlank()) {
+                                    item {
+                                        Text(
+                                            text = "SUGGESTED",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                letterSpacing = 1.2.sp,
+                                                color = Color(0xFFA1A1AA)
+                                            )
+                                        )
+                                    }
+                                    items(suggestedCats) { cat ->
+                                        CategoryRowItem(
+                                            category = cat,
+                                            isSelected = cat.id == selectedCategoryId,
+                                            onClick = {
+                                                selectedCategoryId = cat.id
+                                                showCategorySheet = false
+                                            }
+                                        )
+                                    }
+                                }
+
                                 item {
                                     Text(
-                                        text = "SUGGESTED",
+                                        text = "ALL CATEGORIES",
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
@@ -912,7 +951,8 @@ fun AddTransactionScreen(
                                         )
                                     )
                                 }
-                                items(suggestedCats) { cat ->
+
+                                items(allCats) { cat ->
                                     CategoryRowItem(
                                         category = cat,
                                         isSelected = cat.id == selectedCategoryId,
@@ -923,38 +963,13 @@ fun AddTransactionScreen(
                                     )
                                 }
                             }
-
-                            item {
-                                Text(
-                                    text = "ALL CATEGORIES",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.2.sp,
-                                        color = Color(0xFFA1A1AA)
-                                    )
-                                )
-                            }
-
-                            items(allCats) { cat ->
-                                CategoryRowItem(
-                                    category = cat,
-                                    isSelected = cat.id == selectedCategoryId,
-                                    onClick = {
-                                        selectedCategoryId = cat.id
-                                        showCategorySheet = false
-                                    }
-                                )
-                            }
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 2: REAL WORKING CALCULATOR SHEET
+            // MODAL SHEET 2: REAL WORKING CALCULATOR SHEET (ANCHORED NON-JUMPING OVERLAY)
             // ────────────────────────────────────────────────────────────────────────
             if (showCalculatorSheet) {
                 var calcExpression by remember { mutableStateOf(if (amountText.isBlank()) "0" else amountText) }
@@ -963,166 +978,183 @@ fun AddTransactionScreen(
                     evaluateMathExpression(calcExpression)
                 }
 
-                ModalBottomSheet(
-                    onDismissRequest = { showCalculatorSheet = false },
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                    windowInsets = WindowInsets(0, 0, 0, 0),
-                    containerColor = Color(0xFF18181B),
-                    scrimColor = Color.Black.copy(alpha = 0.6f),
-                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF52525B)) },
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .clickable(onClick = { showCalculatorSheet = false }),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
-                    Column(
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(horizontal = 20.dp, vertical = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                            .clickable(enabled = false) {},
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                        color = Color(0xFF18181B)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
+                                .padding(horizontal = 20.dp, vertical = 14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            Text(
-                                text = "CALCULATOR",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.2.sp,
-                                    fontSize = 15.sp,
-                                    color = Color.White
+                            // Drag Indicator Handle
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(36.dp)
+                                        .height(4.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF52525B))
                                 )
-                            )
-                            IconButton(onClick = { showCalculatorSheet = false }) {
-                                Icon(Icons.Outlined.Clear, contentDescription = "Close", tint = Color.White)
                             }
-                        }
 
-                        // Calculator Formula & Result Display Box
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFF09090B),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                horizontalAlignment = Alignment.End,
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = calcExpression,
-                                    style = MaterialTheme.typography.headlineSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFFA1A1AA)
-                                    ),
-                                    maxLines = 1
-                                )
-                                Text(
-                                    text = if (evaluatedVal != null) "= $currencySymbol${DecimalFormat("#,##0.##").format(evaluatedVal)}" else "= $currencySymbol 0",
-                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                    text = "CALCULATOR",
+                                    style = MaterialTheme.typography.titleMedium.copy(
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF22C55E)
-                                    ),
-                                    maxLines = 1
+                                        letterSpacing = 1.2.sp,
+                                        fontSize = 15.sp,
+                                        color = Color.White
+                                    )
                                 )
+                                IconButton(onClick = { showCalculatorSheet = false }) {
+                                    Icon(Icons.Outlined.Clear, contentDescription = "Close", tint = Color.White)
+                                }
                             }
-                        }
 
-                        // 4x4 Real Calculator Grid
-                        val calcKeys = listOf(
-                            "C", "÷", "×", "⌫",
-                            "7", "8", "9", "-",
-                            "4", "5", "6", "+",
-                            "1", "2", "3", "=",
-                            "00", "0", ".", "AC"
-                        )
-
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(4),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            items(calcKeys) { key ->
-                                val isOperator = key in listOf("+", "-", "×", "÷", "=")
-                                val isAction = key in listOf("C", "AC", "⌫")
-                                val btnBg = when {
-                                    key == "=" -> Color(0xFF22C55E)
-                                    isOperator -> Color(0xFF27272A)
-                                    isAction -> Color(0xFF3F3F46)
-                                    else -> Color(0xFF18181B)
-                                }
-                                val btnTextClr = when {
-                                    key == "=" -> Color.Black
-                                    isOperator -> Color(0xFF38BDF8)
-                                    isAction -> Color(0xFFF43F5E)
-                                    else -> Color.White
-                                }
-
-                                Surface(
+                            // Calculator Formula & Result Display Box
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFF09090B),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
+                            ) {
+                                Column(
                                     modifier = Modifier
-                                        .height(54.dp)
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .clickable {
-                                            when (key) {
-                                                "C", "AC" -> calcExpression = "0"
-                                                "⌫" -> {
-                                                    calcExpression = if (calcExpression.length > 1) calcExpression.dropLast(1) else "0"
-                                                }
-                                                "=" -> {
-                                                    if (evaluatedVal != null && evaluatedVal > 0.0) {
-                                                        amountText = DecimalFormat("0.##").format(evaluatedVal)
-                                                    }
-                                                }
-                                                else -> {
-                                                    if (calcExpression == "0" && key !in listOf(".", "+", "-", "×", "÷")) {
-                                                        calcExpression = key
-                                                    } else {
-                                                        calcExpression += key
-                                                    }
-                                                }
-                                            }
-                                        },
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = btnBg,
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    horizontalAlignment = Alignment.End,
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(
-                                            text = key,
-                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 18.sp,
-                                                color = btnTextClr
+                                    Text(
+                                        text = calcExpression,
+                                        style = MaterialTheme.typography.headlineSmall.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFFA1A1AA)
+                                        ),
+                                        maxLines = 1
+                                    )
+                                    Text(
+                                        text = if (evaluatedVal != null) "= $currencySymbol${DecimalFormat("#,##0.##").format(evaluatedVal)}" else "= $currencySymbol 0",
+                                        style = MaterialTheme.typography.headlineMedium.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF22C55E)
+                                        ),
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+
+                            // 4x4 Real Calculator Grid
+                            val calcKeys = listOf(
+                                "C", "÷", "×", "⌫",
+                                "7", "8", "9", "-",
+                                "4", "5", "6", "+",
+                                "1", "2", "3", "=",
+                                "00", "0", ".", "AC"
+                            )
+
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(4),
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                items(calcKeys) { key ->
+                                    val isOperator = key in listOf("+", "-", "×", "÷", "=")
+                                    val isAction = key in listOf("C", "AC", "⌫")
+                                    val btnBg = when {
+                                        key == "=" -> Color(0xFF22C55E)
+                                        isOperator -> Color(0xFF27272A)
+                                        isAction -> Color(0xFF3F3F46)
+                                        else -> Color(0xFF18181B)
+                                    }
+                                    val btnTextClr = when {
+                                        key == "=" -> Color.Black
+                                        isOperator -> Color(0xFF38BDF8)
+                                        isAction -> Color(0xFFF43F5E)
+                                        else -> Color.White
+                                    }
+
+                                    Surface(
+                                        modifier = Modifier
+                                            .height(54.dp)
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .clickable {
+                                                when (key) {
+                                                    "C", "AC" -> calcExpression = "0"
+                                                    "⌫" -> {
+                                                        calcExpression = if (calcExpression.length > 1) calcExpression.dropLast(1) else "0"
+                                                    }
+                                                    "=" -> {
+                                                        if (evaluatedVal != null && evaluatedVal > 0.0) {
+                                                            amountText = DecimalFormat("0.##").format(evaluatedVal)
+                                                        }
+                                                    }
+                                                    else -> {
+                                                        if (calcExpression == "0" && key !in listOf(".", "+", "-", "×", "÷")) {
+                                                            calcExpression = key
+                                                        } else {
+                                                            calcExpression += key
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                        shape = RoundedCornerShape(14.dp),
+                                        color = btnBg,
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text(
+                                                text = key,
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 18.sp,
+                                                    color = btnTextClr
+                                                )
                                             )
-                                        )
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        Button(
-                            onClick = {
-                                if (evaluatedVal != null && evaluatedVal > 0.0) {
-                                    amountText = DecimalFormat("0.##").format(evaluatedVal)
-                                }
-                                showCalculatorSheet = false
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
-                        ) {
-                            Text("Apply Result", fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily, fontSize = 16.sp)
+                            Button(
+                                onClick = {
+                                    if (evaluatedVal != null && evaluatedVal > 0.0) {
+                                        amountText = DecimalFormat("0.##").format(evaluatedVal)
+                                    }
+                                    showCalculatorSheet = false
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
+                            ) {
+                                Text("Apply Result", fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily, fontSize = 16.sp)
+                            }
                         }
                     }
                 }
