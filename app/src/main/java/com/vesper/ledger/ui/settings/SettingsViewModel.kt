@@ -72,6 +72,11 @@ class SettingsViewModel(
         }
     }
 
+    fun saveUserEmail(newValue: String) {
+        userEmail.value = newValue
+        sharedPrefs.edit().putString("user_email", newValue).apply()
+    }
+
     fun saveFirstLaunch(newValue: Boolean) {
         isFirstLaunch.value = newValue
         sharedPrefs.edit().putBoolean("isFirstLaunch", newValue).apply()

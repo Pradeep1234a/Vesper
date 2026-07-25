@@ -92,7 +92,8 @@ fun DashboardScreen(
     onAddCategoryClick: () -> Unit = {},
     onAccountsClick: () -> Unit = {},
     onAddTransactionClick: () -> Unit = {},
-    onBudgetsClick: () -> Unit = {}
+    onBudgetsClick: () -> Unit = {},
+    onSplitGroupsClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -439,7 +440,7 @@ fun DashboardScreen(
                             QuickActionTile(
                                 label = "Split Bill",
                                 icon = Icons.Outlined.CallSplit,
-                                onClick = { showSplitBillDialog = true },
+                                onClick = { onSplitGroupsClick() },
                                 modifier = Modifier.weight(1f)
                             )
                         }

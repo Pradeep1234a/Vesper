@@ -50,6 +50,9 @@ import com.vesper.ledger.ui.savings.SavingsViewModelFactory
 import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
+import com.vesper.ledger.ui.split.SplitGroupsScreen
+import com.vesper.ledger.ui.split.CreateSplitGroupScreen
+import com.vesper.ledger.ui.profile.ProfileManagementScreen
 import com.vesper.ledger.ui.budget.AddEditBudgetScreen
 import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.ui.category.CategoriesScreen
@@ -312,6 +315,9 @@ fun MainScreen(
             Screen.Accounts.route -> "Accounts"
             Screen.AddAccount.route -> "New Account"
             Screen.AddBudget.route -> "New Budget"
+            Screen.SplitGroups.route -> "Split Groups"
+            Screen.CreateSplitGroup.route -> "Create Split Group"
+            Screen.ProfileManagement.route -> "Profile Management"
             else -> "Vesper Ledger"
         }
 
@@ -337,7 +343,7 @@ fun MainScreen(
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                                        .clickable { navController.navigate(Screen.Settings.route) },
+                                        .clickable { navController.navigate(Screen.ProfileManagement.route) },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
@@ -447,7 +453,8 @@ fun MainScreen(
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
+                        onSplitGroupsClick = { navController.navigate(Screen.SplitGroups.route) }
                     )
                 }
 
@@ -702,6 +709,30 @@ fun MainScreen(
                                 app.budgetRepository.deleteBudget(budget)
                             }
                         }
+                    )
+                }
+
+                composable(Screen.SplitGroups.route) {
+                    SplitGroupsScreen(
+                        currencySymbol = currencySymbol,
+                        onCreateGroupClick = { navController.navigate(Screen.CreateSplitGroup.route) },
+                        onAddExpenseClick = { navController.navigate(Screen.AddTransaction.route) }
+                    )
+                }
+
+                composable(Screen.CreateSplitGroup.route) {
+                    CreateSplitGroupScreen(
+                        onBackClick = { navController.popBackStack() },
+                        onGroupCreated = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.ProfileManagement.route) {
+                    ProfileManagementScreen(
+                        settingsViewModel = settingsViewModel,
+                        onBackClick = { navController.popBackStack() },
+                        onSignOutClick = onSignOutClick,
+                        onCurrencyClick = { navController.navigate(Screen.CurrencySelector.route) }
                     )
                 }
             }

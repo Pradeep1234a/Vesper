@@ -18,4 +18,8 @@ sealed class Screen(val route: String) {
     object AddAccount : Screen("add_account")
     object Analytics : Screen("analytics")
     object AddBudget : Screen("add_budget")
+    object SplitGroups : Screen("split_groups")
+    object CreateSplitGroup : Screen("create_split_group")
+    object AddSplitExpense : Screen("add_split_expense")
+    object ProfileManagement : Screen("profile_management")
 }
