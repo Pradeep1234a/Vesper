@@ -365,10 +365,18 @@ fun MainScreen(
                 navController = navController,
                 startDestination = Screen.Dashboard.route,
                 modifier = Modifier.padding(innerPadding),
-                enterTransition = { fadeIn(animationSpec = tween(220)) },
-                exitTransition = { fadeOut(animationSpec = tween(180)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(220)) },
-                popExitTransition = { fadeOut(animationSpec = tween(180)) }
+                enterTransition = {
+                    slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(260)) + fadeIn(animationSpec = tween(220))
+                },
+                exitTransition = {
+                    slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth / 4 }, animationSpec = tween(220)) + fadeOut(animationSpec = tween(180))
+                },
+                popEnterTransition = {
+                    slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth / 4 }, animationSpec = tween(260)) + fadeIn(animationSpec = tween(220))
+                },
+                popExitTransition = {
+                    slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(220)) + fadeOut(animationSpec = tween(180))
+                }
             ) {
                 composable(Screen.Dashboard.route) {
                     val dashboardViewModel: DashboardViewModel = viewModel(factory = dashboardFactory)

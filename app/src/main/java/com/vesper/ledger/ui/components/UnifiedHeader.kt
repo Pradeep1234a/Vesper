@@ -16,6 +16,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 import androidx.compose.foundation.background
@@ -55,12 +57,21 @@ fun VesperUnifiedTopBar(
                 onClick = onNavigationClick,
                 modifier = Modifier.size(40.dp)
             ) {
-                Icon(
-                    imageVector = if (isRoot) Icons.Default.Menu else Icons.Default.ArrowBack,
-                    contentDescription = if (isRoot) "Menu" else "Back",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(24.dp)
-                )
+                AnimatedContent(
+                    targetState = isRoot,
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(220)) + scaleIn(initialScale = 0.8f)) togetherWith
+                                (fadeOut(animationSpec = tween(180)) + scaleOut(targetScale = 0.8f))
+                    },
+                    label = "NavIconMotion"
+                ) { root ->
+                    Icon(
+                        imageVector = if (root) Icons.Default.Menu else Icons.Default.ArrowBack,
+                        contentDescription = if (root) "Menu" else "Back",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -73,21 +84,29 @@ fun VesperUnifiedTopBar(
                 Spacer(modifier = Modifier.width(10.dp))
             }
 
-            Text(
-                text = title,
-                style = TextStyle(
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    platformStyle = PlatformTextStyle(
-                        includeFontPadding = false
-                    )
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
+            AnimatedContent(
+                targetState = title,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
+                },
+                modifier = Modifier.weight(1f),
+                label = "TitleMotion"
+            ) { targetTitle ->
+                Text(
+                    text = targetTitle,
+                    style = TextStyle(
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        platformStyle = PlatformTextStyle(
+                            includeFontPadding = false
+                        )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
             if (actions != null) {
                 Row(
