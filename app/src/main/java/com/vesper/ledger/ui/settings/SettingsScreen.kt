@@ -298,8 +298,8 @@ fun SettingsScreen(
                             SettingsRow(
                                 icon = if (isUpdateAvailable) Icons.Outlined.FileDownload else Icons.Outlined.Check,
                                 title = "Application Updates",
-                                subtitle = if (isUpdateAvailable) {
-                                    "v${BuildConfig.VERSION_NAME} → v${updateUiState.updateInfo!!.latestVersionName} available"
+                                subtitle = if (isUpdateAvailable && updateUiState.updateInfo != null) {
+                                    "v${BuildConfig.VERSION_NAME} → v${updateUiState.updateInfo?.latestVersionName} available"
                                 } else {
                                     "v${BuildConfig.VERSION_NAME} • Up To Date"
                                 },

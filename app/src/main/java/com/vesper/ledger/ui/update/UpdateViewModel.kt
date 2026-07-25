@@ -158,13 +158,37 @@ class UpdateViewModel(
     }
 
     fun installUpdate() {
-        val apkFile = updateRepository.getDownloadedApkFile() ?: return
+        val apkFile = updateRepository.getDownloadedApkFile()
+        if (apkFile == null || !apkFile.exists()) {
+            _uiState.value = _uiState.value.copy(
+                downloadState = UpdateDownloadState.ERROR,
+                errorMessage = "APK file not found. Please try downloading again."
+            )
+            return
+        }
+
         try {
             _uiState.value = _uiState.value.copy(downloadState = UpdateDownloadState.INSTALLING)
 
-            // Installation in progress
-
             val context = app
+
+            // Check for Unknown Sources Installation Permission on Android 8.0+ (Oreo+)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (!context.packageManager.canRequestPackageInstalls()) {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Please allow Vesper Ledger to install unknown apps",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                    val manageIntent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    context.startActivity(manageIntent)
+                    return
+                }
+            }
+
             val apkUri: Uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.provider",
@@ -177,9 +201,10 @@ class UpdateViewModel(
             }
             context.startActivity(intent)
         } catch (e: Exception) {
+            e.printStackTrace()
             _uiState.value = _uiState.value.copy(
                 downloadState = UpdateDownloadState.ERROR,
-                errorMessage = "Installation failed: ${e.message}"
+                errorMessage = "Installation failed: ${e.localizedMessage ?: e.message}"
             )
         }
     }

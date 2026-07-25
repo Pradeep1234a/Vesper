@@ -230,8 +230,10 @@ class UpdateRepository(private val context: Context) {
     }
 
     private fun isNewerVersionName(current: String, latest: String): Boolean {
-        val curParts = current.split(".")
-        val latParts = latest.split(".")
+        val curClean = current.replace(Regex("[^0-9.]"), "")
+        val latClean = latest.replace(Regex("[^0-9.]"), "")
+        val curParts = curClean.split(".")
+        val latParts = latClean.split(".")
         val maxLen = maxOf(curParts.size, latParts.size)
         for (i in 0 until maxLen) {
             val curPart = curParts.getOrNull(i)?.toIntOrNull() ?: 0
@@ -250,10 +252,8 @@ class UpdateRepository(private val context: Context) {
         val currentName = BuildConfig.VERSION_NAME
 
         val extractedCode = extractVersionCodeFromBody(body)
-        val updateAvailable = if (latestName.equals(currentName, ignoreCase = true)) {
-            false
-        } else if (extractedCode != null) {
-            extractedCode > BuildConfig.VERSION_CODE
+        val updateAvailable = if (extractedCode != null && extractedCode > BuildConfig.VERSION_CODE) {
+            true
         } else {
             isNewerVersionName(currentName, latestName)
         }
@@ -289,23 +289,26 @@ class UpdateRepository(private val context: Context) {
 
     private fun determineUpdateType(current: String, latest: String, body: String): UpdateType {
         if (body.contains("SECURITY", ignoreCase = true)) return UpdateType.SECURITY
-        if (body.contains("STABILITY", ignoreCase = true)) return UpdateType.STABILITY
+        if (body.contains("MAJOR", ignoreCase = true)) return UpdateType.MAJOR
 
-        val curParts = current.split(".")
-        val latParts = latest.split(".")
-        if (curParts.size >= 3 && latParts.size >= 3) {
-            try {
-                val curMajor = curParts[0].toInt()
-                val latMajor = latParts[0].toInt()
-                if (latMajor > curMajor) return UpdateType.MAJOR
+        val curClean = current.replace(Regex("[^0-9.]"), "")
+        val latClean = latest.replace(Regex("[^0-9.]"), "")
 
-                val curMinor = curParts[1].toInt()
-                val latMinor = latParts[1].toInt()
-                if (latMinor > curMinor) return UpdateType.FEATURE
-            } catch (e: Exception) {
-                // fallback
-            }
-        }
+        val curParts = curClean.split(".")
+        val latParts = latClean.split(".")
+
+        val curMajor = curParts.getOrNull(0)?.toIntOrNull() ?: 0
+        val latMajor = latParts.getOrNull(0)?.toIntOrNull() ?: 0
+        if (latMajor > curMajor) return UpdateType.MAJOR
+
+        val curMinor = curParts.getOrNull(1)?.toIntOrNull() ?: 0
+        val latMinor = latParts.getOrNull(1)?.toIntOrNull() ?: 0
+        if (latMinor > curMinor) return UpdateType.FEATURE
+
+        val curPatch = curParts.getOrNull(2)?.toIntOrNull() ?: 0
+        val latPatch = latParts.getOrNull(2)?.toIntOrNull() ?: 0
+        if (latPatch > curPatch) return UpdateType.STABILITY
+
         return UpdateType.HOTFIX
     }
 
