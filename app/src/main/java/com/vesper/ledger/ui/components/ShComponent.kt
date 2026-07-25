@@ -18,13 +18,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ShCard(
     modifier: Modifier = Modifier,
+    shape: androidx.compose.ui.graphics.Shape = MaterialTheme.shapes.medium,
     borderStroke: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
+        shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),

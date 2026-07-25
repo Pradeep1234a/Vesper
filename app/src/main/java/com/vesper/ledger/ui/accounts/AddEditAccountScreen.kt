@@ -120,7 +120,10 @@ fun AddEditAccountScreen(
         )
     }
 
+    var showTypeMenu by remember { mutableStateOf(false) }
+
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Surface(
@@ -176,30 +179,25 @@ fun AddEditAccountScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            ChildHeader(
+                title = if (isEditMode) "Edit Account" else "Add Account",
+                onBackClick = onBackClick
+            )
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // LIVE ACCOUNT PREVIEW CARD
-                Text(
-                    text = "LIVE PREVIEW",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        letterSpacing = 1.2.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                )
-
+                // LIVE ACCOUNT PREVIEW CARD (Cleaned without duplicate heading)
                 val parsedBalance = initialBalanceText.toDoubleOrNull() ?: 0.0
                 ShCard(
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
                     contentPadding = PaddingValues(16.dp)
                 ) {
                     Row(
@@ -208,17 +206,17 @@ fun AddEditAccountScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(50.dp)
-                                .clip(RoundedCornerShape(14.dp))
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(6.dp))
                                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f), RoundedCornerShape(14.dp)),
+                                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f), RoundedCornerShape(6.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = getAccountIcon(selectedIcon),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
 
@@ -230,7 +228,7 @@ fun AddEditAccountScreen(
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
+                                    fontSize = 15.sp,
                                     color = if (nameText.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
                                 )
                             )
@@ -243,7 +241,7 @@ fun AddEditAccountScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
+                                        .clip(RoundedCornerShape(6.dp))
                                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
@@ -261,7 +259,7 @@ fun AddEditAccountScreen(
                                 if (isHidden) {
                                     Box(
                                         modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
+                                            .clip(RoundedCornerShape(6.dp))
                                             .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
@@ -284,7 +282,7 @@ fun AddEditAccountScreen(
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
+                                fontSize = 15.sp,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                         )
@@ -299,7 +297,7 @@ fun AddEditAccountScreen(
                     placeholder = { Text("e.g. Cash Wallet, Main Bank, Credit Card") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
@@ -308,8 +306,8 @@ fun AddEditAccountScreen(
                     )
                 )
 
-                // ACCOUNT TYPE SELECTOR CHIPS
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // ACCOUNT TYPE MENU CARD & CUSTOM DROPDOWN POPUP
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = "ACCOUNT TYPE",
                         style = MaterialTheme.typography.labelMedium.copy(
@@ -321,27 +319,57 @@ fun AddEditAccountScreen(
                         )
                     )
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        ACCOUNT_TYPES.forEach { type ->
-                            val isSelected = type == selectedType
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = { selectedType = type },
-                                label = {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        ShCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showTypeMenu = true },
+                            shape = RoundedCornerShape(6.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
                                     Text(
-                                        text = type.replace("_", " "),
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 12.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        text = selectedType.replace("_", " "),
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
                                     )
-                                },
-                                shape = RoundedCornerShape(10.dp)
-                            )
+                                }
+                                Text("▾", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = showTypeMenu,
+                            onDismissRequest = { showTypeMenu = false },
+                            modifier = Modifier
+                                .background(Color(0xFF18181B))
+                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
+                        ) {
+                            ACCOUNT_TYPES.forEach { type ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = type.replace("_", " "),
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = if (type == selectedType) FontWeight.Bold else FontWeight.Medium,
+                                            color = if (type == selectedType) Color(0xFF38BDF8) else Color.White
+                                        )
+                                    },
+                                    onClick = {
+                                        selectedType = type
+                                        showTypeMenu = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -355,7 +383,7 @@ fun AddEditAccountScreen(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
@@ -365,7 +393,7 @@ fun AddEditAccountScreen(
                 )
 
                 // ACCOUNT ICON SELECTOR
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = "ACCOUNT ICON",
                         style = MaterialTheme.typography.labelMedium.copy(
@@ -388,7 +416,7 @@ fun AddEditAccountScreen(
                             Box(
                                 modifier = Modifier
                                     .size(46.dp)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(6.dp))
                                     .background(
                                         if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
                                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
@@ -396,7 +424,7 @@ fun AddEditAccountScreen(
                                     .border(
                                         width = if (isSelected) 2.dp else 1.dp,
                                         color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outlineVariant,
-                                        shape = RoundedCornerShape(12.dp)
+                                        shape = RoundedCornerShape(6.dp)
                                     )
                                     .clickable { selectedIcon = iconKey },
                                 contentAlignment = Alignment.Center
@@ -415,6 +443,7 @@ fun AddEditAccountScreen(
                 // HIDE / TURN OFF ACCOUNT SWITCH
                 ShCard(
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     Row(
@@ -456,7 +485,7 @@ fun AddEditAccountScreen(
                     singleLine = false,
                     maxLines = 3,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.onBackground,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
@@ -465,10 +494,6 @@ fun AddEditAccountScreen(
                     )
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Spacer(modifier = Modifier.height(4.dp))
-
                 // DELETE BUTTON (If Edit Mode)
                 if (isEditMode && accountToEdit != null && onDeleteAccount != null) {
                     OutlinedButton(
@@ -476,7 +501,7 @@ fun AddEditAccountScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        shape = MaterialTheme.shapes.small,
+                        shape = RoundedCornerShape(6.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
                         ),
@@ -497,7 +522,7 @@ fun AddEditAccountScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

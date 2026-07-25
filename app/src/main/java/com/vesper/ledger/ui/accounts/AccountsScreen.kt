@@ -49,12 +49,13 @@ fun AccountsScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddAccountClick,
                 containerColor = MaterialTheme.colorScheme.onBackground,
                 contentColor = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(14.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -70,17 +71,20 @@ fun AccountsScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            ChildHeader(title = "Accounts", onBackClick = onBackClick)
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // TOTAL ACCOUNTS BALANCE BANNER CARD
                 ShCard(
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
                     contentPadding = PaddingValues(18.dp)
                 ) {
                     Column {
@@ -173,6 +177,7 @@ fun AccountsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { onEditAccountClick(account) },
+                                shape = RoundedCornerShape(6.dp),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
                             ) {
                                 Row(
@@ -182,7 +187,7 @@ fun AccountsScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(48.dp)
-                                            .clip(RoundedCornerShape(12.dp))
+                                            .clip(RoundedCornerShape(6.dp))
                                             .background(
                                                 if (account.isHidden) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
@@ -191,7 +196,7 @@ fun AccountsScreen(
                                                 1.dp,
                                                 if (account.isHidden) MaterialTheme.colorScheme.outlineVariant
                                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
-                                                RoundedCornerShape(12.dp)
+                                                RoundedCornerShape(6.dp)
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -222,7 +227,7 @@ fun AccountsScreen(
 
                                             Box(
                                                 modifier = Modifier
-                                                    .clip(RoundedCornerShape(4.dp))
+                                                    .clip(RoundedCornerShape(6.dp))
                                                     .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
                                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                                             ) {
@@ -240,7 +245,7 @@ fun AccountsScreen(
                                             if (account.isHidden) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .clip(RoundedCornerShape(4.dp))
+                                                        .clip(RoundedCornerShape(6.dp))
                                                         .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f))
                                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                                 ) {
@@ -314,7 +319,7 @@ fun AccountsScreen(
                         }
 
                         item {
-                            Spacer(modifier = Modifier.height(80.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }
