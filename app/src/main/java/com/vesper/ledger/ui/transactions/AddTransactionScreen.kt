@@ -18,6 +18,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -930,9 +937,43 @@ fun AddTransactionScreen(
                             animationSpec = androidx.compose.animation.core.tween(250, easing = androidx.compose.animation.core.FastOutSlowInEasing)
                         )
                     ) {
+                        var sheetDragOffsetY by remember { mutableFloatStateOf(0f) }
+                        LaunchedEffect(showCategorySheet) {
+                            if (showCategorySheet) {
+                                sheetDragOffsetY = 0f
+                            }
+                        }
+                        val animatedSheetOffsetY by animateFloatAsState(
+                            targetValue = sheetDragOffsetY,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            label = "sheetDragOffset"
+                        )
+
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .offset { IntOffset(0, animatedSheetOffsetY.coerceAtLeast(0f).roundToInt()) }
+                                .pointerInput(Unit) {
+                                    detectVerticalDragGestures(
+                                        onDragEnd = {
+                                            if (sheetDragOffsetY > 100f) {
+                                                showCategorySheet = false
+                                            }
+                                            sheetDragOffsetY = 0f
+                                        },
+                                        onDragCancel = {
+                                            sheetDragOffsetY = 0f
+                                        },
+                                        onVerticalDrag = { change, dragAmount ->
+                                            change.consume()
+                                            // Constrain upward drag to >= 0f so sheet NEVER detaches or floats away from bottom edge!
+                                            sheetDragOffsetY = (sheetDragOffsetY + dragAmount).coerceAtLeast(0f)
+                                        }
+                                    )
+                                }
                                 .clickable(enabled = false) {}, // Prevents click-through to scrim
                             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                             color = Color(0xFF18181B),
