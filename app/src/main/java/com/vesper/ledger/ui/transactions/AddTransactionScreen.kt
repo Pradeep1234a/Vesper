@@ -229,13 +229,13 @@ fun AddTransactionScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 // 1. SEGMENTED TAB SELECTOR (Income | Expense | Transfer)
@@ -831,10 +831,6 @@ fun AddTransactionScreen(
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
             // ────────────────────────────────────────────────────────────────────────
@@ -986,15 +982,17 @@ fun AddTransactionScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Calculator",
+                                text = "CALCULATOR",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.2.sp,
+                                    fontSize = 15.sp,
                                     color = Color.White
                                 )
                             )
                             IconButton(onClick = { showCalculatorSheet = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                                Icon(Icons.Outlined.Clear, contentDescription = "Close", tint = Color.White)
                             }
                         }
 
@@ -1131,6 +1129,7 @@ fun AddTransactionScreen(
             // ────────────────────────────────────────────────────────────────────────
             if (showDatePickerSheet) {
                 var isManualMode by remember { mutableStateOf(false) }
+                var showYearSelector by remember { mutableStateOf(false) }
                 var currentMonthCal by remember { mutableStateOf(Calendar.getInstance().apply { timeInMillis = selectedCalendar.timeInMillis }) }
                 val monthFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
 
@@ -1168,7 +1167,7 @@ fun AddTransactionScreen(
                         ) {
                             Text("Select Date", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
                             
-                            // Mode Switcher Pill (Calendar | Manual)
+                            // Mode Switcher Pill (Calendar | Type Date)
                             Row(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(10.dp))
@@ -1176,22 +1175,30 @@ fun AddTransactionScreen(
                                     .padding(2.dp)
                             ) {
                                 Text(
-                                    text = "📅",
+                                    text = "Calendar",
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(if (!isManualMode) Color.White else Color.Transparent)
                                         .clickable { isManualMode = false }
-                                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                                    fontSize = 12.sp
+                                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (!isManualMode) Color.Black else Color(0xFFA1A1AA)
+                                    )
                                 )
                                 Text(
-                                    text = "✍️",
+                                    text = "Type Date",
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(if (isManualMode) Color.White else Color.Transparent)
                                         .clickable { isManualMode = true }
-                                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                                    fontSize = 12.sp
+                                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isManualMode) Color.Black else Color(0xFFA1A1AA)
+                                    )
                                 )
                             }
                         }
@@ -1209,7 +1216,7 @@ fun AddTransactionScreen(
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text("Manual Date Entry", color = Color(0xFFA1A1AA), fontSize = 12.sp, fontFamily = SpaceGroteskFamily)
+                                    Text("MANUAL DATE ENTRY", color = Color(0xFFA1A1AA), fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -1218,30 +1225,75 @@ fun AddTransactionScreen(
                                         OutlinedTextField(
                                             value = manualDayText,
                                             onValueChange = { if (it.length <= 2) manualDayText = it },
-                                            label = { Text("Day", color = Color(0xFFA1A1AA), fontSize = 10.sp) },
+                                            label = { Text("Day", color = Color(0xFFA1A1AA), fontSize = 10.sp, fontFamily = SpaceGroteskFamily) },
                                             modifier = Modifier.weight(1f),
                                             singleLine = true,
-                                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White, fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily),
                                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color.White, unfocusedBorderColor = Color(0xFF3F3F46))
                                         )
                                         OutlinedTextField(
                                             value = manualMonthText,
                                             onValueChange = { if (it.length <= 2) manualMonthText = it },
-                                            label = { Text("Month", color = Color(0xFFA1A1AA), fontSize = 10.sp) },
+                                            label = { Text("Month", color = Color(0xFFA1A1AA), fontSize = 10.sp, fontFamily = SpaceGroteskFamily) },
                                             modifier = Modifier.weight(1f),
                                             singleLine = true,
-                                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White, fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily),
                                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color.White, unfocusedBorderColor = Color(0xFF3F3F46))
                                         )
                                         OutlinedTextField(
                                             value = manualYearText,
                                             onValueChange = { if (it.length <= 4) manualYearText = it },
-                                            label = { Text("Year", color = Color(0xFFA1A1AA), fontSize = 10.sp) },
+                                            label = { Text("Year", color = Color(0xFFA1A1AA), fontSize = 10.sp, fontFamily = SpaceGroteskFamily) },
                                             modifier = Modifier.weight(1.3f),
                                             singleLine = true,
-                                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White, fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily),
                                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color.White, unfocusedBorderColor = Color(0xFF3F3F46))
                                         )
+                                    }
+                                }
+                            } else if (showYearSelector) {
+                                // YEAR SELECTOR GRID (2020..2035)
+                                Column(modifier = Modifier.fillMaxSize()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("Select Year", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 15.sp)
+                                        TextButton(onClick = { showYearSelector = false }) {
+                                            Text("Back to Calendar", fontFamily = SpaceGroteskFamily, color = Color(0xFF38BDF8), fontSize = 12.sp)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    val yearsList = (2020..2035).toList()
+                                    LazyVerticalGrid(
+                                        columns = GridCells.Fixed(4),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        items(yearsList) { yr ->
+                                            val isSelectedYr = currentMonthCal.get(Calendar.YEAR) == yr
+                                            Box(
+                                                modifier = Modifier
+                                                    .height(44.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(if (isSelectedYr) Color.White else Color(0xFF27272A))
+                                                    .clickable {
+                                                        currentMonthCal = (currentMonthCal.clone() as Calendar).apply { set(Calendar.YEAR, yr) }
+                                                        showYearSelector = false
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "$yr",
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (isSelectedYr) Color.Black else Color.White,
+                                                    fontSize = 14.sp
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             } else {
@@ -1250,14 +1302,23 @@ fun AddTransactionScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = monthFormat.format(currentMonthCal.time),
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
+                                    // Clickable Month & Year Header to open Year Selector
+                                    Row(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable { showYearSelector = true }
+                                            .padding(horizontal = 6.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = monthFormat.format(currentMonthCal.time) + " ▾",
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
                                         )
-                                    )
+                                    }
                                     Row {
                                         IconButton(onClick = {
                                             currentMonthCal = (currentMonthCal.clone() as Calendar).apply { add(Calendar.MONTH, -1) }
@@ -1352,6 +1413,7 @@ fun AddTransactionScreen(
                 var selectedHour by remember { mutableStateOf(selectedCalendar.get(Calendar.HOUR).let { if (it == 0) 12 else it }) }
                 var selectedMinute by remember { mutableStateOf(selectedCalendar.get(Calendar.MINUTE)) }
                 var isAm by remember { mutableStateOf(selectedCalendar.get(Calendar.AM_PM) == Calendar.AM) }
+                var isPickMinutes by remember { mutableStateOf(false) }
 
                 AlertDialog(
                     onDismissRequest = { showTimePickerSheet = false },
@@ -1372,7 +1434,48 @@ fun AddTransactionScreen(
                     containerColor = Color(0xFF18181B),
                     shape = RoundedCornerShape(20.dp),
                     title = {
-                        Text("Select Time", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Select Time", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
+                            
+                            // Mode Switcher Pill (Hours | Minutes)
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color(0xFF27272A))
+                                    .padding(2.dp)
+                            ) {
+                                Text(
+                                    text = "Hours",
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (!isPickMinutes) Color.White else Color.Transparent)
+                                        .clickable { isPickMinutes = false }
+                                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (!isPickMinutes) Color.Black else Color(0xFFA1A1AA)
+                                    )
+                                )
+                                Text(
+                                    text = "Minutes",
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (isPickMinutes) Color.White else Color.Transparent)
+                                        .clickable { isPickMinutes = true }
+                                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isPickMinutes) Color.Black else Color(0xFFA1A1AA)
+                                    )
+                                )
+                            }
+                        }
                     },
                     text = {
                         Column(
@@ -1395,6 +1498,7 @@ fun AddTransactionScreen(
                                         .clickable { isAm = true }
                                         .padding(horizontal = 14.dp, vertical = 6.dp),
                                     style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isAm) Color.Black else Color(0xFFA1A1AA)
                                     )
@@ -1407,6 +1511,7 @@ fun AddTransactionScreen(
                                         .clickable { isAm = false }
                                         .padding(horizontal = 14.dp, vertical = 6.dp),
                                     style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         color = if (!isAm) Color.Black else Color(0xFFA1A1AA)
                                     )
@@ -1419,59 +1524,96 @@ fun AddTransactionScreen(
                                 style = MaterialTheme.typography.headlineLarge.copy(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 32.sp,
+                                    fontSize = 30.sp,
                                     color = Color.White
                                 )
                             )
 
-                            // Interactive Analog Clock Face Dial
-                            Surface(
-                                modifier = Modifier
-                                    .size(190.dp)
-                                    .clip(CircleShape),
-                                color = Color(0xFF09090B),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    listOf(12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).forEach { hour ->
-                                        val angleDeg = Math.toRadians((hour * 30 - 90).toDouble())
-                                        val radiusDp = 70.dp
-                                        val isSelectedHour = hour == selectedHour
-
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(CircleShape)
-                                                .background(if (isSelectedHour) Color.White else Color.Transparent)
-                                                .clickable { selectedHour = hour },
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = "$hour",
-                                                style = MaterialTheme.typography.bodySmall.copy(
+                            if (!isPickMinutes) {
+                                // 3x4 GRID HOUR SELECTOR (1..12)
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text("SELECT HOUR", fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA), letterSpacing = 1.2.sp)
+                                    val hoursList = (1..12).toList()
+                                    LazyVerticalGrid(
+                                        columns = GridCells.Fixed(4),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                    ) {
+                                        items(hoursList) { hr ->
+                                            val isSelectedHr = hr == selectedHour
+                                            Box(
+                                                modifier = Modifier
+                                                    .height(44.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(if (isSelectedHr) Color.White else Color(0xFF27272A))
+                                                    .clickable { selectedHour = hr },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = String.format("%02d", hr),
                                                     fontFamily = SpaceGroteskFamily,
-                                                    fontWeight = if (isSelectedHour) FontWeight.Bold else FontWeight.Medium,
-                                                    color = if (isSelectedHour) Color.Black else Color.White
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (isSelectedHr) Color.Black else Color.White,
+                                                    fontSize = 15.sp
                                                 )
-                                            )
+                                            }
                                         }
                                     }
                                 }
-                            }
-
-                            // Minute Adjustment Quick Buttons
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("Minute Adjust", fontSize = 11.sp, color = Color(0xFFA1A1AA))
-                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        IconButton(onClick = { selectedMinute = (selectedMinute - 5 + 60) % 60 }) {
-                                            Text("−", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            } else {
+                                // 3x4 GRID MINUTE SELECTOR (00, 05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("SELECT MINUTE", fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA), letterSpacing = 1.2.sp)
+                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            IconButton(
+                                                onClick = { selectedMinute = (selectedMinute - 1 + 60) % 60 },
+                                                modifier = Modifier.size(28.dp)
+                                            ) {
+                                                Text("−1m", color = Color(0xFF38BDF8), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = SpaceGroteskFamily)
+                                            }
+                                            IconButton(
+                                                onClick = { selectedMinute = (selectedMinute + 1) % 60 },
+                                                modifier = Modifier.size(28.dp)
+                                            ) {
+                                                Text("+1m", color = Color(0xFF38BDF8), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = SpaceGroteskFamily)
+                                            }
                                         }
-                                        IconButton(onClick = { selectedMinute = (selectedMinute + 5) % 60 }) {
-                                            Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                    }
+                                    val minutesList = listOf(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
+                                    LazyVerticalGrid(
+                                        columns = GridCells.Fixed(4),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                    ) {
+                                        items(minutesList) { mn ->
+                                            val isSelectedMn = mn == selectedMinute
+                                            Box(
+                                                modifier = Modifier
+                                                    .height(44.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(if (isSelectedMn) Color.White else Color(0xFF27272A))
+                                                    .clickable { selectedMinute = mn },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = String.format("%02d", mn),
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (isSelectedMn) Color.Black else Color.White,
+                                                    fontSize = 15.sp
+                                                )
+                                            }
                                         }
                                     }
                                 }
