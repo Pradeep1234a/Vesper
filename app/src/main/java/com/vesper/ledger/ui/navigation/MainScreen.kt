@@ -394,15 +394,22 @@ fun MainScreen(
                 }
             }
         ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = Screen.Dashboard.route,
-                modifier = Modifier.padding(innerPadding),
-                enterTransition = { fadeIn(animationSpec = tween(220)) },
-                exitTransition = { fadeOut(animationSpec = tween(180)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(220)) },
-                popExitTransition = { fadeOut(animationSpec = tween(180)) }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
             ) {
+                NavHost(
+                    navController = navController,
+                    startDestination = Screen.Dashboard.route,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = if (isRootScreen) 57.dp else 0.dp),
+                    enterTransition = { fadeIn(animationSpec = tween(220)) },
+                    exitTransition = { fadeOut(animationSpec = tween(180)) },
+                    popEnterTransition = { fadeIn(animationSpec = tween(220)) },
+                    popExitTransition = { fadeOut(animationSpec = tween(180)) }
+                ) {
                 composable(Screen.Dashboard.route) {
                     val dashboardViewModel: DashboardViewModel = viewModel(factory = dashboardFactory)
                     DashboardScreen(
@@ -700,6 +707,7 @@ fun MainScreen(
             }
         }
     }
+}
 }
 
 @Composable
