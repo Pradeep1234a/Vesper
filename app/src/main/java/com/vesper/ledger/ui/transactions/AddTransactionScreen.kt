@@ -758,7 +758,10 @@ fun AddTransactionScreen(
             if (showCategorySheet) {
                 ModalBottomSheet(
                     onDismissRequest = { showCategorySheet = false },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                     containerColor = Color(0xFF18181B),
+                    scrimColor = Color.Black.copy(alpha = 0.6f),
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF52525B)) },
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                 ) {
                     var searchCatQuery by remember { mutableStateOf("") }
@@ -967,60 +970,28 @@ fun AddTransactionScreen(
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 3: SELECT DATE PICKER SHEET
+            // DIALOG MODAL 3: SELECT DATE PICKER MODAL
             // ────────────────────────────────────────────────────────────────────────
             if (showDatePickerSheet) {
-                ModalBottomSheet(
+                var currentMonthCal by remember { mutableStateOf(Calendar.getInstance().apply { timeInMillis = selectedCalendar.timeInMillis }) }
+                val monthFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
+
+                AlertDialog(
                     onDismissRequest = { showDatePickerSheet = false },
-                    containerColor = Color(0xFF09090B),
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                ) {
-                    var currentMonthCal by remember { mutableStateOf(Calendar.getInstance().apply { timeInMillis = selectedCalendar.timeInMillis }) }
-                    val monthFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                IconButton(onClick = { showDatePickerSheet = false }) {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White)
-                                }
-                                Text(
-                                    text = "Select Date",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                )
-                            }
+                    confirmButton = {
+                        TextButton(onClick = { showDatePickerSheet = false }) {
+                            Text("Done", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
                         }
-
-                        // Month Switcher Header
+                    },
+                    containerColor = Color(0xFF18181B),
+                    shape = RoundedCornerShape(20.dp),
+                    title = {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = monthFormat.format(currentMonthCal.time),
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            )
+                            Text("Select Date", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
                             Row {
                                 IconButton(onClick = {
                                     currentMonthCal = (currentMonthCal.clone() as Calendar).apply { add(Calendar.MONTH, -1) }
@@ -1034,135 +1005,130 @@ fun AddTransactionScreen(
                                 }
                             }
                         }
-
-                        // Days Header
-                        Row(
+                    },
+                    text = {
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceAround
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT").forEach { day ->
-                                Text(
-                                    text = day,
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        color = Color(0xFFA1A1AA)
-                                    )
+                            Text(
+                                text = monthFormat.format(currentMonthCal.time),
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
                                 )
-                            }
-                        }
+                            )
 
-                        // Calendar Grid Days
-                        val daysInMonth = currentMonthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
-                        val tempCal = (currentMonthCal.clone() as Calendar).apply { set(Calendar.DAY_OF_MONTH, 1) }
-                        val firstDayOfWeekIndex = tempCal.get(Calendar.DAY_OF_WEEK) - 1
-
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(7),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            // Blank slots before day 1
-                            items(firstDayOfWeekIndex) {
-                                Box(modifier = Modifier.size(36.dp))
-                            }
-
-                            items(daysInMonth) { dayIndex ->
-                                val dayNumber = dayIndex + 1
-                                val isSelected = selectedCalendar.get(Calendar.YEAR) == currentMonthCal.get(Calendar.YEAR) &&
-                                        selectedCalendar.get(Calendar.MONTH) == currentMonthCal.get(Calendar.MONTH) &&
-                                        selectedCalendar.get(Calendar.DAY_OF_MONTH) == dayNumber
-
-                                Box(
-                                    modifier = Modifier
-                                        .size(38.dp)
-                                        .clip(CircleShape)
-                                        .background(if (isSelected) Color.White else Color.Transparent)
-                                        .clickable {
-                                            val newCal = (selectedCalendar.clone() as Calendar).apply {
-                                                set(Calendar.YEAR, currentMonthCal.get(Calendar.YEAR))
-                                                set(Calendar.MONTH, currentMonthCal.get(Calendar.MONTH))
-                                                set(Calendar.DAY_OF_MONTH, dayNumber)
-                                            }
-                                            selectedCalendar = newCal
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
+                            // Days Header
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                listOf("S", "M", "T", "W", "T", "F", "S").forEach { day ->
                                     Text(
-                                        text = "$dayNumber",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                        text = day,
+                                        style = MaterialTheme.typography.labelSmall.copy(
                                             fontFamily = SpaceGroteskFamily,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            color = if (isSelected) Color.Black else Color.White
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFA1A1AA)
                                         )
                                     )
                                 }
                             }
-                        }
 
-                        Button(
-                            onClick = { showDatePickerSheet = false },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
-                        ) {
-                            Text("Done", fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily, fontSize = 16.sp)
+                            // Calendar Grid Days
+                            val daysInMonth = currentMonthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+                            val tempCal = (currentMonthCal.clone() as Calendar).apply { set(Calendar.DAY_OF_MONTH, 1) }
+                            val firstDayOfWeekIndex = tempCal.get(Calendar.DAY_OF_WEEK) - 1
+
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(7),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 240.dp)
+                            ) {
+                                items(firstDayOfWeekIndex) {
+                                    Box(modifier = Modifier.size(32.dp))
+                                }
+
+                                items(daysInMonth) { dayIndex ->
+                                    val dayNumber = dayIndex + 1
+                                    val isSelected = selectedCalendar.get(Calendar.YEAR) == currentMonthCal.get(Calendar.YEAR) &&
+                                            selectedCalendar.get(Calendar.MONTH) == currentMonthCal.get(Calendar.MONTH) &&
+                                            selectedCalendar.get(Calendar.DAY_OF_MONTH) == dayNumber
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(34.dp)
+                                            .clip(CircleShape)
+                                            .background(if (isSelected) Color.White else Color.Transparent)
+                                            .clickable {
+                                                val newCal = (selectedCalendar.clone() as Calendar).apply {
+                                                    set(Calendar.YEAR, currentMonthCal.get(Calendar.YEAR))
+                                                    set(Calendar.MONTH, currentMonthCal.get(Calendar.MONTH))
+                                                    set(Calendar.DAY_OF_MONTH, dayNumber)
+                                                }
+                                                selectedCalendar = newCal
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "$dayNumber",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                color = if (isSelected) Color.Black else Color.White
+                                            )
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
-                }
+                )
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 4: SELECT TIME PICKER SHEET
+            // DIALOG MODAL 4: SELECT TIME PICKER MODAL
             // ────────────────────────────────────────────────────────────────────────
             if (showTimePickerSheet) {
-                ModalBottomSheet(
+                var selectedHour by remember { mutableStateOf(selectedCalendar.get(Calendar.HOUR).let { if (it == 0) 12 else it }) }
+                var selectedMinute by remember { mutableStateOf(selectedCalendar.get(Calendar.MINUTE)) }
+                var isAm by remember { mutableStateOf(selectedCalendar.get(Calendar.AM_PM) == Calendar.AM) }
+
+                AlertDialog(
                     onDismissRequest = { showTimePickerSheet = false },
-                    containerColor = Color(0xFF09090B),
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                ) {
-                    var selectedHour by remember { mutableStateOf(selectedCalendar.get(Calendar.HOUR).let { if (it == 0) 12 else it }) }
-                    var selectedMinute by remember { mutableStateOf(selectedCalendar.get(Calendar.MINUTE)) }
-                    var isAm by remember { mutableStateOf(selectedCalendar.get(Calendar.AM_PM) == Calendar.AM) }
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                IconButton(onClick = { showTimePickerSheet = false }) {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White)
-                                }
-                                Text(
-                                    text = "Select Time",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                )
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val newCal = (selectedCalendar.clone() as Calendar).apply {
+                                set(Calendar.HOUR_OF_DAY, if (isAm) (selectedHour % 12) else (selectedHour % 12 + 12))
+                                set(Calendar.MINUTE, selectedMinute)
                             }
-
+                            selectedCalendar = newCal
+                            showTimePickerSheet = false
+                        }) {
+                            Text("Set Time", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    },
+                    containerColor = Color(0xFF18181B),
+                    shape = RoundedCornerShape(20.dp),
+                    title = {
+                        Text("Select Time", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
+                    },
+                    text = {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             // AM / PM Toggle Pill
                             Row(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFF18181B))
+                                    .background(Color(0xFF27272A))
                                     .padding(2.dp)
                             ) {
                                 Text(
@@ -1171,7 +1137,7 @@ fun AddTransactionScreen(
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(if (isAm) Color.White else Color.Transparent)
                                         .clickable { isAm = true }
-                                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                                        .padding(horizontal = 14.dp, vertical = 6.dp),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = if (isAm) Color.Black else Color(0xFFA1A1AA)
@@ -1183,79 +1149,56 @@ fun AddTransactionScreen(
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(if (!isAm) Color.White else Color.Transparent)
                                         .clickable { isAm = false }
-                                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                                        .padding(horizontal = 14.dp, vertical = 6.dp),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = if (!isAm) Color.Black else Color(0xFFA1A1AA)
                                     )
                                 )
                             }
-                        }
 
-                        // Time Display Box
-                        Text(
-                            text = String.format("%02d : %02d %s", selectedHour, selectedMinute, if (isAm) "AM" else "PM"),
-                            style = MaterialTheme.typography.headlineLarge.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 36.sp,
-                                color = Color.White
+                            // Time Display Box
+                            Text(
+                                text = String.format("%02d : %02d %s", selectedHour, selectedMinute, if (isAm) "AM" else "PM"),
+                                style = MaterialTheme.typography.headlineLarge.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 32.sp,
+                                    color = Color.White
+                                )
                             )
-                        )
 
-                        // Analog Clock Face Dial
-                        Surface(
-                            modifier = Modifier
-                                .size(200.dp)
-                                .clip(CircleShape),
-                            color = Color(0xFF18181B),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                listOf(12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).forEach { hour ->
-                                    val isSelectedHour = hour == selectedHour
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(CircleShape)
-                                            .background(if (isSelectedHour) Color.White else Color.Transparent)
-                                            .clickable { selectedHour = hour },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = "$hour",
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = if (isSelectedHour) FontWeight.Bold else FontWeight.Medium,
-                                                color = if (isSelectedHour) Color.Black else Color.White
-                                            )
-                                        )
+                            // Quick adjustment buttons
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("Hour", fontSize = 11.sp, color = Color(0xFFA1A1AA))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        IconButton(onClick = { selectedHour = if (selectedHour == 1) 12 else selectedHour - 1 }) {
+                                            Text("−", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                        }
+                                        IconButton(onClick = { selectedHour = if (selectedHour == 12) 1 else selectedHour + 1 }) {
+                                            Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                        }
+                                    }
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("Minute", fontSize = 11.sp, color = Color(0xFFA1A1AA))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        IconButton(onClick = { selectedMinute = (selectedMinute - 5 + 60) % 60 }) {
+                                            Text("−", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                        }
+                                        IconButton(onClick = { selectedMinute = (selectedMinute + 5) % 60 }) {
+                                            Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                                        }
                                     }
                                 }
                             }
                         }
-
-                        Button(
-                            onClick = {
-                                val newCal = (selectedCalendar.clone() as Calendar).apply {
-                                    var h = selectedHour % 12
-                                    if (!isAm) h += 12
-                                    set(Calendar.HOUR_OF_DAY, h)
-                                    set(Calendar.MINUTE, selectedMinute)
-                                }
-                                selectedCalendar = newCal
-                                showTimePickerSheet = false
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
-                        ) {
-                            Text("Done", fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily, fontSize = 16.sp)
-                        }
                     }
-                }
+                )
             }
 
             // ────────────────────────────────────────────────────────────────────────
