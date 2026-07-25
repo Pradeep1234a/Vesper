@@ -112,6 +112,12 @@ fun TransactionsScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            RootHeader(
+                title = "Transactions",
+                onMenuClick = onMenuClick
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddTransactionClick,
@@ -134,10 +140,6 @@ fun TransactionsScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                RootHeader(
-                    title = "Transactions",
-                    onMenuClick = onMenuClick
-                )
 
                 // Search Input Field
                 Row(

@@ -117,12 +117,8 @@ fun DashboardScreen(
     var showScanReceiptDialog by remember { mutableStateOf(false) }
     var showSplitBillDialog by remember { mutableStateOf(false) }
 
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+    Scaffold(
+        topBar = {
             RootHeader(
                 title = "Vesper Ledger",
                 onMenuClick = onMenuClick,
@@ -138,20 +134,21 @@ fun DashboardScreen(
                     ) {
                         Text(
                             text = userName.take(1).uppercase(),
-                            style = MaterialTheme.typography.bodyMedium.copy(
+                            style = MaterialTheme.typography.bodySmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                     }
                 }
             )
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
@@ -1065,7 +1062,6 @@ fun DashboardScreen(
             )
         }
     }
-}
 }
 
 // ─── Quick Action 1x4 Tile Composable ──────────────────────────────────────────
