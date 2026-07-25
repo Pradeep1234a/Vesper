@@ -117,6 +117,7 @@ fun MainScreen(
         drawerContent = {
             ModalDrawerSheet(
                 drawerContainerColor = MaterialTheme.colorScheme.background,
+                drawerTonalElevation = 0.dp,
                 modifier = Modifier.width(300.dp)
             ) {
                 Column(

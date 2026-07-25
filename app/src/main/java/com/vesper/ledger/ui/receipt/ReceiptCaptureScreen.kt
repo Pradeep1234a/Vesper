@@ -51,7 +51,9 @@ fun ReceiptCaptureScreen(
             .background(Color.Black)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
         ) {
             ChildHeader(
                 title = "Scan Receipt",
