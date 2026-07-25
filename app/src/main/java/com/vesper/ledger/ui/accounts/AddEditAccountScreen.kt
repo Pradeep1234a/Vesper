@@ -179,11 +179,6 @@ fun AddEditAccountScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            ChildHeader(
-                title = if (isEditMode) "Edit Account" else "Add Account",
-                onBackClick = onBackClick
-            )
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()

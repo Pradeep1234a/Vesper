@@ -71,8 +71,6 @@ fun AccountsScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            ChildHeader(title = "Accounts", onBackClick = onBackClick)
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
