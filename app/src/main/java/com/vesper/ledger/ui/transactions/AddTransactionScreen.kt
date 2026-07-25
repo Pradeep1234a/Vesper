@@ -160,7 +160,8 @@ fun AddTransactionScreen(
         categories.filter { it.type == type }.ifEmpty { categories }
     }
     var selectedCategoryId by remember(filteredCategories) {
-        mutableStateOf(filteredCategories.firstOrNull()?.id ?: 1L)
+        val entertainmentCat = filteredCategories.find { it.name.equals("Entertainment", ignoreCase = true) }
+        mutableStateOf(entertainmentCat?.id ?: filteredCategories.firstOrNull()?.id ?: 1L)
     }
 
     val activeAccounts = remember(accounts) { accounts.filter { !it.isHidden } }
@@ -173,7 +174,25 @@ fun AddTransactionScreen(
     }
 
     var selectedCalendar by remember { mutableStateOf(Calendar.getInstance()) }
+    var isTimeManuallySet by remember { mutableStateOf(false) }
     var noteText by remember { mutableStateOf("") }
+
+    // REAL-TIME CLOCK TICKER IF NO MANUAL TIME IS SELECTED
+    LaunchedEffect(isTimeManuallySet) {
+        if (!isTimeManuallySet) {
+            while (true) {
+                val now = Calendar.getInstance()
+                val newCal = Calendar.getInstance().apply {
+                    timeInMillis = selectedCalendar.timeInMillis
+                    set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY))
+                    set(Calendar.MINUTE, now.get(Calendar.MINUTE))
+                    set(Calendar.SECOND, now.get(Calendar.SECOND))
+                }
+                selectedCalendar = newCal
+                kotlinx.coroutines.delay(1000L)
+            }
+        }
+    }
 
     // Menu & Sheet visibility states
     var showCategorySheet by remember { mutableStateOf(false) }
@@ -197,11 +216,11 @@ fun AddTransactionScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF121215))
+                    .background(MaterialTheme.colorScheme.surface)
                     .navigationBarsPadding(),
-                color = Color(0xFF121215),
-                tonalElevation = 6.dp,
-                shadowElevation = 8.dp
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp
             ) {
                 Box(
                     modifier = Modifier
@@ -233,10 +252,10 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(6.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
+                            containerColor = MaterialTheme.colorScheme.onSurface,
+                            contentColor = MaterialTheme.colorScheme.surface
                         )
                     ) {
                         Text(
@@ -268,9 +287,9 @@ fun AddTransactionScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(6.dp))
                         .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
                         .padding(4.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -284,7 +303,7 @@ fun AddTransactionScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .clip(RoundedCornerShape(10.dp))
+                                .clip(RoundedCornerShape(6.dp))
                                 .background(if (selected) MaterialTheme.colorScheme.onBackground else Color.Transparent)
                                 .clickable { type = tabType },
                             contentAlignment = Alignment.Center
@@ -305,7 +324,7 @@ fun AddTransactionScreen(
                 // 2. AMOUNT CARD
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                 ) {
@@ -378,7 +397,7 @@ fun AddTransactionScreen(
                 // 3. TRANSACTION TITLE CARD
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                 ) {
@@ -392,7 +411,7 @@ fun AddTransactionScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(6.dp))
                                 .background(Color(0xFF27272A)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -439,14 +458,14 @@ fun AddTransactionScreen(
                     }
                 }
 
-                // 4. CATEGORY SELECTION CARD & INLINE POPUP MENU (NO BOTTOM SHEET)
+                // 4. CATEGORY SELECTION CARD & MODAL DIALOG
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(18.dp))
+                            .clip(RoundedCornerShape(6.dp))
                             .clickable { showCategorySheet = true },
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(6.dp),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                     ) {
@@ -465,7 +484,7 @@ fun AddTransactionScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(42.dp)
-                                        .clip(RoundedCornerShape(12.dp))
+                                        .clip(RoundedCornerShape(6.dp))
                                         .background(catColor.copy(alpha = 0.15f)),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -504,68 +523,110 @@ fun AddTransactionScreen(
                         }
                     }
 
-                    DropdownMenu(
-                        expanded = showCategorySheet,
-                        onDismissRequest = { showCategorySheet = false },
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .heightIn(max = 340.dp)
-                            .background(Color(0xFF18181B))
-                            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(14.dp))
-                    ) {
-                        filteredCategories.forEach { cat ->
-                            val catColor = safeParseColor(cat.colorHex)
-                            DropdownMenuItem(
-                                text = {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        Box(
+                    if (showCategorySheet) {
+                        AlertDialog(
+                            onDismissRequest = { showCategorySheet = false },
+                            title = {
+                                Text(
+                                    text = "Select Category",
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                )
+                            },
+                            text = {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .verticalScroll(rememberScrollState())
+                                ) {
+                                    filteredCategories.forEach { cat ->
+                                        val isSelected = cat.id == selectedCategoryId
+                                        val catColor = safeParseColor(cat.colorHex)
+                                        Row(
                                             modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(catColor.copy(alpha = 0.15f)),
-                                            contentAlignment = Alignment.Center
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                                .border(
+                                                    1.dp,
+                                                    if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
+                                                    RoundedCornerShape(6.dp)
+                                                )
+                                                .clickable {
+                                                    selectedCategoryId = cat.id
+                                                    showCategorySheet = false
+                                                }
+                                                .padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Icon(
-                                                imageVector = getIconByName(cat.iconName),
-                                                contentDescription = null,
-                                                tint = catColor,
-                                                modifier = Modifier.size(16.dp)
-                                            )
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(36.dp)
+                                                        .clip(RoundedCornerShape(6.dp))
+                                                        .background(catColor.copy(alpha = 0.2f)),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = getIconByName(cat.iconName),
+                                                        contentDescription = null,
+                                                        tint = catColor,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+                                                Text(
+                                                    text = cat.name,
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color.White
+                                                    )
+                                                )
+                                            }
+                                            if (isSelected) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = "Selected",
+                                                    tint = Color(0xFF38BDF8),
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
                                         }
-                                        Text(
-                                            text = cat.name,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = if (cat.id == selectedCategoryId) FontWeight.Bold else FontWeight.Medium,
-                                            color = if (cat.id == selectedCategoryId) Color(0xFF38BDF8) else Color.White
-                                        )
                                     }
-                                },
-                                onClick = {
-                                    selectedCategoryId = cat.id
-                                    showCategorySheet = false
                                 }
-                            )
-                        }
+                            },
+                            confirmButton = {
+                                TextButton(onClick = { showCategorySheet = false }) {
+                                    Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily)
+                                }
+                            },
+                            containerColor = Color(0xFF18181B),
+                            shape = RoundedCornerShape(6.dp)
+                        )
                     }
                 }
 
-                // 5. ACCOUNT & PAYMENT METHOD GRID (2 Columns)
-                // 5. ACCOUNT & PAYMENT METHOD GRID WITH POPUP MENUS
+                // 5. ACCOUNT & PAYMENT METHOD GRID WITH MODAL DIALOGS
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Left Column: Account Dropdown Menu Card
+                    // Left Column: Account Modal Dialog Card
                     Box(modifier = Modifier.weight(1f)) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(18.dp))
+                                .clip(RoundedCornerShape(6.dp))
                                 .clickable { showAccountMenu = true },
-                            shape = RoundedCornerShape(18.dp),
+                            shape = RoundedCornerShape(6.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                         ) {
@@ -591,7 +652,7 @@ fun AddTransactionScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(32.dp)
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .clip(RoundedCornerShape(6.dp))
                                             .background(Color(0xFF27272A)),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -653,19 +714,21 @@ fun AddTransactionScreen(
                                 text = {
                                     Column(
                                         verticalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .verticalScroll(rememberScrollState())
                                     ) {
                                         activeAccounts.forEach { account ->
                                             val isSelected = account.id == selectedAccount?.id
                                             Row(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .clip(RoundedCornerShape(6.dp))
                                                     .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
                                                     .border(
                                                         1.dp,
                                                         if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
-                                                        RoundedCornerShape(12.dp)
+                                                        RoundedCornerShape(6.dp)
                                                     )
                                                     .clickable {
                                                         selectedAccount = account
@@ -682,7 +745,7 @@ fun AddTransactionScreen(
                                                     Box(
                                                         modifier = Modifier
                                                             .size(36.dp)
-                                                            .clip(RoundedCornerShape(10.dp))
+                                                            .clip(RoundedCornerShape(6.dp))
                                                             .background(Color(0xFF27272A)),
                                                         contentAlignment = Alignment.Center
                                                     ) {
@@ -728,19 +791,19 @@ fun AddTransactionScreen(
                                     }
                                 },
                                 containerColor = Color(0xFF18181B),
-                                shape = RoundedCornerShape(20.dp)
+                                shape = RoundedCornerShape(6.dp)
                             )
                         }
                     }
 
-                    // Right Column: Payment Method Dropdown Menu Card
+                    // Right Column: Payment Method Modal Dialog Card
                     Box(modifier = Modifier.weight(1f)) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(18.dp))
+                                .clip(RoundedCornerShape(6.dp))
                                 .clickable { showPaymentMenu = true },
-                            shape = RoundedCornerShape(18.dp),
+                            shape = RoundedCornerShape(6.dp),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                         ) {
@@ -766,7 +829,7 @@ fun AddTransactionScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(32.dp)
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .clip(RoundedCornerShape(6.dp))
                                             .background(Color(0xFF27272A)),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -812,30 +875,93 @@ fun AddTransactionScreen(
                             }
                         }
 
-                        DropdownMenu(
-                            expanded = showPaymentMenu,
-                            onDismissRequest = { showPaymentMenu = false },
-                            modifier = Modifier
-                                .background(Color(0xFF18181B))
-                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(12.dp))
-                        ) {
-                            paymentMethods.forEach { method ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = method.name,
+                        if (showPaymentMenu) {
+                            AlertDialog(
+                                onDismissRequest = { showPaymentMenu = false },
+                                title = {
+                                    Text(
+                                        text = "Select Payment Method",
+                                        style = MaterialTheme.typography.titleLarge.copy(
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (method.name == selectedPaymentMethod) Color(0xFF38BDF8) else Color.White,
-                                            fontSize = 13.sp
+                                            color = Color.White
                                         )
-                                    },
-                                    onClick = {
-                                        selectedPaymentMethod = method.name
-                                        showPaymentMenu = false
+                                    )
+                                },
+                                text = {
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .verticalScroll(rememberScrollState())
+                                    ) {
+                                        paymentMethods.forEach { method ->
+                                            val isSelected = method.name == selectedPaymentMethod
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                                    .border(
+                                                        1.dp,
+                                                        if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
+                                                        RoundedCornerShape(6.dp)
+                                                    )
+                                                    .clickable {
+                                                        selectedPaymentMethod = method.name
+                                                        showPaymentMenu = false
+                                                    }
+                                                    .padding(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(36.dp)
+                                                            .clip(RoundedCornerShape(6.dp))
+                                                            .background(Color(0xFF27272A)),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Outlined.CreditCard,
+                                                            contentDescription = null,
+                                                            tint = Color.White,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                    }
+                                                    Text(
+                                                        text = method.name,
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            fontFamily = SpaceGroteskFamily,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = Color.White
+                                                        )
+                                                    )
+                                                }
+                                                if (isSelected) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = "Selected",
+                                                        tint = Color(0xFF38BDF8),
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
-                                )
-                            }
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = { showPaymentMenu = false }) {
+                                        Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily)
+                                    }
+                                },
+                                containerColor = Color(0xFF18181B),
+                                shape = RoundedCornerShape(6.dp)
+                            )
                         }
                     }
                 }
@@ -843,7 +969,7 @@ fun AddTransactionScreen(
                 // 6. DATE & TIME GRID (2 Columns)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                 ) {
@@ -870,7 +996,7 @@ fun AddTransactionScreen(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(6.dp))
                                     .background(Color(0xFF27272A))
                                     .clickable { showDatePickerSheet = true }
                                     .padding(12.dp)
@@ -910,9 +1036,12 @@ fun AddTransactionScreen(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(6.dp))
                                     .background(Color(0xFF27272A))
-                                    .clickable { showTimePickerSheet = true }
+                                    .clickable {
+                                        isTimeManuallySet = true
+                                        showTimePickerSheet = true
+                                    }
                                     .padding(12.dp)
                             ) {
                                 Row(
@@ -952,7 +1081,7 @@ fun AddTransactionScreen(
                 // 7. ADD NOTE CARD (MULTILINE AUTO-EXPANDING WITH 100% VISIBILITY)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                 ) {
@@ -966,7 +1095,7 @@ fun AddTransactionScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(6.dp))
                                 .background(Color(0xFF27272A)),
                             contentAlignment = Alignment.Center
                         ) {
