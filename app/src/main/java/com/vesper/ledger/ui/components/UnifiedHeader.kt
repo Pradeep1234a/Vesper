@@ -43,7 +43,7 @@ fun VesperUnifiedTopBar(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding(),
-        color = MaterialTheme.colorScheme.background,
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp
     ) {
         Row(
