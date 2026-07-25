@@ -439,71 +439,116 @@ fun AddTransactionScreen(
                     }
                 }
 
-                // 4. CATEGORY SELECTION CARD
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(18.dp))
-                        .clickable { showCategorySheet = true },
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                ) {
-                    Row(
+                // 4. CATEGORY SELECTION CARD & INLINE POPUP MENU (NO BOTTOM SHEET)
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .clip(RoundedCornerShape(18.dp))
+                            .clickable { showCategorySheet = true },
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                     ) {
                         Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            val catColor = safeParseColor(selectedCategory?.colorHex ?: "#10B981")
-                            Box(
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(catColor.copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.Center
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
-                                Icon(
-                                    imageVector = getIconByName(selectedCategory?.iconName ?: "shopping_bag"),
-                                    contentDescription = null,
-                                    tint = catColor,
-                                    modifier = Modifier.size(20.dp)
-                                )
+                                val catColor = safeParseColor(selectedCategory?.colorHex ?: "#10B981")
+                                Box(
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(catColor.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = getIconByName(selectedCategory?.iconName ?: "shopping_bag"),
+                                        contentDescription = null,
+                                        tint = catColor,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+                                Column {
+                                    Text(
+                                        text = "CATEGORY (${type.name})",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp,
+                                            letterSpacing = 1.2.sp,
+                                            color = Color(0xFFA1A1AA)
+                                        )
+                                    )
+                                    Text(
+                                        text = selectedCategory?.name ?: "Select Category",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp,
+                                            color = Color.White
+                                        )
+                                    )
+                                }
                             }
 
-                            Column {
-                                Text(
-                                    text = "CATEGORY (${type.name})",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        letterSpacing = 1.2.sp,
-                                        color = Color(0xFFA1A1AA)
-                                    )
-                                )
-                                Text(
-                                    text = selectedCategory?.name ?: "Select Category",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
-                                        color = Color.White
-                                    )
-                                )
-                            }
+                            Text("▾", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFFA1A1AA))
                         }
+                    }
 
-                        Icon(
-                            imageVector = Icons.Outlined.ChevronRight,
-                            contentDescription = "Select",
-                            tint = Color(0xFFA1A1AA)
-                        )
+                    DropdownMenu(
+                        expanded = showCategorySheet,
+                        onDismissRequest = { showCategorySheet = false },
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .heightIn(max = 340.dp)
+                            .background(Color(0xFF18181B))
+                            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(14.dp))
+                    ) {
+                        filteredCategories.forEach { cat ->
+                            val catColor = safeParseColor(cat.colorHex)
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(catColor.copy(alpha = 0.15f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = getIconByName(cat.iconName),
+                                                contentDescription = null,
+                                                tint = catColor,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = cat.name,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = if (cat.id == selectedCategoryId) FontWeight.Bold else FontWeight.Medium,
+                                            color = if (cat.id == selectedCategoryId) Color(0xFF38BDF8) else Color.White
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    selectedCategoryId = cat.id
+                                    showCategorySheet = false
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -907,188 +952,6 @@ fun AddTransactionScreen(
                                     }
                                 }
                             )
-                        }
-                    }
-                }
-            }            // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 1: SELECT CATEGORY SHEET (PURE MATERIAL 3 SPEC OVERLAY SHEET)
-            // ────────────────────────────────────────────────────────────────────────
-            AnimatedVisibility(
-                visible = showCategorySheet,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.65f))
-                        .clickable { showCategorySheet = false },
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    AnimatedVisibility(
-                        visible = showCategorySheet,
-                        enter = slideInVertically(
-                            initialOffsetY = { it },
-                            animationSpec = androidx.compose.animation.core.tween(300, easing = androidx.compose.animation.core.FastOutSlowInEasing)
-                        ),
-                        exit = slideOutVertically(
-                            targetOffsetY = { it },
-                            animationSpec = androidx.compose.animation.core.tween(250, easing = androidx.compose.animation.core.FastOutSlowInEasing)
-                        )
-                    ) {
-                        var sheetDragOffsetY by remember { mutableFloatStateOf(0f) }
-                        LaunchedEffect(showCategorySheet) {
-                            if (showCategorySheet) {
-                                sheetDragOffsetY = 0f
-                            }
-                        }
-                        val animatedSheetOffsetY by animateFloatAsState(
-                            targetValue = sheetDragOffsetY,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                                stiffness = Spring.StiffnessMedium
-                            ),
-                            label = "sheetDragOffset"
-                        )
-
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .offset { IntOffset(0, animatedSheetOffsetY.coerceAtLeast(0f).roundToInt()) }
-                                .pointerInput(Unit) {
-                                    detectVerticalDragGestures(
-                                        onDragEnd = {
-                                            if (sheetDragOffsetY > 100f) {
-                                                showCategorySheet = false
-                                            }
-                                            sheetDragOffsetY = 0f
-                                        },
-                                        onDragCancel = {
-                                            sheetDragOffsetY = 0f
-                                        },
-                                        onVerticalDrag = { change, dragAmount ->
-                                            change.consume()
-                                            // Constrain upward drag to >= 0f so sheet NEVER detaches or floats away from bottom edge!
-                                            sheetDragOffsetY = (sheetDragOffsetY + dragAmount).coerceAtLeast(0f)
-                                        }
-                                    )
-                                }
-                                .clickable(enabled = false) {}, // Prevents click-through to scrim
-                            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                            color = Color(0xFF18181B),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                        ) {
-                            var searchCatQuery by remember { mutableStateOf("") }
-                            val suggestedCats = filteredCategories.take(6)
-                            val allCats = filteredCategories.filter { it.name.contains(searchCatQuery, ignoreCase = true) }
-
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(480.dp)
-                                    .navigationBarsPadding()
-                                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                                verticalArrangement = Arrangement.spacedBy(14.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                // Official M3 Drag Handle
-                                Box(
-                                    modifier = Modifier
-                                        .padding(top = 4.dp, bottom = 8.dp)
-                                        .width(32.dp)
-                                        .height(4.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFF71717A))
-                                )
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Select Category",
-                                        style = MaterialTheme.typography.titleLarge.copy(
-                                            fontFamily = FontFamily.Serif,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-                                    )
-                                    IconButton(onClick = { showCategorySheet = false }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
-                                    }
-                                }
-
-                                // Search Input
-                                OutlinedTextField(
-                                    value = searchCatQuery,
-                                    onValueChange = { searchCatQuery = it },
-                                    placeholder = { Text("Search categories", color = Color(0xFF71717A)) },
-                                    leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFFA1A1AA)) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(14.dp),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = Color.White,
-                                        unfocusedBorderColor = Color(0xFF27272A),
-                                        focusedContainerColor = Color(0xFF09090B),
-                                        unfocusedContainerColor = Color(0xFF09090B)
-                                    )
-                                )
-
-                                LazyColumn(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                                ) {
-                                    if (searchCatQuery.isBlank()) {
-                                        item {
-                                            Text(
-                                                text = "SUGGESTED",
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontFamily = SpaceGroteskFamily,
-                                                    fontWeight = FontWeight.Bold,
-                                                    letterSpacing = 1.2.sp,
-                                                    color = Color(0xFFA1A1AA)
-                                                )
-                                            )
-                                        }
-                                        items(suggestedCats) { cat ->
-                                            CategoryRowItem(
-                                                category = cat,
-                                                isSelected = cat.id == selectedCategoryId,
-                                                onClick = {
-                                                    selectedCategoryId = cat.id
-                                                    showCategorySheet = false
-                                                }
-                                            )
-                                        }
-                                    }
-
-                                    item {
-                                        Text(
-                                            text = "ALL CATEGORIES",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                letterSpacing = 1.2.sp,
-                                                color = Color(0xFFA1A1AA)
-                                            )
-                                        )
-                                    }
-
-                                    items(allCats) { cat ->
-                                        CategoryRowItem(
-                                            category = cat,
-                                            isSelected = cat.id == selectedCategoryId,
-                                            onClick = {
-                                                selectedCategoryId = cat.id
-                                                showCategorySheet = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
                         }
                     }
                 }
