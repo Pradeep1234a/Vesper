@@ -47,6 +47,7 @@ fun CreateSplitGroupScreen(
     )
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(

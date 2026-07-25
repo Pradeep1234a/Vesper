@@ -64,6 +64,7 @@ fun BudgetScreen(
     val totalRemaining = totalBudgetLimit - totalBudgetSpent
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddBudgetClick,

@@ -50,6 +50,7 @@ fun SplitGroupsScreen(
     val totalOwe = sampleGroups.filter { it.netBalance < 0 }.sumOf { kotlin.math.abs(it.netBalance) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreateGroupClick,
