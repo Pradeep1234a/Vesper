@@ -79,10 +79,7 @@ object AuthValidator {
 
     fun isValidFullName(name: String): Boolean {
         val trimmed = name.trim()
-        val parts = trimmed.split("\\s+".toRegex()).filter { it.isNotEmpty() }
-        return parts.size >= 2 && parts.all { part ->
-            part.length >= 2 && part.all { it.isLetter() || it == '-' || it == '\'' }
-        }
+        return trimmed.length >= 2 && trimmed.all { it.isLetter() || it.isWhitespace() || it == '-' || it == '\'' || it == '.' }
     }
 }
 
@@ -1096,7 +1093,7 @@ fun CreateAccountScreen(
                                 leadingIcon = Icons.Outlined.Person,
                                 imeAction = ImeAction.Next,
                                 onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
-                                errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter first and last name (letters only)." else null
+                                errorText = if (showErrors && !AuthValidator.isValidFullName(fullName)) "Please enter a valid name (at least 2 letters)." else null
                             )
 
                             Spacer(modifier = Modifier.height(6.dp))

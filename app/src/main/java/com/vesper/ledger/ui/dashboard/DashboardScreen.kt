@@ -72,6 +72,10 @@ import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.theme.Slate200
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.style.TextOverflow
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -128,52 +132,33 @@ fun DashboardScreen(
             ) {
                 item {
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                        val isShortName = displayName.length <= 10
-                        if (isShortName) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Text(
-                                    text = "$greeting,",
-                                    style = MaterialTheme.typography.headlineLarge.copy(
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
                                         fontWeight = FontWeight.Normal,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 26.sp
+                                        fontSize = 24.sp,
+                                        fontFamily = SpaceGroteskFamily
                                     )
-                                )
-                                Text(
-                                    text = "$displayName!",
-                                    style = MaterialTheme.typography.headlineLarge.copy(
+                                ) {
+                                    append("$greeting, ")
+                                }
+                                withStyle(
+                                    style = SpanStyle(
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 26.sp,
-                                        color = MaterialTheme.colorScheme.onBackground
-                                    ),
-                                    maxLines = 1,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                                )
-                            }
-                        } else {
-                            Text(
-                                text = "$greeting,",
-                                style = MaterialTheme.typography.headlineLarge.copy(
-                                    fontWeight = FontWeight.Normal,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 26.sp
-                                )
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "$displayName!",
-                                style = MaterialTheme.typography.headlineLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 26.sp,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                ),
-                                maxLines = 2,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                            )
-                        }
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        fontSize = 24.sp,
+                                        fontFamily = SpaceGroteskFamily
+                                    )
+                                ) {
+                                    append("$displayName!")
+                                }
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Here is your money summary.",
