@@ -905,135 +905,149 @@ fun AddTransactionScreen(
                     }
                 }
             }            // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 1: SELECT CATEGORY SHEET (PINNED ZERO-JUMPING M3 BOTTOM SHEET)
+            // MODAL SHEET 1: SELECT CATEGORY SHEET (PURE MATERIAL 3 SPEC OVERLAY SHEET)
             // ────────────────────────────────────────────────────────────────────────
-            if (showCategorySheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showCategorySheet = false },
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                    containerColor = Color(0xFF18181B),
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                    dragHandle = {
-                        Box(
-                            modifier = Modifier
-                                .padding(vertical = 10.dp)
-                                .width(36.dp)
-                                .height(4.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF52525B))
-                        )
-                    }
+            AnimatedVisibility(
+                visible = showCategorySheet,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .clickable { showCategorySheet = false },
+                    contentAlignment = Alignment.BottomCenter
                 ) {
-                    var searchCatQuery by remember { mutableStateOf("") }
-                    val suggestedCats = filteredCategories.take(6)
-                    val allCats = filteredCategories.filter { it.name.contains(searchCatQuery, ignoreCase = true) }
-
-                    // Absorbs fast inner scroll/fling so the bottom sheet NEVER jumps or leaks background
-                    val noSheetDragConnection = remember {
-                        object : NestedScrollConnection {
-                            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                                return available
-                            }
-                            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                                return available
-                            }
-                        }
-                    }
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(480.dp)
-                            .navigationBarsPadding()
-                            .padding(horizontal = 20.dp, vertical = 6.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Select Category",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = FontFamily.Serif,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            )
-                            IconButton(onClick = { showCategorySheet = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
-                            }
-                        }
-
-                        // Search Input
-                        OutlinedTextField(
-                            value = searchCatQuery,
-                            onValueChange = { searchCatQuery = it },
-                            placeholder = { Text("Search categories", color = Color(0xFF71717A)) },
-                            leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFFA1A1AA)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color(0xFF27272A),
-                                focusedContainerColor = Color(0xFF09090B),
-                                unfocusedContainerColor = Color(0xFF09090B)
-                            )
+                    AnimatedVisibility(
+                        visible = showCategorySheet,
+                        enter = slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = androidx.compose.animation.core.tween(300, easing = androidx.compose.animation.core.FastOutSlowInEasing)
+                        ),
+                        exit = slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = androidx.compose.animation.core.tween(250, easing = androidx.compose.animation.core.FastOutSlowInEasing)
                         )
-
-                        LazyColumn(
+                    ) {
+                        Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .weight(1f)
-                                .nestedScroll(noSheetDragConnection),
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                                .clickable(enabled = false) {}, // Prevents click-through to scrim
+                            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                            color = Color(0xFF18181B),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                         ) {
-                            if (searchCatQuery.isBlank()) {
-                                item {
+                            var searchCatQuery by remember { mutableStateOf("") }
+                            val suggestedCats = filteredCategories.take(6)
+                            val allCats = filteredCategories.filter { it.name.contains(searchCatQuery, ignoreCase = true) }
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(480.dp)
+                                    .navigationBarsPadding()
+                                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(14.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                // Official M3 Drag Handle
+                                Box(
+                                    modifier = Modifier
+                                        .padding(top = 4.dp, bottom = 8.dp)
+                                        .width(32.dp)
+                                        .height(4.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF71717A))
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     Text(
-                                        text = "SUGGESTED",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontFamily = SpaceGroteskFamily,
+                                        text = "Select Category",
+                                        style = MaterialTheme.typography.titleLarge.copy(
+                                            fontFamily = FontFamily.Serif,
                                             fontWeight = FontWeight.Bold,
-                                            letterSpacing = 1.2.sp,
-                                            color = Color(0xFFA1A1AA)
+                                            color = Color.White
                                         )
                                     )
-                                }
-                                items(suggestedCats) { cat ->
-                                    CategoryRowItem(
-                                        category = cat,
-                                        isSelected = cat.id == selectedCategoryId,
-                                        onClick = {
-                                            selectedCategoryId = cat.id
-                                            showCategorySheet = false
-                                        }
-                                    )
-                                }
-                            }
-
-                            item {
-                                Text(
-                                    text = "ALL CATEGORIES",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.2.sp,
-                                        color = Color(0xFFA1A1AA)
-                                    )
-                                )
-                            }
-
-                            items(allCats) { cat ->
-                                CategoryRowItem(
-                                    category = cat,
-                                    isSelected = cat.id == selectedCategoryId,
-                                    onClick = {
-                                        selectedCategoryId = cat.id
-                                        showCategorySheet = false
+                                    IconButton(onClick = { showCategorySheet = false }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                                     }
+                                }
+
+                                // Search Input
+                                OutlinedTextField(
+                                    value = searchCatQuery,
+                                    onValueChange = { searchCatQuery = it },
+                                    placeholder = { Text("Search categories", color = Color(0xFF71717A)) },
+                                    leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFFA1A1AA)) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = Color.White,
+                                        unfocusedBorderColor = Color(0xFF27272A),
+                                        focusedContainerColor = Color(0xFF09090B),
+                                        unfocusedContainerColor = Color(0xFF09090B)
+                                    )
                                 )
+
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                                ) {
+                                    if (searchCatQuery.isBlank()) {
+                                        item {
+                                            Text(
+                                                text = "SUGGESTED",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    letterSpacing = 1.2.sp,
+                                                    color = Color(0xFFA1A1AA)
+                                                )
+                                            )
+                                        }
+                                        items(suggestedCats) { cat ->
+                                            CategoryRowItem(
+                                                category = cat,
+                                                isSelected = cat.id == selectedCategoryId,
+                                                onClick = {
+                                                    selectedCategoryId = cat.id
+                                                    showCategorySheet = false
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    item {
+                                        Text(
+                                            text = "ALL CATEGORIES",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                letterSpacing = 1.2.sp,
+                                                color = Color(0xFFA1A1AA)
+                                            )
+                                        )
+                                    }
+
+                                    items(allCats) { cat ->
+                                        CategoryRowItem(
+                                            category = cat,
+                                            isSelected = cat.id == selectedCategoryId,
+                                            onClick = {
+                                                selectedCategoryId = cat.id
+                                                showCategorySheet = false
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
