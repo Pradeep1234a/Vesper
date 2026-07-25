@@ -451,6 +451,13 @@ fun AddTransactionScreen(
                         }
                     }
 
+                    val hasAmount = amountText.isNotBlank() && amountText.trim() != "0"
+                    val amountColor = if (hasAmount) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    }
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -460,7 +467,8 @@ fun AddTransactionScreen(
                             style = MaterialTheme.typography.headlineLarge.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontSize = 32.sp,
+                                color = amountColor
                             )
                         )
 
@@ -471,7 +479,17 @@ fun AddTransactionScreen(
                                     amountText = input.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
                                 }
                             },
-                            placeholder = { Text("0.00", fontFamily = SpaceGroteskFamily, fontSize = 28.sp) },
+                            placeholder = {
+                                Text(
+                                    text = "0",
+                                    style = MaterialTheme.typography.headlineLarge.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 32.sp,
+                                        color = amountColor
+                                    )
+                                )
+                            },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.fillMaxWidth(),
@@ -479,7 +497,7 @@ fun AddTransactionScreen(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 32.sp,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = amountColor
                             ),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color.Transparent,
