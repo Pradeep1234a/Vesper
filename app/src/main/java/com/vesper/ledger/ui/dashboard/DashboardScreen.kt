@@ -133,31 +133,23 @@ fun DashboardScreen(
                 item {
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
                         Text(
-                            text = buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(
-                                        fontWeight = FontWeight.Normal,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 24.sp,
-                                        fontFamily = SpaceGroteskFamily
-                                    )
-                                ) {
-                                    append("$greeting, ")
-                                }
-                                withStyle(
-                                    style = SpanStyle(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        fontSize = 24.sp,
-                                        fontFamily = SpaceGroteskFamily
-                                    )
-                                ) {
-                                    append("$displayName!")
-                                }
-                            },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth()
+                            text = "$greeting,",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "$displayName!",
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                fontSize = 26.sp
+                            )
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
