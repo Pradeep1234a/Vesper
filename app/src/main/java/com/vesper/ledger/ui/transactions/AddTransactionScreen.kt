@@ -130,13 +130,15 @@ private fun evaluateMathExpression(expr: String): Double? {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionScreen(
+    transactionToEdit: com.vesper.ledger.data.model.Transaction? = null,
     currencySymbol: String = "₹",
     categories: List<Category>,
     accounts: List<Account>,
     paymentMethods: List<PaymentMethod> = emptyList(),
     onBackClick: () -> Unit,
-    onAddCategoryClick: () -> Unit,
-    onAddAccountClick: () -> Unit,
+    onAddCategoryClick: () -> Unit = {},
+    onAddAccountClick: () -> Unit = {},
+    onDeleteTransaction: ((com.vesper.ledger.data.model.Transaction) -> Unit)? = null,
     onSaveTransaction: (
         title: String,
         amount: Double,
@@ -150,32 +152,54 @@ fun AddTransactionScreen(
     ) -> Unit
 ) {
     val context = LocalContext.current
+    val isEditMode = transactionToEdit != null
 
-    var type by remember { mutableStateOf(TransactionType.EXPENSE) }
-    var amountText by remember { mutableStateOf("") }
-    var titleText by remember { mutableStateOf("") }
+    var type by remember(transactionToEdit) { mutableStateOf(transactionToEdit?.type ?: TransactionType.EXPENSE) }
+    var amountText by remember(transactionToEdit) {
+        mutableStateOf(transactionToEdit?.amount?.let { if (it > 0) DecimalFormat("0.##").format(it) else "" } ?: "")
+    }
+    var titleText by remember(transactionToEdit) { mutableStateOf(transactionToEdit?.title ?: "") }
 
     // Filter categories by selected transaction type
     val filteredCategories = remember(categories, type) {
         categories.filter { it.type == type }.ifEmpty { categories }
     }
-    var selectedCategoryId by remember(filteredCategories) {
-        val entertainmentCat = filteredCategories.find { it.name.equals("Entertainment", ignoreCase = true) }
-        mutableStateOf(entertainmentCat?.id ?: filteredCategories.firstOrNull()?.id ?: 1L)
+    var selectedCategoryId by remember(filteredCategories, transactionToEdit) {
+        if (transactionToEdit != null) {
+            mutableStateOf(transactionToEdit.categoryId)
+        } else {
+            val entertainmentCat = filteredCategories.find { it.name.equals("Entertainment", ignoreCase = true) }
+            mutableStateOf(entertainmentCat?.id ?: filteredCategories.firstOrNull()?.id ?: 1L)
+        }
     }
 
     val activeAccounts = remember(accounts) { accounts.filter { !it.isHidden } }
-    var selectedAccount by remember(activeAccounts) {
-        mutableStateOf(activeAccounts.firstOrNull())
+    var selectedAccount by remember(activeAccounts, transactionToEdit) {
+        if (transactionToEdit != null) {
+            mutableStateOf(accounts.find { it.id == transactionToEdit.accountId } ?: activeAccounts.firstOrNull())
+        } else {
+            mutableStateOf(activeAccounts.firstOrNull())
+        }
     }
 
-    var selectedPaymentMethod by remember(paymentMethods) {
-        mutableStateOf(paymentMethods.firstOrNull()?.name ?: "Cash")
+    var selectedPaymentMethod by remember(paymentMethods, transactionToEdit) {
+        if (transactionToEdit != null) {
+            mutableStateOf(transactionToEdit.paymentMethod)
+        } else {
+            mutableStateOf(paymentMethods.firstOrNull()?.name ?: "Cash")
+        }
     }
 
-    var selectedCalendar by remember { mutableStateOf(Calendar.getInstance()) }
-    var isTimeManuallySet by remember { mutableStateOf(false) }
-    var noteText by remember { mutableStateOf("") }
+    var selectedCalendar by remember(transactionToEdit) {
+        val cal = Calendar.getInstance()
+        if (transactionToEdit != null) {
+            cal.timeInMillis = transactionToEdit.dateEpochMillis
+        }
+        mutableStateOf(cal)
+    }
+    var isTimeManuallySet by remember(transactionToEdit) { mutableStateOf(transactionToEdit != null) }
+    var noteText by remember(transactionToEdit) { mutableStateOf(transactionToEdit?.note ?: "") }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     // REAL-TIME CLOCK TICKER IF NO MANUAL TIME IS SELECTED
     LaunchedEffect(isTimeManuallySet) {
@@ -208,6 +232,48 @@ fun AddTransactionScreen(
 
     val selectedCategory = categories.find { it.id == selectedCategoryId } ?: categories.firstOrNull()
     val parsedAmount = amountText.replace(",", "").toDoubleOrNull() ?: 0.0
+
+    // Delete Confirmation Dialog for Edit Mode
+    if (showDeleteConfirmDialog && transactionToEdit != null && onDeleteTransaction != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            title = {
+                Text(
+                    text = "Delete Transaction",
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete '${transactionToEdit.title.ifBlank { "this transaction" }}'? This action cannot be undone.",
+                    fontFamily = SpaceGroteskFamily,
+                    color = Color(0xFFA1A1AA)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirmDialog = false
+                        onDeleteTransaction(transactionToEdit)
+                        onBackClick()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text("Delete", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                    Text("Cancel", fontFamily = SpaceGroteskFamily, color = Color(0xFFA1A1AA))
+                }
+            },
+            containerColor = Color(0xFF18181B),
+            shape = RoundedCornerShape(6.dp)
+        )
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -259,7 +325,7 @@ fun AddTransactionScreen(
                         )
                     ) {
                         Text(
-                            text = "Save Transaction",
+                            text = if (isEditMode) "Save Changes" else "Save Transaction",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
@@ -1140,6 +1206,37 @@ fun AddTransactionScreen(
                                 }
                             )
                         }
+                    }
+                }
+
+                // 8. DESTRUCTIVE CTA BUTTON (EDIT MODE ONLY)
+                if (isEditMode && transactionToEdit != null && onDeleteTransaction != null) {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirmDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color(0xFF270F11),
+                            contentColor = Color(0xFFEF4444)
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "Delete Transaction",
+                            tint = Color(0xFFEF4444),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Delete Transaction",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = Color(0xFFEF4444)
+                        )
                     }
                 }
             }

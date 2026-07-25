@@ -302,6 +302,8 @@ fun MainScreen(
             Screen.Settings.route
         )
 
+        var editingTransaction by remember { mutableStateOf<com.vesper.ledger.data.model.Transaction?>(null) }
+
         val screenTitle = when (currentRoute) {
             Screen.Dashboard.route -> "Vesper Ledger"
             Screen.Transactions.route -> "Transactions"
@@ -309,7 +311,7 @@ fun MainScreen(
             Screen.Analytics.route -> "Analytics"
             Screen.Settings.route -> "Settings"
             Screen.Savings.route -> "Savings Goals"
-            Screen.AddTransaction.route -> "New Transaction"
+            Screen.AddTransaction.route -> if (editingTransaction != null) "Edit Transaction" else "New Transaction"
             Screen.CurrencySelector.route -> "Select Currency"
             Screen.AddCategory.route -> "Categories"
             Screen.Accounts.route -> "Accounts"
@@ -465,7 +467,14 @@ fun MainScreen(
                         currencySymbol = currencySymbol,
                         onMenuClick = { scope.launch { drawerState.open() } },
                         onBackClick = { navController.popBackStack() },
-                        onAddTransactionClick = { navController.navigate(Screen.AddTransaction.route) }
+                        onAddTransactionClick = {
+                            editingTransaction = null
+                            navController.navigate(Screen.AddTransaction.route)
+                        },
+                        onEditTransactionClick = { tx ->
+                            editingTransaction = tx
+                            navController.navigate(Screen.AddTransaction.route)
+                        }
                     )
                 }
 
@@ -533,28 +542,56 @@ fun MainScreen(
                     val paymentMethods by app.accountRepository.allPaymentMethods.collectAsState(initial = emptyList())
 
                     AddTransactionScreen(
+                        transactionToEdit = editingTransaction,
                         currencySymbol = currencySymbol,
                         categories = categories,
                         accounts = accounts,
                         paymentMethods = paymentMethods,
-                        onBackClick = { navController.popBackStack() },
+                        onBackClick = {
+                            editingTransaction = null
+                            navController.popBackStack()
+                        },
                         onAddCategoryClick = { navController.navigate(Screen.AddCategory.route) },
                         onAddAccountClick = { navController.navigate(Screen.Accounts.route) },
+                        onDeleteTransaction = { txToDelete ->
+                            scope.launch(Dispatchers.IO) {
+                                app.transactionRepository.deleteTransaction(txToDelete)
+                                editingTransaction = null
+                            }
+                        },
                         onSaveTransaction = { title, amount, type, categoryId, accountId, accountName, paymentMethod, dateEpochMillis, note ->
                             scope.launch(Dispatchers.IO) {
-                                app.transactionRepository.insertTransaction(
-                                    com.vesper.ledger.data.model.Transaction(
-                                        title = title.ifBlank { if (type == TransactionType.EXPENSE) "Expense" else "Income" },
-                                        amount = amount,
-                                        type = type,
-                                        categoryId = categoryId,
-                                        accountId = accountId,
-                                        accountName = accountName,
-                                        paymentMethod = paymentMethod,
-                                        dateEpochMillis = dateEpochMillis,
-                                        note = note
+                                val currentEditing = editingTransaction
+                                if (currentEditing != null) {
+                                    app.transactionRepository.updateTransaction(
+                                        currentEditing.copy(
+                                            title = title.ifBlank { if (type == TransactionType.EXPENSE) "Expense" else "Income" },
+                                            amount = amount,
+                                            type = type,
+                                            categoryId = categoryId,
+                                            accountId = accountId,
+                                            accountName = accountName,
+                                            paymentMethod = paymentMethod,
+                                            dateEpochMillis = dateEpochMillis,
+                                            note = note
+                                        )
                                     )
-                                )
+                                } else {
+                                    app.transactionRepository.insertTransaction(
+                                        com.vesper.ledger.data.model.Transaction(
+                                            title = title.ifBlank { if (type == TransactionType.EXPENSE) "Expense" else "Income" },
+                                            amount = amount,
+                                            type = type,
+                                            categoryId = categoryId,
+                                            accountId = accountId,
+                                            accountName = accountName,
+                                            paymentMethod = paymentMethod,
+                                            dateEpochMillis = dateEpochMillis,
+                                            note = note
+                                        )
+                                    )
+                                }
+                                editingTransaction = null
                             }
                         }
                     )

@@ -45,7 +45,8 @@ fun TransactionsScreen(
     currencySymbol: String,
     onMenuClick: () -> Unit,
     onBackClick: () -> Unit,
-    onAddTransactionClick: () -> Unit = {}
+    onAddTransactionClick: () -> Unit = {},
+    onEditTransactionClick: (Transaction) -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val categories by viewModel.categories.collectAsState()
@@ -255,10 +256,7 @@ fun TransactionsScreen(
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .clickable(
-                                                    interactionSource = remember { MutableInteractionSource() },
-                                                    indication = null
-                                                ) { showMenu = true },
+                                                .clickable { onEditTransactionClick(tx) },
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             // Category Icon Container
@@ -340,6 +338,29 @@ fun TransactionsScreen(
                                             expanded = showMenu,
                                             onDismissRequest = { showMenu = false }
                                         ) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            imageVector = getIconByName("edit"),
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.onSurface,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Text(
+                                                            "Edit",
+                                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                                color = MaterialTheme.colorScheme.onSurface
+                                                            )
+                                                        )
+                                                    }
+                                                },
+                                                onClick = {
+                                                    showMenu = false
+                                                    onEditTransactionClick(tx)
+                                                }
+                                            )
                                             DropdownMenuItem(
                                                 text = {
                                                     Row(verticalAlignment = Alignment.CenterVertically) {
