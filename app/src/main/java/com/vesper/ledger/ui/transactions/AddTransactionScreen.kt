@@ -637,41 +637,99 @@ fun AddTransactionScreen(
                             }
                         }
 
-                        DropdownMenu(
-                            expanded = showAccountMenu,
-                            onDismissRequest = { showAccountMenu = false },
-                            modifier = Modifier
-                                .background(Color(0xFF18181B))
-                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(12.dp))
-                        ) {
-                            activeAccounts.forEach { account ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = getIconByName(account.iconName),
-                                                contentDescription = null,
-                                                tint = Color.White,
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Text(
-                                                text = account.name,
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                color = if (account.id == selectedAccount?.id) Color(0xFF38BDF8) else Color.White,
-                                                fontSize = 13.sp
-                                            )
+                        if (showAccountMenu) {
+                            AlertDialog(
+                                onDismissRequest = { showAccountMenu = false },
+                                title = {
+                                    Text(
+                                        text = "Select Account",
+                                        style = MaterialTheme.typography.titleLarge.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    )
+                                },
+                                text = {
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        activeAccounts.forEach { account ->
+                                            val isSelected = account.id == selectedAccount?.id
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                                    .border(
+                                                        1.dp,
+                                                        if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
+                                                        RoundedCornerShape(12.dp)
+                                                    )
+                                                    .clickable {
+                                                        selectedAccount = account
+                                                        showAccountMenu = false
+                                                    }
+                                                    .padding(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(36.dp)
+                                                            .clip(RoundedCornerShape(10.dp))
+                                                            .background(Color(0xFF27272A)),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = getIconByName(account.iconName),
+                                                            contentDescription = null,
+                                                            tint = Color.White,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                    }
+                                                    Column {
+                                                        Text(
+                                                            text = account.name,
+                                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                                fontFamily = SpaceGroteskFamily,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = Color.White
+                                                            )
+                                                        )
+                                                        Text(
+                                                            text = "Balance: $currencySymbol${df.format(account.initialBalance)}",
+                                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                                color = Color(0xFFA1A1AA)
+                                                            )
+                                                        )
+                                                    }
+                                                }
+                                                if (isSelected) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = "Selected",
+                                                        tint = Color(0xFF38BDF8),
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                            }
                                         }
-                                    },
-                                    onClick = {
-                                        selectedAccount = account
-                                        showAccountMenu = false
                                     }
-                                )
-                            }
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = { showAccountMenu = false }) {
+                                        Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily)
+                                    }
+                                },
+                                containerColor = Color(0xFF18181B),
+                                shape = RoundedCornerShape(20.dp)
+                            )
                         }
                     }
 

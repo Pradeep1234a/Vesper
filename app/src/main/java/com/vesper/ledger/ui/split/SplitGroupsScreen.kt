@@ -44,37 +44,7 @@ fun SplitGroupsScreen(
     onAddExpenseClick: (groupId: String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val sampleGroups = remember {
-        listOf(
-            SplitGroupItem(
-                id = "1",
-                title = "Weekend Goa Trip",
-                category = "Travel",
-                memberCount = 4,
-                netBalance = 1450.00,
-                icon = Icons.Outlined.FlightTakeoff,
-                members = listOf("You", "Rahul", "Ananya", "Vikram")
-            ),
-            SplitGroupItem(
-                id = "2",
-                title = "Apartment Rent & Bills",
-                category = "Home",
-                memberCount = 3,
-                netBalance = -420.00,
-                icon = Icons.Outlined.Home,
-                members = listOf("You", "Siddharth", "Priya")
-            ),
-            SplitGroupItem(
-                id = "3",
-                title = "Team Dinner & Outing",
-                category = "Dining",
-                memberCount = 5,
-                netBalance = 800.00,
-                icon = Icons.Outlined.Restaurant,
-                members = listOf("You", "Neha", "Arjun", "Karan", "Simran")
-            )
-        )
-    }
+    val sampleGroups = remember { emptyList<SplitGroupItem>() }
 
     val totalOwed = sampleGroups.filter { it.netBalance > 0 }.sumOf { it.netBalance }
     val totalOwe = sampleGroups.filter { it.netBalance < 0 }.sumOf { kotlin.math.abs(it.netBalance) }
@@ -179,22 +149,58 @@ fun SplitGroupsScreen(
                     }
                 }
 
-                // 2. SECTION TITLE
-                item {
-                    Text(
-                        text = "ACTIVE GROUPS (${sampleGroups.size})",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 1.2.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                // 2. SECTION TITLE OR EMPTY STATE
+                if (sampleGroups.isEmpty()) {
+                    item {
+                        ShCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(24.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Group,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Text(
+                                    text = "No Split Groups Created Yet",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                                Text(
+                                    text = "Create a group to start splitting bills, trips, and shared expenses with flatmates or friends.",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontFamily = PlusJakartaSansFamily,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    item {
+                        Text(
+                            text = "ACTIVE GROUPS (${sampleGroups.size})",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                letterSpacing = 1.2.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
-                    )
-                }
+                    }
 
-                // 3. GROUP CARDS LIST
-                items(sampleGroups) { group ->
+                    items(sampleGroups) { group ->
                     ShCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -301,6 +307,7 @@ fun SplitGroupsScreen(
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text("Settle Up", fontSize = 12.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
                                 }
+                            }
                             }
                         }
                     }
