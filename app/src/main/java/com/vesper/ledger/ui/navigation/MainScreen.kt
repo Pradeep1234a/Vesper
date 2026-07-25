@@ -19,6 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import android.app.Activity
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -97,6 +100,22 @@ fun MainScreen(
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val view = LocalView.current
+    val surfaceColor = MaterialTheme.colorScheme.surface.toArgb()
+    if (!view.isInEditMode) {
+        SideEffect {
+            var ctx = view.context
+            while (ctx is android.content.ContextWrapper) {
+                if (ctx is Activity) {
+                    ctx.window.statusBarColor = surfaceColor
+                    ctx.window.navigationBarColor = surfaceColor
+                    break
+                }
+                ctx = ctx.baseContext
+            }
+        }
+    }
 
     val drawerItems = listOf(
         DrawerItem(Screen.Dashboard.route, "Dashboard", Icons.Outlined.Dashboard),

@@ -85,9 +85,9 @@ fun VesperLedgerTheme(
             }
             if (activity != null) {
                 val window = activity.window
-                val surfaceColor = colorScheme.surface.toArgb()
-                window.statusBarColor = surfaceColor
-                window.navigationBarColor = surfaceColor
+                val bgColor = colorScheme.background.toArgb()
+                window.statusBarColor = bgColor
+                window.navigationBarColor = bgColor
                 
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                     window.isNavigationBarContrastEnforced = false
