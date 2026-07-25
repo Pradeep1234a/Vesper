@@ -167,7 +167,6 @@ fun AddTransactionScreen(
     var showCategorySheet by remember { mutableStateOf(false) }
     var showAccountSheet by remember { mutableStateOf(false) }
     var showPaymentSheet by remember { mutableStateOf(false) }
-    var showCalculatorSheet by remember { mutableStateOf(false) }
     var showDatePickerSheet by remember { mutableStateOf(false) }
     var showTimePickerSheet by remember { mutableStateOf(false) }
     var showSuccessSheet by remember { mutableStateOf(false) }
@@ -361,22 +360,6 @@ fun AddTransactionScreen(
                                     }
                                 )
                             }
-                        }
-
-                        // Calculator icon action button
-                        IconButton(
-                            onClick = { showCalculatorSheet = true },
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF27272A))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Calculate,
-                                contentDescription = "Keypad Calculator",
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
                         }
                     }
                 }
@@ -847,116 +830,80 @@ fun AddTransactionScreen(
                     }
                 }
             }            // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 1: SELECT CATEGORY SHEET (ANIMATED SMOOTH SLIDE OVERLAY)
+            // MODAL SHEET 1: SELECT CATEGORY SHEET (OFFICIAL M3 MODAL BOTTOM SHEET)
             // ────────────────────────────────────────────────────────────────────────
-            AnimatedVisibility(
-                visible = showCategorySheet,
-                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.6f))
-                        .clickable(onClick = { showCategorySheet = false }),
-                    contentAlignment = Alignment.BottomCenter
+            if (showCategorySheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showCategorySheet = false },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    containerColor = Color(0xFF18181B),
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    dragHandle = {
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 10.dp)
+                                .width(36.dp)
+                                .height(4.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF52525B))
+                        )
+                    }
                 ) {
-                    Surface(
+                    var searchCatQuery by remember { mutableStateOf("") }
+                    val suggestedCats = filteredCategories.take(6)
+                    val allCats = filteredCategories.filter { it.name.contains(searchCatQuery, ignoreCase = true) }
+
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable(enabled = false) {},
-                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                        color = Color(0xFF18181B)
+                            .navigationBarsPadding()
+                            .padding(horizontal = 20.dp, vertical = 6.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        var searchCatQuery by remember { mutableStateOf("") }
-                        val suggestedCats = filteredCategories.take(6)
-                        val allCats = filteredCategories.filter { it.name.contains(searchCatQuery, ignoreCase = true) }
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .navigationBarsPadding()
-                                .padding(horizontal = 20.dp, vertical = 14.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Drag Indicator Handle
-                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(36.dp)
-                                        .height(4.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFF52525B))
-                                )
-                            }
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Select Category",
-                                    style = MaterialTheme.typography.titleLarge.copy(
-                                        fontFamily = FontFamily.Serif,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                )
-                                IconButton(onClick = { showCategorySheet = false }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
-                                }
-                            }
-
-                            // Search Input
-                            OutlinedTextField(
-                                value = searchCatQuery,
-                                onValueChange = { searchCatQuery = it },
-                                placeholder = { Text("Search categories", color = Color(0xFF71717A)) },
-                                leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFFA1A1AA)) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(14.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.White,
-                                    unfocusedBorderColor = Color(0xFF27272A),
-                                    focusedContainerColor = Color(0xFF09090B),
-                                    unfocusedContainerColor = Color(0xFF09090B)
+                            Text(
+                                text = "Select Category",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
                                 )
                             )
+                            IconButton(onClick = { showCategorySheet = false }) {
+                                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                            }
+                        }
 
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 400.dp),
-                                verticalArrangement = Arrangement.spacedBy(14.dp)
-                            ) {
-                                if (searchCatQuery.isBlank()) {
-                                    item {
-                                        Text(
-                                            text = "SUGGESTED",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                letterSpacing = 1.2.sp,
-                                                color = Color(0xFFA1A1AA)
-                                            )
-                                        )
-                                    }
-                                    items(suggestedCats) { cat ->
-                                        CategoryRowItem(
-                                            category = cat,
-                                            isSelected = cat.id == selectedCategoryId,
-                                            onClick = {
-                                                selectedCategoryId = cat.id
-                                                showCategorySheet = false
-                                            }
-                                        )
-                                    }
-                                }
+                        // Search Input
+                        OutlinedTextField(
+                            value = searchCatQuery,
+                            onValueChange = { searchCatQuery = it },
+                            placeholder = { Text("Search categories", color = Color(0xFF71717A)) },
+                            leadingIcon = { Icon(Icons.Default.Search, null, tint = Color(0xFFA1A1AA)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color(0xFF27272A),
+                                focusedContainerColor = Color(0xFF09090B),
+                                unfocusedContainerColor = Color(0xFF09090B)
+                            )
+                        )
 
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 400.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            if (searchCatQuery.isBlank()) {
                                 item {
                                     Text(
-                                        text = "ALL CATEGORIES",
+                                        text = "SUGGESTED",
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
@@ -965,8 +912,7 @@ fun AddTransactionScreen(
                                         )
                                     )
                                 }
-
-                                items(allCats) { cat ->
+                                items(suggestedCats) { cat ->
                                     CategoryRowItem(
                                         category = cat,
                                         isSelected = cat.id == selectedCategoryId,
@@ -977,201 +923,28 @@ fun AddTransactionScreen(
                                     )
                                 }
                             }
-                        }
-                    }
-                }
-            }
 
-            // ────────────────────────────────────────────────────────────────────────
-            // MODAL SHEET 2: REAL WORKING CALCULATOR SHEET (ANIMATED SMOOTH SLIDE OVERLAY)
-            // ────────────────────────────────────────────────────────────────────────
-            AnimatedVisibility(
-                visible = showCalculatorSheet,
-                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
-            ) {
-                var calcExpression by remember { mutableStateOf(if (amountText.isBlank()) "0" else amountText) }
-
-                val evaluatedVal = remember(calcExpression) {
-                    evaluateMathExpression(calcExpression)
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.6f))
-                        .clickable(onClick = { showCalculatorSheet = false }),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = false) {},
-                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                        color = Color(0xFF18181B)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .navigationBarsPadding()
-                                .padding(horizontal = 20.dp, vertical = 14.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            // Drag Indicator Handle
-                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(36.dp)
-                                        .height(4.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFF52525B))
-                                )
-                            }
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                            item {
                                 Text(
-                                    text = "CALCULATOR",
-                                    style = MaterialTheme.typography.titleMedium.copy(
+                                    text = "ALL CATEGORIES",
+                                    style = MaterialTheme.typography.labelSmall.copy(
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         letterSpacing = 1.2.sp,
-                                        fontSize = 15.sp,
-                                        color = Color.White
+                                        color = Color(0xFFA1A1AA)
                                     )
                                 )
-                                IconButton(onClick = { showCalculatorSheet = false }) {
-                                    Icon(Icons.Outlined.Clear, contentDescription = "Close", tint = Color.White)
-                                }
                             }
 
-                            // Calculator Formula & Result Display Box
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
-                                color = Color(0xFF09090B),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                                    horizontalAlignment = Alignment.End,
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = calcExpression,
-                                        style = MaterialTheme.typography.headlineSmall.copy(
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color(0xFFA1A1AA)
-                                        ),
-                                        maxLines = 1
-                                    )
-                                    Text(
-                                        text = if (evaluatedVal != null) "= $currencySymbol${DecimalFormat("#,##0.##").format(evaluatedVal)}" else "= $currencySymbol 0",
-                                        style = MaterialTheme.typography.headlineMedium.copy(
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF22C55E)
-                                        ),
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-
-                            // 4x4 Real Calculator Grid
-                            val calcKeys = listOf(
-                                "C", "÷", "×", "⌫",
-                                "7", "8", "9", "-",
-                                "4", "5", "6", "+",
-                                "1", "2", "3", "=",
-                                "00", "0", ".", "AC"
-                            )
-
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(4),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                items(calcKeys) { key ->
-                                    val isOperator = key in listOf("+", "-", "×", "÷", "=")
-                                    val isAction = key in listOf("C", "AC", "⌫")
-                                    val btnBg = when {
-                                        key == "=" -> Color(0xFF22C55E)
-                                        isOperator -> Color(0xFF27272A)
-                                        isAction -> Color(0xFF3F3F46)
-                                        else -> Color(0xFF18181B)
+                            items(allCats) { cat ->
+                                CategoryRowItem(
+                                    category = cat,
+                                    isSelected = cat.id == selectedCategoryId,
+                                    onClick = {
+                                        selectedCategoryId = cat.id
+                                        showCategorySheet = false
                                     }
-                                    val btnTextClr = when {
-                                        key == "=" -> Color.Black
-                                        isOperator -> Color(0xFF38BDF8)
-                                        isAction -> Color(0xFFF43F5E)
-                                        else -> Color.White
-                                    }
-
-                                    Surface(
-                                        modifier = Modifier
-                                            .height(54.dp)
-                                            .clip(RoundedCornerShape(14.dp))
-                                            .clickable {
-                                                when (key) {
-                                                    "C", "AC" -> calcExpression = "0"
-                                                    "⌫" -> {
-                                                        calcExpression = if (calcExpression.length > 1) calcExpression.dropLast(1) else "0"
-                                                    }
-                                                    "=" -> {
-                                                        if (evaluatedVal != null && evaluatedVal > 0.0) {
-                                                            amountText = DecimalFormat("0.##").format(evaluatedVal)
-                                                        }
-                                                    }
-                                                    else -> {
-                                                        if (calcExpression == "0" && key !in listOf(".", "+", "-", "×", "÷")) {
-                                                            calcExpression = key
-                                                        } else {
-                                                            calcExpression += key
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                        shape = RoundedCornerShape(14.dp),
-                                        color = btnBg,
-                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Text(
-                                                text = key,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontFamily = SpaceGroteskFamily,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 18.sp,
-                                                    color = btnTextClr
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            Button(
-                                onClick = {
-                                    if (evaluatedVal != null && evaluatedVal > 0.0) {
-                                        amountText = DecimalFormat("0.##").format(evaluatedVal)
-                                    }
-                                    showCalculatorSheet = false
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(50.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
-                            ) {
-                                Text("Apply Result", fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily, fontSize = 16.sp)
+                                )
                             }
                         }
                     }
@@ -1235,7 +1008,7 @@ fun AddTransactionScreen(
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // DIALOG 4: OFFICIAL MATERIAL 3 SPEC TIME PICKER DIALOG
+            // DIALOG 4: OFFICIAL MATERIAL 3 TIME PICKER DIALOG (WITH DIAL & KEYBOARD MODES)
             // ────────────────────────────────────────────────────────────────────────
             if (showTimePickerSheet) {
                 val timePickerState = rememberTimePickerState(
@@ -1243,6 +1016,8 @@ fun AddTransactionScreen(
                     initialMinute = selectedCalendar.get(Calendar.MINUTE),
                     is24Hour = false
                 )
+                var showKeyboardInputMode by remember { mutableStateOf(false) }
+
                 AlertDialog(
                     onDismissRequest = { showTimePickerSheet = false },
                     confirmButton = {
@@ -1259,36 +1034,74 @@ fun AddTransactionScreen(
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showTimePickerSheet = false }) {
-                            Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { showKeyboardInputMode = !showKeyboardInputMode }) {
+                                Icon(
+                                    imageVector = if (showKeyboardInputMode) Icons.Outlined.Schedule else Icons.Outlined.Keyboard,
+                                    contentDescription = if (showKeyboardInputMode) "Switch to clock dial" else "Switch to keyboard input",
+                                    tint = Color.White
+                                )
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                            TextButton(onClick = { showTimePickerSheet = false }) {
+                                Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
+                            }
                         }
                     },
                     containerColor = Color(0xFF18181B),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(28.dp),
                     title = {
-                        Text("Select time", fontFamily = SpaceGroteskFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(
+                            text = if (showKeyboardInputMode) "Enter time" else "Select time",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     },
                     text = {
                         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            TimePicker(
-                                state = timePickerState,
-                                colors = TimePickerDefaults.colors(
-                                    clockDialColor = Color(0xFF09090B),
-                                    clockDialSelectedContentColor = Color.Black,
-                                    clockDialUnselectedContentColor = Color.White,
-                                    selectorColor = Color.White,
-                                    containerColor = Color(0xFF18181B),
-                                    periodSelectorBorderColor = Color(0xFF27272A),
-                                    periodSelectorSelectedContainerColor = Color.White,
-                                    periodSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                    periodSelectorSelectedContentColor = Color.Black,
-                                    periodSelectorUnselectedContentColor = Color.White,
-                                    timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
-                                    timeSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                    timeSelectorSelectedContentColor = Color.White,
-                                    timeSelectorUnselectedContentColor = Color.White
+                            if (showKeyboardInputMode) {
+                                TimeInput(
+                                    state = timePickerState,
+                                    colors = TimePickerDefaults.colors(
+                                        clockDialColor = Color(0xFF09090B),
+                                        clockDialSelectedContentColor = Color.Black,
+                                        clockDialUnselectedContentColor = Color.White,
+                                        selectorColor = Color.White,
+                                        containerColor = Color(0xFF18181B),
+                                        periodSelectorBorderColor = Color(0xFF27272A),
+                                        periodSelectorSelectedContainerColor = Color.White,
+                                        periodSelectorUnselectedContainerColor = Color(0xFF09090B),
+                                        periodSelectorSelectedContentColor = Color.Black,
+                                        periodSelectorUnselectedContentColor = Color.White,
+                                        timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
+                                        timeSelectorUnselectedContainerColor = Color(0xFF09090B),
+                                        timeSelectorSelectedContentColor = Color.White,
+                                        timeSelectorUnselectedContentColor = Color.White
+                                    )
                                 )
-                            )
+                            } else {
+                                TimePicker(
+                                    state = timePickerState,
+                                    colors = TimePickerDefaults.colors(
+                                        clockDialColor = Color(0xFF09090B),
+                                        clockDialSelectedContentColor = Color.Black,
+                                        clockDialUnselectedContentColor = Color.White,
+                                        selectorColor = Color.White,
+                                        containerColor = Color(0xFF18181B),
+                                        periodSelectorBorderColor = Color(0xFF27272A),
+                                        periodSelectorSelectedContainerColor = Color.White,
+                                        periodSelectorUnselectedContainerColor = Color(0xFF09090B),
+                                        periodSelectorSelectedContentColor = Color.Black,
+                                        periodSelectorUnselectedContentColor = Color.White,
+                                        timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
+                                        timeSelectorUnselectedContainerColor = Color(0xFF09090B),
+                                        timeSelectorSelectedContentColor = Color.White,
+                                        timeSelectorUnselectedContentColor = Color.White
+                                    )
+                                )
+                            }
                         }
                     }
                 )
