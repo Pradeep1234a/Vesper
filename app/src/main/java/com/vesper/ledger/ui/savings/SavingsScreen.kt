@@ -239,7 +239,7 @@ fun SavingsScreen(
                         .weight(1f)
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(bottom = 32.dp)
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
                 ) {
                 items(goals) { goal ->
                     ShCard {
