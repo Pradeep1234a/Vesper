@@ -48,7 +48,10 @@ import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
 import com.vesper.ledger.ui.analytics.AnalyticsScreen
+import com.vesper.ledger.ui.transactions.AddTransactionScreen
+import com.vesper.ledger.data.model.TransactionType
 import androidx.compose.material.icons.outlined.BarChart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 data class DrawerItem(
@@ -408,7 +411,7 @@ fun MainScreen(
                         },
                         onAddCategoryClick = onCategoryManagementClick,
                         onAccountsClick = onAccountsClick,
-                        onAddTransactionClick = onAddTransactionClick,
+                        onAddTransactionClick = { navController.navigate(Screen.AddTransaction.route) },
                         onBudgetsClick = {
                             navController.navigate(Screen.Budgets.route) {
                                 popUpTo(Screen.Dashboard.route) { saveState = true }
@@ -426,7 +429,7 @@ fun MainScreen(
                         currencySymbol = currencySymbol,
                         onMenuClick = { scope.launch { drawerState.open() } },
                         onBackClick = { navController.popBackStack() },
-                        onAddTransactionClick = onAddTransactionClick
+                        onAddTransactionClick = { navController.navigate(Screen.AddTransaction.route) }
                     )
                 }
 
@@ -484,6 +487,40 @@ fun MainScreen(
                         viewModel = settingsViewModel,
                         flowMode = CurrencyFlowMode.SETTINGS,
                         onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.AddTransaction.route) {
+                    val transactions by app.transactionRepository.allTransactions.collectAsState(initial = emptyList())
+                    val categories by app.transactionRepository.allCategories.collectAsState(initial = emptyList())
+                    val accounts by app.accountRepository.allAccounts.collectAsState(initial = emptyList())
+                    val paymentMethods by app.accountRepository.allPaymentMethods.collectAsState(initial = emptyList())
+
+                    AddTransactionScreen(
+                        currencySymbol = currencySymbol,
+                        categories = categories,
+                        accounts = accounts,
+                        paymentMethods = paymentMethods,
+                        onBackClick = { navController.popBackStack() },
+                        onAddCategoryClick = onCategoryManagementClick,
+                        onAddAccountClick = onAccountsClick,
+                        onSaveTransaction = { title, amount, type, categoryId, accountId, accountName, paymentMethod, dateEpochMillis, note ->
+                            scope.launch(Dispatchers.IO) {
+                                app.transactionRepository.insertTransaction(
+                                    com.vesper.ledger.data.model.Transaction(
+                                        title = title.ifBlank { if (type == TransactionType.EXPENSE) "Expense" else "Income" },
+                                        amount = amount,
+                                        type = type,
+                                        categoryId = categoryId,
+                                        accountId = accountId,
+                                        accountName = accountName,
+                                        paymentMethod = paymentMethod,
+                                        dateEpochMillis = dateEpochMillis,
+                                        note = note
+                                    )
+                                )
+                            }
+                        }
                     )
                 }
             }

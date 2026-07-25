@@ -121,7 +121,7 @@ fun AddTransactionScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 // 1. SEGMENTED TAB SELECTOR (Income | Expense | Transfer)
@@ -130,7 +130,8 @@ fun AddTransactionScreen(
                         .fillMaxWidth()
                         .height(48.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFF18181B))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
                         .padding(4.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -145,7 +146,7 @@ fun AddTransactionScreen(
                                 .weight(1f)
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(if (selected) Color.White else Color.Transparent)
+                                .background(if (selected) MaterialTheme.colorScheme.onBackground else Color.Transparent)
                                 .clickable { type = tabType },
                             contentAlignment = Alignment.Center
                         ) {
@@ -155,7 +156,7 @@ fun AddTransactionScreen(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 14.sp,
-                                    color = if (selected) Color.Black else Color(0xFFA1A1AA)
+                                    color = if (selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
                         }
