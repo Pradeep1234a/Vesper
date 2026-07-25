@@ -943,6 +943,7 @@ fun AddTransactionScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .height(480.dp)
                             .navigationBarsPadding()
                             .padding(horizontal = 20.dp, vertical = 6.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -984,7 +985,7 @@ fun AddTransactionScreen(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 400.dp)
+                                .weight(1f)
                                 .nestedScroll(noSheetDragConnection),
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
