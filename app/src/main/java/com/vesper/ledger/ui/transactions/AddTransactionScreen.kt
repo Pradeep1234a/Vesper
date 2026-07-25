@@ -163,10 +163,10 @@ fun AddTransactionScreen(
     var selectedCalendar by remember { mutableStateOf(Calendar.getInstance()) }
     var noteText by remember { mutableStateOf("") }
 
-    // Sheet visibility states
+    // Menu & Sheet visibility states
     var showCategorySheet by remember { mutableStateOf(false) }
-    var showAccountSheet by remember { mutableStateOf(false) }
-    var showPaymentSheet by remember { mutableStateOf(false) }
+    var showAccountMenu by remember { mutableStateOf(false) }
+    var showPaymentMenu by remember { mutableStateOf(false) }
     var showDatePickerSheet by remember { mutableStateOf(false) }
     var showTimePickerSheet by remember { mutableStateOf(false) }
     var showSuccessSheet by remember { mutableStateOf(false) }
@@ -497,162 +497,230 @@ fun AddTransactionScreen(
                 }
 
                 // 5. ACCOUNT & PAYMENT METHOD GRID (2 Columns)
+                // 5. ACCOUNT & PAYMENT METHOD GRID WITH POPUP MENUS
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Left Column: Account
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(18.dp))
-                            .clickable { showAccountSheet = true },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                    // Left Column: Account Dropdown Menu Card
+                    Box(modifier = Modifier.weight(1f)) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(18.dp))
+                                .clickable { showAccountMenu = true },
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                         ) {
-                            Text(
-                                text = "ACCOUNT",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 10.sp,
-                                    letterSpacing = 1.2.sp,
-                                    color = Color(0xFFA1A1AA)
-                                )
-                            )
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            Column(
+                                modifier = Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFF27272A)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = getIconByName(selectedAccount?.iconName ?: "wallet"),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
+                                Text(
+                                    text = "ACCOUNT",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 10.sp,
+                                        letterSpacing = 1.2.sp,
+                                        color = Color(0xFFA1A1AA)
                                     )
-                                }
+                                )
 
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(Color(0xFF27272A)),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = selectedAccount?.name ?: "Cash Wallet",
-                                            style = MaterialTheme.typography.titleSmall.copy(
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 13.sp,
-                                                color = Color.White
-                                            ),
-                                            maxLines = 1
-                                        )
                                         Icon(
-                                            imageVector = Icons.Outlined.KeyboardArrowDown,
+                                            imageVector = getIconByName(selectedAccount?.iconName ?: "wallet"),
                                             contentDescription = null,
-                                            tint = Color(0xFFA1A1AA),
-                                            modifier = Modifier.size(14.dp)
+                                            tint = Color.White,
+                                            modifier = Modifier.size(16.dp)
                                         )
                                     }
-                                    Text(
-                                        text = "Bal: $currencySymbol${df.format(selectedAccount?.initialBalance ?: 3420.0)}",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 10.sp,
-                                            color = Color(0xFFA1A1AA)
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                        ) {
+                                            Text(
+                                                text = selectedAccount?.name ?: activeAccounts.firstOrNull()?.name ?: "Cash",
+                                                style = MaterialTheme.typography.titleSmall.copy(
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 13.sp,
+                                                    color = Color.White
+                                                ),
+                                                maxLines = 1
+                                            )
+                                            Icon(
+                                                imageVector = Icons.Outlined.KeyboardArrowDown,
+                                                contentDescription = null,
+                                                tint = Color(0xFFA1A1AA),
+                                                modifier = Modifier.size(14.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = "Bal: $currencySymbol${df.format(selectedAccount?.initialBalance ?: 0.0)}",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 10.sp,
+                                                color = Color(0xFFA1A1AA)
+                                            )
                                         )
-                                    )
+                                    }
                                 }
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = showAccountMenu,
+                            onDismissRequest = { showAccountMenu = false },
+                            modifier = Modifier
+                                .background(Color(0xFF18181B))
+                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(12.dp))
+                        ) {
+                            activeAccounts.forEach { account ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = getIconByName(account.iconName),
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Text(
+                                                text = account.name,
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (account.id == selectedAccount?.id) Color(0xFF38BDF8) else Color.White,
+                                                fontSize = 13.sp
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        selectedAccount = account
+                                        showAccountMenu = false
+                                    }
+                                )
                             }
                         }
                     }
 
-                    // Right Column: Payment Method
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(18.dp))
-                            .clickable { showPaymentSheet = true },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                    // Right Column: Payment Method Dropdown Menu Card
+                    Box(modifier = Modifier.weight(1f)) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(18.dp))
+                                .clickable { showPaymentMenu = true },
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF18181B)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A))
                         ) {
-                            Text(
-                                text = "PAYMENT METHOD",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 10.sp,
-                                    letterSpacing = 1.2.sp,
-                                    color = Color(0xFFA1A1AA)
-                                )
-                            )
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            Column(
+                                modifier = Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFF27272A)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.CreditCard,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
+                                Text(
+                                    text = "PAYMENT METHOD",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 10.sp,
+                                        letterSpacing = 1.2.sp,
+                                        color = Color(0xFFA1A1AA)
                                     )
-                                }
+                                )
 
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(Color(0xFF27272A)),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = selectedPaymentMethod,
-                                            style = MaterialTheme.typography.titleSmall.copy(
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 13.sp,
-                                                color = Color.White
-                                            ),
-                                            maxLines = 1
-                                        )
                                         Icon(
-                                            imageVector = Icons.Outlined.KeyboardArrowDown,
+                                            imageVector = Icons.Outlined.CreditCard,
                                             contentDescription = null,
-                                            tint = Color(0xFFA1A1AA),
-                                            modifier = Modifier.size(14.dp)
+                                            tint = Color.White,
+                                            modifier = Modifier.size(16.dp)
                                         )
                                     }
-                                    Text(
-                                        text = "Auto-selected",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 10.sp,
-                                            color = Color(0xFFA1A1AA)
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                        ) {
+                                            Text(
+                                                text = selectedPaymentMethod,
+                                                style = MaterialTheme.typography.titleSmall.copy(
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 13.sp,
+                                                    color = Color.White
+                                                ),
+                                                maxLines = 1
+                                            )
+                                            Icon(
+                                                imageVector = Icons.Outlined.KeyboardArrowDown,
+                                                contentDescription = null,
+                                                tint = Color(0xFFA1A1AA),
+                                                modifier = Modifier.size(14.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = "Select method",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 10.sp,
+                                                color = Color(0xFFA1A1AA)
+                                            )
                                         )
-                                    )
+                                    }
                                 }
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = showPaymentMenu,
+                            onDismissRequest = { showPaymentMenu = false },
+                            modifier = Modifier
+                                .background(Color(0xFF18181B))
+                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(12.dp))
+                        ) {
+                            paymentMethods.forEach { method ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = method.name,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (method.name == selectedPaymentMethod) Color(0xFF38BDF8) else Color.White,
+                                            fontSize = 13.sp
+                                        )
+                                    },
+                                    onClick = {
+                                        selectedPaymentMethod = method.name
+                                        showPaymentMenu = false
+                                    }
+                                )
                             }
                         }
                     }
@@ -767,7 +835,7 @@ fun AddTransactionScreen(
                     }
                 }
 
-                // 7. ADD NOTE CARD (OPTIONAL)
+                // 7. ADD NOTE CARD (MULTILINE AUTO-EXPANDING WITH 100% VISIBILITY)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
@@ -778,7 +846,7 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         Box(
@@ -807,18 +875,20 @@ fun AddTransactionScreen(
                                     color = Color(0xFFA1A1AA)
                                 )
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             androidx.compose.foundation.text.BasicTextField(
                                 value = noteText,
                                 onValueChange = { noteText = it },
-                                singleLine = true,
+                                singleLine = false,
                                 textStyle = MaterialTheme.typography.bodyMedium.copy(
                                     fontFamily = SpaceGroteskFamily,
                                     fontSize = 14.sp,
-                                    color = Color.White
+                                    color = Color.White,
+                                    lineHeight = 20.sp
                                 ),
                                 cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
                                 decorationBox = { innerTextField ->
-                                    Box {
+                                    Box(modifier = Modifier.fillMaxWidth()) {
                                         if (noteText.isEmpty()) {
                                             Text("Add a note...", color = Color(0xFF71717A), fontSize = 14.sp, fontFamily = SpaceGroteskFamily)
                                         }
