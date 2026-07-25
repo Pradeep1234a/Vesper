@@ -84,29 +84,21 @@ fun VesperUnifiedTopBar(
                 Spacer(modifier = Modifier.width(10.dp))
             }
 
-            AnimatedContent(
-                targetState = title,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
-                },
-                modifier = Modifier.weight(1f),
-                label = "TitleMotion"
-            ) { targetTitle ->
-                Text(
-                    text = targetTitle,
-                    style = TextStyle(
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        platformStyle = PlatformTextStyle(
-                            includeFontPadding = false
-                        )
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(
+                text = title,
+                style = TextStyle(
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    platformStyle = PlatformTextStyle(
+                        includeFontPadding = false
+                    )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
 
             if (actions != null) {
                 Row(
