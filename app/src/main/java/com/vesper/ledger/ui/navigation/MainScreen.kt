@@ -12,6 +12,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -250,6 +252,7 @@ fun MainScreen(
         }
     ) {
         Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (showBottomBar) {
                     Column(
@@ -294,7 +297,11 @@ fun MainScreen(
             NavHost(
                 navController = navController,
                 startDestination = Screen.Dashboard.route,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
+                enterTransition = { fadeIn(animationSpec = tween(220)) },
+                exitTransition = { fadeOut(animationSpec = tween(180)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(220)) },
+                popExitTransition = { fadeOut(animationSpec = tween(180)) }
             ) {
                 composable(Screen.Dashboard.route) {
                     val dashboardViewModel: DashboardViewModel = viewModel(factory = dashboardFactory)
