@@ -1,10 +1,13 @@
 package com.vesper.ledger.ui.transactions
 
 import android.widget.Toast
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -844,7 +847,7 @@ fun AddTransactionScreen(
                     containerColor = Color(0xFF18181B),
                     scrimColor = Color.Black.copy(alpha = 0.6f),
                     dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF52525B)) },
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
                 ) {
                     var searchCatQuery by remember { mutableStateOf("") }
                     val suggestedCats = filteredCategories.take(6)
@@ -853,6 +856,7 @@ fun AddTransactionScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(horizontal = 20.dp, vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
@@ -966,7 +970,7 @@ fun AddTransactionScreen(
                     containerColor = Color(0xFF18181B),
                     scrimColor = Color.Black.copy(alpha = 0.6f),
                     dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF52525B)) },
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -1558,6 +1562,7 @@ fun AddTransactionScreen(
                                         textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily),
                                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF38BDF8), unfocusedBorderColor = Color(0xFF3F3F46))
                                     )
+                                    Text(":", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, fontSize = 28.sp, color = Color.White)
                                     OutlinedTextField(
                                         value = minuteInputText,
                                         onValueChange = { if (it.length <= 2) minuteInputText = it },
@@ -1569,71 +1574,79 @@ fun AddTransactionScreen(
                                     )
                                 }
                             } else {
-                                // 3x4 GRID DIAL SELECTOR (High contrast & 100% readable)
-                                if (!isPickMinutes) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Text("SELECT HOUR", fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA), letterSpacing = 1.2.sp)
-                                        val hoursList = (1..12).toList()
-                                        LazyVerticalGrid(
-                                            columns = GridCells.Fixed(4),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(170.dp)
-                                        ) {
-                                            items(hoursList) { hr ->
-                                                val isSelectedHr = hr == selectedHour
-                                                Box(
-                                                    modifier = Modifier
-                                                        .height(44.dp)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                        .background(if (isSelectedHr) Color.White else Color(0xFF27272A))
-                                                        .clickable { selectedHour = hr },
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Text(
-                                                        text = String.format("%02d", hr),
-                                                        fontFamily = SpaceGroteskFamily,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = if (isSelectedHr) Color.Black else Color.White,
-                                                        fontSize = 15.sp
-                                                    )
-                                                }
-                                            }
-                                        }
+                                // INTERACTIVE MATERIAL 3 ANALOG CLOCK DIAL CANVAS (Image 1 Spec)
+                                Box(
+                                    modifier = Modifier
+                                        .size(230.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF27272A)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val radiusPx = with(LocalDensity.current) { 85.dp.toPx() }
+                                    val selectedValue = if (!isPickMinutes) selectedHour else selectedMinute
+                                    val activeAngleDeg = if (!isPickMinutes) {
+                                        (selectedHour % 12) * 30f - 90f
+                                    } else {
+                                        (selectedMinute / 5f) * 30f - 90f
                                     }
-                                } else {
-                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Text("SELECT MINUTE", fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA), letterSpacing = 1.2.sp)
-                                        val minutesList = listOf(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
-                                        LazyVerticalGrid(
-                                            columns = GridCells.Fixed(4),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+
+                                    // Canvas for pointer line & center dot
+                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                        val center = Offset(size.width / 2f, size.height / 2f)
+                                        val angleRad = Math.toRadians(activeAngleDeg.toDouble()).toFloat()
+                                        val lineEnd = Offset(
+                                            x = center.x + radiusPx * kotlin.math.cos(angleRad),
+                                            y = center.y + radiusPx * kotlin.math.sin(angleRad)
+                                        )
+
+                                        // Pointer Line
+                                        drawLine(
+                                            color = Color(0xFF38BDF8),
+                                            start = center,
+                                            end = lineEnd,
+                                            strokeWidth = 3.dp.toPx()
+                                        )
+                                        // Center Pivot Dot
+                                        drawCircle(
+                                            color = Color(0xFF38BDF8),
+                                            radius = 6.dp.toPx(),
+                                            center = center
+                                        )
+                                    }
+
+                                    // Dial Numbers Overlay
+                                    val numbersList = if (!isPickMinutes) (1..12).toList() else listOf(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
+                                    numbersList.forEachIndexed { index, num ->
+                                        val angleDeg = (index + (if (!isPickMinutes) 1 else 0)) * 30f - 90f
+                                        val angleRad = Math.toRadians(angleDeg.toDouble())
+                                        val offsetX = (85 * kotlin.math.cos(angleRad)).dp
+                                        val offsetY = (85 * kotlin.math.sin(angleRad)).dp
+
+                                        val isSelectedNum = if (!isPickMinutes) num == selectedHour else num == selectedMinute
+
+                                        Box(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(170.dp)
+                                                .offset(x = offsetX, y = offsetY)
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .background(if (isSelectedNum) Color(0xFF38BDF8) else Color.Transparent)
+                                                .clickable {
+                                                    if (!isPickMinutes) {
+                                                        selectedHour = num
+                                                        isPickMinutes = true // Auto switch to minutes after selecting hour
+                                                    } else {
+                                                        selectedMinute = num
+                                                    }
+                                                },
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            items(minutesList) { mn ->
-                                                val isSelectedMn = mn == selectedMinute
-                                                Box(
-                                                    modifier = Modifier
-                                                        .height(44.dp)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                        .background(if (isSelectedMn) Color.White else Color(0xFF27272A))
-                                                        .clickable { selectedMinute = mn },
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Text(
-                                                        text = String.format("%02d", mn),
-                                                        fontFamily = SpaceGroteskFamily,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = if (isSelectedMn) Color.Black else Color.White,
-                                                        fontSize = 15.sp
-                                                    )
-                                                }
-                                            }
+                                            Text(
+                                                text = if (!isPickMinutes) "$num" else String.format("%02d", num),
+                                                fontFamily = SpaceGroteskFamily,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isSelectedNum) Color.Black else Color.White,
+                                                fontSize = 14.sp
+                                            )
                                         }
                                     }
                                 }
