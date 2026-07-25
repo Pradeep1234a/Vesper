@@ -74,12 +74,6 @@ fun CurrencySelectorScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            ChildHeader(
-                title = "Select Currency",
-                onBackClick = onBackClick
-            )
-        },
         bottomBar = {
             if (flowMode == CurrencyFlowMode.ONBOARDING) {
                 Surface(

@@ -117,41 +117,11 @@ fun DashboardScreen(
     var showScanReceiptDialog by remember { mutableStateOf(false) }
     var showSplitBillDialog by remember { mutableStateOf(false) }
 
-    Scaffold { innerPadding ->
-        Column(
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            RootHeader(
-                title = "Vesper Ledger",
-                onMenuClick = onMenuClick,
-                actions = {
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                            .clickable { onSettingsClick() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = userName.take(1).uppercase(),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                    }
-                }
-            )
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
@@ -1065,7 +1035,6 @@ fun DashboardScreen(
             )
         }
     }
-}
 }
 
 // ─── Quick Action 1x4 Tile Composable ──────────────────────────────────────────

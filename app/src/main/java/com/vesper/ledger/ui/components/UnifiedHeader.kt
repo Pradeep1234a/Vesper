@@ -25,7 +25,80 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.runtime.remember
-import androidx.compose.ui.draw.clip
+import androidx.compose.material3.Surface
+import androidx.compose.ui.text.style.TextOverflow
+
+@Composable
+fun VesperUnifiedTopBar(
+    title: String,
+    isRoot: Boolean,
+    onNavigationClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    showLogo: Boolean = false,
+    actions: @Composable (RowScope.() -> Unit)? = null
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .statusBarsPadding(),
+        color = MaterialTheme.colorScheme.background,
+        tonalElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onNavigationClick,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = if (isRoot) Icons.Default.Menu else Icons.Default.ArrowBack,
+                    contentDescription = if (isRoot) "Menu" else "Back",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            if (showLogo) {
+                DynamicLogo(
+                    size = 30.dp,
+                    cornerRadius = 8.dp
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+            }
+
+            Text(
+                text = title,
+                style = TextStyle(
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    platformStyle = PlatformTextStyle(
+                        includeFontPadding = false
+                    )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (actions != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    content = actions
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun RootHeader(

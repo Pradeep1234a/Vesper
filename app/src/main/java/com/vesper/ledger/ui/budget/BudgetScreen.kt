@@ -63,19 +63,6 @@ fun BudgetScreen(
     val totalRemaining = totalBudgetLimit - totalBudgetSpent
 
     Scaffold(
-        topBar = {
-            if (onMenuClick != null) {
-                RootHeader(
-                    title = "Budgets",
-                    onMenuClick = onMenuClick
-                )
-            } else {
-                ChildHeader(
-                    title = "Budgets",
-                    onBackClick = { onBackClick?.invoke() }
-                )
-            }
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddBudgetClick,

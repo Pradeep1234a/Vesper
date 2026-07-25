@@ -127,17 +127,13 @@ fun TransactionsScreen(
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                modifier = Modifier.fillMaxSize()
             ) {
-                RootHeader(
-                    title = "Transactions",
-                    onMenuClick = onMenuClick
-                )
 
                 // Search Input Field
                 Row(

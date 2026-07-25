@@ -199,21 +199,10 @@ fun SavingsScreen(
         )
     }
 
-    Scaffold { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier = Modifier.fillMaxSize()
         ) {
-            ChildHeader(
-                title = "Savings Goals",
-                onBackClick = onBackClick,
-                actions = {
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Goal", tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                }
-            )
             if (goals.isEmpty()) {
                 Box(
                     modifier = Modifier

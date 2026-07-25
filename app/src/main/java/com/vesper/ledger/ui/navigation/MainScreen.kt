@@ -30,6 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vesper.ledger.VesperApplication
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
+import com.vesper.ledger.ui.components.VesperUnifiedTopBar
 import com.vesper.ledger.ui.dashboard.DashboardScreen
 import com.vesper.ledger.ui.dashboard.DashboardViewModel
 import com.vesper.ledger.ui.dashboard.DashboardViewModelFactory
@@ -252,8 +253,73 @@ fun MainScreen(
             }
         }
     ) {
+        val showTopBar = currentRoute != null &&
+                currentRoute != Screen.AuthWelcome.route &&
+                currentRoute != Screen.AuthSignIn.route &&
+                currentRoute != Screen.AuthCreateAccount.route &&
+                currentRoute != Screen.AuthForgotPassword.route
+
+        val isRootScreen = currentRoute in listOf(
+            Screen.Dashboard.route,
+            Screen.Transactions.route,
+            Screen.Budgets.route,
+            Screen.Analytics.route,
+            Screen.Settings.route
+        )
+
+        val screenTitle = when (currentRoute) {
+            Screen.Dashboard.route -> "Vesper Ledger"
+            Screen.Transactions.route -> "Transactions"
+            Screen.Budgets.route -> "Budgets"
+            Screen.Analytics.route -> "Analytics"
+            Screen.Settings.route -> "Settings"
+            Screen.Savings.route -> "Savings Goals"
+            Screen.AddTransaction.route -> "New Transaction"
+            Screen.CurrencySelector.route -> "Select Currency"
+            Screen.AddCategory.route -> "New Category"
+            Screen.AddAccount.route -> "New Account"
+            Screen.AddBudget.route -> "New Budget"
+            else -> "Vesper Ledger"
+        }
+
         Scaffold(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                if (showTopBar) {
+                    VesperUnifiedTopBar(
+                        title = screenTitle,
+                        isRoot = isRootScreen,
+                        onNavigationClick = {
+                            if (isRootScreen) {
+                                scope.launch { drawerState.open() }
+                            } else {
+                                navController.popBackStack()
+                            }
+                        },
+                        actions = {
+                            if (currentRoute == Screen.Dashboard.route) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                        .clickable { navController.navigate(Screen.Settings.route) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = userName.take(1).uppercase(),
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
+            },
             bottomBar = {
                 if (showBottomBar) {
                     Column(

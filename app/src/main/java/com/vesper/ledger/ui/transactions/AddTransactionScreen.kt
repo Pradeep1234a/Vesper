@@ -114,20 +114,9 @@ fun AddTransactionScreen(
     val selectedCategory = categories.find { it.id == selectedCategoryId } ?: categories.firstOrNull()
     val parsedAmount = amountText.replace(",", "").toDoubleOrNull() ?: 0.0
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            ChildHeader(
-                title = "New Transaction",
-                onBackClick = onBackClick
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1335,7 +1324,6 @@ fun AddTransactionScreen(
             }
         }
     }
-}
 
 @Composable
 private fun CategoryRowItem(

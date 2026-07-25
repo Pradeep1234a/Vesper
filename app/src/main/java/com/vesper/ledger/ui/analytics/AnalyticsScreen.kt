@@ -110,30 +110,13 @@ fun AnalyticsScreen(
         .sortedByDescending { it.amount }
         .take(5)
 
-    Scaffold(
-        topBar = {
-            if (onMenuClick != null) {
-                RootHeader(
-                    title = "Analytics",
-                    onMenuClick = onMenuClick
-                )
-            } else {
-                ChildHeader(
-                    title = "Analytics",
-                    onBackClick = { onBackClick?.invoke() }
-                )
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
+    ) {
             // Period Filter Selector
             Row(
                 modifier = Modifier
@@ -669,4 +652,3 @@ fun AnalyticsScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
-}
