@@ -1127,11 +1127,15 @@ fun AddTransactionScreen(
             // ────────────────────────────────────────────────────────────────────────
             // DIALOG MODAL 3: SELECT DATE PICKER MODAL (FIXED HEIGHT & MANUAL ENTRY)
             // ────────────────────────────────────────────────────────────────────────
+            // ────────────────────────────────────────────────────────────────────────
+            // DIALOG MODAL 3: MATERIAL 3 SPEC DATE PICKER MODAL (1970..2100 YEARS)
+            // ────────────────────────────────────────────────────────────────────────
             if (showDatePickerSheet) {
                 var isManualMode by remember { mutableStateOf(false) }
                 var showYearSelector by remember { mutableStateOf(false) }
                 var currentMonthCal by remember { mutableStateOf(Calendar.getInstance().apply { timeInMillis = selectedCalendar.timeInMillis }) }
                 val monthFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
+                val headerDateFormat = remember { SimpleDateFormat("EEE, MMM d", Locale.getDefault()) }
 
                 var manualDayText by remember { mutableStateOf(selectedCalendar.get(Calendar.DAY_OF_MONTH).toString()) }
                 var manualMonthText by remember { mutableStateOf((selectedCalendar.get(Calendar.MONTH) + 1).toString()) }
@@ -1140,67 +1144,57 @@ fun AddTransactionScreen(
                 AlertDialog(
                     onDismissRequest = { showDatePickerSheet = false },
                     confirmButton = {
-                        TextButton(onClick = {
-                            if (isManualMode) {
-                                val d = manualDayText.toIntOrNull() ?: selectedCalendar.get(Calendar.DAY_OF_MONTH)
-                                val m = (manualMonthText.toIntOrNull() ?: (selectedCalendar.get(Calendar.MONTH) + 1)) - 1
-                                val y = manualYearText.toIntOrNull() ?: selectedCalendar.get(Calendar.YEAR)
-                                val newCal = (selectedCalendar.clone() as Calendar).apply {
-                                    set(Calendar.YEAR, y)
-                                    set(Calendar.MONTH, m.coerceIn(0, 11))
-                                    set(Calendar.DAY_OF_MONTH, d.coerceIn(1, 31))
-                                }
-                                selectedCalendar = newCal
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            TextButton(onClick = { showDatePickerSheet = false }) {
+                                Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
                             }
-                            showDatePickerSheet = false
-                        }) {
-                            Text("Done", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
+                            TextButton(onClick = {
+                                if (isManualMode) {
+                                    val d = manualDayText.toIntOrNull() ?: selectedCalendar.get(Calendar.DAY_OF_MONTH)
+                                    val m = (manualMonthText.toIntOrNull() ?: (selectedCalendar.get(Calendar.MONTH) + 1)) - 1
+                                    val y = manualYearText.toIntOrNull() ?: selectedCalendar.get(Calendar.YEAR)
+                                    val newCal = (selectedCalendar.clone() as Calendar).apply {
+                                        set(Calendar.YEAR, y)
+                                        set(Calendar.MONTH, m.coerceIn(0, 11))
+                                        set(Calendar.DAY_OF_MONTH, d.coerceIn(1, 31))
+                                    }
+                                    selectedCalendar = newCal
+                                }
+                                showDatePickerSheet = false
+                            }) {
+                                Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFF38BDF8))
+                            }
                         }
                     },
                     containerColor = Color(0xFF18181B),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(24.dp),
                     title = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Select Date", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
-                            
-                            // Mode Switcher Pill (Calendar | Type Date)
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFF27272A))
-                                    .padding(2.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "Calendar",
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (!isManualMode) Color.White else Color.Transparent)
-                                        .clickable { isManualMode = false }
-                                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (!isManualMode) Color.Black else Color(0xFFA1A1AA)
+                                Text("Select date", fontFamily = SpaceGroteskFamily, fontSize = 12.sp, color = Color(0xFFA1A1AA))
+                                IconButton(
+                                    onClick = { isManualMode = !isManualMode },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isManualMode) Icons.Outlined.Schedule else Icons.Outlined.Edit,
+                                        contentDescription = "Toggle Input Mode",
+                                        tint = Color.White
                                     )
-                                )
-                                Text(
-                                    text = "Type Date",
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isManualMode) Color.White else Color.Transparent)
-                                        .clickable { isManualMode = true }
-                                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isManualMode) Color.Black else Color(0xFFA1A1AA)
-                                    )
-                                )
+                                }
                             }
+                            Text(
+                                text = headerDateFormat.format(selectedCalendar.time),
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 26.sp,
+                                color = Color.White
+                            )
+                            Divider(color = Color(0xFF27272A), thickness = 1.dp, modifier = Modifier.padding(top = 4.dp))
                         }
                     },
                     text = {
@@ -1252,7 +1246,7 @@ fun AddTransactionScreen(
                                     }
                                 }
                             } else if (showYearSelector) {
-                                // YEAR SELECTOR GRID (2020..2035)
+                                // YEAR SELECTOR GRID (1970..2100)
                                 Column(modifier = Modifier.fillMaxSize()) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -1265,7 +1259,7 @@ fun AddTransactionScreen(
                                         }
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    val yearsList = (2020..2035).toList()
+                                    val yearsList = (1970..2100).toList()
                                     LazyVerticalGrid(
                                         columns = GridCells.Fixed(4),
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -1407,212 +1401,238 @@ fun AddTransactionScreen(
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // DIALOG MODAL 4: ADVANCED TIME PICKER CLOCK MODAL
+            // DIALOG MODAL 4: MATERIAL 3 SPEC TIME PICKER MODAL (DIAL & KEYBOARD VIEWS)
             // ────────────────────────────────────────────────────────────────────────
             if (showTimePickerSheet) {
                 var selectedHour by remember { mutableStateOf(selectedCalendar.get(Calendar.HOUR).let { if (it == 0) 12 else it }) }
                 var selectedMinute by remember { mutableStateOf(selectedCalendar.get(Calendar.MINUTE)) }
                 var isAm by remember { mutableStateOf(selectedCalendar.get(Calendar.AM_PM) == Calendar.AM) }
                 var isPickMinutes by remember { mutableStateOf(false) }
+                var isKeyboardMode by remember { mutableStateOf(false) }
+
+                var hourInputText by remember { mutableStateOf(String.format("%02d", selectedHour)) }
+                var minuteInputText by remember { mutableStateOf(String.format("%02d", selectedMinute)) }
 
                 AlertDialog(
                     onDismissRequest = { showTimePickerSheet = false },
                     confirmButton = {
-                        TextButton(onClick = {
-                            val newCal = (selectedCalendar.clone() as Calendar).apply {
-                                var h = selectedHour % 12
-                                if (!isAm) h += 12
-                                set(Calendar.HOUR_OF_DAY, h)
-                                set(Calendar.MINUTE, selectedMinute)
-                            }
-                            selectedCalendar = newCal
-                            showTimePickerSheet = false
-                        }) {
-                            Text("Set Time", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-                    },
-                    containerColor = Color(0xFF18181B),
-                    shape = RoundedCornerShape(20.dp),
-                    title = {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Select Time", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
-                            
-                            // Mode Switcher Pill (Hours | Minutes)
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFF27272A))
-                                    .padding(2.dp)
-                            ) {
-                                Text(
-                                    text = "Hours",
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (!isPickMinutes) Color.White else Color.Transparent)
-                                        .clickable { isPickMinutes = false }
-                                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (!isPickMinutes) Color.Black else Color(0xFFA1A1AA)
-                                    )
-                                )
-                                Text(
-                                    text = "Minutes",
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isPickMinutes) Color.White else Color.Transparent)
-                                        .clickable { isPickMinutes = true }
-                                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isPickMinutes) Color.Black else Color(0xFFA1A1AA)
-                                    )
+                            IconButton(onClick = { isKeyboardMode = !isKeyboardMode }) {
+                                Icon(
+                                    imageVector = if (isKeyboardMode) Icons.Outlined.Schedule else Icons.Outlined.Edit,
+                                    contentDescription = "Toggle Keyboard",
+                                    tint = Color.White
                                 )
                             }
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                TextButton(onClick = { showTimePickerSheet = false }) {
+                                    Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
+                                }
+                                TextButton(onClick = {
+                                    val finalHour = if (isKeyboardMode) hourInputText.toIntOrNull()?.coerceIn(1, 12) ?: selectedHour else selectedHour
+                                    val finalMinute = if (isKeyboardMode) minuteInputText.toIntOrNull()?.coerceIn(0, 59) ?: selectedMinute else selectedMinute
+                                    val newCal = (selectedCalendar.clone() as Calendar).apply {
+                                        var h = finalHour % 12
+                                        if (!isAm) h += 12
+                                        set(Calendar.HOUR_OF_DAY, h)
+                                        set(Calendar.MINUTE, finalMinute)
+                                    }
+                                    selectedCalendar = newCal
+                                    showTimePickerSheet = false
+                                }) {
+                                    Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFF38BDF8))
+                                }
+                            }
                         }
+                    },
+                    containerColor = Color(0xFF18181B),
+                    shape = RoundedCornerShape(24.dp),
+                    title = {
+                        Text(
+                            text = if (isKeyboardMode) "Enter time" else "Select time",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 13.sp,
+                            color = Color(0xFFA1A1AA)
+                        )
                     },
                     text = {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            // AM / PM Toggle Pill
+                            // DIGITAL READOUT BOX (HH : MM + AM/PM Pill)
                             Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0xFF27272A))
-                                    .padding(2.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "AM",
+                                // Hour Box
+                                Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isAm) Color.White else Color.Transparent)
-                                        .clickable { isAm = true }
-                                        .padding(horizontal = 14.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        .size(width = 72.dp, height = 64.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(if (!isPickMinutes) Color(0xFF38BDF8).copy(alpha = 0.25f) else Color(0xFF27272A))
+                                        .border(1.5.dp, if (!isPickMinutes) Color(0xFF38BDF8) else Color.Transparent, RoundedCornerShape(14.dp))
+                                        .clickable { isPickMinutes = false },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = String.format("%02d", selectedHour),
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        color = if (isAm) Color.Black else Color(0xFFA1A1AA)
+                                        fontSize = 32.sp,
+                                        color = Color.White
                                     )
-                                )
-                                Text(
-                                    text = "PM",
+                                }
+
+                                Text(":", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, fontSize = 28.sp, color = Color.White)
+
+                                // Minute Box
+                                Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (!isAm) Color.White else Color.Transparent)
-                                        .clickable { isAm = false }
-                                        .padding(horizontal = 14.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        .size(width = 72.dp, height = 64.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(if (isPickMinutes) Color(0xFF38BDF8).copy(alpha = 0.25f) else Color(0xFF27272A))
+                                        .border(1.5.dp, if (isPickMinutes) Color(0xFF38BDF8) else Color.Transparent, RoundedCornerShape(14.dp))
+                                        .clickable { isPickMinutes = true },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = String.format("%02d", selectedMinute),
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        color = if (!isAm) Color.Black else Color(0xFFA1A1AA)
+                                        fontSize = 32.sp,
+                                        color = Color.White
                                     )
-                                )
-                            }
+                                }
 
-                            // Digital Time Display Box
-                            Text(
-                                text = String.format("%02d : %02d %s", selectedHour, selectedMinute, if (isAm) "AM" else "PM"),
-                                style = MaterialTheme.typography.headlineLarge.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 30.sp,
-                                    color = Color.White
-                                )
-                            )
+                                Spacer(modifier = Modifier.width(6.dp))
 
-                            if (!isPickMinutes) {
-                                // 3x4 GRID HOUR SELECTOR (1..12)
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text("SELECT HOUR", fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA), letterSpacing = 1.2.sp)
-                                    val hoursList = (1..12).toList()
-                                    LazyVerticalGrid(
-                                        columns = GridCells.Fixed(4),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                // Vertical AM/PM Toggle Pill
+                                Column(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color(0xFF27272A))
+                                        .padding(2.dp)
+                                ) {
+                                    Box(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(180.dp)
+                                            .size(width = 44.dp, height = 30.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(if (isAm) Color.White else Color.Transparent)
+                                            .clickable { isAm = true },
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        items(hoursList) { hr ->
-                                            val isSelectedHr = hr == selectedHour
-                                            Box(
-                                                modifier = Modifier
-                                                    .height(44.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                                    .background(if (isSelectedHr) Color.White else Color(0xFF27272A))
-                                                    .clickable { selectedHour = hr },
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    text = String.format("%02d", hr),
-                                                    fontFamily = SpaceGroteskFamily,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = if (isSelectedHr) Color.Black else Color.White,
-                                                    fontSize = 15.sp
-                                                )
-                                            }
-                                        }
+                                        Text("AM", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = if (isAm) Color.Black else Color(0xFFA1A1AA))
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(width = 44.dp, height = 30.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(if (!isAm) Color.White else Color.Transparent)
+                                            .clickable { isAm = false },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("PM", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = if (!isAm) Color.Black else Color(0xFFA1A1AA))
                                     }
                                 }
+                            }
+
+                            if (isKeyboardMode) {
+                                // KEYBOARD INPUT FORM
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                ) {
+                                    OutlinedTextField(
+                                        value = hourInputText,
+                                        onValueChange = { if (it.length <= 2) hourInputText = it },
+                                        label = { Text("Hour", color = Color(0xFFA1A1AA), fontSize = 10.sp, fontFamily = SpaceGroteskFamily) },
+                                        modifier = Modifier.width(90.dp),
+                                        singleLine = true,
+                                        textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily),
+                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF38BDF8), unfocusedBorderColor = Color(0xFF3F3F46))
+                                    )
+                                    OutlinedTextField(
+                                        value = minuteInputText,
+                                        onValueChange = { if (it.length <= 2) minuteInputText = it },
+                                        label = { Text("Minute", color = Color(0xFFA1A1AA), fontSize = 10.sp, fontFamily = SpaceGroteskFamily) },
+                                        modifier = Modifier.width(90.dp),
+                                        singleLine = true,
+                                        textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold, fontFamily = SpaceGroteskFamily),
+                                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFF38BDF8), unfocusedBorderColor = Color(0xFF3F3F46))
+                                    )
+                                }
                             } else {
-                                // 3x4 GRID MINUTE SELECTOR (00, 05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text("SELECT MINUTE", fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA), letterSpacing = 1.2.sp)
-                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                            IconButton(
-                                                onClick = { selectedMinute = (selectedMinute - 1 + 60) % 60 },
-                                                modifier = Modifier.size(28.dp)
-                                            ) {
-                                                Text("−1m", color = Color(0xFF38BDF8), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = SpaceGroteskFamily)
-                                            }
-                                            IconButton(
-                                                onClick = { selectedMinute = (selectedMinute + 1) % 60 },
-                                                modifier = Modifier.size(28.dp)
-                                            ) {
-                                                Text("+1m", color = Color(0xFF38BDF8), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = SpaceGroteskFamily)
+                                // 3x4 GRID DIAL SELECTOR (High contrast & 100% readable)
+                                if (!isPickMinutes) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text("SELECT HOUR", fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA), letterSpacing = 1.2.sp)
+                                        val hoursList = (1..12).toList()
+                                        LazyVerticalGrid(
+                                            columns = GridCells.Fixed(4),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(170.dp)
+                                        ) {
+                                            items(hoursList) { hr ->
+                                                val isSelectedHr = hr == selectedHour
+                                                Box(
+                                                    modifier = Modifier
+                                                        .height(44.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                        .background(if (isSelectedHr) Color.White else Color(0xFF27272A))
+                                                        .clickable { selectedHour = hr },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = String.format("%02d", hr),
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = if (isSelectedHr) Color.Black else Color.White,
+                                                        fontSize = 15.sp
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                    val minutesList = listOf(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
-                                    LazyVerticalGrid(
-                                        columns = GridCells.Fixed(4),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(180.dp)
-                                    ) {
-                                        items(minutesList) { mn ->
-                                            val isSelectedMn = mn == selectedMinute
-                                            Box(
-                                                modifier = Modifier
-                                                    .height(44.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                                    .background(if (isSelectedMn) Color.White else Color(0xFF27272A))
-                                                    .clickable { selectedMinute = mn },
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    text = String.format("%02d", mn),
-                                                    fontFamily = SpaceGroteskFamily,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = if (isSelectedMn) Color.Black else Color.White,
-                                                    fontSize = 15.sp
-                                                )
+                                } else {
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text("SELECT MINUTE", fontSize = 11.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA), letterSpacing = 1.2.sp)
+                                        val minutesList = listOf(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
+                                        LazyVerticalGrid(
+                                            columns = GridCells.Fixed(4),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(170.dp)
+                                        ) {
+                                            items(minutesList) { mn ->
+                                                val isSelectedMn = mn == selectedMinute
+                                                Box(
+                                                    modifier = Modifier
+                                                        .height(44.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                        .background(if (isSelectedMn) Color.White else Color(0xFF27272A))
+                                                        .clickable { selectedMinute = mn },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = String.format("%02d", mn),
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = if (isSelectedMn) Color.Black else Color.White,
+                                                        fontSize = 15.sp
+                                                    )
+                                                }
                                             }
                                         }
                                     }
