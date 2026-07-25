@@ -128,7 +128,6 @@ fun CurrencySelectorScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .statusBarsPadding()
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     Box(

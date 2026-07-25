@@ -38,7 +38,6 @@ fun RootHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -106,7 +105,6 @@ fun ChildHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
