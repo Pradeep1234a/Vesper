@@ -129,10 +129,10 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 32.dp)
+                contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
             ) {
                 item {
-                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    Column(modifier = Modifier.padding(bottom = 4.dp)) {
                         Text(
                             text = "$greeting,",
                             style = MaterialTheme.typography.bodyMedium.copy(
