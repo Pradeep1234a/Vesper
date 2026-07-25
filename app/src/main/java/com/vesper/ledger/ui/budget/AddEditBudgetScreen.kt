@@ -64,12 +64,6 @@ fun AddEditBudgetScreen(
     val parsedAmount = amountStr.toDoubleOrNull() ?: 0.0
 
     Scaffold(
-        topBar = {
-            ChildHeader(
-                title = if (isEditMode) "Edit Budget" else "New Budget",
-                onBackClick = onBackClick
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(

@@ -50,6 +50,8 @@ import com.vesper.ledger.ui.savings.SavingsViewModelFactory
 import com.vesper.ledger.ui.budget.BudgetScreen
 import com.vesper.ledger.ui.budget.BudgetsViewModel
 import com.vesper.ledger.ui.budget.BudgetsViewModelFactory
+import com.vesper.ledger.ui.budget.AddEditBudgetScreen
+import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.ui.category.CategoriesScreen
 import com.vesper.ledger.ui.category.AddEditCategoryScreen
 import com.vesper.ledger.ui.category.CategoryViewModel
@@ -83,8 +85,8 @@ data class BottomNavItem(
 fun MainScreen(
     settingsViewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
-    onSavingsClick: () -> Unit,
-    onCategoryManagementClick: () -> Unit,
+    onSavingsClick: () -> Unit = {},
+    onCategoryManagementClick: () -> Unit = {},
     onCurrencyClick: () -> Unit = {},
     onAccountsClick: () -> Unit = {},
     onAddTransactionClick: () -> Unit = {},
@@ -647,6 +649,53 @@ fun MainScreen(
                             }
                         )
                     }
+                }
+
+                composable(Screen.AddBudget.route) {
+                    val categories by app.transactionRepository.allCategories.collectAsState(initial = emptyList())
+                    var editingBudgetState by remember { mutableStateOf<Budget?>(null) }
+
+                    AddEditBudgetScreen(
+                        budgetToEdit = editingBudgetState,
+                        categories = categories,
+                        currencySymbol = currencySymbol,
+                        onBackClick = { navController.popBackStack() },
+                        onSaveBudget = { name, amount, period, categoryId, startDate, endDate, notes, idToUpdate ->
+                            scope.launch(Dispatchers.IO) {
+                                if (idToUpdate != null) {
+                                    app.budgetRepository.updateBudget(
+                                        Budget(
+                                            id = idToUpdate,
+                                            name = name,
+                                            amount = amount,
+                                            period = period,
+                                            categoryId = categoryId,
+                                            startDate = startDate,
+                                            endDate = endDate,
+                                            notes = notes
+                                        )
+                                    )
+                                } else {
+                                    app.budgetRepository.insertBudget(
+                                        Budget(
+                                            name = name,
+                                            amount = amount,
+                                            period = period,
+                                            categoryId = categoryId,
+                                            startDate = startDate,
+                                            endDate = endDate,
+                                            notes = notes
+                                        )
+                                    )
+                                }
+                            }
+                        },
+                        onDeleteBudget = { budget ->
+                            scope.launch(Dispatchers.IO) {
+                                app.budgetRepository.deleteBudget(budget)
+                            }
+                        }
+                    )
                 }
             }
         }
