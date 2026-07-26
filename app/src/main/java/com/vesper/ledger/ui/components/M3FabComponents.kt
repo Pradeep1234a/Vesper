@@ -21,9 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,9 +36,14 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 /**
- * Official Material 3 Single Action Floating Action Button:
- * Standard 56dp M3 container, 16dp squircle shape, 6dp tonal elevation shadow.
- * Formatted with 8dp bottom gap and EXACT card-aligned 16dp edge margin without duplicate offset.
+ * Official Material 3 Single Action Floating Action Button (M3 FAB):
+ * Strictly implements M3 FAB Guidelines & Accessibility (m3.material.io/components/floating-action-button).
+ * - Shape: 16dp Corner Radius (M3 Squircle).
+ * - Dimensions: 56dp x 56dp container with 24dp centered vector icon.
+ * - Touch Target: Full 56dp x 56dp (exceeds M3 min 48dp accessibility target).
+ * - 3D Elevation & Depth: Multi-tier ambient/spot shadows + 1dp top-highlight bevel border.
+ * - Animation: Spring scale feedback on press (0.92f).
+ * - Screen Alignment: Identical Scaffold FAB placement across all screens.
  */
 @Composable
 fun M3SingleFab(
@@ -51,23 +61,55 @@ fun M3SingleFab(
         label = "M3FabPressScale"
     )
 
+    val currentElevation by animateDpAsState(
+        targetValue = if (isPressed) 3.dp else 6.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "M3FabElevation"
+    )
+
     Box(
         modifier = modifier
             .navigationBarsPadding()
-            .padding(bottom = 8.dp) // Scaffold already applies 16dp end padding; matching transaction card margin perfectly
+            .padding(bottom = 8.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
             .shadow(
-                elevation = if (isPressed) 3.dp else 6.dp,
+                elevation = currentElevation,
                 shape = RoundedCornerShape(16.dp),
                 ambientColor = Color.Black,
                 spotColor = Color(0xFF38BDF8).copy(alpha = 0.5f)
             )
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF38BDF8))
-            .clickable(interactionSource = interactionSource, indication = null) { onClick() }
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF50C7FB),
+                        Color(0xFF0EA5E9)
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.45f),
+                        Color.White.copy(alpha = 0.05f)
+                    )
+                ),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClickLabel = contentDescription,
+                onClick = onClick
+            )
+            .semantics {
+                this.role = Role.Button
+                this.contentDescription = contentDescription
+            }
             .size(56.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -75,15 +117,18 @@ fun M3SingleFab(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = Color(0xFF09090B),
-            modifier = Modifier.size(26.dp)
+            modifier = Modifier.size(24.dp)
         )
     }
 }
 
 /**
- * Official Material 3 FAB Menu (Speed Dial / Floating Action Menu):
- * Complies strictly with Material 3 FAB Menu guidelines (m3.material.io/components/fab-menu/overview).
- * 8dp bottom gap, exact card edge alignment, smooth spring motion and press response.
+ * Official Material 3 Speed Dial FAB Menu:
+ * Strictly implements M3 FAB Menu Guidelines & Accessibility (m3.material.io/components/fab-menu).
+ * - Trigger FAB: 56dp x 56dp with 135° rotation indicator on expand.
+ * - Mini FAB items: 48dp x 48dp (minimum accessibility target) with text labels on left.
+ * - 3D Depth: Gradient surface finish with subtle bevel edge.
+ * - Touch & Semantics: Full accessibility semantics on trigger and mini action FABs.
  */
 @Composable
 fun M3SpeedDialFab(
@@ -106,14 +151,20 @@ fun M3SpeedDialFab(
         label = "M3FabRotation"
     )
 
+    val currentElevation by animateDpAsState(
+        targetValue = if (isExpanded || isPressed) 3.dp else 6.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "M3FabElevation"
+    )
+
     Column(
         modifier = modifier
             .navigationBarsPadding()
-            .padding(bottom = 8.dp), // Scaffold already applies 16dp end padding; aligns with transaction card right edge
+            .padding(bottom = 8.dp),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Expanded Material 3 FAB Menu Floating Stack
+        // Expanded Speed Dial Floating Menu Stack
         AnimatedVisibility(
             visible = isExpanded,
             enter = fadeIn(tween(200)) + expandVertically(expandFrom = Alignment.Bottom) + slideInVertically(initialOffsetY = { it / 3 }),
@@ -159,7 +210,7 @@ fun M3SpeedDialFab(
             }
         }
 
-        // Main Trigger FAB Button (Material 3 Cyan Container with Smooth 135° Rotation)
+        // Main Trigger FAB Button (3D Elevated Cyan Squircle)
         Box(
             modifier = Modifier
                 .graphicsLayer {
@@ -167,24 +218,47 @@ fun M3SpeedDialFab(
                     scaleY = fabScale
                 }
                 .shadow(
-                    elevation = if (isPressed) 3.dp else 6.dp,
+                    elevation = currentElevation,
                     shape = RoundedCornerShape(16.dp),
                     ambientColor = Color.Black,
                     spotColor = Color(0xFF38BDF8).copy(alpha = 0.5f)
                 )
                 .clip(RoundedCornerShape(16.dp))
-                .background(if (isExpanded) Color(0xFF18181B) else Color(0xFF38BDF8))
-                .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
-                .clickable(interactionSource = interactionSource, indication = null) { isExpanded = !isExpanded }
+                .background(
+                    if (isExpanded) {
+                        Brush.verticalGradient(listOf(Color(0xFF27272A), Color(0xFF18181B)))
+                    } else {
+                        Brush.verticalGradient(listOf(Color(0xFF50C7FB), Color(0xFF0EA5E9)))
+                    }
+                )
+                .border(
+                    width = 1.dp,
+                    brush = if (isExpanded) {
+                        Brush.verticalGradient(listOf(Color(0xFF38BDF8), Color(0xFF0EA5E9)))
+                    } else {
+                        Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.45f), Color.White.copy(alpha = 0.05f)))
+                    },
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClickLabel = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu",
+                    onClick = { isExpanded = !isExpanded }
+                )
+                .semantics {
+                    this.role = Role.Button
+                    this.contentDescription = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu"
+                }
                 .size(56.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = if (isExpanded) "Close FAB Menu" else "Expand FAB Menu",
+                contentDescription = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu",
                 tint = if (isExpanded) Color.White else Color(0xFF09090B),
                 modifier = Modifier
-                    .size(26.dp)
+                    .size(24.dp)
                     .graphicsLayer { rotationZ = rotationAngle }
             )
         }
@@ -215,7 +289,16 @@ private fun M3FabMenuItem(
                 scaleX = itemScale
                 scaleY = itemScale
             }
-            .clickable(interactionSource = itemInteractionSource, indication = null) { onClick() }
+            .clickable(
+                interactionSource = itemInteractionSource,
+                indication = null,
+                onClickLabel = label,
+                onClick = onClick
+            )
+            .semantics {
+                this.role = Role.Button
+                this.contentDescription = label
+            }
     ) {
         // M3 Elevated Label Badge Box
         Box(
