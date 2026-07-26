@@ -5,12 +5,13 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.CompareArrows
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.TrendingDown
 import androidx.compose.material.icons.outlined.TrendingUp
@@ -30,8 +31,8 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 /**
- * Standard Material 3 Single Action Floating Action Button aligned with M3 Guidelines:
- * 56dp height, 16dp squircle radius, 16dp spacing from edge/bottom nav.
+ * Standard Material 3 Single Action Floating Action Button:
+ * 56dp height, 16dp squircle radius, monochrome elevated surface, exact 8dp bottom gap & 16dp card-aligned margin.
  */
 @Composable
 fun M3SingleFab(
@@ -40,30 +41,44 @@ fun M3SingleFab(
     contentDescription: String = "Action",
     modifier: Modifier = Modifier
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.92f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "FabPressScale"
+    )
+
     Box(
         modifier = modifier
             .navigationBarsPadding()
-            .padding(bottom = 16.dp, end = 16.dp)
-            .shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color(0xFF38BDF8).copy(alpha = 0.5f))
+            .padding(bottom = 8.dp, end = 16.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .shadow(10.dp, RoundedCornerShape(16.dp), ambientColor = Color.Black, spotColor = Color(0xFF38BDF8).copy(alpha = 0.6f))
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF38BDF8))
-            .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
-            .clickable { onClick() }
+            .background(Color(0xFF18181B))
+            .border(1.5.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
+            .clickable(interactionSource = interactionSource, indication = null) { onClick() }
             .size(56.dp),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = Color(0xFF09090B),
-            modifier = Modifier.size(24.dp)
+            tint = Color.White,
+            modifier = Modifier.size(28.dp)
         )
     }
 }
 
 /**
- * Material 3 Multi-Action Speed Dial FAB:
- * Expands floating action items vertically with animated icon rotation (0 -> 45 deg) and M3 spatial rhythm.
+ * Material 3 FAB Menu (Speed Dial / Floating Action Menu):
+ * Multi-action expanded FAB menu according to M3 FAB Menu specification (m3.material.io/components/fab-menu/overview).
+ * 8dp exact bottom gap, monochrome container colors, smooth spring motion and pressed response effects.
  */
 @Composable
 fun M3SpeedDialFab(
@@ -71,57 +86,66 @@ fun M3SpeedDialFab(
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val fabScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.92f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "MainFabScale"
+    )
 
     val rotationAngle by animateFloatAsState(
-        targetValue = if (isExpanded) 45f else 0f,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        targetValue = if (isExpanded) 135f else 0f,
+        animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioLowBouncy),
         label = "FabRotation"
     )
 
     Column(
         modifier = modifier
             .navigationBarsPadding()
-            .padding(bottom = 16.dp, end = 16.dp),
+            .padding(bottom = 8.dp, end = 16.dp),
         horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Expanded Speed Dial Options
+        // Expanded M3 FAB Menu Floating Stack
         AnimatedVisibility(
             visible = isExpanded,
-            enter = fadeIn(tween(180)) + slideInVertically(initialOffsetY = { it / 2 }),
-            exit = fadeOut(tween(150)) + slideOutVertically(targetOffsetY = { it / 2 })
+            enter = fadeIn(tween(220)) + expandVertically(expandFrom = Alignment.Bottom) + slideInVertically(initialOffsetY = { it / 3 }),
+            exit = fadeOut(tween(180)) + shrinkVertically(shrinkTowards = Alignment.Bottom) + slideOutVertically(targetOffsetY = { it / 3 })
         ) {
             Column(
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(bottom = 4.dp)
             ) {
-                // Action 1: Expense
-                SpeedDialItem(
-                    label = "Expense",
+                // Action 1: Expense (- Expense)
+                M3FabMenuItem(
+                    label = "Add Expense",
                     icon = Icons.Outlined.TrendingDown,
-                    accentColor = Color(0xFFEF4444),
+                    badgeColor = Color(0xFFEF4444),
                     onClick = {
                         isExpanded = false
                         onActionSelected(TransactionType.EXPENSE)
                     }
                 )
 
-                // Action 2: Income
-                SpeedDialItem(
-                    label = "Income",
+                // Action 2: Income (+ Income)
+                M3FabMenuItem(
+                    label = "Add Income",
                     icon = Icons.Outlined.TrendingUp,
-                    accentColor = Color(0xFF22C55E),
+                    badgeColor = Color(0xFF22C55E),
                     onClick = {
                         isExpanded = false
                         onActionSelected(TransactionType.INCOME)
                     }
                 )
 
-                // Action 3: Transfer
-                SpeedDialItem(
-                    label = "Transfer",
+                // Action 3: Transfer (⇄ Transfer)
+                M3FabMenuItem(
+                    label = "Transfer Money",
                     icon = Icons.Outlined.SwapHoriz,
-                    accentColor = Color(0xFF38BDF8),
+                    badgeColor = Color(0xFF38BDF8),
                     onClick = {
                         isExpanded = false
                         onActionSelected(TransactionType.TRANSFER)
@@ -130,23 +154,27 @@ fun M3SpeedDialFab(
             }
         }
 
-        // Main Trigger FAB (Rotates from + to X)
+        // Main Trigger FAB Button (Monochrome Surface with Cyan Border & Rotation Effect)
         Box(
             modifier = Modifier
-                .shadow(8.dp, RoundedCornerShape(16.dp), spotColor = Color(0xFF38BDF8).copy(alpha = 0.5f))
+                .graphicsLayer {
+                    scaleX = fabScale
+                    scaleY = fabScale
+                }
+                .shadow(10.dp, RoundedCornerShape(16.dp), ambientColor = Color.Black, spotColor = Color(0xFF38BDF8).copy(alpha = 0.6f))
                 .clip(RoundedCornerShape(16.dp))
-                .background(if (isExpanded) Color(0xFF18181B) else Color(0xFF38BDF8))
-                .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
-                .clickable { isExpanded = !isExpanded }
+                .background(if (isExpanded) Color(0xFF242429) else Color(0xFF18181B))
+                .border(1.5.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
+                .clickable(interactionSource = interactionSource, indication = null) { isExpanded = !isExpanded }
                 .size(56.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = if (isExpanded) "Close Menu" else "Add Transaction",
-                tint = if (isExpanded) Color.White else Color(0xFF09090B),
+                contentDescription = if (isExpanded) "Close FAB Menu" else "Expand FAB Menu",
+                tint = Color.White,
                 modifier = Modifier
-                    .size(26.dp)
+                    .size(28.dp)
                     .graphicsLayer { rotationZ = rotationAngle }
             )
         }
@@ -154,24 +182,39 @@ fun M3SpeedDialFab(
 }
 
 @Composable
-private fun SpeedDialItem(
+private fun M3FabMenuItem(
     label: String,
     icon: ImageVector,
-    accentColor: Color,
+    badgeColor: Color,
     onClick: () -> Unit
 ) {
+    val itemInteractionSource = remember { MutableInteractionSource() }
+    val isPressed by itemInteractionSource.collectIsPressedAsState()
+
+    val itemScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.94f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "ItemPressScale"
+    )
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.clickable { onClick() }
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier
+            .graphicsLayer {
+                scaleX = itemScale
+                scaleY = itemScale
+            }
+            .clickable(interactionSource = itemInteractionSource, indication = null) { onClick() }
     ) {
-        // Label Badge
+        // M3 Elevated Label Pill Box
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(Color(0xFF18181B))
-                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-                .padding(horizontal = 10.dp, vertical = 6.dp)
+                .shadow(4.dp, RoundedCornerShape(8.dp), ambientColor = Color.Black)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFF242429))
+                .border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(8.dp))
+                .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Text(
                 text = label,
@@ -182,20 +225,21 @@ private fun SpeedDialItem(
             )
         }
 
-        // Mini FAB Action Icon Button
+        // Mini FAB Container (48dp x 48dp)
         Box(
             modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(accentColor.copy(alpha = 0.18f))
-                .border(1.dp, accentColor, RoundedCornerShape(12.dp)),
+                .shadow(6.dp, CircleShape, ambientColor = Color.Black, spotColor = badgeColor.copy(alpha = 0.4f))
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF18181B))
+                .border(1.5.dp, badgeColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = accentColor,
-                modifier = Modifier.size(20.dp)
+                tint = badgeColor,
+                modifier = Modifier.size(22.dp)
             )
         }
     }
