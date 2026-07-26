@@ -601,9 +601,9 @@ fun AddTransactionScreen(
                     if (showCategorySheet) {
                         AlertDialog(
                             onDismissRequest = { showCategorySheet = false },
-                            containerColor = Color(0xFF18181B), // Layer 2 Surface Container
+                            containerColor = Color(0xFF121215), // Distinct Modal Surface
                             shape = RoundedCornerShape(6.dp),
-                            modifier = Modifier.border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp)),
+                            modifier = Modifier.border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp)),
                             title = {
                                 Text(
                                     text = "SELECT CATEGORY",
@@ -630,10 +630,10 @@ fun AddTransactionScreen(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clip(RoundedCornerShape(6.dp))
-                                                .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                                .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
                                                 .border(
                                                     1.dp,
-                                                    if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
+                                                    if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46),
                                                     RoundedCornerShape(6.dp)
                                                 )
                                                 .clickable {
@@ -652,7 +652,7 @@ fun AddTransactionScreen(
                                                     modifier = Modifier
                                                         .size(38.dp)
                                                         .clip(RoundedCornerShape(6.dp))
-                                                        .background(catColor.copy(alpha = 0.2f)),
+                                                        .background(if (isSelected) catColor.copy(alpha = 0.3f) else Color(0xFF18181B)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Icon(
@@ -780,9 +780,9 @@ fun AddTransactionScreen(
                         if (showAccountMenu) {
                             AlertDialog(
                                 onDismissRequest = { showAccountMenu = false },
-                                containerColor = Color(0xFF18181B), // Layer 2 Surface Container
+                                containerColor = Color(0xFF121215), // Distinct Modal Surface
                                 shape = RoundedCornerShape(6.dp),
-                                modifier = Modifier.border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp)),
+                                modifier = Modifier.border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp)),
                                 title = {
                                     Text(
                                         text = "SELECT ACCOUNT",
@@ -808,10 +808,10 @@ fun AddTransactionScreen(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(6.dp))
-                                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                                    .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
                                                     .border(
                                                         1.dp,
-                                                        if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
+                                                        if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46),
                                                         RoundedCornerShape(6.dp)
                                                     )
                                                     .clickable {
@@ -830,7 +830,7 @@ fun AddTransactionScreen(
                                                         modifier = Modifier
                                                             .size(38.dp)
                                                             .clip(RoundedCornerShape(6.dp))
-                                                            .background(Color(0xFF27272A)),
+                                                            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.25f) else Color(0xFF18181B)),
                                                         contentAlignment = Alignment.Center
                                                     ) {
                                                         Icon(
@@ -962,9 +962,9 @@ fun AddTransactionScreen(
                         if (showPaymentMenu) {
                             AlertDialog(
                                 onDismissRequest = { showPaymentMenu = false },
-                                containerColor = Color(0xFF18181B), // Layer 2 Surface Container
+                                containerColor = Color(0xFF121215), // Distinct Modal Surface
                                 shape = RoundedCornerShape(6.dp),
-                                modifier = Modifier.border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp)),
+                                modifier = Modifier.border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp)),
                                 title = {
                                     Text(
                                         text = "SELECT PAYMENT METHOD",
@@ -990,10 +990,10 @@ fun AddTransactionScreen(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(6.dp))
-                                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                                    .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
                                                     .border(
                                                         1.dp,
-                                                        if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
+                                                        if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46),
                                                         RoundedCornerShape(6.dp)
                                                     )
                                                     .clickable {
@@ -1012,7 +1012,7 @@ fun AddTransactionScreen(
                                                         modifier = Modifier
                                                             .size(38.dp)
                                                             .clip(RoundedCornerShape(6.dp))
-                                                            .background(Color(0xFF27272A)),
+                                                            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.25f) else Color(0xFF18181B)),
                                                         contentAlignment = Alignment.Center
                                                     ) {
                                                         Icon(

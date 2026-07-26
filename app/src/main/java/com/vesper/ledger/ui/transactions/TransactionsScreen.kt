@@ -529,9 +529,9 @@ fun TransactionFilterDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        containerColor = Color(0xFF18181B), // Layer 2 Surface Container
+        containerColor = Color(0xFF121215), // Distinct Modal Surface
         shape = RoundedCornerShape(6.dp),
-        modifier = Modifier.border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp)),
+        modifier = Modifier.border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp)),
         title = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -586,8 +586,8 @@ fun TransactionFilterDialog(
                                 .fillMaxWidth()
                                 .height(40.dp)
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFF09090B))
-                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
+                                .background(Color(0xFF242429))
+                                .border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp))
                                 .padding(2.dp),
                             horizontalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
@@ -604,7 +604,7 @@ fun TransactionFilterDialog(
                                         .weight(1f)
                                         .fillMaxHeight()
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(if (selected) Color(0xFF38BDF8).copy(alpha = 0.2f) else Color.Transparent)
+                                        .background(if (selected) Color(0xFF38BDF8).copy(alpha = 0.25f) else Color.Transparent)
                                         .border(1.dp, if (selected) Color(0xFF38BDF8) else Color.Transparent, RoundedCornerShape(4.dp))
                                         .clickable { viewModel.selectedType.value = t },
                                     contentAlignment = Alignment.Center
@@ -875,8 +875,8 @@ fun FilterChipPill(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF09090B))
-            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
+            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46), RoundedCornerShape(6.dp))
             .clickable { onClick() }
             .padding(horizontal = 12.dp, vertical = 7.dp)
     ) {
@@ -885,7 +885,7 @@ fun FilterChipPill(
             fontFamily = SpaceGroteskFamily,
             fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+            color = if (isSelected) Color.White else Color(0xFFD4D4D8)
         )
     }
 }
@@ -901,8 +901,8 @@ fun FilterCategoryChip(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF09090B))
-            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
+            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46), RoundedCornerShape(6.dp))
             .clickable { onClick() }
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
@@ -921,7 +921,7 @@ fun FilterCategoryChip(
                 fontFamily = SpaceGroteskFamily,
                 fontSize = 12.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+                color = if (isSelected) Color.White else Color(0xFFD4D4D8)
             )
         }
     }
@@ -937,8 +937,8 @@ fun FilterMethodChip(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF09090B))
-            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
+            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46), RoundedCornerShape(6.dp))
             .clickable { onClick() }
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
@@ -957,7 +957,7 @@ fun FilterMethodChip(
                 fontFamily = SpaceGroteskFamily,
                 fontSize = 12.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+                color = if (isSelected) Color.White else Color(0xFFD4D4D8)
             )
         }
     }
