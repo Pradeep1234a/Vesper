@@ -107,7 +107,14 @@ fun CategoriesScreen(
             )
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            com.vesper.ledger.ui.components.M3SingleFab(
+                onClick = onAddCategoryClick,
+                contentDescription = "Add Category",
+                hasBottomBar = false
+            )
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
