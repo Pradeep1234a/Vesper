@@ -41,7 +41,7 @@ object ReceiptOcrEngine {
         return if (visionText != null && visionText.text.isNotBlank()) {
             parseVisionText(visionText, imageUri.toString())
         } else {
-            fallbackSampleReceipt(imageUri.toString())
+            createEmptyReceiptForImage(imageUri.toString())
         }
     }
 
@@ -214,6 +214,22 @@ object ReceiptOcrEngine {
     private fun extractCardLast4(text: String): String {
         val m = Pattern.compile("\\*{4}\\s*(\\d{4})").matcher(text)
         return if (m.find()) m.group(1) ?: "" else ""
+    }
+
+    fun createEmptyReceiptForImage(imageUriStr: String): ScannedReceipt {
+        val now = java.util.Date()
+        val dateStr = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault()).format(now)
+        val timeStr = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(now)
+        val receipt = ScannedReceipt(
+            merchantName = "Scanned Receipt",
+            dateString = dateStr,
+            timeString = timeStr,
+            currencySymbol = "₹",
+            grandTotal = 0.0,
+            imageUriString = imageUriStr,
+            lineItems = mutableListOf()
+        )
+        return receipt
     }
 
     /**
