@@ -1,5 +1,6 @@
 package com.vesper.ledger.ui.budget
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,18 +20,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.data.model.Category
-import com.vesper.ledger.ui.components.ChildHeader
+import com.vesper.ledger.ui.components.ShButton
+import com.vesper.ledger.ui.components.ShCard
+import com.vesper.ledger.ui.components.ShTextField
 import com.vesper.ledger.ui.components.getIconByName
-import com.vesper.ledger.ui.components.safeParseColor
+import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
-import java.text.DecimalFormat
 import java.util.Calendar
+
+val BUDGET_PERIODS = listOf("MONTHLY", "WEEKLY", "YEARLY")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,382 +56,313 @@ fun AddEditBudgetScreen(
     ) -> Unit,
     onDeleteBudget: ((Budget) -> Unit)? = null
 ) {
-    var name by remember { mutableStateOf(budgetToEdit?.name ?: "") }
-    var amountStr by remember { mutableStateOf(budgetToEdit?.amount?.let { if (it > 0) it.toString() else "" } ?: "") }
-    var period by remember { mutableStateOf(budgetToEdit?.period ?: "MONTHLY") }
-    var selectedCategoryId by remember { mutableStateOf(budgetToEdit?.categoryId ?: (categories.firstOrNull()?.id ?: 0L)) }
-    var notes by remember { mutableStateOf(budgetToEdit?.notes ?: "") }
-
-    val df = DecimalFormat("#,##0.00")
+    val context = LocalContext.current
     val isEditMode = budgetToEdit != null
+
+    var nameText by remember { mutableStateOf(budgetToEdit?.name ?: "") }
+    var amountText by remember { mutableStateOf(budgetToEdit?.amount?.let { if (it > 0) it.toString() else "" } ?: "") }
+    var selectedPeriod by remember { mutableStateOf(budgetToEdit?.period ?: "MONTHLY") }
+    var selectedCategoryId by remember { mutableStateOf(budgetToEdit?.categoryId ?: (categories.firstOrNull()?.id ?: 0L)) }
+    var notesText by remember { mutableStateOf(budgetToEdit?.notes ?: "") }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+
     val selectedCategory = categories.find { it.id == selectedCategoryId } ?: categories.firstOrNull()
 
-    val parsedAmount = amountStr.toDoubleOrNull() ?: 0.0
+    // Delete Confirmation Dialog
+    if (showDeleteConfirmDialog && budgetToEdit != null && onDeleteBudget != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            title = {
+                Text(
+                    text = "Delete Budget",
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete '${budgetToEdit.name.ifBlank { selectedCategory?.name ?: "this budget" }}'? Spent records will remain intact.",
+                    fontFamily = PlusJakartaSansFamily,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteBudget(budgetToEdit)
+                        showDeleteConfirmDialog = false
+                        Toast.makeText(context, "Budget deleted", Toast.LENGTH_SHORT).show()
+                        onBackClick()
+                    }
+                ) {
+                    Text(
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.error,
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                    Text(
+                        text = "Cancel",
+                        fontFamily = SpaceGroteskFamily,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
+        )
+    }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .navigationBarsPadding(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp,
+                shadowElevation = 8.dp
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    ShButton(
+                        text = if (isEditMode) "SAVE BUDGET CHANGES" else "CREATE BUDGET",
+                        onClick = {
+                            val amount = amountText.toDoubleOrNull() ?: 0.0
+
+                            if (amount <= 0) {
+                                Toast.makeText(context, "Please enter a valid limit amount", Toast.LENGTH_SHORT).show()
+                                return@ShButton
+                            }
+
+                            val cal = Calendar.getInstance()
+                            val now = cal.timeInMillis
+                            cal.add(Calendar.DAY_OF_MONTH, 30)
+                            val endDate = cal.timeInMillis
+
+                            val finalName = nameText.trim().ifBlank { selectedCategory?.name ?: "Budget" }
+
+                            onSaveBudget(
+                                finalName,
+                                amount,
+                                selectedPeriod,
+                                selectedCategoryId,
+                                now,
+                                endDate,
+                                notesText.ifBlank { null },
+                                budgetToEdit?.id
+                            )
+                            Toast.makeText(
+                                context,
+                                if (isEditMode) "Budget updated" else "Budget created successfully",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackClick()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
-                .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Live Preview Card
-            Text(
-                text = "PREVIEW",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            )
-
-            val catColor = safeParseColor(selectedCategory?.colorHex ?: "#71717A")
-            Surface(
+            // Form Card Container (Reference to AddEditAccountScreen)
+            ShCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
-                shadowElevation = 4.dp
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(18.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(catColor.copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = getIconByName(selectedCategory?.iconName ?: "category"),
-                                    contentDescription = null,
-                                    tint = catColor,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = name.ifBlank { "Budget Name" },
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 17.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                )
-                                Text(
-                                    text = "${selectedCategory?.name ?: "Category"} • $period",
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                )
-                            }
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-                        ) {
-                            Text(
-                                text = period,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            )
-                        }
-                    }
-
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Limit Amount",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = if (isEditMode) "EDIT BUDGET DETAILS" else "BUDGET PARAMETERS",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            letterSpacing = 1.2.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    )
+
+                    // 1. Category Selection Chips
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "$currencySymbol${df.format(parsedAmount)}",
-                            style = MaterialTheme.typography.titleLarge.copy(
+                            text = "Category",
+                            style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         )
-                    }
 
-                    LinearProgressIndicator(
-                        progress = 0.25f,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = catColor,
-                        trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                    )
-                }
-            }
-
-            // Budget Name Input
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Budget Name", fontFamily = SpaceGroteskFamily) },
-                placeholder = { Text("e.g. Monthly Groceries, Fuel Limit") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp)
-            )
-
-            // Limit Amount Input
-            OutlinedTextField(
-                value = amountStr,
-                onValueChange = { amountStr = it },
-                label = { Text("Limit Amount ($currencySymbol)", fontFamily = SpaceGroteskFamily) },
-                placeholder = { Text("0.00") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp)
-            )
-
-            // Budget Period Segmented Control
-            Text(
-                text = "BUDGET PERIOD",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                listOf("WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY").forEach { itemPeriod ->
-                    val selected = period == itemPeriod
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (selected) MaterialTheme.colorScheme.surface else Color.Transparent)
-                            .clickable { period = itemPeriod },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = itemPeriod,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                                fontSize = 11.sp,
-                                color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                }
-            }
-
-            // Category Selection Chips
-            Text(
-                text = "LINK TO CATEGORY",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                categories.forEach { cat ->
-                    val isSelected = cat.id == selectedCategoryId
-                    val color = safeParseColor(cat.colorHex)
-
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { selectedCategoryId = cat.id },
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (isSelected) color.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (isSelected) color else MaterialTheme.colorScheme.outlineVariant
-                        )
-                    ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                imageVector = getIconByName(cat.iconName),
-                                contentDescription = null,
-                                tint = if (isSelected) color else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = cat.name,
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) color else MaterialTheme.colorScheme.onSurface
-                                )
-                            )
+                            categories.forEach { cat ->
+                                val isSelected = cat.id == selectedCategoryId
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(
+                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                            else MaterialTheme.colorScheme.surface
+                                        )
+                                        .border(
+                                            width = if (isSelected) 1.5.dp else 1.dp,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            shape = RoundedCornerShape(6.dp)
+                                        )
+                                        .clickable { selectedCategoryId = cat.id }
+                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(cat.iconName),
+                                            contentDescription = null,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Text(
+                                            text = cat.name,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
+
+                    // 2. Budget Limit Amount Input
+                    ShTextField(
+                        value = amountText,
+                        onValueChange = { amountText = it },
+                        label = "Limit Amount ($currencySymbol)",
+                        placeholder = "0.00",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+
+                    // 3. Optional Custom Budget Name
+                    ShTextField(
+                        value = nameText,
+                        onValueChange = { nameText = it },
+                        label = "Budget Name (Optional)",
+                        placeholder = selectedCategory?.name ?: "e.g., Dining Out"
+                    )
+
+                    // 4. Budget Period Selection
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Budget Period",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            BUDGET_PERIODS.forEach { p ->
+                                val isSelected = selectedPeriod.equals(p, ignoreCase = true)
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(
+                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                            else MaterialTheme.colorScheme.surface
+                                        )
+                                        .border(
+                                            width = if (isSelected) 1.5.dp else 1.dp,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            shape = RoundedCornerShape(6.dp)
+                                        )
+                                        .clickable { selectedPeriod = p }
+                                        .padding(vertical = 10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = p,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // 5. Notes / Description Input
+                    ShTextField(
+                        value = notesText,
+                        onValueChange = { notesText = it },
+                        label = "Notes / Restrictions (Optional)",
+                        placeholder = "e.g., Exclude weekend spending"
+                    )
                 }
             }
 
-            // Notes Input
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                label = { Text("Notes (Optional)", fontFamily = SpaceGroteskFamily) },
-                placeholder = { Text("Set reminders, goals, or remarks...") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp)
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Action Buttons
-            Button(
-                onClick = {
-                    if (name.isNotBlank() && parsedAmount > 0) {
-                        val startCal = Calendar.getInstance()
-                        val endCal = Calendar.getInstance()
-                        when (period) {
-                            "WEEKLY" -> {
-                                startCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek)
-                                endCal.set(Calendar.DAY_OF_WEEK, startCal.firstDayOfWeek + 6)
-                            }
-                            "MONTHLY" -> {
-                                startCal.set(Calendar.DAY_OF_MONTH, 1)
-                                endCal.set(Calendar.DAY_OF_MONTH, startCal.getActualMaximum(Calendar.DAY_OF_MONTH))
-                            }
-                            "QUARTERLY" -> {
-                                val currentMonth = startCal.get(Calendar.MONTH)
-                                val startMonth = (currentMonth / 3) * 3
-                                startCal.set(Calendar.MONTH, startMonth)
-                                startCal.set(Calendar.DAY_OF_MONTH, 1)
-                                endCal.set(Calendar.MONTH, startMonth + 2)
-                                endCal.set(Calendar.DAY_OF_MONTH, endCal.getActualMaximum(Calendar.DAY_OF_MONTH))
-                            }
-                            "YEARLY" -> {
-                                startCal.set(Calendar.DAY_OF_YEAR, 1)
-                                endCal.set(Calendar.DAY_OF_YEAR, startCal.getActualMaximum(Calendar.DAY_OF_YEAR))
-                            }
-                        }
-                        startCal.set(Calendar.HOUR_OF_DAY, 0)
-                        startCal.set(Calendar.MINUTE, 0)
-                        startCal.set(Calendar.SECOND, 0)
-                        startCal.set(Calendar.MILLISECOND, 0)
-                        endCal.set(Calendar.HOUR_OF_DAY, 23)
-                        endCal.set(Calendar.MINUTE, 59)
-                        endCal.set(Calendar.SECOND, 59)
-                        endCal.set(Calendar.MILLISECOND, 999)
-
-                        onSaveBudget(
-                            name.trim(),
-                            parsedAmount,
-                            period,
-                            selectedCategoryId,
-                            startCal.timeInMillis,
-                            endCal.timeInMillis,
-                            notes.ifBlank { null },
-                            budgetToEdit?.id
-                        )
-                        onBackClick()
-                    }
-                },
-                enabled = name.isNotBlank() && parsedAmount > 0,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
-                )
-            ) {
-                Text(
-                    text = if (isEditMode) "Save Changes" else "Create Budget",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-
-            if (isEditMode && budgetToEdit != null && onDeleteBudget != null) {
+            // Delete Budget Button (Only in Edit Mode)
+            if (isEditMode && onDeleteBudget != null) {
                 OutlinedButton(
-                    onClick = {
-                        onDeleteBudget(budgetToEdit)
-                        onBackClick()
-                    },
+                    onClick = { showDeleteConfirmDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(16.dp),
+                        .height(48.dp),
+                    shape = RoundedCornerShape(6.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.DeleteOutline,
+                        imageVector = Icons.Outlined.Delete,
                         contentDescription = "Delete Budget",
+                        tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Delete Budget",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold
-                        )
+                        text = "DELETE BUDGET",
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

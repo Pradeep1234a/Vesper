@@ -11,8 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,45 +23,39 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Budget
+import com.vesper.ledger.ui.accounts.ElasticBounceContainer
 import com.vesper.ledger.ui.components.M3SingleFab
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.getIconByName
-import com.vesper.ledger.ui.components.safeParseColor
+import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreen(
     viewModel: BudgetsViewModel,
-    currencySymbol: String = "₹",
+    currencySymbol: String = "$",
     onBackClick: (() -> Unit)? = null,
     onMenuClick: (() -> Unit)? = null,
     onAddBudgetClick: () -> Unit = {},
     onEditBudgetClick: (Budget) -> Unit = {}
 ) {
     val budgetsWithStatus by viewModel.budgetsWithStatus.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
     var selectedPeriodFilter by remember { mutableStateOf("ALL") }
 
-    val df = DecimalFormat("#,##0.00")
-    val dfCompact = DecimalFormat("#,##0")
-    val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    val df = remember { DecimalFormat("#,##0.00") }
 
-    val filteredBudgets = remember(budgetsWithStatus, searchQuery, selectedPeriodFilter) {
-        budgetsWithStatus.filter { item ->
-            val matchesSearch = item.budget.name.contains(searchQuery, ignoreCase = true) ||
-                    item.categoryName.contains(searchQuery, ignoreCase = true)
-            val matchesPeriod = selectedPeriodFilter == "ALL" || item.budget.period.equals(selectedPeriodFilter, ignoreCase = true)
-            matchesSearch && matchesPeriod
+    val filteredBudgets = remember(budgetsWithStatus, selectedPeriodFilter) {
+        if (selectedPeriodFilter == "ALL") {
+            budgetsWithStatus
+        } else {
+            budgetsWithStatus.filter { it.budget.period.equals(selectedPeriodFilter, ignoreCase = true) }
         }
     }
 
-    val totalBudgetLimit = budgetsWithStatus.sumOf { it.budget.amount }
-    val totalBudgetSpent = budgetsWithStatus.sumOf { it.spentAmount }
-    val totalRemaining = totalBudgetLimit - totalBudgetSpent
+    val totalBudgetLimit = remember(budgetsWithStatus) { budgetsWithStatus.sumOf { it.budget.amount } }
+    val totalBudgetSpent = remember(budgetsWithStatus) { budgetsWithStatus.sumOf { it.spentAmount } }
     val overallProgress = if (totalBudgetLimit > 0) (totalBudgetSpent / totalBudgetLimit).toFloat().coerceIn(0f, 1f) else 0f
 
     Scaffold(
@@ -74,346 +66,70 @@ fun BudgetScreen(
                 contentDescription = "Add Budget"
             )
         },
-        containerColor = Color(0xFF09090B)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Column(
+        ElasticBounceContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // 1. OVERALL BUDGET SUMMARY BENTO CARD
-            Box(
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Color(0xFF18181B))
-                    .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-                    .padding(16.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(
+                // 1. TOTAL BUDGET SUMMARY BANNER CARD (Reference to AccountsScreen)
+                item {
+                    ShCard(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.AccountBalanceWallet,
-                                contentDescription = null,
-                                tint = Color(0xFF38BDF8),
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Text(
-                                text = "TOTAL BUDGET LIMIT",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp,
-                                color = Color(0xFFA1A1AA)
-                            )
-                        }
-
-                        Text(
-                            text = "$currencySymbol${df.format(totalBudgetLimit)}",
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-
-                    // Progress bar
-                    LinearProgressIndicator(
-                        progress = overallProgress,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = if (overallProgress >= 0.9f) Color(0xFFEF4444) else Color(0xFF38BDF8),
-                        trackColor = Color(0xFF242429)
-                    )
-
-                    // 3 KPI Pills Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(18.dp)
                     ) {
                         Column {
                             Text(
-                                text = "TOTAL SPENT",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFA1A1AA)
+                                text = "TOTAL MONTHLY BUDGET ALLOCATION",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 1.2.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
                             Text(
-                                text = "$currencySymbol${dfCompact.format(totalBudgetSpent)}",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (totalBudgetSpent > totalBudgetLimit && totalBudgetLimit > 0) Color(0xFFEF4444) else Color.White
+                                text = "$currencySymbol${df.format(totalBudgetLimit)}",
+                                style = MaterialTheme.typography.headlineLarge.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 28.sp,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
                             )
-                        }
 
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Spacer(modifier = Modifier.height(4.dp))
+
                             Text(
-                                text = "UTILIZATION",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFA1A1AA)
+                                text = "${budgetsWithStatus.size} active budgets • $currencySymbol${df.format(totalBudgetSpent)} spent this month",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = PlusJakartaSansFamily,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
                             )
-                            Text(
-                                text = "${(overallProgress * 100).toInt()}%",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF38BDF8)
-                            )
-                        }
 
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = "REMAINING",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFA1A1AA)
-                            )
-                            Text(
-                                text = "$currencySymbol${dfCompact.format(totalRemaining)}",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (totalRemaining >= 0) Color(0xFF22C55E) else Color(0xFFEF4444)
-                            )
-                        }
-                    }
-                }
-            }
+                            if (totalBudgetLimit > 0) {
+                                Spacer(modifier = Modifier.height(14.dp))
 
-            // 2. PERIOD FILTER HORIZONTAL CHIPS ROW
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val periods = listOf("ALL", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY")
-                items(periods) { period ->
-                    val isSelected = selectedPeriodFilter == period
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF18181B))
-                            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
-                            .clickable { selectedPeriodFilter = period }
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = period,
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 11.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) Color.White else Color(0xFFA1A1AA)
-                        )
-                    }
-                }
-            }
-
-            // 3. SEARCH BAR FIELD
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = {
-                    Text(
-                        text = "Search budgets or categories...",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 12.sp,
-                        color = Color(0xFFA1A1AA)
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Color(0xFFA1A1AA),
-                        modifier = Modifier.size(18.dp)
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(6.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF18181B),
-                    unfocusedContainerColor = Color(0xFF18181B),
-                    focusedBorderColor = Color(0xFF38BDF8),
-                    unfocusedBorderColor = Color(0xFF27272A),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                )
-            )
-
-            // 4. BUDGET LIST OR EMPTY STATE
-            if (filteredBudgets.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Outlined.AccountBalanceWallet,
-                            contentDescription = null,
-                            tint = Color(0xFFA1A1AA),
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "No budgets found for this period.",
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 13.sp,
-                            color = Color(0xFFA1A1AA)
-                        )
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    items(filteredBudgets) { item ->
-                        val budget = item.budget
-                        val progress = item.progress
-                        val catColor = safeParseColor(item.categoryColor)
-
-                        val statusColor = when {
-                            progress >= 1.0f -> Color(0xFFEF4444)
-                            progress >= 0.85f -> Color(0xFFF59E0B)
-                            else -> Color(0xFF22C55E)
-                        }
-
-                        val statusText = when {
-                            progress >= 1.0f -> "EXCEEDED"
-                            progress >= 0.85f -> "WARNING"
-                            else -> "HEALTHY"
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFF18181B))
-                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-                                .clickable { onEditBudgetClick(budget) }
-                                .padding(14.dp)
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(34.dp)
-                                                .clip(RoundedCornerShape(6.dp))
-                                                .background(catColor.copy(alpha = 0.2f)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = getIconByName(item.categoryIcon),
-                                                contentDescription = null,
-                                                tint = catColor,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
-                                        Column {
-                                            Text(
-                                                text = budget.name,
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White
-                                            )
-                                            Text(
-                                                text = "${item.categoryName} • ${budget.period}",
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontSize = 11.sp,
-                                                color = Color(0xFFA1A1AA)
-                                            )
-                                        }
-                                    }
-
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        // Status Pill Badge
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(statusColor.copy(alpha = 0.15f))
-                                                .padding(horizontal = 8.dp, vertical = 3.dp)
-                                        ) {
-                                            Text(
-                                                text = statusText,
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = statusColor
-                                            )
-                                        }
-
-                                        var showMoreMenu by remember { mutableStateOf(false) }
-                                        Box {
-                                            IconButton(
-                                                onClick = { showMoreMenu = true },
-                                                modifier = Modifier.size(28.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.MoreVert,
-                                                    contentDescription = "Actions",
-                                                    tint = Color(0xFFA1A1AA),
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                            }
-                                            DropdownMenu(
-                                                expanded = showMoreMenu,
-                                                onDismissRequest = { showMoreMenu = false }
-                                            ) {
-                                                DropdownMenuItem(
-                                                    text = { Text("Edit Budget", fontFamily = SpaceGroteskFamily) },
-                                                    onClick = {
-                                                        showMoreMenu = false
-                                                        onEditBudgetClick(budget)
-                                                    }
-                                                )
-                                                DropdownMenuItem(
-                                                    text = { Text("Delete", fontFamily = SpaceGroteskFamily, color = Color(0xFFEF4444)) },
-                                                    onClick = {
-                                                        showMoreMenu = false
-                                                        viewModel.deleteBudget(budget)
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    }
+                                val overallStatusColor = when {
+                                    overallProgress >= 1f -> Color(0xFFF43F5E)
+                                    overallProgress >= 0.8f -> Color(0xFFF59E0B)
+                                    else -> Color(0xFF22C55E)
                                 }
 
                                 Row(
@@ -422,48 +138,292 @@ fun BudgetScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Spent: $currencySymbol${df.format(item.spentAmount)}",
+                                        text = "OVERALL BUDGET SPENT",
                                         fontFamily = SpaceGroteskFamily,
-                                        fontSize = 11.sp,
-                                        color = Color(0xFFA1A1AA)
-                                    )
-                                    Text(
-                                        text = "Limit: $currencySymbol${df.format(budget.amount)}",
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        fontSize = 10.sp,
+                                        letterSpacing = 0.8.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "${(overallProgress * 100).toInt()}% SPENT",
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        color = overallStatusColor
                                     )
                                 }
+
+                                Spacer(modifier = Modifier.height(6.dp))
 
                                 LinearProgressIndicator(
-                                    progress = progress.coerceIn(0f, 1f),
+                                    progress = overallProgress,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(6.dp)
                                         .clip(RoundedCornerShape(3.dp)),
-                                    color = statusColor,
-                                    trackColor = Color(0xFF242429)
+                                    color = overallStatusColor,
+                                    trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                                 )
+                            }
+                        }
+                    }
+                }
 
+                // 2. PERIOD FILTER CHIPS
+                item {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(listOf("ALL", "MONTHLY", "WEEKLY", "YEARLY")) { period ->
+                            val isSelected = selectedPeriodFilter == period
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                        else MaterialTheme.colorScheme.surface
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                        shape = RoundedCornerShape(6.dp)
+                                    )
+                                    .clickable { selectedPeriodFilter = period }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = period,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 0.8.sp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 3. BUDGET LIST ITEMS OR EMPTY STATE
+                if (filteredBudgets.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 48.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Outlined.PieChart,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(54.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "No budgets configured yet",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Tap + to set monthly spending limits for dining, shopping or utilities.",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = PlusJakartaSansFamily,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    items(filteredBudgets, key = { it.budget.id }) { item ->
+                        val limit = item.budget.amount
+                        val spent = item.spentAmount
+                        val remaining = limit - spent
+                        val progress = if (limit > 0) (spent / limit).toFloat().coerceIn(0f, 1f) else 0f
+
+                        val statusColor = when {
+                            progress >= 1f -> Color(0xFFF43F5E) // Red Exceeded
+                            progress >= 0.8f -> Color(0xFFF59E0B) // Amber Warning
+                            else -> Color(0xFF22C55E) // Emerald Healthy
+                        }
+
+                        val statusText = when {
+                            progress >= 1f -> "EXCEEDED"
+                            progress >= 0.8f -> "WARNING"
+                            else -> "HEALTHY"
+                        }
+
+                        ShCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onEditBudgetClick(item.budget) },
+                            shape = RoundedCornerShape(6.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // 48dp Icon Container matching AccountsScreen
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(statusColor.copy(alpha = 0.12f))
+                                            .border(
+                                                1.dp,
+                                                statusColor.copy(alpha = 0.3f),
+                                                RoundedCornerShape(6.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(item.categoryIcon),
+                                            contentDescription = null,
+                                            tint = statusColor,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(14.dp))
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Text(
+                                                text = item.budget.name.ifBlank { item.categoryName },
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 15.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            )
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(statusColor.copy(alpha = 0.15f))
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            ) {
+                                                Text(
+                                                    text = statusText,
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 10.sp,
+                                                        color = statusColor
+                                                    )
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.height(2.dp))
+
+                                        Text(
+                                            text = "${item.categoryName} • ${item.budget.period.uppercase()}",
+                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                fontFamily = PlusJakartaSansFamily,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                fontSize = 12.sp
+                                            )
+                                        )
+                                    }
+
+                                    Icon(
+                                        imageVector = Icons.Outlined.Edit,
+                                        contentDescription = "Edit Budget",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+
+                                Divider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                                // Amounts Row
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.Bottom
                                 ) {
-                                    Text(
-                                        text = "Remaining: $currencySymbol${df.format(item.remainingAmount)}",
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (item.remainingAmount >= 0) Color(0xFF22C55E) else Color(0xFFEF4444)
+                                    Column {
+                                        Text(
+                                            text = "SPENT THIS MONTH",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 9.sp,
+                                            letterSpacing = 0.8.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = "$currencySymbol${df.format(spent)}",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp,
+                                            color = statusColor
+                                        )
+                                    }
+
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(
+                                            text = "BUDGET LIMIT",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 9.sp,
+                                            letterSpacing = 0.8.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = "$currencySymbol${df.format(limit)}",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                // Linear Progress Bar & Remaining Readout
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    LinearProgressIndicator(
+                                        progress = progress,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(5.dp)
+                                            .clip(RoundedCornerShape(3.dp)),
+                                        color = statusColor,
+                                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                                     )
-                                    Text(
-                                        text = "${dateFormat.format(Date(budget.startDate))} - ${dateFormat.format(Date(budget.endDate))}",
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 10.sp,
-                                        color = Color(0xFFA1A1AA)
-                                    )
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "${(progress * 100).toInt()}% utilized",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = if (remaining >= 0) "$currencySymbol${df.format(remaining)} remaining" else "$currencySymbol${df.format(-remaining)} over limit",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (remaining >= 0) statusColor else Color(0xFFF43F5E)
+                                        )
+                                    }
                                 }
                             }
                         }
