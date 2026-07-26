@@ -124,17 +124,12 @@ fun TransactionsScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddTransactionClick,
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Transaction"
-                )
-            }
+            com.vesper.ledger.ui.components.M3SpeedDialFab(
+                onActionSelected = { type ->
+                    viewModel.selectedType.value = type
+                    onAddTransactionClick()
+                }
+            )
         }
     ) { innerPadding ->
         Box(

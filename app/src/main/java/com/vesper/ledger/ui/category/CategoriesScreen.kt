@@ -92,17 +92,10 @@ fun CategoriesScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
-            FloatingActionButton(
+            com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddCategoryClick,
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Category"
-                )
-            }
+                contentDescription = "Add Category"
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->

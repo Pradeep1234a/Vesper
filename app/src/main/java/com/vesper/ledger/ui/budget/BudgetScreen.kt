@@ -66,14 +66,10 @@ fun BudgetScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
-            FloatingActionButton(
+            com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddBudgetClick,
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Filled.Add, "Add Budget")
-            }
+                contentDescription = "Add Budget"
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->

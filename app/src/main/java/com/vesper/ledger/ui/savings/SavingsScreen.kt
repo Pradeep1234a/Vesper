@@ -199,7 +199,17 @@ fun SavingsScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            com.vesper.ledger.ui.components.M3SingleFab(
+                onClick = { showAddDialog = true },
+                contentDescription = "Add Savings Goal"
+            )
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -333,5 +343,6 @@ fun SavingsScreen(
             }
         }
     }
+}
 }
 }
