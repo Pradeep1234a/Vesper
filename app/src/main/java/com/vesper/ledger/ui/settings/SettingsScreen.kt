@@ -178,17 +178,21 @@ fun SettingsScreen(
         null -> {}
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
-            .background(MaterialTheme.colorScheme.background),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         when (subView) {
             SettingsSubView.MAIN -> {
-                Spacer(modifier = Modifier.height(8.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
 
                         // Personal Profile Card
                         Card(
@@ -371,6 +375,7 @@ fun SettingsScreen(
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
+                }
             }
 
             SettingsSubView.UPDATES -> {
