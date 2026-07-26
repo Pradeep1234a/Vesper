@@ -68,75 +68,17 @@ fun CurrencySelectorScreen(
         }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF09090B))
-                    .navigationBarsPadding(),
-                color = Color(0xFF09090B),
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            viewModel.saveCurrency(selectedCurrency.symbol, selectedCurrency.code)
-                            Toast.makeText(
-                                context,
-                                "Currency set to ${selectedCurrency.code} (${selectedCurrency.symbol})",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            if (flowMode == CurrencyFlowMode.ONBOARDING) {
-                                onCompleteOnboarding()
-                            } else {
-                                onBackClick()
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.CheckCircle,
-                            contentDescription = "Save",
-                            tint = Color.Black,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (flowMode == CurrencyFlowMode.ONBOARDING) "SAVE & CONTINUE" else "SAVE CURRENCY",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-                }
-            }
-        }
-    ) { innerPadding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF09090B))
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
+                .padding(top = 8.dp)
         ) {
-            // Maintain exact 8dp gap below topbar before search bar
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 1. Search Bar (First item at the top)
+            // 1. Search Bar (First element at top below top bar with exact 8dp padding)
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -185,7 +127,7 @@ fun CurrencySelectorScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 2. Selected Currency Card (Displayed directly below search bar)
+            // 2. Active Selected Currency Card (Displayed directly below Search Bar)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -284,11 +226,12 @@ fun CurrencySelectorScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 3. Currency List (Structured with Vesper's pure black & white / dark bento rhythm)
+            // 3. Currency List
             if (filteredCurrencies.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .weight(1f)
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -311,9 +254,10 @@ fun CurrencySelectorScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .weight(1f)
                         .padding(horizontal = 16.dp),
-                    contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp),
+                    contentPadding = PaddingValues(top = 4.dp, bottom = 80.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(filteredCurrencies, key = { it.code + it.country }) { item ->
@@ -429,6 +373,54 @@ fun CurrencySelectorScreen(
                         }
                     }
                 }
+            }
+        }
+
+        // Save Button Bar at Bottom
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(Color(0xFF09090B))
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Button(
+                onClick = {
+                    viewModel.saveCurrency(selectedCurrency.symbol, selectedCurrency.code)
+                    Toast.makeText(
+                        context,
+                        "Currency set to ${selectedCurrency.code} (${selectedCurrency.symbol})",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    if (flowMode == CurrencyFlowMode.ONBOARDING) {
+                        onCompleteOnboarding()
+                    } else {
+                        onBackClick()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(6.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.CheckCircle,
+                    contentDescription = "Save",
+                    tint = Color.Black,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (flowMode == CurrencyFlowMode.ONBOARDING) "SAVE & CONTINUE" else "SAVE CURRENCY",
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    letterSpacing = 0.8.sp
+                )
             }
         }
     }

@@ -126,90 +126,84 @@ fun DashboardScreen(
             ) {
                 item {
                     val currentDateStr = remember { SimpleDateFormat("EEE, dd MMM", Locale.getDefault()).format(Date()).uppercase() }
-                    Box(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFF18181B))
-                            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-                            .padding(16.dp)
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                                modifier = Modifier.weight(1f)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(Color(0xFF38BDF8).copy(alpha = 0.15f))
-                                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                                    ) {
-                                        Text(
-                                            text = greeting.uppercase(),
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 10.sp,
-                                            letterSpacing = 1.sp,
-                                            color = Color(0xFF38BDF8)
-                                        )
-                                    }
-                                }
-
                                 Text(
-                                    text = "Welcome, $displayName",
+                                    text = "Hello, $displayName",
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
+                                    fontSize = 22.sp,
                                     color = Color.White,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
 
-                                Text(
-                                    text = "Here is your live financial snapshot.",
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontSize = 11.sp,
-                                    color = Color(0xFFA1A1AA)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(12.dp))
-
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xFF242429))
-                                    .border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp))
-                                    .padding(horizontal = 10.dp, vertical = 8.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(Color(0xFF38BDF8).copy(alpha = 0.15f))
+                                        .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 7.dp, vertical = 2.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(6.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFF22C55E))
-                                    )
                                     Text(
-                                        text = currentDateStr,
+                                        text = greeting.uppercase(),
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp,
-                                        letterSpacing = 0.5.sp,
-                                        color = Color.White
+                                        fontSize = 10.sp,
+                                        letterSpacing = 0.8.sp,
+                                        color = Color(0xFF38BDF8)
                                     )
                                 }
+                            }
+
+                            Text(
+                                text = "Here is your live financial summary.",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 13.sp,
+                                color = Color(0xFFA1A1AA)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF18181B))
+                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 10.dp, vertical = 8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF22C55E))
+                                )
+                                Text(
+                                    text = currentDateStr,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 0.5.sp,
+                                    color = Color.White
+                                )
                             }
                         }
                     }
