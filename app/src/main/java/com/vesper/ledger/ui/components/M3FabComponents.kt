@@ -36,18 +36,19 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 /**
- * Official Material 3 Single Action Floating Action Button (M3 FAB with Motion):
- * Strictly implements M3 FAB Guidelines, Motion & Accessibility (m3.material.io/components/floating-action-button/guidelines).
+ * Official Material 3 Medium Floating Action Button (M3 FAB with Motion & Container Expand):
+ * Strictly implements Material 3 FAB Guidelines (m3.material.io/components/floating-action-button/guidelines).
+ * - Shape & Size: M3 16dp Squircle container (56dp x 56dp) with filled centered vector icon (24dp).
  * - Mathematical Edge Alignment: Evaluates physical screen edge margin to match TransactionsScreen Y-coordinate exactly.
- * - Entrance & Tab Transition Motion: Spring scaleIn & fadeIn pop-in behavior on screen enter.
- * - Scroll-Aware Motion: Smooth scaleOut/scaleIn transition when visible state changes on scroll.
- * - 3D Bevel & Gradient Depth: Dual-tone cyan gradient container, 1dp top-highlight stroke, multi-tier ambient shadow.
- * - Dimensions & Touch Target: 56dp x 56dp squircle container (16dp corner radius) with 24dp centered icon.
+ * - M3 Motion & Transitions:
+ *   1. Appearing & Reappearing Motion: Bouncy spring scaleIn (0.4f -> 1.0f) + fadeIn pop-in transition on screen/tab change.
+ *   2. Scroll Motion: Smooth scaleOut & fadeOut on list scroll down; spring pop-in on scroll stop/up.
+ *   3. Container Expand Feedback: Instant spring click ripple feedback before launching creation forms.
  */
 @Composable
 fun M3SingleFab(
     onClick: () -> Unit,
-    icon: ImageVector = Icons.Default.Add,
+    icon: ImageVector = Icons.Filled.Add,
     contentDescription: String = "Action",
     visible: Boolean = true,
     hasBottomBar: Boolean = false,
@@ -59,6 +60,8 @@ fun M3SingleFab(
         isAppeared = true
     }
 
+    // Mathematical physical screen edge offset:
+    // When bottom bar is absent, add 57dp (exact bottom bar height) to match TransactionsScreen Y-coordinate exactly.
     val calculatedBottomPadding = if (hasBottomBar) 8.dp else (8.dp + 57.dp)
 
     AnimatedVisibility(
@@ -82,13 +85,13 @@ fun M3SingleFab(
         val isPressed by interactionSource.collectIsPressedAsState()
 
         val pressScale by animateFloatAsState(
-            targetValue = if (isPressed) 0.92f else 1f,
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+            targetValue = if (isPressed) 0.90f else 1f,
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioMediumBouncy),
             label = "M3FabPressScale"
         )
 
         val currentElevation by animateDpAsState(
-            targetValue = if (isPressed) 3.dp else 6.dp,
+            targetValue = if (isPressed) 2.dp else 6.dp,
             animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
             label = "M3FabElevation"
         )
@@ -150,7 +153,7 @@ fun M3SingleFab(
 }
 
 /**
- * Official Material 3 Speed Dial FAB Menu with Motion & Container Expand:
+ * Official Material 3 Speed Dial FAB Menu with Expand Container Motion:
  * Strictly implements M3 FAB Menu Guidelines & Motion (m3.material.io/components/fab-menu).
  * - Trigger FAB: 56dp x 56dp container with 135° rotation animation on expand.
  * - Staggered Motion Stack: Smooth spring expandVertically + slideInVertically for mini FAB items.
@@ -193,8 +196,8 @@ fun M3SpeedDialFab(
         val isPressed by interactionSource.collectIsPressedAsState()
 
         val fabScale by animateFloatAsState(
-            targetValue = if (isPressed) 0.92f else 1f,
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+            targetValue = if (isPressed) 0.90f else 1f,
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioMediumBouncy),
             label = "MainM3FabScale"
         )
 
@@ -205,7 +208,7 @@ fun M3SpeedDialFab(
         )
 
         val currentElevation by animateDpAsState(
-            targetValue = if (isExpanded || isPressed) 3.dp else 6.dp,
+            targetValue = if (isExpanded || isPressed) 2.dp else 6.dp,
             animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
             label = "M3FabElevation"
         )
@@ -263,7 +266,7 @@ fun M3SpeedDialFab(
                 }
             }
 
-            // Main Trigger FAB Button (3D Elevated Cyan Squircle)
+            // Main Trigger FAB Button (3D Elevated M3 Squircle Container)
             Box(
                 modifier = Modifier
                     .graphicsLayer {
@@ -307,7 +310,7 @@ fun M3SpeedDialFab(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
+                    imageVector = Icons.Filled.Add,
                     contentDescription = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu",
                     tint = if (isExpanded) Color.White else Color(0xFF09090B),
                     modifier = Modifier
