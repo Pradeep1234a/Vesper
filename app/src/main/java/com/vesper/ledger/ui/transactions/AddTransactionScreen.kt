@@ -166,10 +166,9 @@ fun AddTransactionScreen(
     }
     var selectedCategoryId by remember(filteredCategories, transactionToEdit) {
         if (transactionToEdit != null) {
-            mutableStateOf(transactionToEdit.categoryId)
+            mutableStateOf<Long?>(transactionToEdit.categoryId)
         } else {
-            val entertainmentCat = filteredCategories.find { it.name.equals("Entertainment", ignoreCase = true) }
-            mutableStateOf(entertainmentCat?.id ?: filteredCategories.firstOrNull()?.id ?: 1L)
+            mutableStateOf<Long?>(null)
         }
     }
 
@@ -230,7 +229,7 @@ fun AddTransactionScreen(
     val timeFormatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
     val df = remember { DecimalFormat("#,##0.00") }
 
-    val selectedCategory = categories.find { it.id == selectedCategoryId } ?: categories.firstOrNull()
+    val selectedCategory = categories.find { it.id == selectedCategoryId }
     val parsedAmount = amountText.replace(",", "").toDoubleOrNull() ?: 0.0
 
     // Delete Confirmation Dialog for Edit Mode
@@ -296,8 +295,11 @@ fun AddTransactionScreen(
                     Button(
                         onClick = {
                             val acct = selectedAccount
+                            val cat = selectedCategory
                             if (parsedAmount <= 0.0) {
                                 Toast.makeText(context, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
+                            } else if (cat == null) {
+                                Toast.makeText(context, "Please select a category", Toast.LENGTH_SHORT).show()
                             } else if (acct == null) {
                                 Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show()
                             } else {
@@ -305,7 +307,7 @@ fun AddTransactionScreen(
                                     titleText.ifBlank { if (type == TransactionType.INCOME) "Income" else "Expense" },
                                     parsedAmount,
                                     type,
-                                    selectedCategoryId,
+                                    cat.id,
                                     acct.id,
                                     acct.name,
                                     selectedPaymentMethod,
@@ -546,18 +548,19 @@ fun AddTransactionScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
-                                val catColor = safeParseColor(selectedCategory?.colorHex ?: "#10B981")
+                                val catColor = if (selectedCategory != null) safeParseColor(selectedCategory.colorHex) else Color(0xFFA1A1AA)
+                                val catBg = if (selectedCategory != null) catColor.copy(alpha = 0.15f) else Color(0xFF27272A)
                                 Box(
                                     modifier = Modifier
                                         .size(42.dp)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(catColor.copy(alpha = 0.15f)),
+                                        .background(catBg),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = getIconByName(selectedCategory?.iconName ?: "shopping_bag"),
+                                        imageVector = if (selectedCategory != null) getIconByName(selectedCategory.iconName) else Icons.Outlined.Category,
                                         contentDescription = null,
-                                        tint = catColor,
+                                        tint = if (selectedCategory != null) catColor else Color(0xFFA1A1AA),
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -579,7 +582,7 @@ fun AddTransactionScreen(
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 16.sp,
-                                            color = Color.White
+                                            color = if (selectedCategory != null) Color.White else Color(0xFFA1A1AA)
                                         )
                                     )
                                 }
@@ -900,7 +903,7 @@ fun AddTransactionScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Outlined.CreditCard,
+                                            imageVector = getPaymentMethodIcon(selectedPaymentMethod),
                                             contentDescription = null,
                                             tint = Color.White,
                                             modifier = Modifier.size(16.dp)
@@ -993,7 +996,7 @@ fun AddTransactionScreen(
                                                         contentAlignment = Alignment.Center
                                                     ) {
                                                         Icon(
-                                                            imageVector = Icons.Outlined.CreditCard,
+                                                            imageVector = getPaymentMethodIcon(method.name),
                                                             contentDescription = null,
                                                             tint = Color.White,
                                                             modifier = Modifier.size(18.dp)
@@ -1425,15 +1428,18 @@ fun AddTransactionScreen(
                         showSuccessSheet = false
                         onBackClick()
                     },
-                    containerColor = Color(0xFF09090B),
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                    containerColor = Color(0xFF18181B),
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF27272A)) }
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 24.dp),
+                            .navigationBarsPadding()
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(18.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -1561,3 +1567,17 @@ private fun CategoryRowItem(
         )
     }
 }
+
+fun getPaymentMethodIcon(methodName: String): androidx.compose.ui.graphics.vector.ImageVector {
+    val name = methodName.lowercase()
+    return when {
+        name.contains("cash") -> Icons.Outlined.Payments
+        name.contains("upi") || name.contains("gpay") || name.contains("phonepe") || name.contains("paytm") || name.contains("qr") -> Icons.Outlined.QrCodeScanner
+        name.contains("credit") -> Icons.Outlined.CreditCard
+        name.contains("debit") -> Icons.Outlined.Payment
+        name.contains("bank") || name.contains("transfer") || name.contains("netbanking") -> Icons.Outlined.AccountBalance
+        name.contains("wallet") -> Icons.Outlined.AccountBalanceWallet
+        else -> Icons.Outlined.CreditCard
+    }
+}
+
