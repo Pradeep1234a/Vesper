@@ -448,7 +448,7 @@ fun TransactionsScreen(
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// OPTION 1: MODERN BOTTOMSHEET FILTER DIALOG (RECOMMENDED SPEC MATCH)
+// REDESIGNED BOTTOMSHEET FILTER DIALOG WITH SECTION CARDS & HARMONIOUS CONTRAST
 // ────────────────────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -530,7 +530,7 @@ fun TransactionFilterBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         windowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = Color(0xFF18181B),
+        containerColor = Color(0xFF09090B), // Pure deep dark surface
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
         dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF27272A)) }
     ) {
@@ -538,19 +538,22 @@ fun TransactionFilterBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp, vertical = 4.dp)
         ) {
             // Header: Title & Close Button
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Filters",
+                    text = "FILTERS",
                     fontFamily = SpaceGroteskFamily,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
                     color = Color.White
                 )
                 IconButton(onClick = onDismissRequest) {
@@ -558,110 +561,85 @@ fun TransactionFilterBottomSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Scrollable Content Body
+            // Scrollable Content Body with Clean Section Cards Rhythm
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 1. DATE RANGE PRESETS
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Date Range",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFA1A1AA)
-                    )
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        DatePreset.values().forEach { preset ->
-                            val isSelected = selectedDatePreset == preset
-                            FilterChipPill(
-                                label = preset.label,
-                                isSelected = isSelected,
-                                onClick = {
-                                    if (preset == DatePreset.CUSTOM) {
-                                        showCustomDateRangePicker = true
-                                    } else {
-                                        viewModel.setDatePreset(preset)
+                // SECTION CARD 1: DATE & TYPE
+                FilterSectionCard(title = "DATE & TYPE") {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Date Presets
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            DatePreset.values().forEach { preset ->
+                                val isSelected = selectedDatePreset == preset
+                                FilterChipPill(
+                                    label = preset.label,
+                                    isSelected = isSelected,
+                                    onClick = {
+                                        if (preset == DatePreset.CUSTOM) {
+                                            showCustomDateRangePicker = true
+                                        } else {
+                                            viewModel.setDatePreset(preset)
+                                        }
                                     }
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // 2. TRANSACTION TYPE
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Transaction Type",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFA1A1AA)
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFF09090B))
-                            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-                            .padding(3.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        val types = listOf<Pair<TransactionType?, String>>(
-                            null to "All",
-                            TransactionType.EXPENSE to "Expense",
-                            TransactionType.INCOME to "Income",
-                            TransactionType.TRANSFER to "Transfer"
-                        )
-                        types.forEach { (t, label) ->
-                            val selected = selectedType == t
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(if (selected) Color(0xFF27272A) else Color.Transparent)
-                                    .border(1.dp, if (selected) Color(0xFF38BDF8) else Color.Transparent, RoundedCornerShape(6.dp))
-                                    .clickable { viewModel.selectedType.value = t },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = label,
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontSize = 12.sp,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (selected) Color.White else Color(0xFFA1A1AA)
                                 )
+                            }
+                        }
+
+                        // Transaction Type Segment
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF09090B))
+                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
+                                .padding(2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            val types = listOf<Pair<TransactionType?, String>>(
+                                null to "All",
+                                TransactionType.EXPENSE to "Expense",
+                                TransactionType.INCOME to "Income",
+                                TransactionType.TRANSFER to "Transfer"
+                            )
+                            types.forEach { (t, label) ->
+                                val selected = selectedType == t
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(if (selected) Color(0xFF38BDF8).copy(alpha = 0.2f) else Color.Transparent)
+                                        .border(1.dp, if (selected) Color(0xFF38BDF8) else Color.Transparent, RoundedCornerShape(4.dp))
+                                        .clickable { viewModel.selectedType.value = t },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (selected) Color.White else Color(0xFFA1A1AA)
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                // 3. CATEGORIES CHIPS GRID
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Categories",
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFA1A1AA)
-                        )
-                        if (categories.size > 6) {
+                // SECTION CARD 2: CATEGORIES
+                FilterSectionCard(
+                    title = "CATEGORIES",
+                    action = if (categories.size > 6) {
+                        {
                             Text(
                                 text = if (showAllCategories) "Show Less" else "View All (${categories.size})",
                                 fontFamily = SpaceGroteskFamily,
@@ -671,8 +649,8 @@ fun TransactionFilterBottomSheet(
                                 modifier = Modifier.clickable { showAllCategories = !showAllCategories }
                             )
                         }
-                    }
-
+                    } else null
+                ) {
                     val displayCategories = if (showAllCategories) categories else categories.take(6)
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -681,210 +659,157 @@ fun TransactionFilterBottomSheet(
                         displayCategories.forEach { cat ->
                             val isSelected = selectedCategories.contains(cat.id)
                             val catColor = safeParseColor(cat.colorHex)
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
-                                    .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
-                                    .clickable {
-                                        val newSet = if (isSelected) selectedCategories - cat.id else selectedCategories + cat.id
-                                        viewModel.selectedCategories.value = newSet
-                                    }
-                                    .padding(horizontal = 10.dp, vertical = 6.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = getIconByName(cat.iconName),
-                                        contentDescription = null,
-                                        tint = if (isSelected) Color(0xFF38BDF8) else catColor,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Text(
-                                        text = cat.name,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 12.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isSelected) Color.White else Color(0xFFA1A1AA)
-                                    )
+                            FilterCategoryChip(
+                                name = cat.name,
+                                iconName = cat.iconName,
+                                color = catColor,
+                                isSelected = isSelected,
+                                onClick = {
+                                    val newSet = if (isSelected) selectedCategories - cat.id else selectedCategories + cat.id
+                                    viewModel.selectedCategories.value = newSet
                                 }
-                            }
+                            )
                         }
                     }
                 }
 
-                // 4. PAYMENT METHODS CHIPS
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Payment Methods",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFA1A1AA)
-                    )
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        paymentMethodsList.forEach { method ->
-                            val isSelected = selectedPaymentMethod == method
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
-                                    .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
-                                    .clickable {
-                                        viewModel.selectedPaymentMethod.value = if (isSelected) null else method
-                                    }
-                                    .padding(horizontal = 10.dp, vertical = 6.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = getPaymentMethodIcon(method),
-                                        contentDescription = null,
-                                        tint = if (isSelected) Color(0xFF38BDF8) else Color.White,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Text(
-                                        text = method,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 12.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isSelected) Color.White else Color(0xFFA1A1AA)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 5. ACCOUNTS CHIPS
-                if (accounts.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // SECTION CARD 3: PAYMENT METHODS & ACCOUNTS
+                FilterSectionCard(title = "PAYMENT & ACCOUNTS") {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = "Accounts",
+                            text = "PAYMENT METHOD",
                             fontFamily = SpaceGroteskFamily,
-                            fontSize = 12.sp,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.8.sp,
                             color = Color(0xFFA1A1AA)
                         )
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            accounts.forEach { acct ->
-                                val isSelected = selectedAccount == acct.id
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
-                                        .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
-                                        .clickable {
+                            paymentMethodsList.forEach { method ->
+                                val isSelected = selectedPaymentMethod == method
+                                FilterMethodChip(
+                                    label = method,
+                                    icon = getPaymentMethodIcon(method),
+                                    isSelected = isSelected,
+                                    onClick = {
+                                        viewModel.selectedPaymentMethod.value = if (isSelected) null else method
+                                    }
+                                )
+                            }
+                        }
+
+                        if (accounts.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "ACCOUNT",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.8.sp,
+                                color = Color(0xFFA1A1AA)
+                            )
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                accounts.forEach { acct ->
+                                    val isSelected = selectedAccount == acct.id
+                                    FilterMethodChip(
+                                        label = acct.name,
+                                        icon = getIconByName(acct.iconName),
+                                        isSelected = isSelected,
+                                        onClick = {
                                             viewModel.selectedAccount.value = if (isSelected) null else acct.id
                                         }
-                                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = getIconByName(acct.iconName),
-                                            contentDescription = null,
-                                            tint = if (isSelected) Color(0xFF38BDF8) else Color.White,
-                                            modifier = Modifier.size(14.dp)
-                                        )
-                                        Text(
-                                            text = acct.name,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontSize = 12.sp,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            color = if (isSelected) Color.White else Color(0xFFA1A1AA)
-                                        )
-                                    }
+                                    )
                                 }
                             }
                         }
                     }
                 }
 
-                // 6. AMOUNT RANGE SLIDER
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Amount Range",
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFA1A1AA)
-                        )
-                        val minLabel = minAmountFilter?.let { "${currencySymbol}${DecimalFormat("#,##0").format(it)}" } ?: "${currencySymbol}0"
-                        val maxLabel = maxAmountFilter?.let { "${currencySymbol}${DecimalFormat("#,##0").format(it)}" } ?: "${currencySymbol}50,000+"
-                        Text(
-                            text = "$minLabel - $maxLabel",
-                            fontFamily = SpaceGroteskFamily,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF38BDF8)
-                        )
-                    }
+                // SECTION CARD 4: AMOUNT & SORT
+                FilterSectionCard(title = "AMOUNT & SORT") {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        // Amount Range
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "AMOUNT RANGE",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.8.sp,
+                                    color = Color(0xFFA1A1AA)
+                                )
+                                val minLabel = minAmountFilter?.let { "${currencySymbol}${DecimalFormat("#,##0").format(it)}" } ?: "${currencySymbol}0"
+                                val maxLabel = maxAmountFilter?.let { "${currencySymbol}${DecimalFormat("#,##0").format(it)}" } ?: "${currencySymbol}50,000+"
+                                Text(
+                                    text = "$minLabel - $maxLabel",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF38BDF8)
+                                )
+                            }
 
-                    var sliderRange by remember(minAmountFilter, maxAmountFilter) {
-                        val currentMin = minAmountFilter?.toFloat() ?: 0f
-                        val currentMax = maxAmountFilter?.toFloat() ?: 50000f
-                        mutableStateOf(currentMin..currentMax)
-                    }
+                            var sliderRange by remember(minAmountFilter, maxAmountFilter) {
+                                val currentMin = minAmountFilter?.toFloat() ?: 0f
+                                val currentMax = maxAmountFilter?.toFloat() ?: 50000f
+                                mutableStateOf(currentMin..currentMax)
+                            }
 
-                    RangeSlider(
-                        value = sliderRange,
-                        onValueChange = { range ->
-                            sliderRange = range
-                            viewModel.minAmountFilter.value = if (range.start > 0f) range.start.toDouble() else null
-                            viewModel.maxAmountFilter.value = if (range.endInclusive < 50000f) range.endInclusive.toDouble() else null
-                        },
-                        valueRange = 0f..50000f,
-                        colors = SliderDefaults.colors(
-                            thumbColor = Color(0xFF38BDF8),
-                            activeTrackColor = Color(0xFF38BDF8),
-                            inactiveTrackColor = Color(0xFF27272A)
-                        )
-                    )
-                }
-
-                // 7. SORT ORDER CHIPS
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Sort Order",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFA1A1AA)
-                    )
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        listOf(
-                            SortOption.DATE_DESC to "Newest First",
-                            SortOption.DATE_ASC to "Oldest First",
-                            SortOption.AMOUNT_DESC to "Highest Amount",
-                            SortOption.AMOUNT_ASC to "Lowest Amount"
-                        ).forEach { (sort, label) ->
-                            val isSelected = sortBy == sort
-                            FilterChipPill(
-                                label = label,
-                                isSelected = isSelected,
-                                onClick = { viewModel.sortBy.value = sort }
+                            RangeSlider(
+                                value = sliderRange,
+                                onValueChange = { range ->
+                                    sliderRange = range
+                                    viewModel.minAmountFilter.value = if (range.start > 0f) range.start.toDouble() else null
+                                    viewModel.maxAmountFilter.value = if (range.endInclusive < 50000f) range.endInclusive.toDouble() else null
+                                },
+                                valueRange = 0f..50000f,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = Color(0xFF38BDF8),
+                                    activeTrackColor = Color(0xFF38BDF8),
+                                    inactiveTrackColor = Color(0xFF27272A)
+                                )
                             )
+                        }
+
+                        // Sort Order
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = "SORT ORDER",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.8.sp,
+                                color = Color(0xFFA1A1AA)
+                            )
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf(
+                                    SortOption.DATE_DESC to "Newest First",
+                                    SortOption.DATE_ASC to "Oldest First",
+                                    SortOption.AMOUNT_DESC to "Highest Amount",
+                                    SortOption.AMOUNT_ASC to "Lowest Amount"
+                                ).forEach { (sort, label) ->
+                                    val isSelected = sortBy == sort
+                                    FilterChipPill(
+                                        label = label,
+                                        isSelected = isSelected,
+                                        onClick = { viewModel.sortBy.value = sort }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -893,51 +818,77 @@ fun TransactionFilterBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Sticky Bottom Action Bar
-            Column(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                OutlinedButton(
+                    onClick = { viewModel.clearAllFilters() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp),
+                    shape = RoundedCornerShape(6.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.5f))
                 ) {
-                    OutlinedButton(
-                        onClick = { viewModel.clearAllFilters() },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(46.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.5f))
-                    ) {
-                        Text("Reset", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                    }
-
-                    Button(
-                        onClick = onDismissRequest,
-                        modifier = Modifier
-                            .weight(2f)
-                            .height(46.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
-                    ) {
-                        Text(
-                            text = "Apply (${filteredTransactions.size})",
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
-                    }
+                    Text("Reset", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
                 }
 
+                Button(
+                    onClick = onDismissRequest,
+                    modifier = Modifier
+                        .weight(2f)
+                        .height(46.dp),
+                    shape = RoundedCornerShape(6.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
+                ) {
+                    Text(
+                        text = "Apply (${filteredTransactions.size})",
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// DESIGN SYSTEM COMPONENTS FOR FILTER SHEET (RHYTHM, CONTRAST & HIERARCHY)
+// ────────────────────────────────────────────────────────────────────────────
+@Composable
+fun FilterSectionCard(
+    title: String,
+    action: (@Composable () -> Unit)? = null,
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF18181B), RoundedCornerShape(6.dp))
+            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
+            .padding(14.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = "Showing ${filteredTransactions.size} transactions",
+                    text = title,
                     fontFamily = SpaceGroteskFamily,
                     fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
                     color = Color(0xFFA1A1AA)
                 )
+                action?.invoke()
             }
+            content()
         }
     }
 }
@@ -951,10 +902,10 @@ fun FilterChipPill(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF09090B))
             .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
             .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 12.dp, vertical = 7.dp)
     ) {
         Text(
             text = label,
@@ -963,6 +914,79 @@ fun FilterChipPill(
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = if (isSelected) Color.White else Color(0xFFA1A1AA)
         )
+    }
+}
+
+@Composable
+fun FilterCategoryChip(
+    name: String,
+    iconName: String,
+    color: Color,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF09090B))
+            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = getIconByName(iconName),
+                contentDescription = null,
+                tint = if (isSelected) Color(0xFF38BDF8) else color,
+                modifier = Modifier.size(14.dp)
+            )
+            Text(
+                text = name,
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 12.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+            )
+        }
+    }
+}
+
+@Composable
+fun FilterMethodChip(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF09090B))
+            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) Color(0xFF38BDF8) else Color.White,
+                modifier = Modifier.size(14.dp)
+            )
+            Text(
+                text = label,
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 12.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+            )
+        }
     }
 }
 
