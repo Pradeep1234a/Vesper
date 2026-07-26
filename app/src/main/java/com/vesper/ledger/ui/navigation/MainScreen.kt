@@ -522,6 +522,7 @@ fun MainScreen(
                         onMenuClick = { scope.launch { drawerState.open() } },
                         onBackClick = { navController.popBackStack() },
                         onCategoriesClick = onCategoryManagementClick,
+                        onAccountsClick = { navController.navigate(Screen.Accounts.route) },
                         onCurrencyClick = { navController.navigate(Screen.CurrencySelector.route) },
                         onSignOutClick = onSignOutClick
                     )
