@@ -49,6 +49,9 @@ fun SplitGroupsScreen(
     val totalOwed = sampleGroups.filter { it.netBalance > 0 }.sumOf { it.netBalance }
     val totalOwe = sampleGroups.filter { it.netBalance < 0 }.sumOf { kotlin.math.abs(it.netBalance) }
 
+    val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
@@ -56,6 +59,7 @@ fun SplitGroupsScreen(
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onCreateGroupClick,
                 contentDescription = "Create Split Group",
+                visible = isFabVisible,
                 hasBottomBar = false
             )
         }
@@ -67,6 +71,7 @@ fun SplitGroupsScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),

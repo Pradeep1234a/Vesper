@@ -89,6 +89,9 @@ fun CategoriesScreen(
         )
     }
 
+    val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
@@ -96,6 +99,7 @@ fun CategoriesScreen(
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddCategoryClick,
                 contentDescription = "Add Category",
+                visible = isFabVisible,
                 hasBottomBar = false
             )
         }
@@ -139,6 +143,7 @@ fun CategoriesScreen(
                     }
                 } else {
                     LazyColumn(
+                        state = lazyListState,
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f),

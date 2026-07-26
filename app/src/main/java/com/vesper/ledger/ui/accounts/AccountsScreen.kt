@@ -92,6 +92,9 @@ fun AccountsScreen(
         }
     }
 
+    val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
@@ -99,6 +102,7 @@ fun AccountsScreen(
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddAccountClick,
                 contentDescription = "Add Account",
+                visible = isFabVisible,
                 hasBottomBar = false
             )
         }
@@ -110,6 +114,7 @@ fun AccountsScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),

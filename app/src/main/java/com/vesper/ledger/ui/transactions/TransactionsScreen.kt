@@ -120,6 +120,8 @@ fun TransactionsScreen(
         )
     }
 
+    val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(listState)
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
@@ -129,6 +131,7 @@ fun TransactionsScreen(
                     viewModel.selectedType.value = type
                     onAddTransactionClick()
                 },
+                visible = isFabVisible,
                 hasBottomBar = true
             )
         }

@@ -59,6 +59,7 @@ fun BudgetScreen(
     val overallProgress = if (totalBudgetLimit > 0) (totalBudgetSpent / totalBudgetLimit).toFloat().coerceIn(0f, 1f) else 0f
 
     val lazyListState = rememberLazyListState()
+    val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -67,6 +68,7 @@ fun BudgetScreen(
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddBudgetClick,
                 contentDescription = "Add Budget",
+                visible = isFabVisible,
                 hasBottomBar = true
             )
         }

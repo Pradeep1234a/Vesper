@@ -120,6 +120,7 @@ fun SavingsScreen(
     }
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -128,6 +129,7 @@ fun SavingsScreen(
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddGoalClick,
                 contentDescription = "Add Savings Goal",
+                visible = isFabVisible,
                 hasBottomBar = false
             )
         }
