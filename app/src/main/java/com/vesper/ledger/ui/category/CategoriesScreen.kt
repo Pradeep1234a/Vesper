@@ -94,7 +94,8 @@ fun CategoriesScreen(
         floatingActionButton = {
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddCategoryClick,
-                contentDescription = "Add Category"
+                contentDescription = "Add Category",
+                hasBottomBar = false
             )
         },
         containerColor = MaterialTheme.colorScheme.background

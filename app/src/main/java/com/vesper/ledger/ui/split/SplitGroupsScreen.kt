@@ -54,7 +54,8 @@ fun SplitGroupsScreen(
         floatingActionButton = {
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onCreateGroupClick,
-                contentDescription = "Create Split Group"
+                contentDescription = "Create Split Group",
+                hasBottomBar = false
             )
         },
         containerColor = MaterialTheme.colorScheme.background

@@ -97,7 +97,8 @@ fun AccountsScreen(
         floatingActionButton = {
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddAccountClick,
-                contentDescription = "Add Account"
+                contentDescription = "Add Account",
+                hasBottomBar = false
             )
         },
         containerColor = MaterialTheme.colorScheme.background

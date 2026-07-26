@@ -38,6 +38,7 @@ import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 /**
  * Official Material 3 Single Action Floating Action Button (M3 FAB with Motion):
  * Strictly implements M3 FAB Guidelines, Motion & Accessibility (m3.material.io/components/floating-action-button/guidelines).
+ * - Mathematical Edge Alignment: Evaluates physical screen edge margin to match TransactionsScreen Y-coordinate exactly.
  * - Entrance & Tab Transition Motion: Spring scaleIn & fadeIn pop-in behavior on screen enter.
  * - Scroll-Aware Motion: Smooth scaleOut/scaleIn transition when visible state changes on scroll.
  * - 3D Bevel & Gradient Depth: Dual-tone cyan gradient container, 1dp top-highlight stroke, multi-tier ambient shadow.
@@ -49,6 +50,7 @@ fun M3SingleFab(
     icon: ImageVector = Icons.Default.Add,
     contentDescription: String = "Action",
     visible: Boolean = true,
+    hasBottomBar: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var isAppeared by remember { mutableStateOf(false) }
@@ -56,6 +58,8 @@ fun M3SingleFab(
     LaunchedEffect(Unit) {
         isAppeared = true
     }
+
+    val calculatedBottomPadding = if (hasBottomBar) 8.dp else (8.dp + 57.dp)
 
     AnimatedVisibility(
         visible = visible && isAppeared,
@@ -92,7 +96,7 @@ fun M3SingleFab(
         Box(
             modifier = modifier
                 .navigationBarsPadding()
-                .padding(bottom = 8.dp)
+                .padding(bottom = calculatedBottomPadding)
                 .graphicsLayer {
                     scaleX = pressScale
                     scaleY = pressScale
@@ -156,6 +160,7 @@ fun M3SingleFab(
 fun M3SpeedDialFab(
     onActionSelected: (TransactionType) -> Unit,
     visible: Boolean = true,
+    hasBottomBar: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var isAppeared by remember { mutableStateOf(false) }
@@ -163,6 +168,8 @@ fun M3SpeedDialFab(
     LaunchedEffect(Unit) {
         isAppeared = true
     }
+
+    val calculatedBottomPadding = if (hasBottomBar) 8.dp else (8.dp + 57.dp)
 
     AnimatedVisibility(
         visible = visible && isAppeared,
@@ -206,7 +213,7 @@ fun M3SpeedDialFab(
         Column(
             modifier = modifier
                 .navigationBarsPadding()
-                .padding(bottom = 8.dp),
+                .padding(bottom = calculatedBottomPadding),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {

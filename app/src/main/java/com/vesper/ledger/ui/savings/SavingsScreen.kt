@@ -134,7 +134,8 @@ fun SavingsScreen(
             M3SingleFab(
                 onClick = onAddGoalClick,
                 contentDescription = "Add Savings Goal",
-                visible = isFabVisible
+                visible = isFabVisible,
+                hasBottomBar = false
             )
         }
     ) { innerPadding ->
