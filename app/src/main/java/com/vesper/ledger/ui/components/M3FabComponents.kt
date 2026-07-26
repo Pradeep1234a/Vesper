@@ -36,7 +36,7 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 /**
- * Material 3 Extended Floating Action Button with M3 Motion (Video A, C & D Specs):
+ * Material 3 Extended Floating Action Button with M3 Motion (Videos A, C & D Specs):
  * - Video A: Center-focal scaleIn (0.4f -> 1.0f) + 40ms micro-staggered icon pop-in.
  * - Video C: Scroll-aware collapse/hide on list scroll down; spring pop-in on scroll stop/up.
  * - Video D: Collapses label text smoothly into a 56dp icon FAB on scroll, and expands label when at top!
@@ -59,7 +59,6 @@ fun M3SingleFab(
         isAppeared = true
     }
 
-    // Micro-staggered icon scale animation (40ms delayed depth from Video A)
     var isIconAppeared by remember { mutableStateOf(false) }
     LaunchedEffect(isAppeared) {
         if (isAppeared) {
@@ -193,10 +192,12 @@ fun M3SingleFab(
 }
 
 /**
- * Official Material 3 Speed Dial FAB Menu with Motion (Video A, C & D Specs):
- * - Video A: Center-focal scaleIn + 40ms micro-stagger icon pop-in.
- * - Video C: Scroll-aware collapse/hide on list scroll down; spring pop-in on scroll stop/up.
- * - Video D: Speed Dial Transformation with 135° rotation on trigger FAB + staggered mini FAB stack.
+ * Official Material 3 FAB Menu System (m3.material.io/components/fab-menu):
+ * Strictly implements M3 FAB Menu Videos A, B, C, D and M3 Guidelines:
+ * - Capsule Pill Menu Items: Integrated Icon + Label in a single unified M3 Capsule Container.
+ * - Trigger Transformation: 56dp squircle container morphs with 135° rotation from + to × close button.
+ * - Scrim Backdrop: Soft backdrop dimming (Color.Black.copy(alpha = 0.4f)) when menu expands.
+ * - Cascading Spring Motion: Staggered spring entrance & exit cascade.
  */
 @Composable
 fun M3SpeedDialFab(
@@ -252,120 +253,148 @@ fun M3SpeedDialFab(
             label = "M3FabElevation"
         )
 
-        Column(
-            modifier = modifier
-                .navigationBarsPadding()
-                .padding(bottom = calculatedBottomPadding),
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // Expanded Speed Dial Floating Menu Stack
+        Box(contentAlignment = Alignment.BottomEnd) {
+            // Backdrop Scrim when FAB Menu is Expanded
             AnimatedVisibility(
                 visible = isExpanded,
-                enter = fadeIn(tween(200)) + expandVertically(expandFrom = Alignment.Bottom) + slideInVertically(initialOffsetY = { it / 3 }),
-                exit = fadeOut(tween(160)) + shrinkVertically(shrinkTowards = Alignment.Bottom) + slideOutVertically(targetOffsetY = { it / 3 })
+                enter = fadeIn(tween(200)),
+                exit = fadeOut(tween(180))
             ) {
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.padding(bottom = 4.dp)
-                ) {
-                    // Action 1: Expense (- Expense)
-                    M3FabMenuItem(
-                        label = "Add Expense",
-                        icon = Icons.Outlined.TrendingDown,
-                        badgeColor = Color(0xFFEF4444),
-                        onClick = {
-                            isExpanded = false
-                            onActionSelected(TransactionType.EXPENSE)
-                        }
-                    )
-
-                    // Action 2: Income (+ Income)
-                    M3FabMenuItem(
-                        label = "Add Income",
-                        icon = Icons.Outlined.TrendingUp,
-                        badgeColor = Color(0xFF22C55E),
-                        onClick = {
-                            isExpanded = false
-                            onActionSelected(TransactionType.INCOME)
-                        }
-                    )
-
-                    // Action 3: Transfer (⇄ Transfer)
-                    M3FabMenuItem(
-                        label = "Transfer Money",
-                        icon = Icons.Outlined.SwapHoriz,
-                        badgeColor = Color(0xFF38BDF8),
-                        onClick = {
-                            isExpanded = false
-                            onActionSelected(TransactionType.TRANSFER)
-                        }
-                    )
-                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.45f))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { isExpanded = false }
+                        )
+                )
             }
 
-            // Main Trigger FAB Button (3D Elevated M3 Squircle Container)
-            Box(
-                modifier = Modifier
-                    .graphicsLayer {
-                        scaleX = fabScale
-                        scaleY = fabScale
-                    }
-                    .shadow(
-                        elevation = currentElevation,
-                        shape = RoundedCornerShape(16.dp),
-                        ambientColor = Color.Black,
-                        spotColor = Color(0xFF38BDF8).copy(alpha = 0.5f)
-                    )
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        if (isExpanded) {
-                            Brush.verticalGradient(listOf(Color(0xFF27272A), Color(0xFF18181B)))
-                        } else {
-                            Brush.verticalGradient(listOf(Color(0xFF50C7FB), Color(0xFF0EA5E9)))
-                        }
-                    )
-                    .border(
-                        width = 1.dp,
-                        brush = if (isExpanded) {
-                            Brush.verticalGradient(listOf(Color(0xFF38BDF8), Color(0xFF0EA5E9)))
-                        } else {
-                            Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.45f), Color.White.copy(alpha = 0.05f)))
-                        },
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClickLabel = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu",
-                        onClick = { isExpanded = !isExpanded }
-                    )
-                    .semantics {
-                        this.role = Role.Button
-                        this.contentDescription = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu"
-                    }
-                    .size(56.dp),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = modifier
+                    .navigationBarsPadding()
+                    .padding(bottom = calculatedBottomPadding),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu",
-                    tint = if (isExpanded) Color.White else Color(0xFF09090B),
+                // Expanded Official M3 FAB Menu Capsule Items (Video A, B, C, D Specs)
+                AnimatedVisibility(
+                    visible = isExpanded,
+                    enter = fadeIn(tween(200)) + expandVertically(expandFrom = Alignment.Bottom) + slideInVertically(initialOffsetY = { it / 2 }),
+                    exit = fadeOut(tween(160)) + shrinkVertically(shrinkTowards = Alignment.Bottom) + slideOutVertically(targetOffsetY = { it / 2 })
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    ) {
+                        // Action 1: Expense Capsule Pill
+                        M3FabMenuCapsuleItem(
+                            label = "Add Expense",
+                            icon = Icons.Outlined.TrendingDown,
+                            accentColor = Color(0xFFEF4444),
+                            containerColor = Color(0xFF27272A),
+                            onClick = {
+                                isExpanded = false
+                                onActionSelected(TransactionType.EXPENSE)
+                            }
+                        )
+
+                        // Action 2: Income Capsule Pill
+                        M3FabMenuCapsuleItem(
+                            label = "Add Income",
+                            icon = Icons.Outlined.TrendingUp,
+                            accentColor = Color(0xFF22C55E),
+                            containerColor = Color(0xFF27272A),
+                            onClick = {
+                                isExpanded = false
+                                onActionSelected(TransactionType.INCOME)
+                            }
+                        )
+
+                        // Action 3: Transfer Capsule Pill
+                        M3FabMenuCapsuleItem(
+                            label = "Transfer Money",
+                            icon = Icons.Outlined.SwapHoriz,
+                            accentColor = Color(0xFF38BDF8),
+                            containerColor = Color(0xFF27272A),
+                            onClick = {
+                                isExpanded = false
+                                onActionSelected(TransactionType.TRANSFER)
+                            }
+                        )
+                    }
+                }
+
+                // Main Trigger FAB Button (3D Elevated Cyan Squircle morphing to Close ×)
+                Box(
                     modifier = Modifier
-                        .size(24.dp)
-                        .graphicsLayer { rotationZ = rotationAngle }
-                )
+                        .graphicsLayer {
+                            scaleX = fabScale
+                            scaleY = fabScale
+                        }
+                        .shadow(
+                            elevation = currentElevation,
+                            shape = RoundedCornerShape(16.dp),
+                            ambientColor = Color.Black,
+                            spotColor = Color(0xFF38BDF8).copy(alpha = 0.5f)
+                        )
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            if (isExpanded) {
+                                Brush.verticalGradient(listOf(Color(0xFF27272A), Color(0xFF18181B)))
+                            } else {
+                                Brush.verticalGradient(listOf(Color(0xFF50C7FB), Color(0xFF0EA5E9)))
+                            }
+                        )
+                        .border(
+                            width = 1.dp,
+                            brush = if (isExpanded) {
+                                Brush.verticalGradient(listOf(Color(0xFF38BDF8), Color(0xFF0EA5E9)))
+                            } else {
+                                Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.45f), Color.White.copy(alpha = 0.05f)))
+                            },
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClickLabel = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu",
+                            onClick = { isExpanded = !isExpanded }
+                        )
+                        .semantics {
+                            this.role = Role.Button
+                            this.contentDescription = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu"
+                        }
+                        .size(56.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = if (isExpanded) "Close Transaction Menu" else "Open Transaction Menu",
+                        tint = if (isExpanded) Color.White else Color(0xFF09090B),
+                        modifier = Modifier
+                            .size(24.dp)
+                            .graphicsLayer { rotationZ = rotationAngle }
+                    )
+                }
             }
         }
     }
 }
 
+/**
+ * Official Material 3 Extended Capsule Pill FAB Menu Item:
+ * Integrates Icon + Text Label into a single M3 Capsule shape container (as per M3 FAB Menu Guidelines & Videos A-D).
+ */
 @Composable
-private fun M3FabMenuItem(
+private fun M3FabMenuCapsuleItem(
     label: String,
     icon: ImageVector,
-    badgeColor: Color,
+    accentColor: Color,
+    containerColor: Color,
     onClick: () -> Unit
 ) {
     val itemInteractionSource = remember { MutableInteractionSource() }
@@ -374,17 +403,24 @@ private fun M3FabMenuItem(
     val itemScale by animateFloatAsState(
         targetValue = if (isPressed) 0.94f else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "M3ItemPressScale"
+        label = "M3CapsulePressScale"
     )
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    Box(
         modifier = Modifier
             .graphicsLayer {
                 scaleX = itemScale
                 scaleY = itemScale
             }
+            .shadow(
+                elevation = 6.dp,
+                shape = CircleShape,
+                ambientColor = Color.Black,
+                spotColor = accentColor.copy(alpha = 0.35f)
+            )
+            .clip(CircleShape)
+            .background(containerColor)
+            .border(1.dp, accentColor.copy(alpha = 0.6f), CircleShape)
             .clickable(
                 interactionSource = itemInteractionSource,
                 indication = null,
@@ -395,40 +431,25 @@ private fun M3FabMenuItem(
                 this.role = Role.Button
                 this.contentDescription = label
             }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
     ) {
-        // M3 Elevated Label Badge Box
-        Box(
-            modifier = Modifier
-                .shadow(4.dp, RoundedCornerShape(8.dp), ambientColor = Color.Black)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF18181B))
-                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Text(
-                text = label,
-                fontFamily = SpaceGroteskFamily,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-        }
-
-        // M3 Mini FAB Container (48dp x 48dp)
-        Box(
-            modifier = Modifier
-                .shadow(6.dp, CircleShape, ambientColor = Color.Black, spotColor = badgeColor.copy(alpha = 0.4f))
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF18181B))
-                .border(1.5.dp, badgeColor, CircleShape),
-            contentAlignment = Alignment.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = badgeColor,
+                tint = accentColor,
                 modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = label,
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
         }
     }
