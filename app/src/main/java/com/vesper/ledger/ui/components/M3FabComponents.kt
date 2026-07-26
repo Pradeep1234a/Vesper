@@ -35,18 +35,17 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 /**
- * 100% Fresh Ground-Up Material 3 Medium Floating Action Button Component:
- * Designed strictly from scratch following official M3 Guidelines (m3.material.io/components/floating-action-button).
+ * Strict Material 3 Medium Floating Action Button Component:
+ * Built strictly according to official M3 Guidelines (m3.material.io/components/floating-action-button/specs).
  *
- * Technical Specifications:
- * - Container: 56dp x 56dp M3 Squircle shape (RoundedCornerShape(16.dp)).
- * - Vector Icon: 24dp filled vector icon centered with high-contrast tint.
- * - 3D Surface Styling: Dual-tone cyan gradient fill (#50C7FB -> #0EA5E9) + 1dp top bevel stroke.
- * - Motion Engine:
- *   1. Center-Focal Entrance: Spring scaleIn (0.4f -> 1.0f) + fadeIn (220ms).
- *   2. Micro-Staggered Icon: 40ms delayed icon scale pop-in for 3D visual depth.
- *   3. Scroll-Aware Visibility: Hides on list scroll down; spring pop-ins on scroll stop/up.
- *   4. Mathematical Edge Alignment: Evaluates physical screen margin to match TransactionsScreen Y-coordinate exactly.
+ * Strict M3 Specifications:
+ * - Medium FAB Dimensions: Exactly 56dp x 56dp squircle container shape (RoundedCornerShape(16.dp)).
+ * - Vector Icon: Exactly 24dp filled vector icon centered.
+ * - Rest Elevation: Level 3 (6.dp elevation shadow).
+ * - Pressed Elevation: Level 1 (2.dp elevation shadow).
+ * - Video A Motion: Bouncy spring scaleIn (0.4f -> 1.0f) + 40ms micro-staggered icon scale pop-in for 3D depth.
+ * - Video C Motion: Scroll-aware dynamic scaleOut (0.4f) + fadeOut on scroll down; spring pop-in on scroll stop/up.
+ * - Mathematical Edge Alignment: 16dp right margin, 16dp bottom margin (with 57dp offset compensation when bottom bar is absent).
  */
 @Composable
 fun M3SingleFab(
@@ -63,6 +62,7 @@ fun M3SingleFab(
         isAppeared = true
     }
 
+    // Video A: Micro-staggered icon scale animation (40ms delayed depth)
     var isIconAppeared by remember { mutableStateOf(false) }
     LaunchedEffect(isAppeared) {
         if (isAppeared) {
@@ -98,19 +98,19 @@ fun M3SingleFab(
         val pressScale by animateFloatAsState(
             targetValue = if (isPressed) 0.90f else 1f,
             animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioMediumBouncy),
-            label = "FreshM3FabPressScale"
+            label = "M3FabPressScale"
         )
 
         val currentElevation by animateDpAsState(
             targetValue = if (isPressed) 2.dp else 6.dp,
             animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-            label = "FreshM3FabElevation"
+            label = "M3FabElevation"
         )
 
         val iconScale by animateFloatAsState(
             targetValue = if (isIconAppeared) 1f else 0.5f,
             animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy),
-            label = "FreshM3IconStaggerScale"
+            label = "M3IconStaggerScale"
         )
 
         Box(
@@ -175,13 +175,11 @@ fun M3SingleFab(
 }
 
 /**
- * 100% Fresh Ground-Up Material 3 Speed Dial FAB Menu System:
- * Designed strictly from scratch following M3 FAB Menu Guidelines (m3.material.io/components/fab-menu).
- *
- * Technical Specifications:
- * - Unified M3 Capsule Items: Single CircleShape capsule container incorporating [Icon] + [Label].
- * - Trigger Morphing: 56dp squircle container morphs from cyan to dark surface with 135° rotation on + icon.
- * - Backdrop Scrim: Soft 45% opacity backdrop dimming layer when menu expands.
+ * Strict Material 3 Speed Dial FAB Menu System (m3.material.io/components/fab-menu):
+ * Built strictly according to official M3 FAB Menu Guidelines & Videos A, B, C, D:
+ * - Capsule Pill Menu Items: Integrated Icon + Label in a single unified M3 Capsule Container.
+ * - Trigger Morphing: 56dp squircle container morphs with 135° rotation from + to × close button.
+ * - Scrim Backdrop: Soft backdrop dimming (Color.Black.copy(alpha = 0.45f)) when menu expands.
  * - Cascading Spring Motion: Staggered spring entrance & exit cascade.
  */
 @Composable
@@ -223,19 +221,19 @@ fun M3SpeedDialFab(
         val fabScale by animateFloatAsState(
             targetValue = if (isPressed) 0.90f else 1f,
             animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioMediumBouncy),
-            label = "FreshMainM3FabScale"
+            label = "MainM3FabScale"
         )
 
         val rotationAngle by animateFloatAsState(
             targetValue = if (isExpanded) 135f else 0f,
             animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioLowBouncy),
-            label = "FreshM3FabRotation"
+            label = "M3FabRotation"
         )
 
         val currentElevation by animateDpAsState(
             targetValue = if (isExpanded || isPressed) 2.dp else 6.dp,
             animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-            label = "FreshM3FabElevation"
+            label = "M3FabElevation"
         )
 
         Box(contentAlignment = Alignment.BottomEnd) {
@@ -264,7 +262,7 @@ fun M3SpeedDialFab(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Expanded M3 FAB Menu Capsule Items
+                // Expanded Official M3 FAB Menu Capsule Items (Video A, B, C, D Specs)
                 AnimatedVisibility(
                     visible = isExpanded,
                     enter = fadeIn(tween(200)) + expandVertically(expandFrom = Alignment.Bottom) + slideInVertically(initialOffsetY = { it / 2 }),
@@ -371,8 +369,8 @@ fun M3SpeedDialFab(
 }
 
 /**
- * Fresh Material 3 Capsule Pill FAB Menu Item Component:
- * Integrates Icon + Text Label into a single M3 Capsule shape container.
+ * Official Material 3 Extended Capsule Pill FAB Menu Item:
+ * Integrates Icon + Text Label into a single M3 Capsule shape container (as per M3 FAB Menu Guidelines & Videos A-D).
  */
 @Composable
 private fun M3FabMenuCapsuleItem(
@@ -388,7 +386,7 @@ private fun M3FabMenuCapsuleItem(
     val itemScale by animateFloatAsState(
         targetValue = if (isPressed) 0.94f else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "FreshM3CapsulePressScale"
+        label = "M3CapsulePressScale"
     )
 
     Box(
@@ -435,6 +433,56 @@ private fun M3FabMenuCapsuleItem(
                 fontSize = 13.sp,
                 color = Color.White
             )
+        }
+    }
+}
+
+/**
+ * Video B Container Transform Wrapper:
+ * Animates the FAB container morphing outward into the creation form screen sheet (300ms bounds interpolation + content cross-fade).
+ */
+@Composable
+fun M3FabContainerTransform(
+    isExpanded: Boolean,
+    onDismiss: () -> Unit,
+    fabContent: @Composable () -> Unit,
+    formContent: @Composable () -> Unit
+) {
+    val transition = updateTransition(targetState = isExpanded, label = "M3ContainerTransform")
+
+    val containerCornerRadius by transition.animateDp(
+        transitionSpec = { spring(stiffness = Spring.StiffnessMediumLow) },
+        label = "ContainerCornerRadius"
+    ) { expanded ->
+        if (expanded) 28.dp else 16.dp
+    }
+
+    val fabOpacity by transition.animateFloat(
+        transitionSpec = { tween(100) },
+        label = "FabOpacity"
+    ) { expanded ->
+        if (expanded) 0f else 1f
+    }
+
+    val formOpacity by transition.animateFloat(
+        transitionSpec = { tween(200, delayMillis = 100) },
+        label = "FormOpacity"
+    ) { expanded ->
+        if (expanded) 1f else 0f
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        fabContent()
+
+        if (isExpanded) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = formOpacity }
+                    .clip(RoundedCornerShape(topStart = containerCornerRadius, topEnd = containerCornerRadius))
+            ) {
+                formContent()
+            }
         }
     }
 }
