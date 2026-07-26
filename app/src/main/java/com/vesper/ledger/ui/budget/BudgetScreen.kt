@@ -60,8 +60,20 @@ fun BudgetScreen(
 
     val lazyListState = rememberLazyListState()
 
+    val isFabVisible by remember {
+        derivedStateOf { !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0 }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        floatingActionButton = {
+            com.vesper.ledger.ui.components.M3SingleFab(
+                onClick = onAddBudgetClick,
+                contentDescription = "Add Budget",
+                visible = isFabVisible,
+                hasBottomBar = true
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         ElasticBounceContainer(
