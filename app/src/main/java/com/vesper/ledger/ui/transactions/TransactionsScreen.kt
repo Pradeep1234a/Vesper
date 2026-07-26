@@ -298,7 +298,7 @@ fun TransactionsScreen(
 
                 // Modern BottomSheet Filter Dialog
                 if (showFilterBottomSheet) {
-                    TransactionFilterBottomSheet(
+                    TransactionFilterDialog(
                         viewModel = viewModel,
                         currencySymbol = currencySymbol,
                         onDismissRequest = { showFilterBottomSheet = false }
@@ -452,7 +452,7 @@ fun TransactionsScreen(
 // ────────────────────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun TransactionFilterBottomSheet(
+fun TransactionFilterDialog(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
     onDismissRequest: () -> Unit
@@ -527,24 +527,14 @@ fun TransactionFilterBottomSheet(
         }
     }
 
-    ModalBottomSheet(
+    AlertDialog(
         onDismissRequest = onDismissRequest,
-        windowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = Color(0xFF09090B), // Pure deep dark surface
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF27272A)) }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 4.dp)
-        ) {
-            // Header: Title & Close Button
+        containerColor = Color(0xFF18181B), // Layer 2 Surface Container
+        shape = RoundedCornerShape(6.dp),
+        modifier = Modifier.border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp)),
+        title = {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -560,19 +550,17 @@ fun TransactionFilterBottomSheet(
                     Icon(Icons.Default.Close, contentDescription = "Close", tint = Color(0xFFA1A1AA))
                 }
             }
-
-            // Scrollable Content Body with Clean Section Cards Rhythm
+        },
+        text = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // SECTION CARD 1: DATE & TYPE
                 FilterSectionCard(title = "DATE & TYPE") {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // Date Presets
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -593,7 +581,6 @@ fun TransactionFilterBottomSheet(
                             }
                         }
 
-                        // Transaction Type Segment
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -734,7 +721,6 @@ fun TransactionFilterBottomSheet(
                 // SECTION CARD 4: AMOUNT & SORT
                 FilterSectionCard(title = "AMOUNT & SORT") {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        // Amount Range
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -782,7 +768,6 @@ fun TransactionFilterBottomSheet(
                             )
                         }
 
-                        // Sort Order
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(
                                 text = "SORT ORDER",
@@ -814,46 +799,34 @@ fun TransactionFilterBottomSheet(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sticky Bottom Action Bar
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismissRequest,
+                modifier = Modifier.fillMaxWidth().height(46.dp),
+                shape = RoundedCornerShape(6.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
             ) {
-                OutlinedButton(
-                    onClick = { viewModel.clearAllFilters() },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(46.dp),
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.5f))
-                ) {
-                    Text("Reset", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                }
-
-                Button(
-                    onClick = onDismissRequest,
-                    modifier = Modifier
-                        .weight(2f)
-                        .height(46.dp),
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
-                ) {
-                    Text(
-                        text = "Apply (${filteredTransactions.size})",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                }
+                Text(
+                    text = "Apply (${filteredTransactions.size})",
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
             }
-
-            Spacer(modifier = Modifier.height(4.dp))
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = { viewModel.clearAllFilters() },
+                modifier = Modifier.fillMaxWidth().height(46.dp),
+                shape = RoundedCornerShape(6.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.5f))
+            ) {
+                Text("Reset All", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+            }
         }
-    }
+    )
 }
 
 // ────────────────────────────────────────────────────────────────────────────

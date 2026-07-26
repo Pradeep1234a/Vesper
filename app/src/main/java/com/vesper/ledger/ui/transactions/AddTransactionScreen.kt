@@ -599,44 +599,29 @@ fun AddTransactionScreen(
                     }
 
                     if (showCategorySheet) {
-                        ModalBottomSheet(
+                        AlertDialog(
                             onDismissRequest = { showCategorySheet = false },
-                            windowInsets = WindowInsets(0, 0, 0, 0),
-                            containerColor = Color(0xFF09090B),
-                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
-                            dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF27272A)) }
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .navigationBarsPadding()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 12.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "SELECT CATEGORY",
+                            containerColor = Color(0xFF18181B), // Layer 2 Surface Container
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp)),
+                            title = {
+                                Text(
+                                    text = "SELECT CATEGORY",
+                                    style = MaterialTheme.typography.titleMedium.copy(
                                         fontFamily = SpaceGroteskFamily,
-                                        fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
                                         letterSpacing = 1.sp,
                                         color = Color.White
                                     )
-                                    IconButton(onClick = { showCategorySheet = false }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color(0xFFA1A1AA))
-                                    }
-                                }
-
+                                )
+                            },
+                            text = {
                                 Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .verticalScroll(rememberScrollState()),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        .verticalScroll(rememberScrollState())
                                 ) {
                                     filteredCategories.forEach { cat ->
                                         val isSelected = cat.id == selectedCategoryId
@@ -645,7 +630,7 @@ fun AddTransactionScreen(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clip(RoundedCornerShape(6.dp))
-                                                .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF18181B))
+                                                .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
                                                 .border(
                                                     1.dp,
                                                     if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
@@ -697,18 +682,22 @@ fun AddTransactionScreen(
                                         }
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(16.dp))
+                            },
+                            confirmButton = {
+                                TextButton(onClick = { showCategorySheet = false }) {
+                                    Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                                }
                             }
-                        }
+                        )
                     }
                 }
 
-                // 5. ACCOUNT & PAYMENT METHOD GRID WITH MODAL BOTTOM SHEETS
+                // 5. ACCOUNT & PAYMENT METHOD GRID WITH DIALOG MODALS
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Left Column: Account Modal BottomSheet Card
+                    // Left Column: Account Modal Dialog Card
                     Box(modifier = Modifier.weight(1f)) {
                         Card(
                             modifier = Modifier
@@ -789,44 +778,29 @@ fun AddTransactionScreen(
                         }
 
                         if (showAccountMenu) {
-                            ModalBottomSheet(
+                            AlertDialog(
                                 onDismissRequest = { showAccountMenu = false },
-                                windowInsets = WindowInsets(0, 0, 0, 0),
-                                containerColor = Color(0xFF09090B),
-                                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
-                                dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF27272A)) }
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .navigationBarsPadding()
-                                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 12.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "SELECT ACCOUNT",
+                                containerColor = Color(0xFF18181B), // Layer 2 Surface Container
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier.border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp)),
+                                title = {
+                                    Text(
+                                        text = "SELECT ACCOUNT",
+                                        style = MaterialTheme.typography.titleMedium.copy(
                                             fontFamily = SpaceGroteskFamily,
-                                            fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp,
                                             letterSpacing = 1.sp,
                                             color = Color.White
                                         )
-                                        IconButton(onClick = { showAccountMenu = false }) {
-                                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color(0xFFA1A1AA))
-                                        }
-                                    }
-
+                                    )
+                                },
+                                text = {
                                     Column(
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .verticalScroll(rememberScrollState()),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            .verticalScroll(rememberScrollState())
                                     ) {
                                         activeAccounts.forEach { account ->
                                             val isSelected = account.id == selectedAccount?.id
@@ -834,7 +808,7 @@ fun AddTransactionScreen(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(6.dp))
-                                                    .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF18181B))
+                                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
                                                     .border(
                                                         1.dp,
                                                         if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
@@ -895,13 +869,17 @@ fun AddTransactionScreen(
                                             }
                                         }
                                     }
-                                    Spacer(modifier = Modifier.height(16.dp))
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = { showAccountMenu = false }) {
+                                        Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                                    }
                                 }
-                            }
+                            )
                         }
                     }
 
-                    // Right Column: Payment Method Modal BottomSheet Card
+                    // Right Column: Payment Method Modal Dialog Card
                     Box(modifier = Modifier.weight(1f)) {
                         Card(
                             modifier = Modifier
@@ -982,44 +960,29 @@ fun AddTransactionScreen(
                         }
 
                         if (showPaymentMenu) {
-                            ModalBottomSheet(
+                            AlertDialog(
                                 onDismissRequest = { showPaymentMenu = false },
-                                windowInsets = WindowInsets(0, 0, 0, 0),
-                                containerColor = Color(0xFF09090B),
-                                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
-                                dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF27272A)) }
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .navigationBarsPadding()
-                                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 12.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "SELECT PAYMENT METHOD",
+                                containerColor = Color(0xFF18181B), // Layer 2 Surface Container
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier.border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp)),
+                                title = {
+                                    Text(
+                                        text = "SELECT PAYMENT METHOD",
+                                        style = MaterialTheme.typography.titleMedium.copy(
                                             fontFamily = SpaceGroteskFamily,
-                                            fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp,
                                             letterSpacing = 1.sp,
                                             color = Color.White
                                         )
-                                        IconButton(onClick = { showPaymentMenu = false }) {
-                                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color(0xFFA1A1AA))
-                                        }
-                                    }
-
+                                    )
+                                },
+                                text = {
                                     Column(
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .verticalScroll(rememberScrollState()),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            .verticalScroll(rememberScrollState())
                                     ) {
                                         paymentMethods.forEach { method ->
                                             val isSelected = method.name == selectedPaymentMethod
@@ -1027,7 +990,7 @@ fun AddTransactionScreen(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(6.dp))
-                                                    .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.15f) else Color(0xFF18181B))
+                                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
                                                     .border(
                                                         1.dp,
                                                         if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
@@ -1079,9 +1042,13 @@ fun AddTransactionScreen(
                                             }
                                         }
                                     }
-                                    Spacer(modifier = Modifier.height(16.dp))
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = { showPaymentMenu = false }) {
+                                        Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                                    }
                                 }
-                            }
+                            )
                         }
                     }
                 }
