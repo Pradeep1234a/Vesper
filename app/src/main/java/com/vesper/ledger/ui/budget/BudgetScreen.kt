@@ -61,6 +61,22 @@ fun BudgetScreen(
     val lazyListState = rememberLazyListState()
 
     Scaffold(
+        topBar = {
+            com.vesper.ledger.ui.components.VesperUnifiedTopBar(
+                title = "Budgets",
+                isRoot = false,
+                onNavigationClick = { onBackClick?.invoke() },
+                actions = {
+                    IconButton(onClick = onAddBudgetClick) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Budget",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->

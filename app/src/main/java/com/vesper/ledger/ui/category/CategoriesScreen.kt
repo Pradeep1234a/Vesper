@@ -90,6 +90,22 @@ fun CategoriesScreen(
     }
 
     Scaffold(
+        topBar = {
+            com.vesper.ledger.ui.components.VesperUnifiedTopBar(
+                title = "Categories",
+                isRoot = false,
+                onNavigationClick = onBackClick,
+                actions = {
+                    IconButton(onClick = onAddCategoryClick) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Category",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
