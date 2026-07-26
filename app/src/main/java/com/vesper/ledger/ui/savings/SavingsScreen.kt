@@ -120,13 +120,21 @@ fun SavingsScreen(
         )
     }
 
+    val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val isFabVisible by remember {
+        derivedStateOf {
+            !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             M3SingleFab(
                 onClick = onAddGoalClick,
-                contentDescription = "Add Savings Goal"
+                contentDescription = "Add Savings Goal",
+                visible = isFabVisible
             )
         }
     ) { innerPadding ->
@@ -137,6 +145,7 @@ fun SavingsScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),

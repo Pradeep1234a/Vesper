@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -58,12 +59,20 @@ fun BudgetScreen(
     val totalBudgetSpent = remember(budgetsWithStatus) { budgetsWithStatus.sumOf { it.spentAmount } }
     val overallProgress = if (totalBudgetLimit > 0) (totalBudgetSpent / totalBudgetLimit).toFloat().coerceIn(0f, 1f) else 0f
 
+    val lazyListState = rememberLazyListState()
+    val isFabVisible by remember {
+        derivedStateOf {
+            !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             M3SingleFab(
                 onClick = onAddBudgetClick,
-                contentDescription = "Add Budget"
+                contentDescription = "Add Budget",
+                visible = isFabVisible
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -75,6 +84,7 @@ fun BudgetScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
