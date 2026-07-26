@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Launch
 import androidx.compose.material.icons.outlined.*
@@ -44,10 +43,11 @@ enum class SettingsDialogType {
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     updateViewModel: com.vesper.ledger.ui.update.UpdateViewModel,
+    subView: SettingsSubView = SettingsSubView.MAIN,
+    onSubViewChange: (SettingsSubView) -> Unit = {},
     onMenuClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
     onCategoriesClick: () -> Unit = {},
-    onAccountsClick: () -> Unit = {},
     onCurrencyClick: () -> Unit = {},
     onSignOutClick: () -> Unit = {}
 ) {
@@ -63,7 +63,6 @@ fun SettingsScreen(
     val currencySymbol by viewModel.currencySymbol.collectAsState()
     val currencyCode by viewModel.currencyCode.collectAsState()
 
-    var subView by remember { mutableStateOf(SettingsSubView.MAIN) }
     var activeDialog by remember { mutableStateOf<SettingsDialogType?>(null) }
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -103,7 +102,7 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.outline,
                                 shape = MaterialTheme.shapes.medium
                             )
-                            .clickable { subView = SettingsSubView.PROFILE },
+                            .clickable { onSubViewChange(SettingsSubView.PROFILE) },
                         shape = MaterialTheme.shapes.medium,
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surface
@@ -247,7 +246,7 @@ fun SettingsScreen(
                                     )
                                 }
                             },
-                            onClick = { subView = SettingsSubView.UPDATES }
+                            onClick = { onSubViewChange(SettingsSubView.UPDATES) }
                         )
                         Divider(color = MaterialTheme.colorScheme.outlineVariant)
                         SettingsRow(
@@ -261,7 +260,7 @@ fun SettingsScreen(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            onClick = { subView = SettingsSubView.PRIVACY_POLICY }
+                            onClick = { onSubViewChange(SettingsSubView.PRIVACY_POLICY) }
                         )
                         Divider(color = MaterialTheme.colorScheme.outlineVariant)
                         SettingsRow(
@@ -275,7 +274,7 @@ fun SettingsScreen(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            onClick = { subView = SettingsSubView.OPEN_SOURCE }
+                            onClick = { onSubViewChange(SettingsSubView.OPEN_SOURCE) }
                         )
                         Divider(color = MaterialTheme.colorScheme.outlineVariant)
                         SettingsRow(
@@ -289,7 +288,7 @@ fun SettingsScreen(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            onClick = { subView = SettingsSubView.TERMS }
+                            onClick = { onSubViewChange(SettingsSubView.TERMS) }
                         )
                     }
 
@@ -308,7 +307,7 @@ fun SettingsScreen(
                 }
             }
 
-            // DEDICATED PROFILE SCREEN (NO DUPLICATE TOP BAR)
+            // DEDICATED PROFILE SCREEN (REUSES MAIN UNIFIED TOP BAR, NO BODY HEADER)
             SettingsSubView.PROFILE -> {
                 var editName by remember { mutableStateOf(userName) }
                 var editEmail by remember { mutableStateOf(userEmail) }
@@ -320,15 +319,6 @@ fun SettingsScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextButton(
-                        onClick = { subView = SettingsSubView.MAIN },
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Back to Settings", style = MaterialTheme.typography.labelLarge)
-                    }
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -387,7 +377,7 @@ fun SettingsScreen(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 OutlinedButton(
-                                    onClick = { subView = SettingsSubView.MAIN },
+                                    onClick = { onSubViewChange(SettingsSubView.MAIN) },
                                     modifier = Modifier.weight(1f),
                                     shape = MaterialTheme.shapes.medium
                                 ) {
@@ -400,7 +390,7 @@ fun SettingsScreen(
                                         if (trimmed.isNotBlank()) {
                                             viewModel.saveUserName(trimmed)
                                             Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
-                                            subView = SettingsSubView.MAIN
+                                            onSubViewChange(SettingsSubView.MAIN)
                                         } else {
                                             Toast.makeText(context, "Name cannot be empty", Toast.LENGTH_SHORT).show()
                                         }
@@ -418,29 +408,18 @@ fun SettingsScreen(
                 }
             }
 
-            // DEDICATED APPLICATION UPDATES SCREEN (FIXES CRASH BY REMOVING SCROLL CONFLICT)
+            // DEDICATED APPLICATION UPDATES SCREEN (REUSES MAIN UNIFIED TOP BAR)
             SettingsSubView.UPDATES -> {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    TextButton(
-                        onClick = { subView = SettingsSubView.MAIN },
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Back to Settings", style = MaterialTheme.typography.labelLarge)
-                    }
-
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
-                    }
+                    com.vesper.ledger.ui.update.SettingsUpdatesScreen(updateViewModel)
                 }
             }
 
-            // DEDICATED PRIVACY POLICY SCREEN (NO OVERFLOW, NO DUPLICATE TOP BAR)
+            // DEDICATED PRIVACY POLICY SCREEN (REUSES MAIN UNIFIED TOP BAR, NO OVERFLOW)
             SettingsSubView.PRIVACY_POLICY -> {
                 Column(
                     modifier = Modifier
@@ -449,15 +428,6 @@ fun SettingsScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextButton(
-                        onClick = { subView = SettingsSubView.MAIN },
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Back to Settings", style = MaterialTheme.typography.labelLarge)
-                    }
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -472,7 +442,7 @@ fun SettingsScreen(
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             Text(
-                                text = "PRIVACY POLICY",
+                                text = "PRIVACY GUARANTEE",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -511,7 +481,7 @@ fun SettingsScreen(
                 }
             }
 
-            // DEDICATED TERMS & CONDITIONS SCREEN (NO OVERFLOW, NO DUPLICATE TOP BAR)
+            // DEDICATED TERMS & CONDITIONS SCREEN (REUSES MAIN UNIFIED TOP BAR, NO OVERFLOW)
             SettingsSubView.TERMS -> {
                 Column(
                     modifier = Modifier
@@ -520,15 +490,6 @@ fun SettingsScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextButton(
-                        onClick = { subView = SettingsSubView.MAIN },
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Back to Settings", style = MaterialTheme.typography.labelLarge)
-                    }
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -543,7 +504,7 @@ fun SettingsScreen(
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             Text(
-                                text = "TERMS & CONDITIONS",
+                                text = "TERMS OF SERVICE",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -582,7 +543,7 @@ fun SettingsScreen(
                 }
             }
 
-            // DEDICATED OPEN SOURCE LICENSES SCREEN (NO OVERFLOW, NO DUPLICATE TOP BAR)
+            // DEDICATED OPEN SOURCE LICENSES SCREEN (REUSES MAIN UNIFIED TOP BAR, NO OVERFLOW)
             SettingsSubView.OPEN_SOURCE -> {
                 Column(
                     modifier = Modifier
@@ -591,15 +552,6 @@ fun SettingsScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextButton(
-                        onClick = { subView = SettingsSubView.MAIN },
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Back to Settings", style = MaterialTheme.typography.labelLarge)
-                    }
-
                     Text(
                         text = "Vesper Ledger is built using open-source libraries and frameworks:",
                         style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
