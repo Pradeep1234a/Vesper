@@ -127,9 +127,7 @@ fun DashboardScreen(
                 item {
                     val currentDateStr = remember { SimpleDateFormat("EEE, dd MMM", Locale.getDefault()).format(Date()).uppercase() }
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
