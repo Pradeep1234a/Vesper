@@ -1,27 +1,30 @@
 package com.vesper.ledger.ui.transactions
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FilterList
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -30,15 +33,15 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
-import com.vesper.ledger.ui.components.RootHeader
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.getIconByName
+import com.vesper.ledger.ui.components.safeParseColor
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TransactionsScreen(
     viewModel: TransactionsViewModel,
@@ -50,11 +53,20 @@ fun TransactionsScreen(
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val categories by viewModel.categories.collectAsState()
+    val accounts by viewModel.accounts.collectAsState()
     val transactions by viewModel.filteredTransactions.collectAsState()
+    val activeFilterCount by viewModel.activeFilterCount.collectAsState()
+
+    val selectedDatePreset by viewModel.selectedDatePreset.collectAsState()
+    val selectedCategories by viewModel.selectedCategories.collectAsState()
+    val selectedType by viewModel.selectedType.collectAsState()
+    val selectedAccount by viewModel.selectedAccount.collectAsState()
+    val selectedPaymentMethod by viewModel.selectedPaymentMethod.collectAsState()
+    val minAmountFilter by viewModel.minAmountFilter.collectAsState()
+    val maxAmountFilter by viewModel.maxAmountFilter.collectAsState()
 
     val df = DecimalFormat("#,##0.00")
     val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
-    val sdfShort = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
 
     val groupedTransactions = remember(transactions) {
@@ -65,56 +77,46 @@ fun TransactionsScreen(
 
     val listState = rememberLazyListState()
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
-    var showFilterDialog by remember { mutableStateOf(false) }
+    var showFilterBottomSheet by remember { mutableStateOf(false) }
 
+    // Delete Confirmation Dialog
     if (transactionToDelete != null) {
         AlertDialog(
             onDismissRequest = { transactionToDelete = null },
             title = {
                 Text(
                     text = "Delete Transaction",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                    fontFamily = SpaceGroteskFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
             },
             text = {
                 Text(
                     text = "Are you sure you want to delete this transaction?",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    fontFamily = SpaceGroteskFamily,
+                    color = Color(0xFFA1A1AA)
                 )
             },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         transactionToDelete?.let { viewModel.deleteTransaction(it) }
                         transactionToDelete = null
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                    shape = RoundedCornerShape(6.dp)
                 ) {
-                    Text(
-                        text = "Delete",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    )
+                    Text("Delete", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { transactionToDelete = null }) {
-                    Text(
-                        text = "Cancel",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
+                    Text("Cancel", fontFamily = SpaceGroteskFamily, color = Color(0xFFA1A1AA))
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
+            containerColor = Color(0xFF18181B),
+            shape = RoundedCornerShape(6.dp)
         )
     }
 
@@ -126,7 +128,7 @@ fun TransactionsScreen(
                 onClick = onAddTransactionClick,
                 containerColor = MaterialTheme.colorScheme.onBackground,
                 contentColor = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(14.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -143,7 +145,6 @@ fun TransactionsScreen(
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-
                 // Search Input Field & Filter Action Button Bar
                 Row(
                     modifier = Modifier
@@ -155,35 +156,40 @@ fun TransactionsScreen(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { viewModel.searchQuery.value = it },
-                        placeholder = { Text("Search transactions...", style = MaterialTheme.typography.bodyMedium) },
+                        placeholder = { Text("Search transactions...", style = MaterialTheme.typography.bodyMedium.copy(fontFamily = SpaceGroteskFamily)) },
                         modifier = Modifier.weight(1f),
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline
                         )
                     )
 
-                    val activeFilterCount by viewModel.activeFilterCount.collectAsState()
+                    // Filter Icon Button with Count Badge
                     Surface(
-                        onClick = { showFilterDialog = true },
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (activeFilterCount > 0) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        onClick = { showFilterBottomSheet = true },
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (activeFilterCount > 0) Color(0xFF38BDF8).copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (activeFilterCount > 0) Color(0xFF38BDF8) else MaterialTheme.colorScheme.outlineVariant
+                        ),
                         modifier = Modifier.size(52.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = androidx.compose.material.icons.Icons.Outlined.FilterList,
+                                imageVector = Icons.Outlined.FilterList,
                                 contentDescription = "Filter & Sort",
-                                tint = if (activeFilterCount > 0) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
+                                tint = if (activeFilterCount > 0) Color(0xFF38BDF8) else MaterialTheme.colorScheme.onSurface
                             )
                             if (activeFilterCount > 0) {
                                 Badge(
-                                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp),
+                                    containerColor = Color(0xFF38BDF8),
+                                    contentColor = Color.Black
                                 ) {
                                     Text(text = activeFilterCount.toString(), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 }
@@ -192,15 +198,114 @@ fun TransactionsScreen(
                     }
                 }
 
-                if (showFilterDialog) {
-                    FilterAndSortDialog(
+                // Active Filter Chips Bar (Scrollable horizontal row)
+                val hasActiveFilters = activeFilterCount > 0 || selectedDatePreset != DatePreset.ALL
+                if (hasActiveFilters) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Date Preset Chip
+                        if (selectedDatePreset != DatePreset.ALL) {
+                            item {
+                                ActiveFilterChip(
+                                    label = "📅 ${selectedDatePreset.label}",
+                                    onRemove = { viewModel.setDatePreset(DatePreset.ALL) }
+                                )
+                            }
+                        }
+
+                        // Transaction Type Chip
+                        if (selectedType != null) {
+                            item {
+                                ActiveFilterChip(
+                                    label = selectedType!!.name,
+                                    onRemove = { viewModel.selectedType.value = null }
+                                )
+                            }
+                        }
+
+                        // Category Chips
+                        items(selectedCategories.toList()) { catId ->
+                            val cat = categories.find { it.id == catId }
+                            if (cat != null) {
+                                ActiveFilterChip(
+                                    label = cat.name,
+                                    onRemove = {
+                                        viewModel.selectedCategories.value = selectedCategories - catId
+                                    }
+                                )
+                            }
+                        }
+
+                        // Payment Method Chip
+                        if (selectedPaymentMethod != null) {
+                            item {
+                                ActiveFilterChip(
+                                    label = selectedPaymentMethod!!,
+                                    onRemove = { viewModel.selectedPaymentMethod.value = null }
+                                )
+                            }
+                        }
+
+                        // Account Chip
+                        if (selectedAccount != null) {
+                            val acct = accounts.find { it.id == selectedAccount }
+                            if (acct != null) {
+                                item {
+                                    ActiveFilterChip(
+                                        label = acct.name,
+                                        onRemove = { viewModel.selectedAccount.value = null }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Amount Range Chip
+                        if (minAmountFilter != null || maxAmountFilter != null) {
+                            val minStr = minAmountFilter?.let { "$currencySymbol${DecimalFormat("#,##0").format(it)}" } ?: "0"
+                            val maxStr = maxAmountFilter?.let { "$currencySymbol${DecimalFormat("#,##0").format(it)}" } ?: "Max"
+                            item {
+                                ActiveFilterChip(
+                                    label = "$minStr - $maxStr",
+                                    onRemove = {
+                                        viewModel.minAmountFilter.value = null
+                                        viewModel.maxAmountFilter.value = null
+                                    }
+                                )
+                            }
+                        }
+
+                        // Clear All Button Chip
+                        item {
+                            Text(
+                                text = "Clear All",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFEF4444),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .clickable { viewModel.clearAllFilters() }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Modern BottomSheet Filter Dialog
+                if (showFilterBottomSheet) {
+                    TransactionFilterBottomSheet(
                         viewModel = viewModel,
                         currencySymbol = currencySymbol,
-                        onDismissRequest = { showFilterDialog = false }
+                        onDismissRequest = { showFilterBottomSheet = false }
                     )
                 }
 
-                // Grouped Transaction list
+                // Grouped Transaction List
                 if (groupedTransactions.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -211,6 +316,7 @@ fun TransactionsScreen(
                         Text(
                             text = "No transactions found.",
                             style = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = SpaceGroteskFamily,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         )
@@ -230,6 +336,7 @@ fun TransactionsScreen(
                                 Text(
                                     text = dateStr,
                                     style = MaterialTheme.typography.labelMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     ),
@@ -238,152 +345,96 @@ fun TransactionsScreen(
                             }
 
                             items(txList) { tx ->
-                                var showMenu by remember { mutableStateOf(false) }
                                 val category = categories.find { it.id == tx.categoryId }
                                 val isIncome = tx.type == TransactionType.INCOME
-                                val accentColor = if (isIncome) Color(0xFF16A34A) else Color(0xFFDC2626)
-                                val accentBg = if (isIncome) Color(0xFF16A34A).copy(alpha = 0.08f) else Color(0xFFDC2626).copy(alpha = 0.08f)
+                                val accentColor = if (isIncome) Color(0xFF10B981) else Color(0xFFEF4444)
+                                val accentBg = if (isIncome) Color(0xFF10B981).copy(alpha = 0.12f) else Color(0xFFEF4444).copy(alpha = 0.12f)
                                 val iconName = category?.iconName ?: "category"
                                 val categoryLabel = category?.name ?: "Uncategorized"
 
                                 ShCard(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 1.dp),
+                                        .padding(vertical = 2.dp),
                                     contentPadding = PaddingValues(12.dp)
                                 ) {
-                                    Box {
-                                        Row(
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { onEditTransactionClick(tx) },
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // Category Icon Container
+                                        Box(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable { onEditTransactionClick(tx) },
+                                                .size(38.dp)
+                                                .background(
+                                                    color = accentBg,
+                                                    shape = RoundedCornerShape(6.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = getIconByName(iconName),
+                                                contentDescription = null,
+                                                tint = accentColor,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+
+                                        // Title & Category Left, Amount & Time Right
+                                        Row(
+                                            modifier = Modifier.weight(1f),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            // Category Icon Container
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(36.dp)
-                                                    .background(
-                                                        color = accentBg,
-                                                        shape = RoundedCornerShape(10.dp)
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                val displayTitle = if (tx.title.isBlank() || tx.title == "Untitled Transaction") categoryLabel else tx.title
+                                                Text(
+                                                    text = displayTitle,
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = MaterialTheme.colorScheme.onSurface
                                                     ),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    imageVector = getIconByName(iconName),
-                                                    contentDescription = null,
-                                                    tint = accentColor,
-                                                    modifier = Modifier.size(18.dp)
+                                                    maxLines = 1
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = "$categoryLabel • ${tx.paymentMethod}",
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontSize = 11.sp,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    ),
+                                                    maxLines = 1
                                                 )
                                             }
-                                            Spacer(modifier = Modifier.width(10.dp))
-                                            
-                                            // Title/Category & Amount/Date aligned up-and-down
-                                            Row(
-                                                modifier = Modifier.weight(1f),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                // Left Column: Title on top, Category Name on bottom
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    val displayTitle = if (tx.title.isBlank() || tx.title == "Untitled Transaction") categoryLabel else tx.title
-                                                    Text(
-                                                        text = displayTitle,
-                                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                                            fontSize = 14.sp,
-                                                            fontWeight = FontWeight.SemiBold,
-                                                            color = MaterialTheme.colorScheme.onSurface
-                                                        ),
-                                                        maxLines = 1
-                                                    )
-                                                    Spacer(modifier = Modifier.height(2.dp))
-                                                    Text(
-                                                        text = "$categoryLabel • ${tx.accountName}",
-                                                        style = MaterialTheme.typography.labelSmall.copy(
-                                                            fontSize = 11.sp,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        ),
-                                                        maxLines = 1
-                                                    )
-                                                }
-                                                
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                
-                                                // Right Column: Amount on top, Date on bottom
-                                                Column(horizontalAlignment = Alignment.End) {
-                                                    val prefix = if (isIncome) "+" else "-"
-                                                    Text(
-                                                        text = "$prefix$currencySymbol${df.format(tx.amount)}",
-                                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                                            fontSize = 14.sp,
-                                                            fontFamily = SpaceGroteskFamily,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = accentColor
-                                                        )
-                                                    )
-                                                    Spacer(modifier = Modifier.height(2.dp))
-                                                    Text(
-                                                        text = "${sdfShort.format(Date(tx.dateEpochMillis))} • ${timeFormat.format(Date(tx.dateEpochMillis))}",
-                                                        style = MaterialTheme.typography.labelSmall.copy(
-                                                            fontSize = 11.sp,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        }
 
-                                        // CRUD Action Menu
-                                        DropdownMenu(
-                                            expanded = showMenu,
-                                            onDismissRequest = { showMenu = false }
-                                        ) {
-                                            DropdownMenuItem(
-                                                text = {
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(
-                                                            imageVector = getIconByName("edit"),
-                                                            contentDescription = null,
-                                                            tint = MaterialTheme.colorScheme.onSurface,
-                                                            modifier = Modifier.size(18.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(8.dp))
-                                                        Text(
-                                                            "Edit",
-                                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                                color = MaterialTheme.colorScheme.onSurface
-                                                            )
-                                                        )
-                                                    }
-                                                },
-                                                onClick = {
-                                                    showMenu = false
-                                                    onEditTransactionClick(tx)
-                                                }
-                                            )
-                                            DropdownMenuItem(
-                                                text = {
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(
-                                                            imageVector = Icons.Outlined.DeleteOutline,
-                                                            contentDescription = null,
-                                                            tint = Color(0xFFDC2626),
-                                                            modifier = Modifier.size(18.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(8.dp))
-                                                        Text(
-                                                            "Delete",
-                                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                                color = Color(0xFFDC2626)
-                                                            )
-                                                        )
-                                                    }
-                                                },
-                                                onClick = {
-                                                    showMenu = false
-                                                    transactionToDelete = tx
-                                                }
-                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Column(horizontalAlignment = Alignment.End) {
+                                                Text(
+                                                    text = "${if (isIncome) "+" else "-"}$currencySymbol${df.format(tx.amount)}",
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 14.sp,
+                                                        color = accentColor
+                                                    )
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = timeFormat.format(Date(tx.dateEpochMillis)),
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontSize = 10.sp,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -396,336 +447,556 @@ fun TransactionsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// ────────────────────────────────────────────────────────────────────────────
+// OPTION 1: MODERN BOTTOMSHEET FILTER DIALOG (RECOMMENDED SPEC MATCH)
+// ────────────────────────────────────────────────────────────────────────────
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun FilterAndSortDialog(
+fun TransactionFilterBottomSheet(
     viewModel: TransactionsViewModel,
     currencySymbol: String,
     onDismissRequest: () -> Unit
 ) {
     val categories by viewModel.categories.collectAsState()
-    val accounts: List<Account> by viewModel.accounts.collectAsState()
-    val selectedType by viewModel.selectedType.collectAsState()
-    val selectedCategories by viewModel.selectedCategories.collectAsState()
-    val selectedAccount by viewModel.selectedAccount.collectAsState()
-    val selectedPaymentMethod by viewModel.selectedPaymentMethod.collectAsState()
+    val accounts by viewModel.accounts.collectAsState()
+    val filteredTransactions by viewModel.filteredTransactions.collectAsState()
+
+    val selectedDatePreset by viewModel.selectedDatePreset.collectAsState()
     val startDateFilter by viewModel.startDateFilter.collectAsState()
     val endDateFilter by viewModel.endDateFilter.collectAsState()
+    val selectedCategories by viewModel.selectedCategories.collectAsState()
+    val selectedType by viewModel.selectedType.collectAsState()
+    val selectedAccount by viewModel.selectedAccount.collectAsState()
+    val selectedPaymentMethod by viewModel.selectedPaymentMethod.collectAsState()
     val minAmountFilter by viewModel.minAmountFilter.collectAsState()
     val maxAmountFilter by viewModel.maxAmountFilter.collectAsState()
     val sortBy by viewModel.sortBy.collectAsState()
 
-    var showSortMenu by remember { mutableStateOf(false) }
-    var showTypeMenu by remember { mutableStateOf(false) }
-    var showCatMenu by remember { mutableStateOf(false) }
-    var showAcctMenu by remember { mutableStateOf(false) }
-    var showPaymentMenu by remember { mutableStateOf(false) }
-    var showStartDatePicker by remember { mutableStateOf(false) }
-    var showEndDatePicker by remember { mutableStateOf(false) }
+    var showCustomDateRangePicker by remember { mutableStateOf(false) }
+    var showAllCategories by remember { mutableStateOf(false) }
 
-    var minAmtText by remember(minAmountFilter) { mutableStateOf(minAmountFilter?.toString() ?: "") }
-    var maxAmtText by remember(maxAmountFilter) { mutableStateOf(maxAmountFilter?.toString() ?: "") }
+    val paymentMethodsList = listOf("Cash", "UPI", "Credit Card", "Debit Card", "Bank Transfer", "Wallet")
 
-    val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
-
-    val paymentMethodsList = listOf("All Payment Methods", "Cash", "Bank Transfer", "Credit Card", "Debit Card", "UPI", "Other")
-
-    if (showStartDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = startDateFilter ?: System.currentTimeMillis()
+    // Date Range Picker Dialog for Custom Preset
+    if (showCustomDateRangePicker) {
+        val dateRangePickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = startDateFilter ?: System.currentTimeMillis(),
+            initialSelectedEndDateMillis = endDateFilter ?: System.currentTimeMillis()
         )
         DatePickerDialog(
-            onDismissRequest = { showStartDatePicker = false },
+            onDismissRequest = { showCustomDateRangePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.startDateFilter.value = datePickerState.selectedDateMillis
-                    showStartDatePicker = false
+                    val start = dateRangePickerState.selectedStartDateMillis
+                    val end = dateRangePickerState.selectedEndDateMillis
+                    if (start != null && end != null) {
+                        viewModel.setDatePreset(DatePreset.CUSTOM, start, end)
+                    }
+                    showCustomDateRangePicker = false
                 }) {
-                    Text("Select", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    Text("Apply Range", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFF38BDF8))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showStartDatePicker = false }) {
-                    Text("Cancel", fontFamily = SpaceGroteskFamily)
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    if (showEndDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = endDateFilter ?: System.currentTimeMillis()
-        )
-        DatePickerDialog(
-            onDismissRequest = { showEndDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.endDateFilter.value = datePickerState.selectedDateMillis
-                    showEndDatePicker = false
-                }) {
-                    Text("Select", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                TextButton(onClick = { showCustomDateRangePicker = false }) {
+                    Text("Cancel", fontFamily = SpaceGroteskFamily, color = Color(0xFFA1A1AA))
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showEndDatePicker = false }) {
-                    Text("Cancel", fontFamily = SpaceGroteskFamily)
-                }
-            }
+            colors = DatePickerDefaults.colors(containerColor = Color(0xFF18181B))
         ) {
-            DatePicker(state = datePickerState)
+            DateRangePicker(
+                state = dateRangePickerState,
+                colors = DatePickerDefaults.colors(
+                    containerColor = Color(0xFF18181B),
+                    titleContentColor = Color.White,
+                    headlineContentColor = Color.White,
+                    weekdayContentColor = Color(0xFFA1A1AA),
+                    subheadContentColor = Color.White,
+                    yearContentColor = Color.White,
+                    currentYearContentColor = Color(0xFF38BDF8),
+                    selectedYearContentColor = Color.Black,
+                    selectedYearContainerColor = Color.White,
+                    dayContentColor = Color.White,
+                    disabledDayContentColor = Color(0xFF52525B),
+                    selectedDayContentColor = Color.Black,
+                    selectedDayContainerColor = Color.White,
+                    todayContentColor = Color(0xFF38BDF8),
+                    todayDateBorderColor = Color(0xFF38BDF8)
+                )
+            )
         }
     }
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        title = {
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = Color(0xFF18181B),
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF27272A)) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+        ) {
+            // Header: Title & Close Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Filter & Sort",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    text = "Filters",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
-                TextButton(onClick = {
-                    viewModel.clearAllFilters()
-                    minAmtText = ""
-                    maxAmtText = ""
-                }) {
-                    Text(
-                        text = "Reset All",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    )
+                IconButton(onClick = onDismissRequest) {
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color(0xFFA1A1AA))
                 }
             }
-        },
-        text = {
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Scrollable Content Body
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // 1. SORT ORDER MENU
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("SORT ORDER", style = MaterialTheme.typography.labelSmall.copy(fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant))
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(
-                            onClick = { showSortMenu = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = when (sortBy) {
-                                        SortOption.DATE_DESC -> "Date: Newest First"
-                                        SortOption.DATE_ASC -> "Date: Oldest First"
-                                        SortOption.AMOUNT_DESC -> "Amount: Highest First"
-                                        SortOption.AMOUNT_ASC -> "Amount: Lowest First"
-                                        SortOption.EXPENSE_DESC -> "Highest Expense First"
-                                        SortOption.INCOME_DESC -> "Highest Income First"
-                                    },
-                                    fontFamily = SpaceGroteskFamily,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text("▾", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
-                            DropdownMenuItem(text = { Text("Date: Newest First") }, onClick = { viewModel.sortBy.value = SortOption.DATE_DESC; showSortMenu = false })
-                            DropdownMenuItem(text = { Text("Date: Oldest First") }, onClick = { viewModel.sortBy.value = SortOption.DATE_ASC; showSortMenu = false })
-                            DropdownMenuItem(text = { Text("Amount: Highest First") }, onClick = { viewModel.sortBy.value = SortOption.AMOUNT_DESC; showSortMenu = false })
-                            DropdownMenuItem(text = { Text("Amount: Lowest First") }, onClick = { viewModel.sortBy.value = SortOption.AMOUNT_ASC; showSortMenu = false })
-                        }
-                    }
-                }
-
-                // 2. TRANSACTION TYPE MENU
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("TRANSACTION TYPE", style = MaterialTheme.typography.labelSmall.copy(fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant))
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(
-                            onClick = { showTypeMenu = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = selectedType?.name ?: "All Types",
-                                    fontFamily = SpaceGroteskFamily,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text("▾", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        DropdownMenu(expanded = showTypeMenu, onDismissRequest = { showTypeMenu = false }) {
-                            DropdownMenuItem(text = { Text("All Types") }, onClick = { viewModel.selectedType.value = null; showTypeMenu = false })
-                            TransactionType.values().forEach { t ->
-                                DropdownMenuItem(text = { Text(t.name) }, onClick = { viewModel.selectedType.value = t; showTypeMenu = false })
-                            }
-                        }
-                    }
-                }
-
-                // 3. CATEGORY MENU
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("CATEGORY", style = MaterialTheme.typography.labelSmall.copy(fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant))
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        val currentCatName = categories.find { selectedCategories.contains(it.id) }?.name ?: "All Categories"
-                        OutlinedButton(
-                            onClick = { showCatMenu = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = currentCatName, fontFamily = SpaceGroteskFamily, color = MaterialTheme.colorScheme.onSurface)
-                                Text("▾", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        DropdownMenu(expanded = showCatMenu, onDismissRequest = { showCatMenu = false }) {
-                            DropdownMenuItem(text = { Text("All Categories") }, onClick = { viewModel.selectedCategories.value = emptySet(); showCatMenu = false })
-                            categories.forEach { cat ->
-                                DropdownMenuItem(text = { Text(cat.name) }, onClick = { viewModel.selectedCategories.value = setOf(cat.id); showCatMenu = false })
-                            }
-                        }
-                    }
-                }
-
-                // 4. ACCOUNT MENU
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("ACCOUNT", style = MaterialTheme.typography.labelSmall.copy(fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant))
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        val currentAcctName = accounts.find { it.id == selectedAccount }?.name ?: "All Accounts"
-                        OutlinedButton(
-                            onClick = { showAcctMenu = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = currentAcctName, fontFamily = SpaceGroteskFamily, color = MaterialTheme.colorScheme.onSurface)
-                                Text("▾", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        DropdownMenu(expanded = showAcctMenu, onDismissRequest = { showAcctMenu = false }) {
-                            DropdownMenuItem(text = { Text("All Accounts") }, onClick = { viewModel.selectedAccount.value = null; showAcctMenu = false })
-                            accounts.forEach { acct ->
-                                DropdownMenuItem(text = { Text(acct.name) }, onClick = { viewModel.selectedAccount.value = acct.id; showAcctMenu = false })
-                            }
-                        }
-                    }
-                }
-
-                // 5. PAYMENT METHOD MENU
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("PAYMENT METHOD", style = MaterialTheme.typography.labelSmall.copy(fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant))
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(
-                            onClick = { showPaymentMenu = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = selectedPaymentMethod ?: "All Payment Methods", fontFamily = SpaceGroteskFamily, color = MaterialTheme.colorScheme.onSurface)
-                                Text("▾", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        DropdownMenu(expanded = showPaymentMenu, onDismissRequest = { showPaymentMenu = false }) {
-                            paymentMethodsList.forEach { p ->
-                                DropdownMenuItem(
-                                    text = { Text(p) },
-                                    onClick = {
-                                        viewModel.selectedPaymentMethod.value = if (p == "All Payment Methods") null else p
-                                        showPaymentMenu = false
+                // 1. DATE RANGE PRESETS
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Date Range",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFA1A1AA)
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        DatePreset.values().forEach { preset ->
+                            val isSelected = selectedDatePreset == preset
+                            FilterChipPill(
+                                label = preset.label,
+                                isSelected = isSelected,
+                                onClick = {
+                                    if (preset == DatePreset.CUSTOM) {
+                                        showCustomDateRangePicker = true
+                                    } else {
+                                        viewModel.setDatePreset(preset)
                                     }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // 2. TRANSACTION TYPE
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Transaction Type",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFA1A1AA)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFF09090B))
+                            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
+                            .padding(3.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        val types = listOf<Pair<TransactionType?, String>>(
+                            null to "All",
+                            TransactionType.EXPENSE to "Expense",
+                            TransactionType.INCOME to "Income",
+                            TransactionType.TRANSFER to "Transfer"
+                        )
+                        types.forEach { (t, label) ->
+                            val selected = selectedType == t
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (selected) Color(0xFF27272A) else Color.Transparent)
+                                    .border(1.dp, if (selected) Color(0xFF38BDF8) else Color.Transparent, RoundedCornerShape(6.dp))
+                                    .clickable { viewModel.selectedType.value = t },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (selected) Color.White else Color(0xFFA1A1AA)
                                 )
                             }
                         }
                     }
                 }
 
-                // 6. DATE RANGE (MATERIAL 3 DATE PICKERS)
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("DATE FILTER", style = MaterialTheme.typography.labelSmall.copy(fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = { showStartDatePicker = true },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
+                // 3. CATEGORIES CHIPS GRID
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Categories",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFA1A1AA)
+                        )
+                        if (categories.size > 6) {
                             Text(
-                                text = startDateFilter?.let { dateFormat.format(Date(it)) } ?: "Start Date",
-                                fontSize = 12.sp,
-                                fontFamily = SpaceGroteskFamily
+                                text = if (showAllCategories) "Show Less" else "View All (${categories.size})",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF38BDF8),
+                                modifier = Modifier.clickable { showAllCategories = !showAllCategories }
                             )
                         }
+                    }
 
-                        OutlinedButton(
-                            onClick = { showEndDatePicker = true },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Text(
-                                text = endDateFilter?.let { dateFormat.format(Date(it)) } ?: "End Date",
-                                fontSize = 12.sp,
-                                fontFamily = SpaceGroteskFamily
-                            )
+                    val displayCategories = if (showAllCategories) categories else categories.take(6)
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        displayCategories.forEach { cat ->
+                            val isSelected = selectedCategories.contains(cat.id)
+                            val catColor = safeParseColor(cat.colorHex)
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                    .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+                                    .clickable {
+                                        val newSet = if (isSelected) selectedCategories - cat.id else selectedCategories + cat.id
+                                        viewModel.selectedCategories.value = newSet
+                                    }
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = getIconByName(cat.iconName),
+                                        contentDescription = null,
+                                        tint = if (isSelected) Color(0xFF38BDF8) else catColor,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = cat.name,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
-                // 7. AMOUNT RANGE FILTER
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("AMOUNT RANGE ($currencySymbol)", style = MaterialTheme.typography.labelSmall.copy(fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = minAmtText,
-                            onValueChange = {
-                                minAmtText = it
-                                viewModel.minAmountFilter.value = it.toDoubleOrNull()
-                            },
-                            placeholder = { Text("Min Amount", fontSize = 12.sp) },
-                            singleLine = true,
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp)
-                        )
+                // 4. PAYMENT METHODS CHIPS
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Payment Methods",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFA1A1AA)
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        paymentMethodsList.forEach { method ->
+                            val isSelected = selectedPaymentMethod == method
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                    .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+                                    .clickable {
+                                        viewModel.selectedPaymentMethod.value = if (isSelected) null else method
+                                    }
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = getPaymentMethodIcon(method),
+                                        contentDescription = null,
+                                        tint = if (isSelected) Color(0xFF38BDF8) else Color.White,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = method,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
 
-                        OutlinedTextField(
-                            value = maxAmtText,
-                            onValueChange = {
-                                maxAmtText = it
-                                viewModel.maxAmountFilter.value = it.toDoubleOrNull()
-                            },
-                            placeholder = { Text("Max Amount", fontSize = 12.sp) },
-                            singleLine = true,
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp)
+                // 5. ACCOUNTS CHIPS
+                if (accounts.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Accounts",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFA1A1AA)
                         )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            accounts.forEach { acct ->
+                                val isSelected = selectedAccount == acct.id
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+                                        .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+                                        .clickable {
+                                            viewModel.selectedAccount.value = if (isSelected) null else acct.id
+                                        }
+                                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(acct.iconName),
+                                            contentDescription = null,
+                                            tint = if (isSelected) Color(0xFF38BDF8) else Color.White,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Text(
+                                            text = acct.name,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontSize = 12.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 6. AMOUNT RANGE SLIDER
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Amount Range",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFA1A1AA)
+                        )
+                        val minLabel = minAmountFilter?.let { "${currencySymbol}${DecimalFormat("#,##0").format(it)}" } ?: "${currencySymbol}0"
+                        val maxLabel = maxAmountFilter?.let { "${currencySymbol}${DecimalFormat("#,##0").format(it)}" } ?: "${currencySymbol}50,000+"
+                        Text(
+                            text = "$minLabel - $maxLabel",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF38BDF8)
+                        )
+                    }
+
+                    var sliderRange by remember(minAmountFilter, maxAmountFilter) {
+                        val currentMin = minAmountFilter?.toFloat() ?: 0f
+                        val currentMax = maxAmountFilter?.toFloat() ?: 50000f
+                        mutableStateOf(currentMin..currentMax)
+                    }
+
+                    RangeSlider(
+                        value = sliderRange,
+                        onValueChange = { range ->
+                            sliderRange = range
+                            viewModel.minAmountFilter.value = if (range.start > 0f) range.start.toDouble() else null
+                            viewModel.maxAmountFilter.value = if (range.endInclusive < 50000f) range.endInclusive.toDouble() else null
+                        },
+                        valueRange = 0f..50000f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color(0xFF38BDF8),
+                            activeTrackColor = Color(0xFF38BDF8),
+                            inactiveTrackColor = Color(0xFF27272A)
+                        )
+                    )
+                }
+
+                // 7. SORT ORDER CHIPS
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Sort Order",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFA1A1AA)
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            SortOption.DATE_DESC to "Newest First",
+                            SortOption.DATE_ASC to "Oldest First",
+                            SortOption.AMOUNT_DESC to "Highest Amount",
+                            SortOption.AMOUNT_ASC to "Lowest Amount"
+                        ).forEach { (sort, label) ->
+                            val isSelected = sortBy == sort
+                            FilterChipPill(
+                                label = label,
+                                isSelected = isSelected,
+                                onClick = { viewModel.sortBy.value = sort }
+                            )
+                        }
                     }
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismissRequest,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Sticky Bottom Action Bar
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Apply Filters", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.background)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { viewModel.clearAllFilters() },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(46.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.5f))
+                    ) {
+                        Text("Reset", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = onDismissRequest,
+                        modifier = Modifier
+                            .weight(2f)
+                            .height(46.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)
+                    ) {
+                        Text(
+                            text = "Apply (${filteredTransactions.size})",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Showing ${filteredTransactions.size} transactions",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 11.sp,
+                    color = Color(0xFFA1A1AA)
+                )
             }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp)
-    )
+        }
+    }
+}
+
+@Composable
+fun FilterChipPill(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (isSelected) Color(0xFF27272A) else Color(0xFF09090B))
+            .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A), RoundedCornerShape(6.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = label,
+            fontFamily = SpaceGroteskFamily,
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+        )
+    }
+}
+
+@Composable
+fun ActiveFilterChip(
+    label: String,
+    onRemove: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(Color(0xFF27272A))
+            .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = label,
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Remove",
+                tint = Color(0xFFA1A1AA),
+                modifier = Modifier
+                    .size(12.dp)
+                    .clickable { onRemove() }
+            )
+        }
+    }
 }

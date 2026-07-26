@@ -20,6 +20,14 @@ enum class SortOption {
     DATE_DESC, DATE_ASC, AMOUNT_DESC, AMOUNT_ASC, EXPENSE_DESC, INCOME_DESC
 }
 
+enum class DatePreset(val label: String) {
+    ALL("All Time"),
+    TODAY("Today"),
+    THIS_WEEK("This Week"),
+    THIS_MONTH("This Month"),
+    CUSTOM("Custom")
+}
+
 class TransactionsViewModel(
     private val transactionRepository: TransactionRepository,
     private val accountRepository: AccountRepository
@@ -33,6 +41,7 @@ class TransactionsViewModel(
     val selectedPaymentMethod = MutableStateFlow<String?>(null)
     val startDateFilter = MutableStateFlow<Long?>(null)
     val endDateFilter = MutableStateFlow<Long?>(null)
+    val selectedDatePreset = MutableStateFlow(DatePreset.ALL)
     val minAmountFilter = MutableStateFlow<Double?>(null)
     val maxAmountFilter = MutableStateFlow<Double?>(null)
     val sortBy = MutableStateFlow(SortOption.DATE_DESC)
@@ -42,6 +51,64 @@ class TransactionsViewModel(
 
     val accounts = accountRepository.allAccounts
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setDatePreset(preset: DatePreset, customStart: Long? = null, customEnd: Long? = null) {
+        selectedDatePreset.value = preset
+        val cal = java.util.Calendar.getInstance()
+        when (preset) {
+            DatePreset.ALL -> {
+                startDateFilter.value = null
+                endDateFilter.value = null
+            }
+            DatePreset.TODAY -> {
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                cal.set(java.util.Calendar.MINUTE, 0)
+                cal.set(java.util.Calendar.SECOND, 0)
+                cal.set(java.util.Calendar.MILLISECOND, 0)
+                startDateFilter.value = cal.timeInMillis
+
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 23)
+                cal.set(java.util.Calendar.MINUTE, 59)
+                cal.set(java.util.Calendar.SECOND, 59)
+                cal.set(java.util.Calendar.MILLISECOND, 999)
+                endDateFilter.value = cal.timeInMillis
+            }
+            DatePreset.THIS_WEEK -> {
+                cal.set(java.util.Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                cal.set(java.util.Calendar.MINUTE, 0)
+                cal.set(java.util.Calendar.SECOND, 0)
+                cal.set(java.util.Calendar.MILLISECOND, 0)
+                startDateFilter.value = cal.timeInMillis
+
+                cal.add(java.util.Calendar.DAY_OF_WEEK, 6)
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 23)
+                cal.set(java.util.Calendar.MINUTE, 59)
+                cal.set(java.util.Calendar.SECOND, 59)
+                cal.set(java.util.Calendar.MILLISECOND, 999)
+                endDateFilter.value = cal.timeInMillis
+            }
+            DatePreset.THIS_MONTH -> {
+                cal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                cal.set(java.util.Calendar.MINUTE, 0)
+                cal.set(java.util.Calendar.SECOND, 0)
+                cal.set(java.util.Calendar.MILLISECOND, 0)
+                startDateFilter.value = cal.timeInMillis
+
+                cal.set(java.util.Calendar.DAY_OF_MONTH, cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH))
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 23)
+                cal.set(java.util.Calendar.MINUTE, 59)
+                cal.set(java.util.Calendar.SECOND, 59)
+                cal.set(java.util.Calendar.MILLISECOND, 999)
+                endDateFilter.value = cal.timeInMillis
+            }
+            DatePreset.CUSTOM -> {
+                startDateFilter.value = customStart
+                endDateFilter.value = customEnd
+            }
+        }
+    }
 
     // Dynamically calculate the top 3 most frequently used categories
     val adaptiveCategories: StateFlow<List<Category>> = combine(
@@ -143,6 +210,7 @@ class TransactionsViewModel(
         selectedPaymentMethod.value = null
         startDateFilter.value = null
         endDateFilter.value = null
+        selectedDatePreset.value = DatePreset.ALL
         minAmountFilter.value = null
         maxAmountFilter.value = null
         sortBy.value = SortOption.DATE_DESC
