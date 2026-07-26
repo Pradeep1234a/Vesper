@@ -61,12 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import com.vesper.ledger.data.receipt.ScannedReceipt
-import com.vesper.ledger.data.receipt.ReceiptOcrEngine
-import com.vesper.ledger.ui.receipt.ReceiptCaptureScreen
-import com.vesper.ledger.ui.receipt.ReceiptProcessingScreen
-import com.vesper.ledger.ui.receipt.ReceiptReviewStudioScreen
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.RootHeader
@@ -120,7 +114,6 @@ fun DashboardScreen(
         if (name.isEmpty()) "User" else name
     }
 
-    var showScanReceiptDialog by remember { mutableStateOf(false) }
     var showSplitBillDialog by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -468,9 +461,9 @@ fun DashboardScreen(
                                 modifier = Modifier.weight(1f)
                             )
                             QuickActionTile(
-                                label = "Scan Receipt",
-                                icon = Icons.Outlined.DocumentScanner,
-                                onClick = { showScanReceiptDialog = true },
+                                label = "Accounts",
+                                icon = Icons.Outlined.AccountBalanceWallet,
+                                onClick = { onAccountsClick() },
                                 modifier = Modifier.weight(1f)
                             )
                             QuickActionTile(
@@ -978,77 +971,6 @@ fun DashboardScreen(
         }
 
         // Dialogs for Quick Actions
-
-        if (showScanReceiptDialog) {
-            var scannerStep by remember { mutableStateOf("capture") } // "capture", "processing", "review"
-            var scannedReceiptData by remember { mutableStateOf<ScannedReceipt?>(null) }
-            val coroutineScope = rememberCoroutineScope()
-
-            Dialog(
-                onDismissRequest = { showScanReceiptDialog = false },
-                properties = androidx.compose.ui.window.DialogProperties(
-                    usePlatformDefaultWidth = false,
-                    decorFitsSystemWindows = false
-                )
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    when (scannerStep) {
-                        "capture" -> {
-                            ReceiptCaptureScreen(
-                                onBackClick = { showScanReceiptDialog = false },
-                                onImageSelected = { selectedUri ->
-                                    scannerStep = "processing"
-                                    coroutineScope.launch {
-                                        val processed = ReceiptOcrEngine.processReceiptImage(context, selectedUri)
-                                        scannedReceiptData = processed
-                                    }
-                                }
-                            )
-                        }
-                        "processing" -> {
-                            ReceiptProcessingScreen(
-                                onProcessingFinished = {
-                                    if (scannedReceiptData == null) {
-                                        scannedReceiptData = ReceiptOcrEngine.createEmptyReceiptForImage("scanned_receipt.png")
-                                    }
-                                    scannerStep = "review"
-                                }
-                            )
-                        }
-                        "review" -> {
-                            val receiptToReview = scannedReceiptData ?: ReceiptOcrEngine.createEmptyReceiptForImage("scanned_receipt.png")
-                            ReceiptReviewStudioScreen(
-                                scannedReceipt = receiptToReview,
-                                onBackClick = { scannerStep = "capture" },
-                                onCommitTransactions = { committedReceipt ->
-                                    val categoriesMap = uiState.categories.associateBy { it.name.lowercase().trim() }
-                                    val defaultCatId = uiState.categories.firstOrNull()?.id ?: 1L
-
-                                    // Commit each category group as an independent, linked transaction
-                                    committedReceipt.categorizedGroups.forEach { group ->
-                                        val catId = categoriesMap[group.categoryName.lowercase().trim()]?.id ?: defaultCatId
-                                        viewModel.addTransaction(
-                                            title = "${committedReceipt.merchantName} (${group.categoryName})",
-                                            amount = group.finalTotal,
-                                            type = TransactionType.EXPENSE,
-                                            categoryId = catId,
-                                            accountId = 1L,
-                                            accountName = committedReceipt.paymentMethod,
-                                            paymentMethod = committedReceipt.paymentMethod,
-                                            dateEpochMillis = System.currentTimeMillis(),
-                                            note = "Receipt ${committedReceipt.receiptNumber} • ${group.items.size} items: ${group.items.joinToString { it.name }}"
-                                        )
-                                    }
-
-                                    showScanReceiptDialog = false
-                                    Toast.makeText(context, "${committedReceipt.categorizedGroups.size} category transactions saved to ledger!", Toast.LENGTH_LONG).show()
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        }
 
         if (showSplitBillDialog) {
             DashboardSplitBillDialog(
