@@ -294,7 +294,7 @@ fun MainScreen(
                 currentRoute != Screen.AuthCreateAccount.route &&
                 currentRoute != Screen.AuthForgotPassword.route
 
-        val rootRoutes = listOf(
+        val isRootScreen = currentRoute in listOf(
             Screen.Dashboard.route,
             Screen.Transactions.route,
             Screen.Budgets.route,
@@ -303,39 +303,25 @@ fun MainScreen(
         )
 
         var editingTransaction by remember { mutableStateOf<com.vesper.ledger.data.model.Transaction?>(null) }
-        var settingsSubView by remember { mutableStateOf(com.vesper.ledger.ui.settings.SettingsSubView.MAIN) }
 
-        LaunchedEffect(currentRoute) {
-            if (currentRoute != Screen.Settings.route) {
-                settingsSubView = com.vesper.ledger.ui.settings.SettingsSubView.MAIN
-            }
-        }
-
-        val screenTitle = when {
-            currentRoute == Screen.Settings.route && settingsSubView == com.vesper.ledger.ui.settings.SettingsSubView.PROFILE -> "Profile Management"
-            currentRoute == Screen.Settings.route && settingsSubView == com.vesper.ledger.ui.settings.SettingsSubView.UPDATES -> "Application Updates"
-            currentRoute == Screen.Settings.route && settingsSubView == com.vesper.ledger.ui.settings.SettingsSubView.PRIVACY_POLICY -> "Privacy Policy"
-            currentRoute == Screen.Settings.route && settingsSubView == com.vesper.ledger.ui.settings.SettingsSubView.TERMS -> "Terms & Conditions"
-            currentRoute == Screen.Settings.route && settingsSubView == com.vesper.ledger.ui.settings.SettingsSubView.OPEN_SOURCE -> "Open Source Licenses"
-            currentRoute == Screen.Dashboard.route -> "Vesper Ledger"
-            currentRoute == Screen.Transactions.route -> "Transactions"
-            currentRoute == Screen.Budgets.route -> "Budgets"
-            currentRoute == Screen.Analytics.route -> "Analytics"
-            currentRoute == Screen.Settings.route -> "Settings"
-            currentRoute == Screen.Savings.route -> "Savings Goals"
-            currentRoute == Screen.AddTransaction.route -> if (editingTransaction != null) "Edit Transaction" else "New Transaction"
-            currentRoute == Screen.CurrencySelector.route -> "Select Currency"
-            currentRoute == Screen.AddCategory.route -> "Categories"
-            currentRoute == Screen.Accounts.route -> "Accounts"
-            currentRoute == Screen.AddAccount.route -> "New Account"
-            currentRoute == Screen.AddBudget.route -> "New Budget"
-            currentRoute == Screen.SplitGroups.route -> "Split Groups"
-            currentRoute == Screen.CreateSplitGroup.route -> "Create Split Group"
-            currentRoute == Screen.ProfileManagement.route -> "Profile Management"
+        val screenTitle = when (currentRoute) {
+            Screen.Dashboard.route -> "Vesper Ledger"
+            Screen.Transactions.route -> "Transactions"
+            Screen.Budgets.route -> "Budgets"
+            Screen.Analytics.route -> "Analytics"
+            Screen.Settings.route -> "Settings"
+            Screen.Savings.route -> "Savings Goals"
+            Screen.AddTransaction.route -> if (editingTransaction != null) "Edit Transaction" else "New Transaction"
+            Screen.CurrencySelector.route -> "Select Currency"
+            Screen.AddCategory.route -> "Categories"
+            Screen.Accounts.route -> "Accounts"
+            Screen.AddAccount.route -> "New Account"
+            Screen.AddBudget.route -> "New Budget"
+            Screen.SplitGroups.route -> "Split Groups"
+            Screen.CreateSplitGroup.route -> "Create Split Group"
+            Screen.ProfileManagement.route -> "Profile Management"
             else -> "Vesper Ledger"
         }
-
-        val isRootScreen = currentRoute in rootRoutes && (currentRoute != Screen.Settings.route || settingsSubView == com.vesper.ledger.ui.settings.SettingsSubView.MAIN)
 
         Scaffold(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -345,9 +331,7 @@ fun MainScreen(
                         title = screenTitle,
                         isRoot = isRootScreen,
                         onNavigationClick = {
-                            if (currentRoute == Screen.Settings.route && settingsSubView != com.vesper.ledger.ui.settings.SettingsSubView.MAIN) {
-                                settingsSubView = com.vesper.ledger.ui.settings.SettingsSubView.MAIN
-                            } else if (isRootScreen) {
+                            if (isRootScreen) {
                                 scope.launch { drawerState.open() }
                             } else {
                                 navController.popBackStack()
@@ -535,17 +519,9 @@ fun MainScreen(
                     SettingsScreen(
                         viewModel = settingsViewModel,
                         updateViewModel = updateViewModel,
-                        subView = settingsSubView,
-                        onSubViewChange = { settingsSubView = it },
                         onMenuClick = { scope.launch { drawerState.open() } },
-                        onBackClick = {
-                            if (settingsSubView != com.vesper.ledger.ui.settings.SettingsSubView.MAIN) {
-                                settingsSubView = com.vesper.ledger.ui.settings.SettingsSubView.MAIN
-                            } else {
-                                navController.popBackStack()
-                            }
-                        },
-                        onCategoriesClick = { navController.navigate(Screen.AddCategory.route) },
+                        onBackClick = { navController.popBackStack() },
+                        onCategoriesClick = onCategoryManagementClick,
                         onCurrencyClick = { navController.navigate(Screen.CurrencySelector.route) },
                         onSignOutClick = onSignOutClick
                     )
