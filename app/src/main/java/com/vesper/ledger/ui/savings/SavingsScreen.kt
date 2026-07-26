@@ -121,26 +121,10 @@ fun SavingsScreen(
     }
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val isAtTop by remember {
-        derivedStateOf { lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset == 0 }
-    }
-    val isFabVisible by remember {
-        derivedStateOf { !lazyListState.isScrollInProgress || isAtTop }
-    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = {
-            M3SingleFab(
-                onClick = onAddGoalClick,
-                label = "Add Goal",
-                contentDescription = "Add Savings Goal",
-                visible = isFabVisible,
-                isExpanded = isAtTop,
-                hasBottomBar = false
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         ElasticBounceContainer(
             modifier = Modifier
