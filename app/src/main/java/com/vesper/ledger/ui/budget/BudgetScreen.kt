@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.ui.accounts.ElasticBounceContainer
-import com.vesper.ledger.ui.components.M3SingleFab
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
