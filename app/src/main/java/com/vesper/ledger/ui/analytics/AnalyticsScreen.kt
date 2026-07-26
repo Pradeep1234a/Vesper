@@ -1,9 +1,12 @@
 package com.vesper.ledger.ui.analytics
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -18,11 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,7 +40,6 @@ import com.vesper.ledger.ui.components.safeParseColor
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -234,8 +237,8 @@ fun AnalyticsScreen(
             }
         }
 
-        // 3. BENTO GRID: MONTHLY SPENDING TREND BAR CHART CARD
-        BentoCard(title = "SPENDING TREND CHART", icon = Icons.Outlined.BarChart) {
+        // 3. FL_CHART STYLE SMOOTH CURVED LINE & GRADIENT AREA CHART
+        BentoCard(title = "ANALYTICAL SPENDING TREND (FL_CHART)", icon = Icons.Outlined.ShowChart) {
             val dailyExpenses = remember(filteredTransactions) {
                 val map = mutableMapOf<Int, Double>()
                 val cal = Calendar.getInstance()
@@ -247,73 +250,20 @@ fun AnalyticsScreen(
                 map
             }
 
-            val maxDaily = (dailyExpenses.values.maxOrNull() ?: 1000.0).coerceAtLeast(100.0)
             val daysInMonth = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)
-
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Peak Spent: $currencySymbol${dfCompact.format(maxDaily)}",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF38BDF8)
-                    )
-                    Text(
-                        text = "Avg: $currencySymbol${dfCompact.format(dailyAvgExpense)}/day",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 11.sp,
-                        color = Color(0xFFA1A1AA)
-                    )
-                }
-
-                // Bar chart canvas
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(110.dp)
-                ) {
-                    val width = size.width
-                    val height = size.height
-                    val barCount = daysInMonth.coerceAtLeast(1)
-                    val spacing = 3.dp.toPx()
-                    val barWidth = ((width - (spacing * (barCount - 1))) / barCount).coerceAtLeast(2.dp.toPx())
-
-                    // Draw baseline
-                    drawLine(
-                        color = Color(0xFF27272A),
-                        start = Offset(0f, height),
-                        end = Offset(width, height),
-                        strokeWidth = 1.dp.toPx()
-                    )
-
-                    // Draw bars for each day
-                    for (day in 1..barCount) {
-                        val amount = dailyExpenses[day] ?: 0.0
-                        val ratio = (amount / maxDaily).toFloat().coerceIn(0f, 1f)
-                        val barHeight = (height * ratio).coerceAtLeast(if (amount > 0) 4.dp.toPx() else 1.dp.toPx())
-                        val x = (day - 1) * (barWidth + spacing)
-                        val y = height - barHeight
-
-                        val isMax = amount > 0 && amount >= maxDaily * 0.9
-                        val barColor = when {
-                            isMax -> Color(0xFF38BDF8)
-                            amount > 0 -> Color(0xFF0284C7).copy(alpha = 0.7f)
-                            else -> Color(0xFF27272A)
-                        }
-
-                        drawRect(
-                            color = barColor,
-                            topLeft = Offset(x, y),
-                            size = Size(barWidth, barHeight)
-                        )
-                    }
+            val pointsList = remember(dailyExpenses, daysInMonth) {
+                (1..daysInMonth).map { day ->
+                    Pair(day, dailyExpenses[day] ?: 0.0)
                 }
             }
+
+            FLCurvedLineChart(
+                points = pointsList,
+                currencySymbol = currencySymbol,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+            )
         }
 
         // 4. BENTO GRID: CATEGORY DONUT & BREAKDOWN
@@ -334,8 +284,7 @@ fun AnalyticsScreen(
                 ) {
                     // Left Column: Donut Chart Canvas
                     Box(
-                        modifier = Modifier
-                            .size(110.dp),
+                        modifier = Modifier.size(110.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -742,6 +691,143 @@ fun AnalyticsScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// FL_CHART AESTHETIC INTERACTIVE SMOOTH CURVED LINE CHART
+// ────────────────────────────────────────────────────────────────────────────
+@Composable
+fun FLCurvedLineChart(
+    points: List<Pair<Int, Double>>,
+    currencySymbol: String,
+    modifier: Modifier = Modifier
+) {
+    var selectedPointIndex by remember { mutableStateOf<Int?>(null) }
+    val dfCompact = remember { DecimalFormat("#,##0") }
+
+    val maxVal = remember(points) { (points.maxOfOrNull { it.second } ?: 1000.0).coerceAtLeast(100.0) }
+
+    Box(modifier = modifier) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(points) {
+                    detectTapGestures { offset ->
+                        val width = size.width
+                        val stepX = width / (points.size - 1).coerceAtLeast(1)
+                        val tappedIndex = (offset.x / stepX).toInt().coerceIn(0, points.size - 1)
+                        selectedPointIndex = if (selectedPointIndex == tappedIndex) null else tappedIndex
+                    }
+                }
+        ) {
+            val width = size.width
+            val height = size.height
+            val stepX = width / (points.size - 1).coerceAtLeast(1)
+
+            // 1. Draw dashed grid lines (FL_Chart GridData)
+            val gridPathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+            val gridLines = 4
+            for (i in 0..gridLines) {
+                val y = height * (i.toFloat() / gridLines)
+                drawLine(
+                    color = Color(0xFF27272A),
+                    start = Offset(0f, y),
+                    end = Offset(width, y),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = gridPathEffect
+                )
+            }
+
+            if (points.isEmpty()) return@Canvas
+
+            // 2. Build smooth Cubic Bezier Path
+            val strokePath = Path()
+            val fillPath = Path()
+
+            val coordinates = points.mapIndexed { index, pair ->
+                val x = index * stepX
+                val y = height - ((pair.second / maxVal) * (height - 20.dp.toPx())).toFloat()
+                Offset(x, y)
+            }
+
+            strokePath.moveTo(coordinates.first().x, coordinates.first().y)
+            fillPath.moveTo(coordinates.first().x, height)
+            fillPath.lineTo(coordinates.first().x, coordinates.first().y)
+
+            for (i in 0 until coordinates.size - 1) {
+                val p1 = coordinates[i]
+                val p2 = coordinates[i + 1]
+                val controlPoint1 = Offset(p1.x + (p2.x - p1.x) / 2f, p1.y)
+                val controlPoint2 = Offset(p1.x + (p2.x - p1.x) / 2f, p2.y)
+
+                strokePath.cubicTo(controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y, p2.x, p2.y)
+                fillPath.cubicTo(controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y, p2.x, p2.y)
+            }
+
+            fillPath.lineTo(coordinates.last().x, height)
+            fillPath.close()
+
+            // Draw Area Gradient Fill (FL_Chart BarAreaData)
+            drawPath(
+                path = fillPath,
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF38BDF8).copy(alpha = 0.35f),
+                        Color(0xFF38BDF8).copy(alpha = 0.02f)
+                    )
+                )
+            )
+
+            // Draw Curved Line Stroke (FL_Chart LineChartBarData)
+            drawPath(
+                path = strokePath,
+                color = Color(0xFF38BDF8),
+                style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
+            )
+
+            // 3. Draw Active Glowing Dot Markers on Key Points
+            coordinates.forEachIndexed { index, point ->
+                val (_, amt) = points[index]
+                val isSelected = selectedPointIndex == index
+                if (amt > 0 || isSelected) {
+                    drawCircle(
+                        color = if (isSelected) Color.White else Color(0xFF38BDF8),
+                        radius = if (isSelected) 6.dp.toPx() else 3.5.dp.toPx(),
+                        center = point
+                    )
+                    drawCircle(
+                        color = Color(0xFF38BDF8).copy(alpha = 0.4f),
+                        radius = if (isSelected) 10.dp.toPx() else 6.dp.toPx(),
+                        center = point
+                    )
+                }
+            }
+        }
+
+        // 4. Interactive Touch Tooltip Badge (FL_Chart TouchCallback Tooltip)
+        selectedPointIndex?.let { index ->
+            if (index in points.indices) {
+                val (day, amt) = points[index]
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 4.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(0xFF242429))
+                        .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(6.dp))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "Day $day: $currencySymbol${dfCompact.format(amt)}",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
     }
 }
 
