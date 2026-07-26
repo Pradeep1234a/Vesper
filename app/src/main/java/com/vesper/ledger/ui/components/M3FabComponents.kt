@@ -36,21 +36,20 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 /**
- * Official Material 3 Medium Floating Action Button (M3 FAB with Motion & Container Expand):
- * Strictly implements Material 3 FAB Guidelines (m3.material.io/components/floating-action-button/guidelines).
- * - Shape & Size: M3 16dp Squircle container (56dp x 56dp) with filled centered vector icon (24dp).
+ * Material 3 Extended Floating Action Button with M3 Motion (Video A, C & D Specs):
+ * - Video A: Center-focal scaleIn (0.4f -> 1.0f) + 40ms micro-staggered icon pop-in.
+ * - Video C: Scroll-aware collapse/hide on list scroll down; spring pop-in on scroll stop/up.
+ * - Video D: Collapses label text smoothly into a 56dp icon FAB on scroll, and expands label when at top!
  * - Mathematical Edge Alignment: Evaluates physical screen edge margin to match TransactionsScreen Y-coordinate exactly.
- * - M3 Motion & Transitions:
- *   1. Appearing & Reappearing Motion: Bouncy spring scaleIn (0.4f -> 1.0f) + fadeIn pop-in transition on screen/tab change.
- *   2. Scroll Motion: Smooth scaleOut & fadeOut on list scroll down; spring pop-in on scroll stop/up.
- *   3. Container Expand Feedback: Instant spring click ripple feedback before launching creation forms.
  */
 @Composable
 fun M3SingleFab(
     onClick: () -> Unit,
+    label: String = "",
     icon: ImageVector = Icons.Filled.Add,
     contentDescription: String = "Action",
     visible: Boolean = true,
+    isExpanded: Boolean = false,
     hasBottomBar: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -60,8 +59,15 @@ fun M3SingleFab(
         isAppeared = true
     }
 
-    // Mathematical physical screen edge offset:
-    // When bottom bar is absent, add 57dp (exact bottom bar height) to match TransactionsScreen Y-coordinate exactly.
+    // Micro-staggered icon scale animation (40ms delayed depth from Video A)
+    var isIconAppeared by remember { mutableStateOf(false) }
+    LaunchedEffect(isAppeared) {
+        if (isAppeared) {
+            kotlinx.coroutines.delay(40)
+            isIconAppeared = true
+        }
+    }
+
     val calculatedBottomPadding = if (hasBottomBar) 8.dp else (8.dp + 57.dp)
 
     AnimatedVisibility(
@@ -94,6 +100,12 @@ fun M3SingleFab(
             targetValue = if (isPressed) 2.dp else 6.dp,
             animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
             label = "M3FabElevation"
+        )
+
+        val iconScale by animateFloatAsState(
+            targetValue = if (isIconAppeared) 1f else 0.5f,
+            animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy),
+            label = "M3IconStaggerScale"
         )
 
         Box(
@@ -139,25 +151,52 @@ fun M3SingleFab(
                     this.role = Role.Button
                     this.contentDescription = contentDescription
                 }
-                .size(56.dp),
+                .height(56.dp)
+                .animateContentSize(
+                    animationSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        dampingRatio = Spring.DampingRatioLowBouncy
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                tint = Color(0xFF09090B),
-                modifier = Modifier.size(24.dp)
-            )
+            Row(
+                modifier = Modifier.padding(horizontal = if (isExpanded && label.isNotBlank()) 20.dp else 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = contentDescription,
+                    tint = Color(0xFF09090B),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .graphicsLayer {
+                            scaleX = iconScale
+                            scaleY = iconScale
+                        }
+                )
+
+                if (isExpanded && label.isNotBlank()) {
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = label,
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Color(0xFF09090B)
+                    )
+                }
+            }
         }
     }
 }
 
 /**
- * Official Material 3 Speed Dial FAB Menu with Expand Container Motion:
- * Strictly implements M3 FAB Menu Guidelines & Motion (m3.material.io/components/fab-menu).
- * - Trigger FAB: 56dp x 56dp container with 135° rotation animation on expand.
- * - Staggered Motion Stack: Smooth spring expandVertically + slideInVertically for mini FAB items.
- * - Scroll-Aware Motion: Smooth entrance & exit visibility transitions.
+ * Official Material 3 Speed Dial FAB Menu with Motion (Video A, C & D Specs):
+ * - Video A: Center-focal scaleIn + 40ms micro-stagger icon pop-in.
+ * - Video C: Scroll-aware collapse/hide on list scroll down; spring pop-in on scroll stop/up.
+ * - Video D: Speed Dial Transformation with 135° rotation on trigger FAB + staggered mini FAB stack.
  */
 @Composable
 fun M3SpeedDialFab(

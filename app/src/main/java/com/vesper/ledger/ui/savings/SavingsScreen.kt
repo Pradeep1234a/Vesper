@@ -121,10 +121,11 @@ fun SavingsScreen(
     }
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val isAtTop by remember {
+        derivedStateOf { lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset == 0 }
+    }
     val isFabVisible by remember {
-        derivedStateOf {
-            !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0
-        }
+        derivedStateOf { !lazyListState.isScrollInProgress || isAtTop }
     }
 
     Scaffold(
@@ -133,8 +134,10 @@ fun SavingsScreen(
         floatingActionButton = {
             M3SingleFab(
                 onClick = onAddGoalClick,
+                label = "Add Goal",
                 contentDescription = "Add Savings Goal",
                 visible = isFabVisible,
+                isExpanded = isAtTop,
                 hasBottomBar = false
             )
         }

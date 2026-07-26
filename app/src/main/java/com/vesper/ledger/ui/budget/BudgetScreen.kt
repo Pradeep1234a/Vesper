@@ -60,10 +60,11 @@ fun BudgetScreen(
     val overallProgress = if (totalBudgetLimit > 0) (totalBudgetSpent / totalBudgetLimit).toFloat().coerceIn(0f, 1f) else 0f
 
     val lazyListState = rememberLazyListState()
+    val isAtTop by remember {
+        derivedStateOf { lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset == 0 }
+    }
     val isFabVisible by remember {
-        derivedStateOf {
-            !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0
-        }
+        derivedStateOf { !lazyListState.isScrollInProgress || isAtTop }
     }
 
     Scaffold(
@@ -71,8 +72,11 @@ fun BudgetScreen(
         floatingActionButton = {
             M3SingleFab(
                 onClick = onAddBudgetClick,
+                label = "Add Budget",
                 contentDescription = "Add Budget",
-                visible = isFabVisible
+                visible = isFabVisible,
+                isExpanded = isAtTop,
+                hasBottomBar = true
             )
         },
         containerColor = MaterialTheme.colorScheme.background
