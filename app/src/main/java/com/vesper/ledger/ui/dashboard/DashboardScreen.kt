@@ -132,35 +132,92 @@ fun DashboardScreen(
                 contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
             ) {
                 item {
-                    Column(modifier = Modifier.padding(bottom = 4.dp)) {
-                        Text(
-                            text = "$greeting,",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 16.sp
+                    val currentDateStr = remember { SimpleDateFormat("EEE, dd MMM", Locale.getDefault()).format(Date()).uppercase() }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp, bottom = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Left Column: Greeting Micro-Badge & User Headline
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFF38BDF8).copy(alpha = 0.12f))
+                                    .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                            ) {
+                                Text(
+                                    text = greeting.uppercase(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 10.sp,
+                                        letterSpacing = 1.2.sp,
+                                        color = Color(0xFF38BDF8)
+                                    )
+                                )
+                            }
+
+                            Text(
+                                text = displayName,
+                                style = MaterialTheme.typography.headlineLarge.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    fontSize = 28.sp
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "$displayName!",
-                            style = MaterialTheme.typography.headlineLarge.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                fontSize = 30.sp
+
+                            Text(
+                                text = "Here is your money summary.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = PlusJakartaSansFamily,
+                                    color = Color(0xFFA1A1AA),
+                                    fontSize = 13.sp
+                                )
                             )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Here is your money summary.",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = PlusJakartaSansFamily,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 14.sp
-                            )
-                        )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        // Right Column: Date Status Pill Card (Visual Equilibrium)
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF18181B))
+                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF22C55E))
+                                )
+                                Text(
+                                    text = currentDateStr,
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        letterSpacing = 0.8.sp,
+                                        color = Color.White
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
 
