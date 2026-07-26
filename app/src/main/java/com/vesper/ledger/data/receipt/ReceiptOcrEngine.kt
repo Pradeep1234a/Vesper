@@ -25,7 +25,7 @@ object ReceiptOcrEngine {
         val inputImage = try {
             InputImage.fromFilePath(context, imageUri)
         } catch (e: Exception) {
-            return fallbackSampleReceipt(imageUri.toString())
+            return createEmptyReceiptForImage(imageUri.toString())
         }
 
         val visionText = suspendCancellableCoroutine<Text?> { continuation ->
@@ -229,42 +229,6 @@ object ReceiptOcrEngine {
             imageUriString = imageUriStr,
             lineItems = mutableListOf()
         )
-        return receipt
-    }
-
-    /**
-     * Fallback high-fidelity sample receipt when testing or offline.
-     */
-    fun fallbackSampleReceipt(imageUriStr: String): ScannedReceipt {
-        val sampleItems = mutableListOf(
-            ReceiptLineItem(name = "Organic Whole Milk 1L", quantity = 2, unitPrice = 3.50, totalPrice = 7.00, category = "Groceries", confidenceScore = 0.96f),
-            ReceiptLineItem(name = "Fresh Artisan Bread", quantity = 1, unitPrice = 4.25, totalPrice = 4.25, category = "Groceries", confidenceScore = 0.94f),
-            ReceiptLineItem(name = "Espresso Dark Roast Coffee", quantity = 1, unitPrice = 12.99, totalPrice = 12.99, category = "Groceries", confidenceScore = 0.91f),
-            ReceiptLineItem(name = "Wireless Earbuds Case", quantity = 1, unitPrice = 49.99, totalPrice = 49.99, category = "Electronics", confidenceScore = 0.88f),
-            ReceiptLineItem(name = "Paper Notebook A5", quantity = 2, unitPrice = 2.50, totalPrice = 5.00, category = "Books & Stationery", confidenceScore = 0.79f) // Needs Review (<0.85)
-        )
-
-        val receipt = ScannedReceipt(
-            merchantName = "Whole Foods Market",
-            storeAddress = "742 Evergreen Terrace, Springfield",
-            receiptNumber = "RCPT-984210",
-            invoiceNumber = "INV-2026-0814",
-            dateString = "22 Jul 2026",
-            timeString = "14:32 PM",
-            currencySymbol = "$",
-            subtotal = 79.23,
-            taxAmount = 6.34,
-            discountAmount = 3.50,
-            serviceCharge = 1.50,
-            grandTotal = 83.57,
-            paymentMethod = "Visa Card",
-            cardLastFour = "4821",
-            rawOcrText = "WHOLE FOODS MARKET\nRCPT-984210\n22 Jul 2026 14:32 PM\nOrganic Whole Milk 1L  $7.00\nFresh Artisan Bread  $4.25\nEspresso Dark Roast Coffee $12.99\nWireless Earbuds Case $49.99\nPaper Notebook A5 $5.00\nSubtotal: $79.23\nTax: $6.34\nDiscount: -$3.50\nTotal: $83.57\nVisa ending 4821",
-            imageUriString = imageUriStr,
-            lineItems = sampleItems
-        )
-
-        ReceiptCategorySplitter.categorizeAndSplit(receipt)
         return receipt
     }
 }

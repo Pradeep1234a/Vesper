@@ -1009,14 +1009,14 @@ fun DashboardScreen(
                             ReceiptProcessingScreen(
                                 onProcessingFinished = {
                                     if (scannedReceiptData == null) {
-                                        scannedReceiptData = ReceiptOcrEngine.fallbackSampleReceipt("sample_receipt.png")
+                                        scannedReceiptData = ReceiptOcrEngine.createEmptyReceiptForImage("scanned_receipt.png")
                                     }
                                     scannerStep = "review"
                                 }
                             )
                         }
                         "review" -> {
-                            val receiptToReview = scannedReceiptData ?: ReceiptOcrEngine.fallbackSampleReceipt("sample.png")
+                            val receiptToReview = scannedReceiptData ?: ReceiptOcrEngine.createEmptyReceiptForImage("scanned_receipt.png")
                             ReceiptReviewStudioScreen(
                                 scannedReceipt = receiptToReview,
                                 onBackClick = { scannerStep = "capture" },
