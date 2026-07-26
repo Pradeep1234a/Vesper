@@ -558,11 +558,28 @@ fun SettingsScreen(
                         )
 
                         listOf(
-                            "v2.85.0" to listOf("Dedicated Profile, Open Source, Privacy & Legal screens", "Material 3 FAB exact 16dp edge alignment & 8dp gap", "Redesigned M3 Theme Selector Dialog"),
-                            "v2.83.0" to listOf("Complete fl_chart Analytics Suite (Line, Bar, Donut, Radar, Scatter)", "Interactive chart tap tooltips & daily spending heatmaps"),
-                            "v2.80.0" to listOf("Material 3 FAB & FAB Menu implementation", "Bouncy spring motion & press feedback animations"),
-                            "v2.74.0" to listOf("Bento Grid Dashboard Architecture", "4-Tier Non-Blending Dark Surface contrast scale"),
-                            "v2.70.0" to listOf("100% Room SQLite local database migration", "Shadcn-inspired minimal black theme")
+                            "Version 2.85.0 (Latest Release)" to listOf(
+                                "User Profile Studio: Dedicated screen to customize your display name, email, and monogram avatar",
+                                "Privacy & Legal Center: Full Play Store-ready Privacy Policy, Terms of Conditions, and Open Source library credits",
+                                "Material 3 FAB Polish: Pixel-perfect edge alignment and 8dp bottom nav gap across all screens",
+                                "Redesigned Theme Selector: Clean 4-tier dark theme switcher modal"
+                            ),
+                            "Version 2.83.0" to listOf(
+                                "Rich Visual Analytics: Added interactive spending trend line charts, daily bar graphs, category donut breakdown, radar spider charts, and transaction scatter plots",
+                                "Live Chart Touch Tooltips: Tap any data point on charts to view exact spending dates and amounts",
+                                "Monthly Heatmap Grid: Visual 7-column calendar intensity map to spot peak spending days"
+                            ),
+                            "Version 2.80.0" to listOf(
+                                "Material 3 Multi-Action Menu: Tap the floating '+' button to expand quick actions for Expenses, Income, and Transfers",
+                                "Bouncy Press Motion: Interactive spring scale animations when tapping action buttons"
+                            ),
+                            "Version 2.74.0" to listOf(
+                                "Bento Grid Dashboard: Organized key financial metrics (Expenses, Income, Savings Rate %, Daily Average) into a clean, modern grid",
+                                "4-Tier Dark Contrast Palette: High-contrast pure dark theme designed so cards and text never blend into the background"
+                            ),
+                            "Version 2.70.0" to listOf(
+                                "100% On-Device Offline Storage: Full local SQLite database migration ensuring your financial records remain 100% private on your phone"
+                            )
                         ).forEach { (version, highlights) ->
                             Box(
                                 modifier = Modifier
