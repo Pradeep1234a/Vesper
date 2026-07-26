@@ -121,21 +121,9 @@ fun SavingsScreen(
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
 
-    val isFabVisible by remember {
-        derivedStateOf { !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0 }
-    }
-
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = {
-            com.vesper.ledger.ui.components.M3SingleFab(
-                onClick = onAddGoalClick,
-                contentDescription = "Add Savings Goal",
-                visible = isFabVisible,
-                hasBottomBar = false
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         ElasticBounceContainer(
             modifier = Modifier
