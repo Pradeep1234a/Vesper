@@ -303,6 +303,7 @@ fun MainScreen(
         )
 
         var editingTransaction by remember { mutableStateOf<com.vesper.ledger.data.model.Transaction?>(null) }
+        var editingSavingsGoal by remember { mutableStateOf<com.vesper.ledger.data.model.SavingsGoal?>(null) }
 
         val screenTitle = when (currentRoute) {
             Screen.Dashboard.route -> "Vesper Ledger"
@@ -311,6 +312,7 @@ fun MainScreen(
             Screen.Analytics.route -> "Analytics"
             Screen.Settings.route -> "Settings"
             Screen.Savings.route -> "Savings Goals"
+            Screen.AddSavingsGoal.route -> if (editingSavingsGoal != null) "Edit Savings Goal" else "New Savings Goal"
             Screen.AddTransaction.route -> if (editingTransaction != null) "Edit Transaction" else "New Transaction"
             Screen.CurrencySelector.route -> "Select Currency"
             Screen.AddCategory.route -> "Categories"
@@ -511,7 +513,48 @@ fun MainScreen(
                     SavingsScreen(
                         viewModel = savingsViewModel,
                         currencySymbol = currencySymbol,
-                        onBackClick = { navController.popBackStack() }
+                        onBackClick = { navController.popBackStack() },
+                        onAddGoalClick = {
+                            editingSavingsGoal = null
+                            navController.navigate(Screen.AddSavingsGoal.route)
+                        },
+                        onEditGoalClick = { goal ->
+                            editingSavingsGoal = goal
+                            navController.navigate(Screen.AddSavingsGoal.route)
+                        }
+                    )
+                }
+
+                composable(Screen.AddSavingsGoal.route) {
+                    val savingsViewModel: SavingsViewModel = viewModel(factory = savingsFactory)
+                    com.vesper.ledger.ui.savings.AddEditSavingsGoalScreen(
+                        goalToEdit = editingSavingsGoal,
+                        currencySymbol = currencySymbol,
+                        onBackClick = {
+                            editingSavingsGoal = null
+                            navController.popBackStack()
+                        },
+                        onSaveGoal = { name, targetAmount, currentAmount, targetDateMillis, _, _, goalIdToUpdate ->
+                            if (goalIdToUpdate != null) {
+                                editingSavingsGoal?.let { goal ->
+                                    savingsViewModel.updateSavingsGoal(
+                                        goal.copy(
+                                            name = name,
+                                            targetAmount = targetAmount,
+                                            currentAmount = currentAmount,
+                                            targetDateEpochMillis = targetDateMillis
+                                        )
+                                    )
+                                }
+                            } else {
+                                savingsViewModel.addSavingsGoal(name, targetAmount, targetDateMillis)
+                            }
+                            editingSavingsGoal = null
+                        },
+                        onDeleteGoal = { goalToDelete ->
+                            savingsViewModel.deleteSavingsGoal(goalToDelete)
+                            editingSavingsGoal = null
+                        }
                     )
                 }
 

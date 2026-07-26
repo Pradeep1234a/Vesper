@@ -21,5 +21,6 @@ sealed class Screen(val route: String) {
     object SplitGroups : Screen("split_groups")
     object CreateSplitGroup : Screen("create_split_group")
     object AddSplitExpense : Screen("add_split_expense")
+    object AddSavingsGoal : Screen("add_savings_goal")
     object ProfileManagement : Screen("profile_management")
 }

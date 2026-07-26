@@ -35,6 +35,12 @@ class SavingsViewModel(
         }
     }
 
+    fun updateSavingsGoal(goal: SavingsGoal) {
+        viewModelScope.launch {
+            savingsRepository.updateSavingsGoal(goal)
+        }
+    }
+
     fun adjustGoalAmount(goal: SavingsGoal, adjustment: Double) {
         viewModelScope.launch {
             val newAmount = (goal.currentAmount + adjustment).coerceAtLeast(0.0)
