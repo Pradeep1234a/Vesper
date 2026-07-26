@@ -1,9 +1,6 @@
 package com.vesper.ledger.ui.settings
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,7 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Search
@@ -25,12 +22,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.CurrencyData
 import com.vesper.ledger.data.model.CurrencyItem
-import com.vesper.ledger.ui.components.ChildHeader
-import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 enum class CurrencyFlowMode {
@@ -78,44 +74,55 @@ fun CurrencySelectorScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(Color(0xFF09090B))
                     .navigationBarsPadding(),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 6.dp,
-                shadowElevation = 8.dp
+                color = Color(0xFF09090B),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp
             ) {
-                Button(
-                    onClick = {
-                        viewModel.saveCurrency(selectedCurrency.symbol, selectedCurrency.code)
-                        Toast.makeText(
-                            context,
-                            "Currency set to ${selectedCurrency.code} (${selectedCurrency.symbol})",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        if (flowMode == CurrencyFlowMode.ONBOARDING) {
-                            onCompleteOnboarding()
-                        } else {
-                            onBackClick()
-                        }
-                    },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 12.dp)
-                        .height(52.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onBackground,
-                        contentColor = MaterialTheme.colorScheme.background
-                    )
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
-                    Icon(imageVector = Icons.Outlined.CheckCircle, contentDescription = "Save")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (flowMode == CurrencyFlowMode.ONBOARDING) "Save & Continue" else "Save Currency",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+                    Button(
+                        onClick = {
+                            viewModel.saveCurrency(selectedCurrency.symbol, selectedCurrency.code)
+                            Toast.makeText(
+                                context,
+                                "Currency set to ${selectedCurrency.code} (${selectedCurrency.symbol})",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            if (flowMode == CurrencyFlowMode.ONBOARDING) {
+                                onCompleteOnboarding()
+                            } else {
+                                onBackClick()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CheckCircle,
+                            contentDescription = "Save",
+                            tint = Color.Black,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (flowMode == CurrencyFlowMode.ONBOARDING) "SAVE & CONTINUE" else "SAVE CURRENCY",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            letterSpacing = 0.8.sp
+                        )
+                    }
                 }
             }
         }
@@ -126,114 +133,30 @@ fun CurrencySelectorScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Header Content depending on Flow Mode
-            if (flowMode == CurrencyFlowMode.ONBOARDING) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = "ACCOUNT SETUP",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                                letterSpacing = 1.2.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
+            // Maintain exact 8dp gap below topbar before search bar
+            Spacer(modifier = Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "Select Currency",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "Choose your main currency for accounts, balance tracking, and budget limits.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 13.sp
-                        )
-                    )
-                }
-            } else {
-                // Info Subtitle for Settings Flow
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(14.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = selectedCurrency.flagEmoji,
-                            fontSize = 22.sp,
-                            modifier = Modifier.padding(end = 12.dp)
-                        )
-                        Column {
-                            Text(
-                                text = "Active: ${selectedCurrency.country} (${selectedCurrency.code} ${selectedCurrency.symbol})",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            )
-                            Text(
-                                text = "Applies across all accounts, transaction logs, and monthly budgets.",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 12.sp
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Search Bar
+            // 1. Search Bar (First item at the top)
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp),
                 placeholder = {
                     Text(
-                        text = "Search country, currency or code...",
+                        text = "Search country, currency or symbol...",
                         fontFamily = SpaceGroteskFamily,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        fontSize = 13.sp,
+                        color = Color(0xFFA1A1AA)
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.Search,
                         contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = Color(0xFFA1A1AA),
+                        modifier = Modifier.size(18.dp)
                     )
                 },
                 trailingIcon = {
@@ -242,24 +165,126 @@ fun CurrencySelectorScreen(
                             Icon(
                                 imageVector = Icons.Outlined.Clear,
                                 contentDescription = "Clear",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = Color(0xFFA1A1AA),
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(6.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color(0xFF27272A),
+                    focusedContainerColor = Color(0xFF18181B),
+                    unfocusedContainerColor = Color(0xFF18181B),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 )
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Currency List
+            // 2. Selected Currency Card (Displayed directly below search bar)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xFF18181B))
+                    .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                    .padding(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF242429))
+                                .border(1.dp, Color(0xFF3F3F46), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = selectedCurrency.flagEmoji,
+                                fontSize = 20.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = selectedCurrency.country,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "(${selectedCurrency.code})",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF38BDF8)
+                                )
+                            }
+                            Text(
+                                text = "${selectedCurrency.name} • Symbol: ${selectedCurrency.symbol}",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 11.sp,
+                                color = Color(0xFFA1A1AA)
+                            )
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(0xFF38BDF8).copy(alpha = 0.15f))
+                            .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "SELECTED",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                            letterSpacing = 0.8.sp,
+                            color = Color(0xFF38BDF8)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "AVAILABLE CURRENCIES",
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                letterSpacing = 1.2.sp,
+                color = Color(0xFFA1A1AA),
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 3. Currency List (Structured with Vesper's pure black & white / dark bento rhythm)
             if (filteredCurrencies.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -272,15 +297,14 @@ fun CurrencySelectorScreen(
                             imageVector = Icons.Outlined.Search,
                             contentDescription = null,
                             modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            tint = Color(0xFFA1A1AA)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "No currencies found for \"$searchQuery\"",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = SpaceGroteskFamily,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            text = "No currencies match \"$searchQuery\"",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 13.sp,
+                            color = Color(0xFFA1A1AA)
                         )
                     }
                 }
@@ -290,7 +314,7 @@ fun CurrencySelectorScreen(
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
                     contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(filteredCurrencies, key = { it.code + it.country }) { item ->
                         val isSelected = item.code == selectedCurrency.code
@@ -298,11 +322,11 @@ fun CurrencySelectorScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(6.dp))
                                 .border(
-                                    width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outlineVariant,
-                                    shape = RoundedCornerShape(12.dp)
+                                    width = if (isSelected) 1.5.dp else 1.dp,
+                                    color = if (isSelected) Color(0xFF38BDF8) else Color(0xFF27272A),
+                                    shape = RoundedCornerShape(6.dp)
                                 )
                                 .clickable {
                                     selectedCurrency = item
@@ -315,110 +339,91 @@ fun CurrencySelectorScreen(
                                         ).show()
                                     }
                                 },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(6.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
-                                } else {
-                                    MaterialTheme.colorScheme.surface
-                                }
+                                containerColor = if (isSelected) Color(0xFF1E293B) else Color(0xFF18181B)
                             ),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                // Flag Box
-                                Box(
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
-                                        .border(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                            CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
                                 ) {
-                                    Text(
-                                        text = item.flagEmoji,
-                                        fontSize = 22.sp
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.width(14.dp))
-
-                                // Country & Currency Info
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(38.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF242429))
+                                            .border(1.dp, Color(0xFF3F3F46), CircleShape),
+                                        contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            text = item.country,
-                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                fontFamily = SpaceGroteskFamily,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 15.sp,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
+                                            text = item.flagEmoji,
+                                            fontSize = 18.sp
                                         )
+                                    }
 
+                                    Spacer(modifier = Modifier.width(12.dp))
+
+                                    Column {
+                                        Text(
+                                            text = item.country,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = "${item.name} (${item.code})",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontSize = 11.sp,
+                                            color = Color(0xFFA1A1AA)
+                                        )
+                                    }
+                                }
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(Color(0xFF27272A))
+                                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                                    ) {
+                                        Text(
+                                            text = item.symbol,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = Color.White
+                                        )
+                                    }
+
+                                    if (isSelected) {
                                         Box(
                                             modifier = Modifier
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-                                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                .size(22.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF38BDF8)),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            Text(
-                                                text = item.code,
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontFamily = SpaceGroteskFamily,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 10.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "Selected",
+                                                tint = Color.Black,
+                                                modifier = Modifier.size(14.dp)
                                             )
                                         }
                                     }
-
-                                    Spacer(modifier = Modifier.height(2.dp))
-
-                                    Text(
-                                        text = "${item.name} • ${item.symbol}",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontFamily = SpaceGroteskFamily,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 13.sp
-                                        )
-                                    )
-                                }
-
-                                // Selection Indicator
-                                AnimatedVisibility(
-                                    visible = isSelected,
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.CheckCircle,
-                                        contentDescription = "Selected",
-                                        tint = MaterialTheme.colorScheme.onBackground,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-
-                                if (!isSelected) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.CheckCircle,
-                                        contentDescription = "Unselected",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                        modifier = Modifier.size(24.dp)
-                                    )
                                 }
                             }
                         }
