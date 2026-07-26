@@ -60,34 +60,13 @@ fun BudgetScreen(
 
     val lazyListState = rememberLazyListState()
 
-    val isFabVisible by remember {
-        derivedStateOf { !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0 }
-    }
-
     Scaffold(
-        topBar = {
-            com.vesper.ledger.ui.components.VesperUnifiedTopBar(
-                title = "Budgets",
-                isRoot = false,
-                onNavigationClick = { onBackClick?.invoke() },
-                actions = {
-                    IconButton(onClick = onAddBudgetClick) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Budget",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            )
-        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddBudgetClick,
                 contentDescription = "Add Budget",
-                visible = isFabVisible,
                 hasBottomBar = true
             )
         }

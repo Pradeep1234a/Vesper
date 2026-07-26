@@ -93,22 +93,6 @@ fun AccountsScreen(
     }
 
     Scaffold(
-        topBar = {
-            com.vesper.ledger.ui.components.VesperUnifiedTopBar(
-                title = "Accounts",
-                isRoot = false,
-                onNavigationClick = onBackClick,
-                actions = {
-                    IconButton(onClick = onAddAccountClick) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Account",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            )
-        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {

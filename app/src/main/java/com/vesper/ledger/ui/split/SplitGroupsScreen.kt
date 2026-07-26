@@ -50,22 +50,6 @@ fun SplitGroupsScreen(
     val totalOwe = sampleGroups.filter { it.netBalance < 0 }.sumOf { kotlin.math.abs(it.netBalance) }
 
     Scaffold(
-        topBar = {
-            com.vesper.ledger.ui.components.VesperUnifiedTopBar(
-                title = "Split Expense Groups",
-                isRoot = false,
-                onNavigationClick = { },
-                actions = {
-                    IconButton(onClick = onCreateGroupClick) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Create Group",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            )
-        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {

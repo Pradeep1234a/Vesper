@@ -121,34 +121,13 @@ fun SavingsScreen(
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
 
-    val isFabVisible by remember {
-        derivedStateOf { !lazyListState.isScrollInProgress || lazyListState.firstVisibleItemIndex == 0 }
-    }
-
     Scaffold(
-        topBar = {
-            com.vesper.ledger.ui.components.VesperUnifiedTopBar(
-                title = "Savings Goals",
-                isRoot = false,
-                onNavigationClick = onBackClick,
-                actions = {
-                    IconButton(onClick = onAddGoalClick) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Savings Goal",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            )
-        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             com.vesper.ledger.ui.components.M3SingleFab(
                 onClick = onAddGoalClick,
                 contentDescription = "Add Savings Goal",
-                visible = isFabVisible,
                 hasBottomBar = false
             )
         }
