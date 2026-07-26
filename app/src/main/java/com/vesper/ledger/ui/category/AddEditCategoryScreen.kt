@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.TransactionType
+import com.vesper.ledger.ui.accounts.ElasticBounceContainer
 import com.vesper.ledger.ui.components.ICON_CATEGORIES
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
@@ -172,41 +172,112 @@ fun AddEditCategoryScreen(
                             ).show()
                             onBackClick()
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
                     )
                 }
             }
         }
     ) { innerPadding ->
-        Column(
+        ElasticBounceContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Form Card Container (Reference to AddEditAccountScreen)
-            ShCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(18.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(
-                        text = if (isEditMode) "EDIT CATEGORY DETAILS" else "CATEGORY PARAMETERS",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 1.2.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    // 1. Transaction Type Picker (EXPENSE vs INCOME)
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 1. LIVE CATEGORY PREVIEW CARD (Modeled after AddEditAccountScreen)
+                val parsedAccent = safeParseColor(selectedColorHex)
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(parsedAccent.copy(alpha = 0.15f))
+                                .border(1.dp, parsedAccent.copy(alpha = 0.4f), RoundedCornerShape(6.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = getIconByName(selectedIcon),
+                                contentDescription = null,
+                                tint = parsedAccent,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = nameText.ifBlank { "Category Name" },
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(
+                                            if (selectedType == TransactionType.EXPENSE) Color(0xFFEF4444).copy(alpha = 0.15f)
+                                            else Color(0xFF22C55E).copy(alpha = 0.15f)
+                                        )
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = selectedType.name,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 10.sp,
+                                        color = if (selectedType == TransactionType.EXPENSE) Color(0xFFEF4444) else Color(0xFF22C55E)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2. CATEGORY NAME INPUT CARD (Distinct Sectioned Card)
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    ShTextField(
+                        value = nameText,
+                        onValueChange = { nameText = it },
+                        label = "Category Name",
+                        placeholder = "e.g., Groceries, Coffee, Salary"
+                    )
+                }
+
+                // 3. TRANSACTION TYPE SELECTOR CARD (Expense vs Income Chips)
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             text = "Category Type",
                             style = MaterialTheme.typography.labelMedium.copy(
@@ -230,12 +301,12 @@ fun AddEditCategoryScreen(
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(
-                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                            else MaterialTheme.colorScheme.surface
+                                            if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                         )
                                         .border(
                                             width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
                                             shape = RoundedCornerShape(6.dp)
                                         )
                                         .clickable { selectedType = type }
@@ -247,23 +318,21 @@ fun AddEditCategoryScreen(
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
                         }
                     }
+                }
 
-                    // 2. Category Name Input
-                    ShTextField(
-                        value = nameText,
-                        onValueChange = { nameText = it },
-                        label = "Category Name",
-                        placeholder = "e.g., Groceries, Coffee, Salary"
-                    )
-
-                    // 3. Color Accent Picker
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 4. ACCENT COLOR SELECTION CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             text = "Accent Color",
                             style = MaterialTheme.typography.labelMedium.copy(
@@ -274,7 +343,8 @@ fun AddEditCategoryScreen(
                         )
 
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             PALETTE_COLORS.forEach { hex ->
@@ -288,7 +358,7 @@ fun AddEditCategoryScreen(
                                         .background(parsedColor)
                                         .border(
                                             width = if (isSelected) 2.dp else 0.dp,
-                                            color = if (isSelected) Color.White else Color.Transparent,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onBackground else Color.Transparent,
                                             shape = CircleShape
                                         )
                                         .clickable { selectedColorHex = hex },
@@ -306,11 +376,17 @@ fun AddEditCategoryScreen(
                             }
                         }
                     }
+                }
 
-                    // 4. Category Icon Selector
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 5. ICON SELECTION GRID CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = "Category Icon",
+                            text = "Select Icon",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
@@ -321,19 +397,19 @@ fun AddEditCategoryScreen(
                         OutlinedTextField(
                             value = iconSearchQuery,
                             onValueChange = { iconSearchQuery = it },
-                            modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text(
-                                    text = "Search icon name...",
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontSize = 13.sp
+                                    text = "Search icons...",
+                                    fontFamily = PlusJakartaSansFamily,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Outlined.Search,
                                     contentDescription = "Search",
-                                    modifier = Modifier.size(18.dp)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
                             trailingIcon = {
@@ -341,46 +417,57 @@ fun AddEditCategoryScreen(
                                     IconButton(onClick = { iconSearchQuery = "" }) {
                                         Icon(
                                             imageVector = Icons.Outlined.Clear,
-                                            contentDescription = "Clear",
-                                            modifier = Modifier.size(18.dp)
+                                            contentDescription = "Clear search",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
                             },
                             singleLine = true,
-                            shape = RoundedCornerShape(6.dp)
+                            shape = RoundedCornerShape(6.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedBorderColor = MaterialTheme.colorScheme.outline,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         )
 
-                        Box(modifier = Modifier.height(200.dp)) {
+                        // Clean Scrollable Icon Grid Container (160dp height limit)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                        ) {
                             LazyVerticalGrid(
                                 columns = GridCells.Adaptive(minSize = 48.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxSize()
                             ) {
                                 items(filteredIcons) { iconName ->
                                     val isSelected = selectedIcon == iconName
-                                    val iconVector = getIconByName(iconName)
-
                                     Box(
                                         modifier = Modifier
                                             .size(48.dp)
                                             .clip(RoundedCornerShape(6.dp))
                                             .background(
-                                                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                                else MaterialTheme.colorScheme.surface
+                                                if (isSelected) parsedAccent.copy(alpha = 0.15f)
+                                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                             )
                                             .border(
                                                 width = if (isSelected) 1.5.dp else 1.dp,
-                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                                color = if (isSelected) parsedAccent else MaterialTheme.colorScheme.outlineVariant,
                                                 shape = RoundedCornerShape(6.dp)
                                             )
                                             .clickable { selectedIcon = iconName },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            imageVector = iconVector,
+                                            imageVector = getIconByName(iconName),
                                             contentDescription = iconName,
-                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            tint = if (isSelected) parsedAccent else MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(22.dp)
                                         )
                                     }
@@ -389,38 +476,41 @@ fun AddEditCategoryScreen(
                         }
                     }
                 }
-            }
 
-            // Delete Category Button (Only in Edit Mode)
-            if (isEditMode && onDeleteCategory != null) {
-                OutlinedButton(
-                    onClick = { showDeleteConfirmDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "Delete Category",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "DELETE CATEGORY",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
-                    )
+                // 6. DELETE CATEGORY CARD (If Edit Mode)
+                if (isEditMode && onDeleteCategory != null) {
+                    ShCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        Button(
+                            onClick = { showDeleteConfirmDialog = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "Delete Category",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "DELETE CATEGORY",
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }

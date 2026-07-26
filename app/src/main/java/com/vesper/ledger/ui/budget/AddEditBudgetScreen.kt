@@ -4,15 +4,11 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,11 +18,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.data.model.Category
+import com.vesper.ledger.ui.accounts.ElasticBounceContainer
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.ShTextField
@@ -139,26 +135,29 @@ fun AddEditBudgetScreen(
                     ShButton(
                         text = if (isEditMode) "SAVE BUDGET CHANGES" else "CREATE BUDGET",
                         onClick = {
-                            val amount = amountText.toDoubleOrNull() ?: 0.0
+                            val amountVal = amountText.toDoubleOrNull() ?: 0.0
 
-                            if (amount <= 0) {
-                                Toast.makeText(context, "Please enter a valid limit amount", Toast.LENGTH_SHORT).show()
+                            if (amountVal <= 0.0) {
+                                Toast.makeText(context, "Please enter a valid target budget amount", Toast.LENGTH_SHORT).show()
+                                return@ShButton
+                            }
+
+                            if (selectedCategory == null) {
+                                Toast.makeText(context, "Please select a category for this budget", Toast.LENGTH_SHORT).show()
                                 return@ShButton
                             }
 
                             val cal = Calendar.getInstance()
-                            val now = cal.timeInMillis
-                            cal.add(Calendar.DAY_OF_MONTH, 30)
+                            val startDate = cal.timeInMillis
+                            cal.add(Calendar.MONTH, 1)
                             val endDate = cal.timeInMillis
 
-                            val finalName = nameText.trim().ifBlank { selectedCategory?.name ?: "Budget" }
-
                             onSaveBudget(
-                                finalName,
-                                amount,
+                                nameText.trim().ifBlank { selectedCategory.name },
+                                amountVal,
                                 selectedPeriod,
-                                selectedCategoryId,
-                                now,
+                                selectedCategory.id,
+                                startDate,
                                 endDate,
                                 notesText.ifBlank { null },
                                 budgetToEdit?.id
@@ -170,43 +169,143 @@ fun AddEditBudgetScreen(
                             ).show()
                             onBackClick()
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
                     )
                 }
             }
         }
     ) { innerPadding ->
-        Column(
+        ElasticBounceContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Form Card Container (Reference to AddEditAccountScreen)
-            ShCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(18.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(
-                        text = if (isEditMode) "EDIT BUDGET DETAILS" else "BUDGET PARAMETERS",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 1.2.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    // 1. Category Selection Chips
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 1. LIVE BUDGET PREVIEW CARD (Sectioned Bento Card)
+                val parsedLimit = amountText.toDoubleOrNull() ?: 0.0
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f), RoundedCornerShape(6.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = getIconByName(selectedCategory?.iconName ?: "pie_chart"),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = nameText.ifBlank { selectedCategory?.name ?: "Budget Limit" },
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = selectedPeriod,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "$currencySymbol${String.format("%.2f", parsedLimit)}",
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "LIMIT",
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                // 2. BUDGET NAME INPUT CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    ShTextField(
+                        value = nameText,
+                        onValueChange = { nameText = it },
+                        label = "Budget Name (Optional)",
+                        placeholder = "e.g., Monthly Groceries, Dining Out"
+                    )
+                }
+
+                // 3. TARGET BUDGET AMOUNT CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    ShTextField(
+                        value = amountText,
+                        onValueChange = { amountText = it },
+                        label = "Target Limit Amount ($currencySymbol)",
+                        placeholder = "0.00",
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal)
+                    )
+                }
+
+                // 4. CATEGORY SELECTION CARD (Horizontal Chips)
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
-                            text = "Category",
+                            text = "Linked Category",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
@@ -214,73 +313,58 @@ fun AddEditBudgetScreen(
                             )
                         )
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        androidx.compose.foundation.lazy.LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            categories.forEach { cat ->
-                                val isSelected = cat.id == selectedCategoryId
-                                Box(
+                            items(categories.size) { index ->
+                                val category = categories[index]
+                                val isSelected = category.id == selectedCategoryId
+                                Row(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(
-                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                            else MaterialTheme.colorScheme.surface
+                                            if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                         )
                                         .border(
                                             width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
                                             shape = RoundedCornerShape(6.dp)
                                         )
-                                        .clickable { selectedCategoryId = cat.id }
-                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                        .clickable { selectedCategoryId = category.id }
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = getIconByName(cat.iconName),
-                                            contentDescription = null,
-                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Text(
-                                            text = cat.name,
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 12.sp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
+                                    Icon(
+                                        imageVector = getIconByName(category.iconName),
+                                        contentDescription = null,
+                                        tint = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = category.name,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
                     }
+                }
 
-                    // 2. Budget Limit Amount Input
-                    ShTextField(
-                        value = amountText,
-                        onValueChange = { amountText = it },
-                        label = "Limit Amount ($currencySymbol)",
-                        placeholder = "0.00",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
-
-                    // 3. Optional Custom Budget Name
-                    ShTextField(
-                        value = nameText,
-                        onValueChange = { nameText = it },
-                        label = "Budget Name (Optional)",
-                        placeholder = selectedCategory?.name ?: "e.g., Dining Out"
-                    )
-
-                    // 4. Budget Period Selection
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 5. BUDGET PERIOD CARD (MONTHLY / WEEKLY / YEARLY)
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
-                            text = "Budget Period",
+                            text = "Recurrence Period",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
@@ -290,79 +374,88 @@ fun AddEditBudgetScreen(
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            BUDGET_PERIODS.forEach { p ->
-                                val isSelected = selectedPeriod.equals(p, ignoreCase = true)
+                            BUDGET_PERIODS.forEach { period ->
+                                val isSelected = selectedPeriod == period
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(
-                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                            else MaterialTheme.colorScheme.surface
+                                            if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                         )
                                         .border(
                                             width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
                                             shape = RoundedCornerShape(6.dp)
                                         )
-                                        .clickable { selectedPeriod = p }
+                                        .clickable { selectedPeriod = period }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = p,
+                                        text = period,
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
                         }
                     }
+                }
 
-                    // 5. Notes / Description Input
+                // 6. NOTES INPUT CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
                     ShTextField(
                         value = notesText,
                         onValueChange = { notesText = it },
-                        label = "Notes / Restrictions (Optional)",
-                        placeholder = "e.g., Exclude weekend spending"
+                        label = "Notes (Optional)",
+                        placeholder = "Additional budget instructions or limits..."
                     )
                 }
-            }
 
-            // Delete Budget Button (Only in Edit Mode)
-            if (isEditMode && onDeleteBudget != null) {
-                OutlinedButton(
-                    onClick = { showDeleteConfirmDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "Delete Budget",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "DELETE BUDGET",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
-                    )
+                // 7. DELETE BUDGET CARD (If Edit Mode)
+                if (isEditMode && onDeleteBudget != null) {
+                    ShCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        Button(
+                            onClick = { showDeleteConfirmDialog = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "Delete Budget",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "DELETE BUDGET",
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }

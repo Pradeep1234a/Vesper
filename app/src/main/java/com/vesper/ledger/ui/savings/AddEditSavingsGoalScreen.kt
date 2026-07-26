@@ -5,12 +5,10 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -24,13 +22,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.SavingsGoal
+import com.vesper.ledger.ui.accounts.ElasticBounceContainer
 import com.vesper.ledger.ui.components.ShButton
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.ShTextField
+import com.vesper.ledger.ui.components.safeParseColor
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.SimpleDateFormat
@@ -106,7 +105,7 @@ fun AddEditSavingsGoalScreen(
                     onClick = {
                         onDeleteGoal(goalToEdit)
                         showDeleteConfirmDialog = false
-                        Toast.makeText(context, "Savings goal deleted", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Goal deleted", Toast.LENGTH_SHORT).show()
                         onBackClick()
                     }
                 ) {
@@ -132,21 +131,6 @@ fun AddEditSavingsGoalScreen(
         )
     }
 
-    // Date Picker Dialog
-    val calendar = Calendar.getInstance()
-    calendar.timeInMillis = targetDateMillis
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, day ->
-            val newCal = Calendar.getInstance()
-            newCal.set(year, month, day)
-            targetDateMillis = newCal.timeInMillis
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
-
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
@@ -168,22 +152,23 @@ fun AddEditSavingsGoalScreen(
                     ShButton(
                         text = if (isEditMode) "SAVE GOAL CHANGES" else "CREATE SAVINGS GOAL",
                         onClick = {
-                            val target = targetAmountText.toDoubleOrNull() ?: 0.0
-                            val current = currentAmountText.toDoubleOrNull() ?: 0.0
+                            val targetVal = targetAmountText.toDoubleOrNull() ?: 0.0
+                            val currentVal = currentAmountText.toDoubleOrNull() ?: 0.0
 
                             if (nameText.isBlank()) {
-                                Toast.makeText(context, "Please enter a goal name", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Please enter a savings goal name", Toast.LENGTH_SHORT).show()
                                 return@ShButton
                             }
-                            if (target <= 0) {
+
+                            if (targetVal <= 0.0) {
                                 Toast.makeText(context, "Please enter a valid target amount", Toast.LENGTH_SHORT).show()
                                 return@ShButton
                             }
 
                             onSaveGoal(
                                 nameText.trim(),
-                                target,
-                                current,
+                                targetVal,
+                                currentVal,
                                 targetDateMillis,
                                 selectedIcon,
                                 selectedColorHex,
@@ -191,75 +176,170 @@ fun AddEditSavingsGoalScreen(
                             )
                             Toast.makeText(
                                 context,
-                                if (isEditMode) "Goal updated" else "Goal created successfully",
+                                if (isEditMode) "Savings goal updated" else "Savings goal created successfully",
                                 Toast.LENGTH_SHORT
                             ).show()
                             onBackClick()
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
                     )
                 }
             }
         }
     ) { innerPadding ->
-        Column(
+        ElasticBounceContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Form Card Container
-            ShCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(18.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    // Header Subtitle
-                    Text(
-                        text = if (isEditMode) "EDIT GOAL DETAILS" else "GOAL PARAMETERS",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontFamily = SpaceGroteskFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 1.2.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    // 1. Goal Name
+                // 1. LIVE SAVINGS GOAL PREVIEW CARD (Sectioned Bento Card)
+                val parsedTarget = targetAmountText.toDoubleOrNull() ?: 0.0
+                val parsedCurrent = currentAmountText.toDoubleOrNull() ?: 0.0
+                val progress = if (parsedTarget > 0) (parsedCurrent / parsedTarget).toFloat().coerceIn(0f, 1f) else 0f
+                val parsedAccent = safeParseColor(selectedColorHex)
+
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(parsedAccent.copy(alpha = 0.15f))
+                                    .border(1.dp, parsedAccent.copy(alpha = 0.4f), RoundedCornerShape(6.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = getSavingsIcon(selectedIcon),
+                                    contentDescription = null,
+                                    tint = parsedAccent,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(14.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = nameText.ifBlank { "Savings Target" },
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                    text = "Target Date: ${dateFormat.format(Date(targetDateMillis))}",
+                                    fontFamily = PlusJakartaSansFamily,
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "$currencySymbol${String.format("%.2f", parsedTarget)}",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${(progress * 100).toInt()}% SAVED",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 10.sp,
+                                    color = parsedAccent
+                                )
+                            }
+                        }
+
+                        // Progress Bar
+                        LinearProgressIndicator(
+                            progress = progress,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(CircleShape),
+                            color = parsedAccent,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    }
+                }
+
+                // 2. GOAL NAME INPUT CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
                     ShTextField(
                         value = nameText,
                         onValueChange = { nameText = it },
-                        label = "Goal Name",
-                        placeholder = "e.g., Summer Vacation, Emergency Fund"
+                        label = "Savings Goal Name",
+                        placeholder = "e.g., Emergency Fund, Vacation, New Laptop"
                     )
+                }
 
-                    // 2. Target Amount
+                // 3. TARGET AMOUNT INPUT CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
                     ShTextField(
                         value = targetAmountText,
                         onValueChange = { targetAmountText = it },
                         label = "Target Amount ($currencySymbol)",
                         placeholder = "0.00",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal)
                     )
+                }
 
-                    // 3. Initial / Current Saved Amount
+                // 4. INITIAL SAVED AMOUNT CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
                     ShTextField(
                         value = currentAmountText,
                         onValueChange = { currentAmountText = it },
-                        label = "Initial Saved Amount ($currencySymbol)",
+                        label = "Currently Saved Amount ($currencySymbol)",
                         placeholder = "0.00",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal)
                     )
+                }
 
-                    // 4. Target Completion Date Selection
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // 5. TARGET DATE PICKER CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "Target Completion Date",
+                            text = "Target Date",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
@@ -267,51 +347,56 @@ fun AddEditSavingsGoalScreen(
                             )
                         )
 
-                        Box(
+                        val cal = Calendar.getInstance()
+                        cal.timeInMillis = targetDateMillis
+
+                        val datePickerDialog = DatePickerDialog(
+                            context,
+                            { _, y, m, d ->
+                                val selectedCal = Calendar.getInstance()
+                                selectedCal.set(y, m, d)
+                                targetDateMillis = selectedCal.timeInMillis
+                            },
+                            cal.get(Calendar.YEAR),
+                            cal.get(Calendar.MONTH),
+                            cal.get(Calendar.DAY_OF_MONTH)
+                        )
+
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(MaterialTheme.colorScheme.surface)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp))
                                 .clickable { datePickerDialog.show() }
-                                .padding(horizontal = 14.dp, vertical = 14.dp)
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.CalendarToday,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(
-                                        text = dateFormat.format(Date(targetDateMillis)),
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                                Text(
-                                    text = "Change",
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Outlined.CalendarToday,
+                                contentDescription = "Select Date",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = dateFormat.format(Date(targetDateMillis)),
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
+                }
 
-                    // 5. Goal Category Icon Selector
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 6. ICON SELECTION CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             text = "Goal Icon",
                             style = MaterialTheme.typography.labelMedium.copy(
@@ -322,42 +407,46 @@ fun AddEditSavingsGoalScreen(
                         )
 
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            SAVINGS_ICONS.forEach { (iconKey, iconVector) ->
-                                val isSelected = selectedIcon == iconKey
+                            SAVINGS_ICONS.keys.forEach { iconName ->
+                                val isSelected = selectedIcon == iconName
                                 Box(
                                     modifier = Modifier
                                         .size(44.dp)
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(
-                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                                            if (isSelected) parsedAccent.copy(alpha = 0.15f)
+                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                         )
                                         .border(
                                             width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            color = if (isSelected) parsedAccent else MaterialTheme.colorScheme.outlineVariant,
                                             shape = RoundedCornerShape(6.dp)
                                         )
-                                        .clickable { selectedIcon = iconKey },
+                                        .clickable { selectedIcon = iconName },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = iconVector,
-                                        contentDescription = iconKey,
-                                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        imageVector = getSavingsIcon(iconName),
+                                        contentDescription = iconName,
+                                        tint = if (isSelected) parsedAccent else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
                             }
                         }
                     }
+                }
 
-                    // 6. Accent Color Selector
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 7. ACCENT COLOR CARD
+                ShCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             text = "Accent Color",
                             style = MaterialTheme.typography.labelMedium.copy(
@@ -368,11 +457,12 @@ fun AddEditSavingsGoalScreen(
                         )
 
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             SAVINGS_COLORS.forEach { hex ->
-                                val parsedColor = try { Color(android.graphics.Color.parseColor(hex)) } catch (_: Exception) { Color(0xFF38BDF8) }
+                                val parsedColor = safeParseColor(hex)
                                 val isSelected = selectedColorHex.equals(hex, ignoreCase = true)
 
                                 Box(
@@ -382,7 +472,7 @@ fun AddEditSavingsGoalScreen(
                                         .background(parsedColor)
                                         .border(
                                             width = if (isSelected) 2.dp else 0.dp,
-                                            color = if (isSelected) Color.White else Color.Transparent,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onBackground else Color.Transparent,
                                             shape = CircleShape
                                         )
                                         .clickable { selectedColorHex = hex },
@@ -401,38 +491,41 @@ fun AddEditSavingsGoalScreen(
                         }
                     }
                 }
-            }
 
-            // Delete Goal Button (Only visible in edit mode)
-            if (isEditMode && onDeleteGoal != null) {
-                OutlinedButton(
-                    onClick = { showDeleteConfirmDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "Delete Goal",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "DELETE GOAL",
-                        fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
-                    )
+                // 8. DELETE GOAL CARD (If Edit Mode)
+                if (isEditMode && onDeleteGoal != null) {
+                    ShCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        Button(
+                            onClick = { showDeleteConfirmDialog = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "Delete Goal",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "DELETE SAVINGS GOAL",
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
