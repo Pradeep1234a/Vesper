@@ -126,89 +126,90 @@ fun DashboardScreen(
             ) {
                 item {
                     val currentDateStr = remember { SimpleDateFormat("EEE, dd MMM", Locale.getDefault()).format(Date()).uppercase() }
-                    Row(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 4.dp, bottom = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFF18181B))
+                            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
+                            .padding(16.dp)
                     ) {
-                        // Left Column: Greeting Micro-Badge & User Headline
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                            modifier = Modifier.weight(1f)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xFF38BDF8).copy(alpha = 0.12f))
-                                    .border(1.dp, Color(0xFF38BDF8).copy(alpha = 0.3f), RoundedCornerShape(6.dp))
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.weight(1f)
                             ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(Color(0xFF38BDF8).copy(alpha = 0.15f))
+                                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                                    ) {
+                                        Text(
+                                            text = greeting.uppercase(),
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp,
+                                            letterSpacing = 1.sp,
+                                            color = Color(0xFF38BDF8)
+                                        )
+                                    }
+                                }
+
                                 Text(
-                                    text = greeting.uppercase(),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        letterSpacing = 1.2.sp,
-                                        color = Color(0xFF38BDF8)
-                                    )
+                                    text = "Welcome, $displayName",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
+                                Text(
+                                    text = "Here is your live financial snapshot.",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 11.sp,
+                                    color = Color(0xFFA1A1AA)
                                 )
                             }
 
-                            Text(
-                                text = displayName,
-                                style = MaterialTheme.typography.headlineLarge.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontSize = 28.sp
-                                ),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Spacer(modifier = Modifier.width(12.dp))
 
-                            Text(
-                                text = "Here is your money summary.",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontFamily = PlusJakartaSansFamily,
-                                    color = Color(0xFFA1A1AA),
-                                    fontSize = 13.sp
-                                )
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        // Right Column: Date Status Pill Card (Visual Equilibrium)
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFF18181B))
-                                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-                                .padding(horizontal = 12.dp, vertical = 10.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFF242429))
+                                    .border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 10.dp, vertical = 8.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFF22C55E))
-                                )
-                                Text(
-                                    text = currentDateStr,
-                                    style = MaterialTheme.typography.labelMedium.copy(
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(6.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF22C55E))
+                                    )
+                                    Text(
+                                        text = currentDateStr,
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp,
-                                        letterSpacing = 0.8.sp,
+                                        letterSpacing = 0.5.sp,
                                         color = Color.White
                                     )
-                                )
+                                }
                             }
                         }
                     }
