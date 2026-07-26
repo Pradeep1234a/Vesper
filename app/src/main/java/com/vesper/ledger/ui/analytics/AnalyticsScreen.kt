@@ -37,12 +37,13 @@ import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
-import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.cos
+import kotlin.math.sin
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -184,7 +185,7 @@ fun AnalyticsScreen(
             }
         }
 
-        // 2. BENTO GRID: 4 KEY FINANCIAL KPI CARDS (2x2 GRID)
+        // 2. BENTO GRID: 4 KEY FINANCIAL KPI CARDS
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -237,8 +238,8 @@ fun AnalyticsScreen(
             }
         }
 
-        // 3. FL_CHART STYLE SMOOTH CURVED LINE & GRADIENT AREA CHART
-        BentoCard(title = "ANALYTICAL SPENDING TREND (FL_CHART)", icon = Icons.Outlined.ShowChart) {
+        // 3. FL_CHART TYPE 1: SMOOTH CURVED LINE & AREA GRADIENT CHART (fl_chart LineChart)
+        BentoCard(title = "SPENDING TREND LINE CHART (FL_CHART)", icon = Icons.Outlined.ShowChart) {
             val dailyExpenses = remember(filteredTransactions) {
                 val map = mutableMapOf<Int, Double>()
                 val cal = Calendar.getInstance()
@@ -266,8 +267,37 @@ fun AnalyticsScreen(
             )
         }
 
-        // 4. BENTO GRID: CATEGORY DONUT & BREAKDOWN
-        BentoCard(title = "CATEGORY BREAKDOWN", icon = Icons.Outlined.PieChart) {
+        // 4. FL_CHART TYPE 2: GRADIENT BAR ROD CHART (fl_chart BarChart)
+        BentoCard(title = "DAILY EXPENSE GRADIENT BARS (FL_CHART)", icon = Icons.Outlined.BarChart) {
+            val dailyExpenses = remember(filteredTransactions) {
+                val map = mutableMapOf<Int, Double>()
+                val cal = Calendar.getInstance()
+                filteredTransactions.filter { it.type == TransactionType.EXPENSE }.forEach { tx ->
+                    cal.timeInMillis = tx.dateEpochMillis
+                    val day = cal.get(Calendar.DAY_OF_MONTH)
+                    map[day] = (map[day] ?: 0.0) + tx.amount
+                }
+                map
+            }
+
+            val daysInMonth = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)
+            val barList = remember(dailyExpenses, daysInMonth) {
+                (1..daysInMonth).map { day ->
+                    Pair(day, dailyExpenses[day] ?: 0.0)
+                }
+            }
+
+            FLGradientBarChart(
+                bars = barList,
+                currencySymbol = currencySymbol,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+            )
+        }
+
+        // 5. FL_CHART TYPE 3: CATEGORY DONUT CHART (fl_chart PieChart)
+        BentoCard(title = "CATEGORY BREAKDOWN DONUT (FL_CHART)", icon = Icons.Outlined.PieChart) {
             if (categoryGroup.isEmpty()) {
                 Text(
                     text = "No category expense data recorded for this period.",
@@ -284,11 +314,11 @@ fun AnalyticsScreen(
                 ) {
                     // Left Column: Donut Chart Canvas
                     Box(
-                        modifier = Modifier.size(110.dp),
+                        modifier = Modifier.size(120.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
-                            val strokeWidth = 14.dp.toPx()
+                            val strokeWidth = 16.dp.toPx()
                             val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
                             val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
                             var startAngle = -90f
@@ -389,7 +419,47 @@ fun AnalyticsScreen(
             }
         }
 
-        // 5. BENTO GRID: MONTHLY CALENDAR SPENDING HEATMAP
+        // 6. FL_CHART TYPE 4: 6-AXIS RADAR SPIDER CHART (fl_chart RadarChart)
+        BentoCard(title = "CATEGORY RADAR ANALYTICS (FL_CHART)", icon = Icons.Outlined.Radar) {
+            val radarData = remember(categoryGroup, categories) {
+                categoryGroup.take(6).map { (catId, amt) ->
+                    val cat = categories.find { it.id == catId }
+                    Pair(cat?.name ?: "Other", amt)
+                }
+            }
+
+            FLRadarChart(
+                data = radarData,
+                currencySymbol = currencySymbol,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+            )
+        }
+
+        // 7. FL_CHART TYPE 5: TRANSACTION SCATTER PLOT CHART (fl_chart ScatterChart)
+        BentoCard(title = "TRANSACTION SCATTER CLUSTER (FL_CHART)", icon = Icons.Outlined.BubbleChart) {
+            val scatterPoints = remember(filteredTransactions) {
+                val cal = Calendar.getInstance()
+                filteredTransactions
+                    .filter { it.type == TransactionType.EXPENSE }
+                    .map { tx ->
+                        cal.timeInMillis = tx.dateEpochMillis
+                        val day = cal.get(Calendar.DAY_OF_MONTH)
+                        Triple(day, tx.amount, tx.title)
+                    }
+            }
+
+            FLScatterChart(
+                points = scatterPoints,
+                currencySymbol = currencySymbol,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+            )
+        }
+
+        // 8. BENTO GRID: MONTHLY CALENDAR SPENDING HEATMAP
         BentoCard(title = "MONTHLY SPENDING HEATMAP", icon = Icons.Outlined.CalendarMonth) {
             val cal = Calendar.getInstance()
             val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
@@ -409,7 +479,6 @@ fun AnalyticsScreen(
             val maxExpenseDay = (dailyExpensesMap.values.maxOrNull() ?: 1.0).coerceAtLeast(1.0)
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Calendar Weekday Headers
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -430,7 +499,6 @@ fun AnalyticsScreen(
                     }
                 }
 
-                // Grid Cells (7 columns)
                 val rows = (daysInMonth + 6) / 7
                 for (r in 0 until rows) {
                     Row(
@@ -479,7 +547,7 @@ fun AnalyticsScreen(
             }
         }
 
-        // 6. BENTO GRID: ACCOUNTS BREAKDOWN & RANKINGS
+        // 9. BENTO GRID: ACCOUNTS BREAKDOWN & RANKINGS
         BentoCard(title = "ACCOUNT DISTRIBUTION & BREAKDOWN", icon = Icons.Outlined.AccountBalance) {
             if (accounts.isEmpty()) {
                 Text(
@@ -557,7 +625,7 @@ fun AnalyticsScreen(
             }
         }
 
-        // 7. BENTO GRID: PAYMENT METHOD BREAKDOWN
+        // 10. BENTO GRID: PAYMENT METHOD COMPARISON
         BentoCard(title = "PAYMENT METHOD COMPARISON", icon = Icons.Outlined.CreditCard) {
             if (paymentModeGroup.isEmpty()) {
                 Text(
@@ -622,80 +690,12 @@ fun AnalyticsScreen(
             }
         }
 
-        // 8. BENTO GRID: TOP MERCHANT RANKINGS
-        BentoCard(title = "TOP EXPENSE RANKINGS", icon = Icons.Outlined.Leaderboard) {
-            if (topMerchants.isEmpty()) {
-                Text(
-                    text = "No expenses recorded for this period.",
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 12.sp,
-                    color = Color(0xFFA1A1AA),
-                    modifier = Modifier.padding(vertical = 12.dp)
-                )
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    topMerchants.forEachIndexed { index, tx ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(26.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFF242429))
-                                        .border(1.dp, Color(0xFF3F3F46), CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "#${index + 1}",
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                }
-                                Column {
-                                    Text(
-                                        text = tx.title,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                    Text(
-                                        text = "${tx.accountName} • ${tx.paymentMethod}",
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 10.sp,
-                                        color = Color(0xFFA1A1AA)
-                                    )
-                                }
-                            }
-
-                            Text(
-                                text = "-$currencySymbol${df.format(tx.amount)}",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFEF4444)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// FL_CHART AESTHETIC INTERACTIVE SMOOTH CURVED LINE CHART
+// FL_CHART 1: SMOOTH CURVED LINE & AREA GRADIENT CHART
 // ────────────────────────────────────────────────────────────────────────────
 @Composable
 fun FLCurvedLineChart(
@@ -705,7 +705,6 @@ fun FLCurvedLineChart(
 ) {
     var selectedPointIndex by remember { mutableStateOf<Int?>(null) }
     val dfCompact = remember { DecimalFormat("#,##0") }
-
     val maxVal = remember(points) { (points.maxOfOrNull { it.second } ?: 1000.0).coerceAtLeast(100.0) }
 
     Box(modifier = modifier) {
@@ -725,7 +724,7 @@ fun FLCurvedLineChart(
             val height = size.height
             val stepX = width / (points.size - 1).coerceAtLeast(1)
 
-            // 1. Draw dashed grid lines (FL_Chart GridData)
+            // Dashed horizontal grid lines (FL_Chart GridData)
             val gridPathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
             val gridLines = 4
             for (i in 0..gridLines) {
@@ -741,7 +740,7 @@ fun FLCurvedLineChart(
 
             if (points.isEmpty()) return@Canvas
 
-            // 2. Build smooth Cubic Bezier Path
+            // Build smooth Cubic Bezier Path
             val strokePath = Path()
             val fillPath = Path()
 
@@ -779,14 +778,14 @@ fun FLCurvedLineChart(
                 )
             )
 
-            // Draw Curved Line Stroke (FL_Chart LineChartBarData)
+            // Draw Curved Line Stroke
             drawPath(
                 path = strokePath,
                 color = Color(0xFF38BDF8),
                 style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
             )
 
-            // 3. Draw Active Glowing Dot Markers on Key Points
+            // Draw Active Glowing Dots
             coordinates.forEachIndexed { index, point ->
                 val (_, amt) = points[index]
                 val isSelected = selectedPointIndex == index
@@ -805,7 +804,7 @@ fun FLCurvedLineChart(
             }
         }
 
-        // 4. Interactive Touch Tooltip Badge (FL_Chart TouchCallback Tooltip)
+        // Interactive Touch Tooltip
         selectedPointIndex?.let { index ->
             if (index in points.indices) {
                 val (day, amt) = points[index]
@@ -826,6 +825,282 @@ fun FLCurvedLineChart(
                         color = Color.White
                     )
                 }
+            }
+        }
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// FL_CHART 2: GRADIENT BAR CHART (fl_chart BarChart)
+// ────────────────────────────────────────────────────────────────────────────
+@Composable
+fun FLGradientBarChart(
+    bars: List<Pair<Int, Double>>,
+    currencySymbol: String,
+    modifier: Modifier = Modifier
+) {
+    var selectedBarIndex by remember { mutableStateOf<Int?>(null) }
+    val dfCompact = remember { DecimalFormat("#,##0") }
+    val maxVal = remember(bars) { (bars.maxOfOrNull { it.second } ?: 1000.0).coerceAtLeast(100.0) }
+
+    Box(modifier = modifier) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(bars) {
+                    detectTapGestures { offset ->
+                        val width = size.width
+                        val barCount = bars.size.coerceAtLeast(1)
+                        val stepX = width / barCount
+                        val tappedIndex = (offset.x / stepX).toInt().coerceIn(0, bars.size - 1)
+                        selectedBarIndex = if (selectedBarIndex == tappedIndex) null else tappedIndex
+                    }
+                }
+        ) {
+            val width = size.width
+            val height = size.height
+            val barCount = bars.size.coerceAtLeast(1)
+            val spacing = 2.5.dp.toPx()
+            val barWidth = ((width - (spacing * (barCount - 1))) / barCount).coerceAtLeast(2.dp.toPx())
+
+            // Dashed horizontal grid background
+            val gridPathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
+            for (i in 1..3) {
+                val y = height * (i / 4f)
+                drawLine(
+                    color = Color(0xFF27272A),
+                    start = Offset(0f, y),
+                    end = Offset(width, y),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = gridPathEffect
+                )
+            }
+
+            // Draw Bar Rods with Gradient Fill (FL_Chart BarChartRodData)
+            bars.forEachIndexed { index, (day, amount) ->
+                val ratio = (amount / maxVal).toFloat().coerceIn(0f, 1f)
+                val barHeight = (height * ratio).coerceAtLeast(if (amount > 0) 4.dp.toPx() else 1.5.dp.toPx())
+                val x = index * (barWidth + spacing)
+                val y = height - barHeight
+
+                val isSelected = selectedBarIndex == index
+                val barGradient = Brush.verticalGradient(
+                    colors = if (isSelected) {
+                        listOf(Color.White, Color(0xFF38BDF8))
+                    } else if (amount >= maxVal * 0.85) {
+                        listOf(Color(0xFF38BDF8), Color(0xFF0284C7))
+                    } else {
+                        listOf(Color(0xFF0284C7).copy(alpha = 0.8f), Color(0xFF0284C7).copy(alpha = 0.3f))
+                    }
+                )
+
+                drawRoundRect(
+                    brush = barGradient,
+                    topLeft = Offset(x, y),
+                    size = Size(barWidth, barHeight),
+                    cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx())
+                )
+            }
+        }
+
+        // Interactive Bar Tooltip
+        selectedBarIndex?.let { index ->
+            if (index in bars.indices) {
+                val (day, amt) = bars[index]
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 4.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(0xFF242429))
+                        .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(6.dp))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "Day $day: $currencySymbol${dfCompact.format(amt)}",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// FL_CHART 3: RADAR SPIDER CHART (fl_chart RadarChart)
+// ────────────────────────────────────────────────────────────────────────────
+@Composable
+fun FLRadarChart(
+    data: List<Pair<String, Double>>,
+    currencySymbol: String,
+    modifier: Modifier = Modifier
+) {
+    val dfCompact = remember { DecimalFormat("#,##0") }
+    val maxVal = remember(data) { (data.maxOfOrNull { it.second } ?: 1000.0).coerceAtLeast(100.0) }
+
+    Canvas(modifier = modifier) {
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val radius = (size.height / 2f - 24.dp.toPx()).coerceAtLeast(20.dp.toPx())
+        val count = data.size.coerceAtLeast(3)
+        val angleStep = (2 * Math.PI / count).toFloat()
+
+        // 1. Draw Web Polygons (3 Concentric Rings)
+        for (ring in 1..3) {
+            val r = radius * (ring / 3f)
+            val webPath = Path()
+            for (i in 0 until count) {
+                val angle = i * angleStep - Math.PI.toFloat() / 2f
+                val x = center.x + r * cos(angle)
+                val y = center.y + r * sin(angle)
+                if (i == 0) webPath.moveTo(x, y) else webPath.lineTo(x, y)
+            }
+            webPath.close()
+            drawPath(
+                path = webPath,
+                color = Color(0xFF27272A),
+                style = Stroke(width = 1.dp.toPx())
+            )
+        }
+
+        // 2. Draw Spokes from Center
+        for (i in 0 until count) {
+            val angle = i * angleStep - Math.PI.toFloat() / 2f
+            val endX = center.x + radius * cos(angle)
+            val endY = center.y + radius * sin(angle)
+            drawLine(
+                color = Color(0xFF27272A),
+                start = center,
+                end = Offset(endX, endY),
+                strokeWidth = 1.dp.toPx()
+            )
+        }
+
+        if (data.isEmpty()) return@Canvas
+
+        // 3. Draw Data Polygon
+        val dataPath = Path()
+        val dataPoints = mutableListOf<Offset>()
+
+        data.forEachIndexed { i, pair ->
+            val ratio = (pair.second / maxVal).toFloat().coerceIn(0.1f, 1f)
+            val angle = i * angleStep - Math.PI.toFloat() / 2f
+            val ptX = center.x + radius * ratio * cos(angle)
+            val ptY = center.y + radius * ratio * sin(angle)
+            val pt = Offset(ptX, ptY)
+            dataPoints.add(pt)
+            if (i == 0) dataPath.moveTo(ptX, ptY) else dataPath.lineTo(ptX, ptY)
+        }
+        dataPath.close()
+
+        // Fill Radar Area
+        drawPath(
+            path = dataPath,
+            color = Color(0xFF38BDF8).copy(alpha = 0.35f)
+        )
+
+        // Stroke Radar Edge
+        drawPath(
+            path = dataPath,
+            color = Color(0xFF38BDF8),
+            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
+        )
+
+        // Draw Vertex Dots
+        dataPoints.forEach { pt ->
+            drawCircle(color = Color.White, radius = 3.5.dp.toPx(), center = pt)
+            drawCircle(color = Color(0xFF38BDF8), radius = 2.dp.toPx(), center = pt)
+        }
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// FL_CHART 4: TRANSACTION SCATTER PLOT CHART (fl_chart ScatterChart)
+// ────────────────────────────────────────────────────────────────────────────
+@Composable
+fun FLScatterChart(
+    points: List<Triple<Int, Double, String>>,
+    currencySymbol: String,
+    modifier: Modifier = Modifier
+) {
+    var selectedPoint by remember { mutableStateOf<Triple<Int, Double, String>?>(null) }
+    val dfCompact = remember { DecimalFormat("#,##0") }
+    val maxVal = remember(points) { (points.maxOfOrNull { it.second } ?: 1000.0).coerceAtLeast(100.0) }
+
+    Box(modifier = modifier) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(points) {
+                    detectTapGestures { offset ->
+                        val width = size.width
+                        val height = size.height
+                        val tapped = points.minByOrNull { pt ->
+                            val px = (pt.first / 31f) * width
+                            val py = height - ((pt.second / maxVal) * (height - 20.dp.toPx())).toFloat()
+                            val dx = offset.x - px
+                            val dy = offset.y - py
+                            (dx * dx + dy * dy)
+                        }
+                        selectedPoint = if (selectedPoint == tapped) null else tapped
+                    }
+                }
+        ) {
+            val width = size.width
+            val height = size.height
+
+            // Dashed Grid Lines
+            val gridPathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
+            for (i in 1..3) {
+                val y = height * (i / 4f)
+                drawLine(
+                    color = Color(0xFF27272A),
+                    start = Offset(0f, y),
+                    end = Offset(width, y),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = gridPathEffect
+                )
+            }
+
+            points.forEach { pt ->
+                val x = (pt.first / 31f) * width
+                val y = height - ((pt.second / maxVal) * (height - 20.dp.toPx())).toFloat()
+                val isSelected = selectedPoint == pt
+                val radius = if (isSelected) 8.dp.toPx() else (4.dp.toPx() + (pt.second / maxVal * 6.dp.toPx()).toFloat())
+
+                drawCircle(
+                    color = if (isSelected) Color.White else Color(0xFF38BDF8).copy(alpha = 0.7f),
+                    radius = radius,
+                    center = Offset(x, y)
+                )
+                drawCircle(
+                    color = Color(0xFF38BDF8),
+                    radius = radius / 2f,
+                    center = Offset(x, y)
+                )
+            }
+        }
+
+        // Scatter Tooltip
+        selectedPoint?.let { pt ->
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 4.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xFF242429))
+                    .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "${pt.third}: $currencySymbol${dfCompact.format(pt.second)} (Day ${pt.first})",
+                    fontFamily = SpaceGroteskFamily,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
             }
         }
     }
