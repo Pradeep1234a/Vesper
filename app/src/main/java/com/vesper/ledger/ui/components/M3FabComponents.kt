@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,8 +32,9 @@ import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 /**
- * Standard Material 3 Single Action Floating Action Button:
- * 56dp height, 16dp squircle radius, monochrome elevated surface, exact 8dp bottom gap & 16dp card-aligned margin.
+ * 3D Elevated Single Action Floating Action Button:
+ * Physical 3D tactile push-button geometry with top specular lighting gradient, dual ambient/spot glow,
+ * exact 8dp bottom gap & 16dp card edge alignment.
  */
 @Composable
 fun M3SingleFab(
@@ -45,9 +47,15 @@ fun M3SingleFab(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
+        targetValue = if (isPressed) 0.93f else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "FabPressScale"
+        label = "3DFabPressScale"
+    )
+
+    val translationY by animateFloatAsState(
+        targetValue = if (isPressed) 3f else 0f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "3DFabTranslation"
     )
 
     Box(
@@ -57,15 +65,44 @@ fun M3SingleFab(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
+                this.translationY = translationY
             }
-            .shadow(10.dp, RoundedCornerShape(16.dp), ambientColor = Color.Black, spotColor = Color(0xFF38BDF8).copy(alpha = 0.6f))
+            .shadow(
+                elevation = if (isPressed) 4.dp else 12.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color.Black,
+                spotColor = Color(0xFF38BDF8).copy(alpha = if (isPressed) 0.3f else 0.7f)
+            )
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF18181B))
-            .border(1.5.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF2E2E35),
+                        Color(0xFF141417)
+                    )
+                )
+            )
+            .border(
+                width = 1.5.dp,
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF38BDF8),
+                        Color(0xFF0284C7)
+                    )
+                ),
+                shape = RoundedCornerShape(16.dp)
+            )
             .clickable(interactionSource = interactionSource, indication = null) { onClick() }
             .size(56.dp),
         contentAlignment = Alignment.Center
     ) {
+        // Inner 3D Specular Ring Reflection Highlight
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(2.dp)
+                .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(14.dp))
+        )
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
@@ -76,9 +113,8 @@ fun M3SingleFab(
 }
 
 /**
- * Material 3 FAB Menu (Speed Dial / Floating Action Menu):
- * Multi-action expanded FAB menu according to M3 FAB Menu specification (m3.material.io/components/fab-menu/overview).
- * 8dp exact bottom gap, monochrome container colors, smooth spring motion and pressed response effects.
+ * 3D Elevated Multi-Action Speed Dial FAB Menu:
+ * Tactical 3D physical push-button trigger with expandable 3D floating action item stack.
  */
 @Composable
 fun M3SpeedDialFab(
@@ -90,15 +126,21 @@ fun M3SpeedDialFab(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val fabScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
+        targetValue = if (isPressed) 0.93f else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "MainFabScale"
+        label = "Main3DFabScale"
+    )
+
+    val translationY by animateFloatAsState(
+        targetValue = if (isPressed) 3f else 0f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "Main3DFabTranslation"
     )
 
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 135f else 0f,
         animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioLowBouncy),
-        label = "FabRotation"
+        label = "3DFabRotation"
     )
 
     Column(
@@ -108,7 +150,7 @@ fun M3SpeedDialFab(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Expanded M3 FAB Menu Floating Stack
+        // Expanded 3D FAB Menu Floating Action Stack
         AnimatedVisibility(
             visible = isExpanded,
             enter = fadeIn(tween(220)) + expandVertically(expandFrom = Alignment.Bottom) + slideInVertically(initialOffsetY = { it / 3 }),
@@ -120,7 +162,7 @@ fun M3SpeedDialFab(
                 modifier = Modifier.padding(bottom = 4.dp)
             ) {
                 // Action 1: Expense (- Expense)
-                M3FabMenuItem(
+                M33DFabMenuItem(
                     label = "Add Expense",
                     icon = Icons.Outlined.TrendingDown,
                     badgeColor = Color(0xFFEF4444),
@@ -131,7 +173,7 @@ fun M3SpeedDialFab(
                 )
 
                 // Action 2: Income (+ Income)
-                M3FabMenuItem(
+                M33DFabMenuItem(
                     label = "Add Income",
                     icon = Icons.Outlined.TrendingUp,
                     badgeColor = Color(0xFF22C55E),
@@ -142,7 +184,7 @@ fun M3SpeedDialFab(
                 )
 
                 // Action 3: Transfer (⇄ Transfer)
-                M3FabMenuItem(
+                M33DFabMenuItem(
                     label = "Transfer Money",
                     icon = Icons.Outlined.SwapHoriz,
                     badgeColor = Color(0xFF38BDF8),
@@ -154,21 +196,51 @@ fun M3SpeedDialFab(
             }
         }
 
-        // Main Trigger FAB Button (Monochrome Surface with Cyan Border & Rotation Effect)
+        // Main 3D Elevated Trigger FAB Button
         Box(
             modifier = Modifier
                 .graphicsLayer {
                     scaleX = fabScale
                     scaleY = fabScale
+                    this.translationY = translationY
                 }
-                .shadow(10.dp, RoundedCornerShape(16.dp), ambientColor = Color.Black, spotColor = Color(0xFF38BDF8).copy(alpha = 0.6f))
+                .shadow(
+                    elevation = if (isPressed) 4.dp else 12.dp,
+                    shape = RoundedCornerShape(16.dp),
+                    ambientColor = Color.Black,
+                    spotColor = Color(0xFF38BDF8).copy(alpha = if (isPressed) 0.3f else 0.7f)
+                )
                 .clip(RoundedCornerShape(16.dp))
-                .background(if (isExpanded) Color(0xFF242429) else Color(0xFF18181B))
-                .border(1.5.dp, Color(0xFF38BDF8), RoundedCornerShape(16.dp))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = if (isExpanded) {
+                            listOf(Color(0xFF35353F), Color(0xFF1F1F24))
+                        } else {
+                            listOf(Color(0xFF2E2E35), Color(0xFF141417))
+                        }
+                    )
+                )
+                .border(
+                    width = 1.5.dp,
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF38BDF8),
+                            Color(0xFF0284C7)
+                        )
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .clickable(interactionSource = interactionSource, indication = null) { isExpanded = !isExpanded }
                 .size(56.dp),
             contentAlignment = Alignment.Center
         ) {
+            // Inner 3D Reflection Frame
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(2.dp)
+                    .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(14.dp))
+            )
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = if (isExpanded) "Close FAB Menu" else "Expand FAB Menu",
@@ -182,7 +254,7 @@ fun M3SpeedDialFab(
 }
 
 @Composable
-private fun M3FabMenuItem(
+private fun M33DFabMenuItem(
     label: String,
     icon: ImageVector,
     badgeColor: Color,
@@ -194,7 +266,13 @@ private fun M3FabMenuItem(
     val itemScale by animateFloatAsState(
         targetValue = if (isPressed) 0.94f else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "ItemPressScale"
+        label = "3DItemPressScale"
+    )
+
+    val itemTranslationY by animateFloatAsState(
+        targetValue = if (isPressed) 2f else 0f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "3DItemTranslation"
     )
 
     Row(
@@ -204,15 +282,20 @@ private fun M3FabMenuItem(
             .graphicsLayer {
                 scaleX = itemScale
                 scaleY = itemScale
+                this.translationY = itemTranslationY
             }
             .clickable(interactionSource = itemInteractionSource, indication = null) { onClick() }
     ) {
-        // M3 Elevated Label Pill Box
+        // 3D Elevated Label Badge Box
         Box(
             modifier = Modifier
-                .shadow(4.dp, RoundedCornerShape(8.dp), ambientColor = Color.Black)
+                .shadow(6.dp, RoundedCornerShape(8.dp), ambientColor = Color.Black)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF242429))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF2C2C33), Color(0xFF1E1E23))
+                    )
+                )
                 .border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(8.dp))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
@@ -225,16 +308,26 @@ private fun M3FabMenuItem(
             )
         }
 
-        // Mini FAB Container (48dp x 48dp)
+        // 3D Elevated Mini FAB Container (48dp x 48dp)
         Box(
             modifier = Modifier
-                .shadow(6.dp, CircleShape, ambientColor = Color.Black, spotColor = badgeColor.copy(alpha = 0.4f))
+                .shadow(8.dp, CircleShape, ambientColor = Color.Black, spotColor = badgeColor.copy(alpha = 0.5f))
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF18181B))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF2E2E35), Color(0xFF141417))
+                    )
+                )
                 .border(1.5.dp, badgeColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(2.dp)
+                    .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
+            )
             Icon(
                 imageVector = icon,
                 contentDescription = label,
