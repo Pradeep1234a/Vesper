@@ -60,12 +60,6 @@ fun BudgetScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        floatingActionButton = {
-            M3SingleFab(
-                onClick = onAddBudgetClick,
-                contentDescription = "Add Budget"
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         ElasticBounceContainer(

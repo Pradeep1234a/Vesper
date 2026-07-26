@@ -94,12 +94,6 @@ fun AccountsScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        floatingActionButton = {
-            com.vesper.ledger.ui.components.M3SingleFab(
-                onClick = onAddAccountClick,
-                contentDescription = "Add Account"
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         ElasticBounceContainer(

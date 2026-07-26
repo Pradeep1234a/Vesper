@@ -51,12 +51,6 @@ fun SplitGroupsScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        floatingActionButton = {
-            com.vesper.ledger.ui.components.M3SingleFab(
-                onClick = onCreateGroupClick,
-                contentDescription = "Create Split Group"
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
