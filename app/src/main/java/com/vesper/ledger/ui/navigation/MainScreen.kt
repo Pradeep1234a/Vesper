@@ -304,6 +304,7 @@ fun MainScreen(
 
         var editingTransaction by remember { mutableStateOf<com.vesper.ledger.data.model.Transaction?>(null) }
         var editingSavingsGoal by remember { mutableStateOf<com.vesper.ledger.data.model.SavingsGoal?>(null) }
+        var editingBudget by remember { mutableStateOf<com.vesper.ledger.data.model.Budget?>(null) }
 
         val screenTitle = when (currentRoute) {
             Screen.Dashboard.route -> "Vesper Ledger"
@@ -486,8 +487,12 @@ fun MainScreen(
                         viewModel = budgetsViewModel,
                         currencySymbol = currencySymbol,
                         onBackClick = { navController.popBackStack() },
-                        onAddBudgetClick = { navController.navigate(Screen.AddBudget.route) },
+                        onAddBudgetClick = {
+                            editingBudget = null
+                            navController.navigate(Screen.AddBudget.route)
+                        },
                         onEditBudgetClick = { budget ->
+                            editingBudget = budget
                             navController.navigate(Screen.AddBudget.route)
                         }
                     )
@@ -747,16 +752,18 @@ fun MainScreen(
 
                 composable(Screen.AddBudget.route) {
                     val categories by app.transactionRepository.allCategories.collectAsState(initial = emptyList())
-                    var editingBudgetState by remember { mutableStateOf<Budget?>(null) }
 
                     AddEditBudgetScreen(
-                        budgetToEdit = editingBudgetState,
+                        budgetToEdit = editingBudget,
                         categories = categories,
                         currencySymbol = currencySymbol,
-                        onBackClick = { navController.popBackStack() },
+                        onBackClick = {
+                            editingBudget = null
+                            navController.popBackStack()
+                        },
                         onSaveBudget = { name, amount, period, categoryId, startDate, endDate, notes, idToUpdate ->
                             scope.launch(Dispatchers.IO) {
-                                if (idToUpdate != null) {
+                                 if (idToUpdate != null) {
                                     app.budgetRepository.updateBudget(
                                         Budget(
                                             id = idToUpdate,
@@ -783,11 +790,15 @@ fun MainScreen(
                                     )
                                 }
                             }
+                            editingBudget = null
+                            navController.popBackStack()
                         },
                         onDeleteBudget = { budget ->
                             scope.launch(Dispatchers.IO) {
                                 app.budgetRepository.deleteBudget(budget)
                             }
+                            editingBudget = null
+                            navController.popBackStack()
                         }
                     )
                 }

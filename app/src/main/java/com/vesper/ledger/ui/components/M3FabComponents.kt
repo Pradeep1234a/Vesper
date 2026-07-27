@@ -34,8 +34,8 @@ import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 
 /**
  * Remembers scroll-aware FAB visibility based on LazyListState.
- * When scrolling starts -> returns false (FAB becomes invisible).
- * When scrolling stops or at top -> returns true (FAB pops back in).
+ * When scrolling starts -> returns false (FAB scales out & becomes invisible).
+ * When scrolling stops or at top -> returns true (FAB spring scales back in).
  */
 @Composable
 fun rememberFabVisibility(lazyListState: LazyListState): State<Boolean> {
@@ -47,17 +47,17 @@ fun rememberFabVisibility(lazyListState: LazyListState): State<Boolean> {
 }
 
 /**
- * Material 3 Large Elevated Floating Action Button (m3.material.io/components/floating-action-button).
+ * Material 3 Medium Elevated Floating Action Button (m3.material.io/components/floating-action-button).
  *
  * Design & Layout Specs:
- * - Size: 96.dp x 96.dp Large FAB (RoundedCornerShape(28.dp)).
- * - Icon: 36.dp filled vector icon.
- * - Colors: Material 3 primaryContainer fill with onPrimaryContainer tint.
- * - Elevation: Level 3 Elevated Effect (8.dp rest, 3.dp pressed, 10.dp hovered).
- * - Edge Alignment:
+ * - Size: 56.dp x 56.dp Medium FAB (RoundedCornerShape(16.dp)).
+ * - Icon: 24.dp filled vector icon.
+ * - Dynamic M3 Color Roles: MaterialTheme.colorScheme.primaryContainer fill, onPrimaryContainer icon tint.
+ * - Rest Elevation: Level 3 Elevated Effect (6.dp rest, 2.dp pressed, 8.dp hovered).
+ * - Edge Alignment & Y-Coordinate Consistency:
  *   - End/Right Margin: 16.dp.
- *   - Bottom Gap WITH Bottom Bar: 16.dp above navigation bar.
- *   - Bottom Gap WITHOUT Bottom Bar: 57.dp (bottom bar height) + 16.dp = 73.dp, matching Y-coordinate seamlessly.
+ *   - Bottom Gap WITH Bottom Bar: 16.dp padding above bottom navigation bar.
+ *   - Bottom Gap WITHOUT Bottom Bar: 57.dp (bottom bar height) + 16.dp = 73.dp, maintaining identical Y-coordinate height across all screens.
  */
 @Composable
 fun M3SingleFab(
@@ -66,8 +66,8 @@ fun M3SingleFab(
     contentDescription: String = "Action",
     visible: Boolean = true,
     hasBottomBar: Boolean = false,
-    fabSize: Dp = 96.dp,
-    iconSize: Dp = 36.dp,
+    fabSize: Dp = 56.dp,
+    iconSize: Dp = 24.dp,
     modifier: Modifier = Modifier
 ) {
     var isAppeared by remember { mutableStateOf(false) }
@@ -86,7 +86,7 @@ fun M3SingleFab(
 
     // Physical edge alignment margin calculation:
     // With bottom bar: 16.dp margin above bar.
-    // Without bottom bar: 57.dp + 16.dp = 73.dp margin, achieving identical Y-coordinate alignment.
+    // Without bottom bar: 57.dp + 16.dp = 73.dp margin, achieving identical Y-coordinate alignment across all screens.
     val calculatedBottomPadding = if (hasBottomBar) 16.dp else (16.dp + 57.dp)
 
     AnimatedVisibility(
@@ -96,14 +96,14 @@ fun M3SingleFab(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessMediumLow
             ),
-            initialScale = 0.3f
+            initialScale = 0.4f
         ) + fadeIn(tween(200)),
         exit = scaleOut(
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioNoBouncy,
                 stiffness = Spring.StiffnessHigh
             ),
-            targetScale = 0.3f
+            targetScale = 0.4f
         ) + fadeOut(tween(150))
     ) {
         val iconScale by animateFloatAsState(
@@ -117,15 +117,15 @@ fun M3SingleFab(
                 .navigationBarsPadding()
                 .padding(end = 16.dp, bottom = calculatedBottomPadding)
         ) {
-            LargeFloatingActionButton(
+            FloatingActionButton(
                 onClick = onClick,
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(16.dp),
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 8.dp,
-                    pressedElevation = 3.dp,
-                    hoveredElevation = 10.dp
+                    defaultElevation = 6.dp,
+                    pressedElevation = 2.dp,
+                    hoveredElevation = 8.dp
                 ),
                 modifier = Modifier.size(fabSize)
             ) {
@@ -145,10 +145,11 @@ fun M3SingleFab(
 }
 
 /**
- * Official Material 3 Speed Dial Large FAB Menu System:
- * - Size: 96.dp Large FAB morphing speed dial button with 135° rotation on trigger '+'.
+ * Official Material 3 Speed Dial Medium FAB Menu System:
+ * - Size: 56.dp Medium FAB morphing speed dial button with 135° rotation on trigger '+'.
+ * - Dynamic M3 Colors: primaryContainer / onPrimaryContainer fills with secondaryContainer pills.
  * - Capsule Pill Menu Items: Elevated CircleShape M3 Surface items ([Icon] + [Label]).
- * - Scroll-Aware: Automatically hides on scroll start, pops in on scroll stop/up.
+ * - Scroll-Aware: Automatically hides on scroll start, pops back in on scroll stop/up.
  * - Backdrop Scrim: 45% dark scrim overlay when open.
  */
 @Composable
@@ -156,8 +157,8 @@ fun M3SpeedDialFab(
     onActionSelected: (TransactionType) -> Unit,
     visible: Boolean = true,
     hasBottomBar: Boolean = true,
-    fabSize: Dp = 96.dp,
-    iconSize: Dp = 36.dp,
+    fabSize: Dp = 56.dp,
+    iconSize: Dp = 24.dp,
     modifier: Modifier = Modifier
 ) {
     var isAppeared by remember { mutableStateOf(false) }
@@ -174,14 +175,14 @@ fun M3SpeedDialFab(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessMediumLow
             ),
-            initialScale = 0.3f
+            initialScale = 0.4f
         ) + fadeIn(tween(200)),
         exit = scaleOut(
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioNoBouncy,
                 stiffness = Spring.StiffnessHigh
             ),
-            targetScale = 0.3f
+            targetScale = 0.4f
         ) + fadeOut(tween(150))
     ) {
         var isExpanded by remember { mutableStateOf(false) }
@@ -216,7 +217,7 @@ fun M3SpeedDialFab(
                     .navigationBarsPadding()
                     .padding(end = 16.dp, bottom = calculatedBottomPadding),
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // M3 Capsule Pill Action Items
                 AnimatedVisibility(
@@ -227,7 +228,7 @@ fun M3SpeedDialFab(
                     Column(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.padding(bottom = 6.dp)
+                        modifier = Modifier.padding(bottom = 4.dp)
                     ) {
                         M3FabMenuCapsuleItem(
                             label = "Add Expense",
@@ -261,15 +262,16 @@ fun M3SpeedDialFab(
                     }
                 }
 
-                // Main Trigger Large FAB Button
-                LargeFloatingActionButton(
+                // Main Trigger Medium FAB Button
+                FloatingActionButton(
                     onClick = { isExpanded = !isExpanded },
-                    shape = RoundedCornerShape(28.dp),
-                    containerColor = if (isExpanded) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = if (isExpanded) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer,
+                    shape = RoundedCornerShape(16.dp),
+                    containerColor = if (isExpanded) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = if (isExpanded) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer,
                     elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = if (isExpanded) 3.dp else 8.dp,
-                        pressedElevation = 3.dp
+                        defaultElevation = if (isExpanded) 2.dp else 6.dp,
+                        pressedElevation = 2.dp,
+                        hoveredElevation = 8.dp
                     ),
                     modifier = Modifier.size(fabSize)
                 ) {
@@ -288,6 +290,7 @@ fun M3SpeedDialFab(
 
 /**
  * Official Material 3 Speed Dial Menu Capsule Pill Item.
+ * Uses dynamic secondaryContainer colors for rich M3 visual balance.
  */
 @Composable
 private fun M3FabMenuCapsuleItem(
@@ -299,10 +302,10 @@ private fun M3FabMenuCapsuleItem(
     Surface(
         onClick = onClick,
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        tonalElevation = 6.dp,
-        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        tonalElevation = 4.dp,
+        shadowElevation = 6.dp,
         modifier = Modifier.semantics {
             this.role = Role.Button
             this.contentDescription = label
@@ -311,19 +314,19 @@ private fun M3FabMenuCapsuleItem(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
                 tint = accentColor,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
             )
             Text(
                 text = label,
                 fontFamily = SpaceGroteskFamily,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
     }
@@ -346,7 +349,7 @@ fun M3FabContainerTransform(
         transitionSpec = { spring(stiffness = Spring.StiffnessMediumLow) },
         label = "ContainerCornerRadius"
     ) { expanded ->
-        if (expanded) 28.dp else 28.dp
+        if (expanded) 28.dp else 16.dp
     }
 
     val formOpacity by transition.animateFloat(
