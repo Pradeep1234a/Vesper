@@ -70,14 +70,10 @@ class VesperApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            android.util.Log.e("VesperApplication", "CRITICAL: Uncaught exception on thread: ${thread.name}", throwable)
-            if (thread.name.contains("main", ignoreCase = true) || thread.id == android.os.Looper.getMainLooper().thread.id) {
-                android.os.Process.killProcess(android.os.Process.myPid())
-                java.lang.System.exit(10)
-            } else {
-                android.util.Log.w("VesperApplication", "Swallowed background exception to prevent process termination.")
-            }
+            android.util.Log.e("VesperApplication", "Exception on thread: ${thread.name}", throwable)
+            defaultHandler?.uncaughtException(thread, throwable)
         }
     }
 }

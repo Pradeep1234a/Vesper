@@ -41,9 +41,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun paymentMethodDao(): PaymentMethodDao
 
     companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-        private var CURRENT_DB_NAME: String? = null
+        private val DB_INSTANCES = java.util.concurrent.ConcurrentHashMap<String, AppDatabase>()
 
         fun getDatabase(context: Context): AppDatabase {
             val sharedPrefs = context.getSharedPreferences("vesper_settings", Context.MODE_PRIVATE)
@@ -54,37 +52,26 @@ abstract class AppDatabase : RoomDatabase() {
                 "vesper_ledger_db_${email.replace(Regex("[^a-zA-Z0-9_]"), "_")}"
             }
 
-            return INSTANCE?.takeIf { CURRENT_DB_NAME == dbName } ?: synchronized(this) {
-                INSTANCE?.let {
-                    if (CURRENT_DB_NAME != dbName) {
-                        try {
-                            it.close()
-                        } catch (e: Exception) {
-                            android.util.Log.e("AppDatabase", "Error closing database connection: $CURRENT_DB_NAME", e)
+            return DB_INSTANCES.getOrPut(dbName) {
+                synchronized(this) {
+                    DB_INSTANCES[dbName] ?: Room.databaseBuilder(
+                        context.applicationContext,
+                        AppDatabase::class.java,
+                        dbName
+                    )
+                    .fallbackToDestructiveMigration()
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            seedDatabase(db)
                         }
-                    }
+                        override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+                            super.onDestructiveMigration(db)
+                            seedDatabase(db)
+                        }
+                    })
+                    .build()
                 }
-
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    dbName
-                )
-                .fallbackToDestructiveMigration()
-                .addCallback(object : RoomDatabase.Callback() {
-                    override fun onCreate(db: SupportSQLiteDatabase) {
-                        super.onCreate(db)
-                        seedDatabase(db)
-                    }
-                    override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
-                        super.onDestructiveMigration(db)
-                        seedDatabase(db)
-                    }
-                })
-                .build()
-                INSTANCE = instance
-                CURRENT_DB_NAME = dbName
-                instance
             }
         }
 
