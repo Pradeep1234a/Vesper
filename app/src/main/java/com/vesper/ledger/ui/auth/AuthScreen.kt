@@ -568,60 +568,85 @@ fun WelcomeScreen(
             // Top Optical Spacer (1.15f weight positions Hero section slightly above center)
             Spacer(modifier = Modifier.weight(1.15f))
 
-            // Center Hero Welcome Section (Slightly above center optical alignment)
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                // High-End Vesper Logo Tile (Queue 1: Logo & Scale entrance)
-                Box(
-                    modifier = Modifier
-                        .scale(logoScale.value)
-                        .alpha(logoAlpha.value)
-                        .size(118.dp)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(logoBoxBg)
-                        .border(
-                            BorderStroke(
-                                width = 1.5.dp,
-                                brush = logoBorderBrush
-                            ),
-                            shape = RoundedCornerShape(28.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
-                        contentDescription = "Vesper Logo",
-                        tint = Color.Unspecified,
-                        modifier = Modifier
-                            .size(112.dp)
-                            .graphicsLayer(alpha = 0.99f)
-                            .drawWithContent {
-                                drawContent()
-                                drawRect(
-                                    brush = goldEmblemBrush,
-                                    blendMode = BlendMode.SrcAtop
+            // Center Hero Welcome Section wrapped in a subtle minimal container card
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .scale(logoScale.value)
+                    .alpha(logoAlpha.value)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(
+                        if (isDark) {
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF18181B).copy(alpha = 0.7f),
+                                    Color(0xFF121215).copy(alpha = 0.9f)
                                 )
-                            }
+                            )
+                        } else {
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFFFFFFFF).copy(alpha = 0.95f),
+                                    Color(0xFFF1F5F9).copy(alpha = 0.75f)
+                                )
+                            )
+                        }
                     )
-                }
-
-                // 24.dp gap between Logo Box Tile and Headline
-                Spacer(modifier = Modifier.height(24.dp))
-
+                    .border(
+                        BorderStroke(
+                            width = 1.dp,
+                            color = if (isDark) Color(0xFF27272A).copy(alpha = 0.8f) else Color(0xFFE2E8F0)
+                        ),
+                        shape = RoundedCornerShape(32.dp)
+                    )
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    // Queue 2: Headline Text (Fade + Slide Up - Guaranteed Single Line)
+                    // High-End Vesper Logo Tile
+                    Box(
+                        modifier = Modifier
+                            .size(108.dp)
+                            .clip(RoundedCornerShape(26.dp))
+                            .background(logoBoxBg)
+                            .border(
+                                BorderStroke(
+                                    width = 1.5.dp,
+                                    brush = logoBorderBrush
+                                ),
+                                shape = RoundedCornerShape(26.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_vesper_vector_logo),
+                            contentDescription = "Vesper Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier
+                                .size(102.dp)
+                                .graphicsLayer(alpha = 0.99f)
+                                .drawWithContent {
+                                    drawContent()
+                                    drawRect(
+                                        brush = goldEmblemBrush,
+                                        blendMode = BlendMode.SrcAtop
+                                    )
+                                }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Headline Text
                     Text(
                         text = "Welcome to Vesper",
                         style = androidx.compose.ui.text.TextStyle(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 32.sp,
+                            fontSize = 30.sp,
                             color = textColorPrimary
                         ),
                         maxLines = 1,
@@ -632,19 +657,21 @@ fun WelcomeScreen(
                             .alpha(headlineAlpha.value)
                     )
 
-                    // Queue 3: Subtitle Text (Fade in)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Subtitle Text
                     Text(
                         text = "Your journey to financial clarity\nand security begins here.",
                         style = androidx.compose.ui.text.TextStyle(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             color = textColorSecondary,
-                            lineHeight = 24.sp
+                            lineHeight = 22.sp
                         ),
                         textAlign = TextAlign.Center,
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 8.dp)
                             .alpha(subtitleAlpha.value)
                     )
                 }
