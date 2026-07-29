@@ -255,7 +255,11 @@ fun M3TransactionFilterSheet(
                 TextButton(onClick = { showM3DatePickerDialog = false }) {
                     Text("Cancel", fontFamily = SpaceGroteskFamily)
                 }
-            }
+            },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+            modifier = Modifier
+                .padding(horizontal = 20.dp, vertical = 24.dp)
+                .wrapContentWidth()
         ) {
             DatePicker(state = datePickerState)
         }
@@ -1152,7 +1156,11 @@ fun DateRangePickerDialog(
             TextButton(onClick = onDismiss) {
                 Text("Cancel", fontFamily = SpaceGroteskFamily)
             }
-        }
+        },
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier
+            .padding(horizontal = 20.dp, vertical = 24.dp)
+            .wrapContentWidth()
     ) {
         DateRangePicker(
             state = state,

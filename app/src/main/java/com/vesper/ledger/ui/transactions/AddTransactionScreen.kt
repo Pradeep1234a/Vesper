@@ -1346,6 +1346,10 @@ fun AddTransactionScreen(
                             Text("Cancel", fontFamily = SpaceGroteskFamily)
                         }
                     },
+                    properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp, vertical = 24.dp)
+                        .wrapContentWidth(),
                     colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     DatePicker(
