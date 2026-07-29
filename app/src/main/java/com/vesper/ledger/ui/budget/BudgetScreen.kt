@@ -69,7 +69,7 @@ fun BudgetScreen(
                 onClick = onAddBudgetClick,
                 contentDescription = "Add Budget",
                 visible = isFabVisible,
-                hasBottomBar = true
+                hasBottomBar = false
             )
         }
     ) { paddingValues ->
@@ -89,6 +89,11 @@ fun BudgetScreen(
             ) {
                 // 1. TOTAL BUDGET SUMMARY BANNER CARD (Reference to AccountsScreen)
                 item {
+                    val overallStatusColor = when {
+                        overallProgress >= 1f -> Color(0xFFF43F5E)
+                        overallProgress >= 0.8f -> Color(0xFFF59E0B)
+                        else -> Color(0xFF22C55E)
+                    }
                     ShCard(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(6.dp),
@@ -100,51 +105,65 @@ fun BudgetScreen(
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontFamily = SpaceGroteskFamily,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    letterSpacing = 1.2.sp,
+                                    fontSize = 10.sp,
+                                    letterSpacing = 0.8.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
-
                             Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "${currencySymbol}${df.format(totalBudgetSpent)}",
+                                        style = MaterialTheme.typography.headlineMedium.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 24.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    )
+                                    Text(
+                                        text = "SPENT OF ${currencySymbol}${df.format(totalBudgetLimit)} ALLOCATED",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                }
 
-                            Text(
-                                text = "$currencySymbol${df.format(totalBudgetLimit)}",
-                                style = MaterialTheme.typography.headlineLarge.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 28.sp,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Text(
-                                text = "${budgetsWithStatus.size} active budgets • $currencySymbol${df.format(totalBudgetSpent)} spent this month",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontFamily = PlusJakartaSansFamily,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 12.sp
-                                )
-                            )
+                                if (budgetsWithStatus.isNotEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(overallStatusColor.copy(alpha = 0.15f))
+                                            .border(1.dp, overallStatusColor, RoundedCornerShape(6.dp))
+                                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                                    ) {
+                                        Text(
+                                            text = "${budgetsWithStatus.size} ACTIVE",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 11.sp,
+                                            color = overallStatusColor
+                                        )
+                                    }
+                                }
+                            }
 
                             if (totalBudgetLimit > 0) {
                                 Spacer(modifier = Modifier.height(14.dp))
-
-                                val overallStatusColor = when {
-                                    overallProgress >= 1f -> Color(0xFFF43F5E)
-                                    overallProgress >= 0.8f -> Color(0xFFF59E0B)
-                                    else -> Color(0xFF22C55E)
-                                }
-
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = "OVERALL BUDGET SPENT",
+                                        text = "OVERALL BUDGET USAGE",
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 10.sp,
@@ -152,16 +171,14 @@ fun BudgetScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
-                                        text = "${(overallProgress * 100).toInt()}% SPENT",
+                                        text = "${(overallProgress * 100).toInt()}%",
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp,
+                                        fontSize = 10.sp,
                                         color = overallStatusColor
                                     )
                                 }
-
                                 Spacer(modifier = Modifier.height(6.dp))
-
                                 LinearProgressIndicator(
                                     progress = overallProgress,
                                     modifier = Modifier
@@ -176,74 +193,51 @@ fun BudgetScreen(
                     }
                 }
 
-                // 2. PERIOD FILTER CHIPS
-                item {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(listOf("ALL", "MONTHLY", "WEEKLY", "YEARLY")) { period ->
-                            val isSelected = selectedPeriodFilter == period
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                        else MaterialTheme.colorScheme.surface
-                                    )
-                                    .border(
-                                        width = 1.dp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                                        shape = RoundedCornerShape(6.dp)
-                                    )
-                                    .clickable { selectedPeriodFilter = period }
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    text = period,
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    letterSpacing = 0.8.sp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 3. BUDGET LIST ITEMS OR EMPTY STATE
+                // 2. BUDGET LIST ITEMS OR REDESIGNED ELEGANT M3 EMPTY STATE
                 if (filteredBudgets.isEmpty()) {
                     item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 48.dp),
+                                .padding(vertical = 48.dp, horizontal = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = Icons.Outlined.PieChart,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(54.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.PieChart,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(32.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                                 Text(
-                                    text = "No budgets configured yet",
-                                    style = MaterialTheme.typography.titleMedium.copy(
+                                    text = "No Budgets Yet",
+                                    style = MaterialTheme.typography.titleLarge.copy(
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Tap + to set monthly spending limits for dining, shopping or utilities.",
-                                    style = MaterialTheme.typography.bodySmall.copy(
+                                    text = "Create monthly spending limits for categories like dining, shopping, or utilities.",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
                                         fontFamily = PlusJakartaSansFamily,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 24.dp)
                                 )
                             }
                         }

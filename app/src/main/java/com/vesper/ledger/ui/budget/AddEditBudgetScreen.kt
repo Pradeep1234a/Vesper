@@ -297,7 +297,133 @@ fun AddEditBudgetScreen(
                     )
                 }
 
-                // 4. CATEGORY SELECTION CARD (Horizontal Chips)
+    var showCategoryPickerSheet by remember { mutableStateOf(false) }
+
+    // Category Picker Modal Bottom Sheet
+    if (showCategoryPickerSheet) {
+        var searchQuery by remember { mutableStateOf("") }
+        val filteredCategories = remember(categories, searchQuery) {
+            if (searchQuery.isBlank()) categories else categories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = { showCategoryPickerSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .heightIn(max = 480.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Select Category",
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    IconButton(onClick = { showCategoryPickerSheet = false }) {
+                        Icon(Icons.Outlined.Close, contentDescription = "Close")
+                    }
+                }
+
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search categories...", fontFamily = PlusJakartaSansFamily, fontSize = 13.sp) },
+                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                androidx.compose.foundation.lazy.LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(filteredCategories.size) { index ->
+                        val cat = filteredCategories[index]
+                        val isSelected = cat.id == selectedCategoryId
+                        val catColor = try {
+                            Color(android.graphics.Color.parseColor(cat.colorHex))
+                        } catch (e: Exception) {
+                            MaterialTheme.colorScheme.primary
+                        }
+
+                        Surface(
+                            onClick = {
+                                selectedCategoryId = cat.id
+                                showCategoryPickerSheet = false
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(catColor.copy(alpha = 0.2f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = getIconByName(cat.iconName),
+                                        contentDescription = null,
+                                        tint = catColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = cat.name,
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = cat.type.name,
+                                        fontFamily = PlusJakartaSansFamily,
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+                // 4. LINKED CATEGORY SELECTOR BENTO CARD
                 ShCard(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(6.dp),
@@ -313,44 +439,64 @@ fun AddEditBudgetScreen(
                             )
                         )
 
-                        androidx.compose.foundation.lazy.LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        Surface(
+                            onClick = { showCategoryPickerSheet = true },
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(categories.size) { index ->
-                                val category = categories[index]
-                                val isSelected = category.id == selectedCategoryId
-                                Row(
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
+                                        .size(40.dp)
+                                        .clip(RoundedCornerShape(8.dp))
                                         .background(
-                                            if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                                        )
-                                        .border(
-                                            width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
-                                            shape = RoundedCornerShape(6.dp)
-                                        )
-                                        .clickable { selectedCategoryId = category.id }
-                                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                            try {
+                                                Color(android.graphics.Color.parseColor(selectedCategory?.colorHex ?: "#38BDF8")).copy(alpha = 0.2f)
+                                            } catch (e: Exception) {
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            }
+                                        ),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = getIconByName(category.iconName),
+                                        imageVector = getIconByName(selectedCategory?.iconName ?: "pie_chart"),
                                         contentDescription = null,
-                                        tint = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = category.name,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp,
-                                        color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = try {
+                                            Color(android.graphics.Color.parseColor(selectedCategory?.colorHex ?: "#38BDF8"))
+                                        } catch (e: Exception) {
+                                            MaterialTheme.colorScheme.primary
+                                        },
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = selectedCategory?.name ?: "Select Category",
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = selectedCategory?.type?.name ?: "Expense",
+                                        fontFamily = PlusJakartaSansFamily,
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                Icon(
+                                    imageVector = Icons.Outlined.UnfoldMore,
+                                    contentDescription = "Choose Category",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
