@@ -37,6 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
@@ -936,6 +938,57 @@ fun AnalyticsScreen(
                             )
                         }
                     }
+                }
+            }
+        }
+
+        // 11. ADVANCED EXCEL EXPORT BENTO CARD
+        val exportContext = LocalContext.current
+        AnalyticsBentoCard(
+            title = "ADVANCED EXCEL REPORT EXPORT",
+            icon = Icons.Outlined.FileDownload
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "Generate a multi-worksheet Excel workbook (.xlsx / .xlsm) with Executive Dashboard KPIs, Transactions Master, SUMIF/XLOOKUP formulas, Pivot tables, and VBA Macro helpers.",
+                    fontFamily = PlusJakartaSansFamily,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Button(
+                    onClick = {
+                        val file = com.vesper.ledger.util.AdvancedExcelExporter.exportToExcel(
+                            context = exportContext,
+                            transactions = filteredTransactions,
+                            categories = categories,
+                            accounts = accounts,
+                            currencySymbol = currencySymbol
+                        )
+                        if (file != null) {
+                            Toast.makeText(exportContext, "Advanced Excel Report Generated! Opening...", Toast.LENGTH_SHORT).show()
+                            com.vesper.ledger.util.AdvancedExcelExporter.shareExcelFile(exportContext, file)
+                        } else {
+                            Toast.makeText(exportContext, "Failed to generate Excel file", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Icon(Icons.Outlined.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Export Advanced Excel Workbook (.xlsx)",
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }
