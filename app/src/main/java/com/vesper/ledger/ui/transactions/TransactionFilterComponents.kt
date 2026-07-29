@@ -117,20 +117,10 @@ fun M3TransactionFilterSheet(
 
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
-    var overscrollOffset by remember { mutableStateOf(0f) }
-    val animatedOverscroll by animateFloatAsState(
-        targetValue = overscrollOffset,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "RubberBandSpring"
-    )
-
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
         windowInsets = WindowInsets(0, 0, 0, 0),
         dragHandle = {
             BottomSheetDefaults.DragHandle(
@@ -146,24 +136,6 @@ fun M3TransactionFilterSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f)
-                .graphicsLayer {
-                    translationY = -animatedOverscroll
-                }
-                .pointerInput(Unit) {
-                    detectVerticalDragGestures(
-                        onDragEnd = { overscrollOffset = 0f },
-                        onDragCancel = { overscrollOffset = 0f },
-                        onVerticalDrag = { change, dragAmount ->
-                            if (dragAmount < 0) { // Dragging upward past 85% height limit
-                                overscrollOffset = (overscrollOffset - dragAmount * 0.35f).coerceAtMost(65f)
-                                change.consume()
-                            } else if (overscrollOffset > 0f) {
-                                overscrollOffset = (overscrollOffset - dragAmount * 0.35f).coerceAtLeast(0f)
-                                change.consume()
-                            }
-                        }
-                    )
-                }
                 .navigationBarsPadding()
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
