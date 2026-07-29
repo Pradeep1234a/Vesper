@@ -93,6 +93,12 @@ fun CategoriesScreen(
     val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
 
     Scaffold(
+        topBar = {
+            ChildHeader(
+                title = "Categories",
+                onBackClick = onBackClick
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {

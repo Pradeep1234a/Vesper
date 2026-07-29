@@ -96,6 +96,12 @@ fun AccountsScreen(
     val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
 
     Scaffold(
+        topBar = {
+            com.vesper.ledger.ui.components.ChildHeader(
+                title = "Accounts & Vaults",
+                onBackClick = onBackClick
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
@@ -107,7 +113,7 @@ fun AccountsScreen(
             )
         }
     ) { innerPadding ->
-        ElasticBounceContainer(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

@@ -88,14 +88,14 @@ fun TransactionsScreen(
                     text = "Delete Transaction",
                     fontFamily = SpaceGroteskFamily,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             },
             text = {
                 Text(
                     text = "Are you sure you want to delete this transaction?",
                     fontFamily = SpaceGroteskFamily,
-                    color = Color(0xFFA1A1AA)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {

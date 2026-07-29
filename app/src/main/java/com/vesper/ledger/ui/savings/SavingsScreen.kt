@@ -134,7 +134,7 @@ fun SavingsScreen(
             )
         }
     ) { innerPadding ->
-        ElasticBounceContainer(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

@@ -73,7 +73,7 @@ fun BudgetScreen(
             )
         }
     ) { paddingValues ->
-        ElasticBounceContainer(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)

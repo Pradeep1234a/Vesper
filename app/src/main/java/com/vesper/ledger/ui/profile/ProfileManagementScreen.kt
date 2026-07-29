@@ -97,6 +97,12 @@ fun ProfileManagementScreen(
     }
 
     Scaffold(
+        topBar = {
+            com.vesper.ledger.ui.components.ChildHeader(
+                title = "Profile & Account",
+                onBackClick = onBackClick
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
