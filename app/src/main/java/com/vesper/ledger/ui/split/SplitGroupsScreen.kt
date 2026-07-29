@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.DebtSettlement
 import com.vesper.ledger.data.model.GroupAnalyticsSummary
+import com.vesper.ledger.data.model.GroupSettlementMatrix
 import com.vesper.ledger.data.model.SplitGroup
 import com.vesper.ledger.data.model.SplitMember
 import com.vesper.ledger.ui.components.ShCard
@@ -340,14 +341,16 @@ fun SplitGroupsScreen(
         )
     }
 
-    // Group Analytics Dialog
+    // Group Analytics & Settlement Matrix Dialog
     if (showAnalyticsGroup != null) {
         val group = showAnalyticsGroup!!
         val analytics by viewModel.getGroupAnalyticsSummary(group.id).collectAsState(initial = null)
+        val matrix by viewModel.getGroupSettlementMatrix(group.id).collectAsState(initial = null)
 
         GroupAnalyticsDialog(
             group = group,
             analytics = analytics,
+            matrix = matrix,
             currencySymbol = currencySymbol,
             df = df,
             onDismiss = { showAnalyticsGroup = null }
@@ -577,6 +580,7 @@ fun SettleUpDialog(
 fun GroupAnalyticsDialog(
     group: SplitGroup,
     analytics: GroupAnalyticsSummary?,
+    matrix: GroupSettlementMatrix?,
     currencySymbol: String,
     df: DecimalFormat,
     onDismiss: () -> Unit
@@ -585,35 +589,69 @@ fun GroupAnalyticsDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "${group.title} Analytics",
+                text = "${group.title} Smart Matrix & Analytics",
                 fontFamily = SpaceGroteskFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
         },
         text = {
-            if (analytics == null) {
+            if (analytics == null || matrix == null) {
                 Box(modifier = Modifier.padding(24.dp)) { CircularProgressIndicator() }
             } else {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Total Volume: $currencySymbol${df.format(analytics.totalExpenseVolume)}", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                    Text("Top Category: ${analytics.topCategory}", fontFamily = PlusJakartaSansFamily)
-                    Text("Top Spender: ${analytics.topSpenderName} ($currencySymbol${df.format(analytics.topSpenderAmount)})", fontFamily = PlusJakartaSansFamily)
+                    // Summary Banner
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("Total Group Spend", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp)
+                            Text("$currencySymbol${df.format(matrix.totalGroupVolume)}", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("Fair Share / Person", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp)
+                            Text("$currencySymbol${df.format(matrix.fairSharePerMember)}", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+
+                    // Smart Matrix Breakdown
+                    Text("SMART SETTLEMENT MATRIX", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+
+                    if (matrix.overpaidMembers.isNotEmpty()) {
+                        Text("Overpaid (Receives Money):", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
+                        matrix.overpaidMembers.forEach { (name, amt) ->
+                            Text("• $name overpaid by $currencySymbol${df.format(amt)}", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp)
+                        }
+                    }
+
+                    if (matrix.underpaidMembers.isNotEmpty()) {
+                        Text("Underpaid (Owes Money):", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                        matrix.underpaidMembers.forEach { (name, amt) ->
+                            Text("• $name owes $currencySymbol${df.format(amt)}", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp)
+                        }
+                    }
+
+                    if (matrix.allSquareMembers.isNotEmpty()) {
+                        Text("All-Square (₹0 Balance):", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        matrix.allSquareMembers.forEach { name ->
+                            Text("• $name is perfectly even! (₹0)", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp)
+                        }
+                    }
 
                     Divider()
-                    Text("MEMBER NET BALANCES", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    analytics.memberBalances.forEach { (name, bal) ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(name, fontFamily = PlusJakartaSansFamily)
-                            Text(
-                                text = if (bal >= 0) "+$currencySymbol${df.format(bal)}" else "-$currencySymbol${df.format(kotlin.math.abs(bal))}",
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = if (bal >= 0) Color(0xFF16A34A) else Color(0xFFDC2626)
-                            )
+                    Text("DIRECT 1-TO-1 SETTLEMENT STEPS", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    if (matrix.simplifiedTransfers.isEmpty()) {
+                        Text("Everyone is 100% settled up!", fontFamily = PlusJakartaSansFamily, fontSize = 12.sp, color = Color(0xFF16A34A))
+                    } else {
+                        matrix.simplifiedTransfers.forEach { transfer ->
+                            Text("💸 ${transfer.debtorName} pays ${transfer.creditorName} $currencySymbol${df.format(transfer.amount)}", fontFamily = SpaceGroteskFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -653,7 +691,7 @@ fun AddSplitExpenseDialog(
     var selectedPaymentMethod by remember { mutableStateOf("UPI") }
     var selectedCategory by remember { mutableStateOf("Food & Groceries") }
     var selectedAccount by remember { mutableStateOf(accounts.firstOrNull()) }
-    var splitMode by remember { mutableStateOf("EQUAL") } // EQUAL, EXACT
+    var splitMode by remember { mutableStateOf("EQUAL") }
 
     val customShares = remember { mutableStateMapOf<Long, String>() }
     val context = LocalContext.current

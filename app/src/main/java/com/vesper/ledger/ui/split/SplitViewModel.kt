@@ -7,6 +7,7 @@ import com.vesper.ledger.data.local.AppDatabase
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.DebtSettlement
 import com.vesper.ledger.data.model.GroupAnalyticsSummary
+import com.vesper.ledger.data.model.GroupSettlementMatrix
 import com.vesper.ledger.data.model.SplitExpense
 import com.vesper.ledger.data.model.SplitExpenseShare
 import com.vesper.ledger.data.model.SplitGroup
@@ -68,6 +69,7 @@ class SplitViewModel(application: Application) : AndroidViewModel(application) {
         accountId: Long,
         categoryName: String,
         shares: Map<Long, Double>,
+        multiplePayers: Map<Long, Double> = emptyMap(),
         isPaidByCurrentUser: Boolean,
         onSuccess: () -> Unit = {}
     ) {
@@ -82,6 +84,7 @@ class SplitViewModel(application: Application) : AndroidViewModel(application) {
                 accountId = accountId,
                 categoryName = categoryName,
                 shares = shares,
+                multiplePayers = multiplePayers,
                 isPaidByCurrentUser = isPaidByCurrentUser
             )
             onSuccess()
@@ -136,4 +139,5 @@ class SplitViewModel(application: Application) : AndroidViewModel(application) {
     fun getExpensesForGroup(groupId: Long): Flow<List<SplitExpense>> = repository.getExpensesForGroup(groupId)
     fun getSharesForExpense(expenseId: Long): Flow<List<SplitExpenseShare>> = repository.getSharesForExpense(expenseId)
     fun getGroupAnalyticsSummary(groupId: Long): Flow<GroupAnalyticsSummary?> = repository.getGroupAnalyticsSummary(groupId)
+    fun getGroupSettlementMatrix(groupId: Long): Flow<GroupSettlementMatrix?> = repository.getGroupSettlementMatrix(groupId)
 }

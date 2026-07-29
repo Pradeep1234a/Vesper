@@ -2,6 +2,7 @@ package com.vesper.ledger.data.local
 
 import androidx.room.*
 import com.vesper.ledger.data.model.SplitExpense
+import com.vesper.ledger.data.model.SplitExpensePayer
 import com.vesper.ledger.data.model.SplitExpenseShare
 import com.vesper.ledger.data.model.SplitGroup
 import com.vesper.ledger.data.model.SplitMember
@@ -64,6 +65,22 @@ interface SplitDao {
 
     @Query("DELETE FROM split_expenses WHERE id = :expenseId")
     suspend fun deleteExpenseById(expenseId: Long)
+
+    // ── Expense Payers (Multi-Payer) ──
+    @Query("SELECT * FROM split_expense_payers WHERE expenseId = :expenseId")
+    fun getPayersForExpense(expenseId: Long): Flow<List<SplitExpensePayer>>
+
+    @Query("SELECT * FROM split_expense_payers WHERE expenseId = :expenseId")
+    suspend fun getPayersForExpenseSync(expenseId: Long): List<SplitExpensePayer>
+
+    @Query("SELECT * FROM split_expense_payers")
+    fun getAllPayers(): Flow<List<SplitExpensePayer>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPayers(payers: List<SplitExpensePayer>)
+
+    @Query("DELETE FROM split_expense_payers WHERE expenseId = :expenseId")
+    suspend fun deletePayersForExpense(expenseId: Long)
 
     // ── Expense Shares ──
     @Query("SELECT * FROM split_expense_shares WHERE expenseId = :expenseId")

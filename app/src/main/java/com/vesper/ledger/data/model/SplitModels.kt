@@ -36,6 +36,15 @@ data class SplitExpense(
     val isSettlement: Boolean = false
 )
 
+@Entity(tableName = "split_expense_payers")
+data class SplitExpensePayer(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val expenseId: Long,
+    val memberId: Long,
+    val memberName: String,
+    val amountPaid: Double
+)
+
 @Entity(tableName = "split_expense_shares")
 data class SplitExpenseShare(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -88,4 +97,16 @@ data class GroupAnalyticsSummary(
     val memberBalances: Map<String, Double>, // MemberName -> NetBalance (+ owed, - owes)
     val categoryBreakdown: Map<String, Double>, // CategoryName -> Spent
     val paymentMethodBreakdown: Map<String, Double> // PaymentMethod -> Volume
+)
+
+/**
+ * Smart Settlement Matrix DTO (Explaining exactly who overpaid, who underpaid, and who is all-square)
+ */
+data class GroupSettlementMatrix(
+    val totalGroupVolume: Double,
+    val fairSharePerMember: Double,
+    val overpaidMembers: List<Pair<String, Double>>, // Members who paid MORE than their fair share (+ receive)
+    val underpaidMembers: List<Pair<String, Double>>, // Members who paid LESS than their fair share (- owe)
+    val allSquareMembers: List<String>, // Members who are perfectly even (₹0 balance!)
+    val simplifiedTransfers: List<DebtSettlement> // Direct 1-to-1 transfer instructions
 )

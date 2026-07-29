@@ -46,7 +46,7 @@ class SplitRepository(
         splitDao.deleteGroupById(groupId)
     }
 
-    // ── Add & Delete Split Expenses with Account Reversal Sync ──
+    // ── Add & Delete Split Expenses (Supports Multi-Payer & Account Sync) ──
     suspend fun addSplitExpense(
         groupId: Long,
         title: String,
@@ -57,6 +57,7 @@ class SplitRepository(
         accountId: Long,
         categoryName: String,
         shares: Map<Long, Double>, // memberId -> shareAmount
+        multiplePayers: Map<Long, Double> = emptyMap(), // memberId -> amountPaid (for multi-payer)
         isPaidByCurrentUser: Boolean
     ): Long {
         val expense = SplitExpense(
@@ -73,8 +74,34 @@ class SplitRepository(
 
         val expenseId = splitDao.insertExpense(expense)
 
-        // Insert member shares
         val groupMembers = splitDao.getMembersForGroupSync(groupId)
+        val memberMap = groupMembers.associateBy { it.id }
+
+        // Insert Multi-Payers
+        if (multiplePayers.isNotEmpty()) {
+            val payerList = multiplePayers.map { (mId, paidAmt) ->
+                SplitExpensePayer(
+                    expenseId = expenseId,
+                    memberId = mId,
+                    memberName = memberMap[mId]?.name ?: "Member",
+                    amountPaid = paidAmt
+                )
+            }
+            splitDao.insertPayers(payerList)
+        } else {
+            splitDao.insertPayers(
+                listOf(
+                    SplitExpensePayer(
+                        expenseId = expenseId,
+                        memberId = paidByMemberId,
+                        memberName = paidByMemberName,
+                        amountPaid = totalAmount
+                    )
+                )
+            )
+        }
+
+        // Insert member shares
         val shareList = groupMembers.map { member ->
             val shareAmt = shares[member.id] ?: (totalAmount / groupMembers.size)
             SplitExpenseShare(
@@ -87,11 +114,18 @@ class SplitRepository(
         }
         splitDao.insertShares(shareList)
 
-        // If paid upfront by current user and an account is selected, sync with main transactions
-        if (isPaidByCurrentUser && accountId != 0L) {
+        // If current user paid upfront (single or multi-payer portion) and account selected, sync ledger
+        val userPaidAmount = if (multiplePayers.isNotEmpty()) {
+            val userMember = groupMembers.find { it.isCurrentUser }
+            multiplePayers[userMember?.id] ?: 0.0
+        } else if (isPaidByCurrentUser) {
+            totalAmount
+        } else 0.0
+
+        if (userPaidAmount > 0 && accountId != 0L) {
             val mainTx = Transaction(
                 title = "Split: $title",
-                amount = totalAmount,
+                amount = userPaidAmount,
                 type = TransactionType.EXPENSE,
                 categoryId = 5,
                 dateEpochMillis = System.currentTimeMillis(),
@@ -102,11 +136,9 @@ class SplitRepository(
             )
             transactionDao.insertTransaction(mainTx)
 
-            // Update account balance
             val account = accountDao.getAccountById(accountId)
             if (account != null) {
-                val updatedBal = account.initialBalance - totalAmount
-                accountDao.updateAccount(account.copy(initialBalance = updatedBal))
+                accountDao.updateAccount(account.copy(initialBalance = account.initialBalance - userPaidAmount))
             }
         }
 
@@ -116,13 +148,13 @@ class SplitRepository(
     suspend fun deleteSplitExpense(expenseId: Long) {
         val expense = splitDao.getExpenseById(expenseId)
         if (expense != null) {
-            // If paid by current user and linked account exists, restore account balance
             if (expense.paidByMemberName.equals("Me", ignoreCase = true) && expense.accountId != 0L) {
                 val account = accountDao.getAccountById(expense.accountId)
                 if (account != null) {
                     accountDao.updateAccount(account.copy(initialBalance = account.initialBalance + expense.totalAmount))
                 }
             }
+            splitDao.deletePayersForExpense(expenseId)
             splitDao.deleteSharesForExpense(expenseId)
             splitDao.deleteExpenseById(expenseId)
         }
@@ -159,17 +191,15 @@ class SplitRepository(
 
         val settlementId = splitDao.insertSettlement(settlement)
 
-        // Main ledger sync
         if (accountId != 0L) {
             val account = accountDao.getAccountById(accountId)
             if (account != null) {
                 if (isCreditorCurrentUser) {
-                    // You received settlement money from debtor -> INCOME
                     val mainTx = Transaction(
                         title = "Settlement Received from $debtorName",
                         amount = amount,
                         type = TransactionType.INCOME,
-                        categoryId = 4, // Other Income
+                        categoryId = 4,
                         dateEpochMillis = System.currentTimeMillis(),
                         note = "Group settlement received via $paymentMethod",
                         accountName = account.name,
@@ -179,12 +209,11 @@ class SplitRepository(
                     transactionDao.insertTransaction(mainTx)
                     accountDao.updateAccount(account.copy(initialBalance = account.initialBalance + amount))
                 } else if (isDebtorCurrentUser) {
-                    // You paid settlement money to creditor -> EXPENSE
                     val mainTx = Transaction(
                         title = "Settlement Paid to $creditorName",
                         amount = amount,
                         type = TransactionType.EXPENSE,
-                        categoryId = 12, // Other Expense
+                        categoryId = 12,
                         dateEpochMillis = System.currentTimeMillis(),
                         note = "Group settlement paid via $paymentMethod",
                         accountName = account.name,
@@ -200,15 +229,16 @@ class SplitRepository(
         return settlementId
     }
 
-    // ── Debt Calculation Engine (With Settlements Included) ──
+    // ── Debt Calculation Engine (Supports Multi-Payer & Settlements) ──
     fun getGroupDebtSettlements(groupId: Long): Flow<List<DebtSettlement>> {
         return combine(
             splitDao.getMembersForGroup(groupId),
             splitDao.getExpensesForGroup(groupId),
             splitDao.getAllShares(),
+            splitDao.getAllPayers(),
             splitDao.getSettlementsForGroup(groupId)
-        ) { members: List<SplitMember>, expenses: List<SplitExpense>, allShares: List<SplitExpenseShare>, settlements: List<SplitSettlement> ->
-            calculateDebts(groupId, members, expenses, allShares, settlements)
+        ) { members: List<SplitMember>, expenses: List<SplitExpense>, allShares: List<SplitExpenseShare>, allPayers: List<SplitExpensePayer>, settlements: List<SplitSettlement> ->
+            calculateDebts(groupId, members, expenses, allShares, allPayers, settlements)
         }
     }
 
@@ -217,9 +247,10 @@ class SplitRepository(
             splitDao.getAllMembers(),
             splitDao.getAllExpenses(),
             splitDao.getAllShares(),
+            splitDao.getAllPayers(),
             splitDao.getAllSettlements()
-        ) { members: List<SplitMember>, expenses: List<SplitExpense>, allShares: List<SplitExpenseShare>, settlements: List<SplitSettlement> ->
-            calculateDebts(0L, members, expenses, allShares, settlements)
+        ) { members: List<SplitMember>, expenses: List<SplitExpense>, allShares: List<SplitExpenseShare>, allPayers: List<SplitExpensePayer>, settlements: List<SplitSettlement> ->
+            calculateDebts(0L, members, expenses, allShares, allPayers, settlements)
         }
     }
 
@@ -228,6 +259,7 @@ class SplitRepository(
         members: List<SplitMember>,
         expenses: List<SplitExpense>,
         allShares: List<SplitExpenseShare>,
+        allPayers: List<SplitExpensePayer>,
         settlements: List<SplitSettlement>
     ): List<DebtSettlement> {
         if (members.isEmpty() || (expenses.isEmpty() && settlements.isEmpty())) return emptyList()
@@ -235,12 +267,18 @@ class SplitRepository(
         val memberMap = members.associateBy { it.id }
         val netBalances = mutableMapOf<Long, Double>()
 
-        // Initialize balances
         members.forEach { netBalances[it.id] = 0.0 }
 
-        // Process expenses (Payer gets +, consumers get -)
+        // Process multi-payer upfront payments & consumed shares
         expenses.forEach { exp ->
-            netBalances[exp.paidByMemberId] = (netBalances[exp.paidByMemberId] ?: 0.0) + exp.totalAmount
+            val expPayers = allPayers.filter { it.expenseId == exp.id }
+            if (expPayers.isNotEmpty()) {
+                expPayers.forEach { payer ->
+                    netBalances[payer.memberId] = (netBalances[payer.memberId] ?: 0.0) + payer.amountPaid
+                }
+            } else {
+                netBalances[exp.paidByMemberId] = (netBalances[exp.paidByMemberId] ?: 0.0) + exp.totalAmount
+            }
 
             val expShares = allShares.filter { it.expenseId == exp.id }
             expShares.forEach { share ->
@@ -248,15 +286,13 @@ class SplitRepository(
             }
         }
 
-        // Incorporate settlements (Debtor paid Creditor)
+        // Incorporate settlements
         settlements.forEach { st ->
-            // Debtor balance increases (less negative/debt reduced)
             netBalances[st.debtorId] = (netBalances[st.debtorId] ?: 0.0) + st.amount
-            // Creditor balance decreases (receivable reduced)
             netBalances[st.creditorId] = (netBalances[st.creditorId] ?: 0.0) - st.amount
         }
 
-        // Debt Simplification Algorithm (Greedy Matching)
+        // Greedy Debt Simplification
         val debtors = mutableListOf<Pair<Long, Double>>()
         val creditors = mutableListOf<Pair<Long, Double>>()
 
@@ -306,6 +342,47 @@ class SplitRepository(
         }
 
         return debtList
+    }
+
+    // ── Smart Group Settlement Matrix ──
+    fun getGroupSettlementMatrix(groupId: Long): Flow<GroupSettlementMatrix?> {
+        return combine(
+            splitDao.getMembersForGroup(groupId),
+            splitDao.getExpensesForGroup(groupId),
+            getGroupDebtSettlements(groupId)
+        ) { members: List<SplitMember>, expenses: List<SplitExpense>, debtList: List<DebtSettlement> ->
+            if (members.isEmpty()) return@combine null
+
+            val totalVolume = expenses.sumOf { it.totalAmount }
+            val fairShare = totalVolume / members.size
+
+            val memberPaidMap = mutableMapOf<Long, Double>()
+            members.forEach { memberPaidMap[it.id] = 0.0 }
+            expenses.forEach { exp ->
+                memberPaidMap[exp.paidByMemberId] = (memberPaidMap[exp.paidByMemberId] ?: 0.0) + exp.totalAmount
+            }
+
+            val overpaid = mutableListOf<Pair<String, Double>>()
+            val underpaid = mutableListOf<Pair<String, Double>>()
+            val allSquare = mutableListOf<String>()
+
+            members.forEach { m ->
+                val paid = memberPaidMap[m.id] ?: 0.0
+                val net = paid - fairShare
+                if (net > 0.01) overpaid.add(m.name to net)
+                else if (net < -0.01) underpaid.add(m.name to abs(net))
+                else allSquare.add(m.name)
+            }
+
+            GroupSettlementMatrix(
+                totalGroupVolume = totalVolume,
+                fairSharePerMember = fairShare,
+                overpaidMembers = overpaid,
+                underpaidMembers = underpaid,
+                allSquareMembers = allSquare,
+                simplifiedTransfers = debtList
+            )
+        }
     }
 
     // ── Group Analytics Summary ──
