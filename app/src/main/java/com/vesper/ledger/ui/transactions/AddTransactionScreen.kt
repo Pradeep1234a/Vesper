@@ -1322,46 +1322,61 @@ fun AddTransactionScreen(
                 val datePickerState = rememberDatePickerState(
                     initialSelectedDateMillis = selectedCalendar.timeInMillis
                 )
-                DatePickerDialog(
+                Dialog(
                     onDismissRequest = { showDatePickerSheet = false },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                datePickerState.selectedDateMillis?.let { millis ->
-                                    val cal = Calendar.getInstance().apply { timeInMillis = millis }
-                                    selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
-                                        set(Calendar.YEAR, cal.get(Calendar.YEAR))
-                                        set(Calendar.MONTH, cal.get(Calendar.MONTH))
-                                        set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH))
-                                    }
-                                }
-                                showDatePickerSheet = false
-                            }
-                        ) {
-                            Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDatePickerSheet = false }) {
-                            Text("Cancel", fontFamily = SpaceGroteskFamily)
-                        }
-                    },
-                    properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
-                    modifier = Modifier
-                        .padding(horizontal = 20.dp, vertical = 24.dp)
-                        .wrapContentWidth(),
-                    colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                    properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
                 ) {
-                    DatePicker(
-                        state = datePickerState,
-                        colors = DatePickerDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            titleContentColor = MaterialTheme.colorScheme.onSurface,
-                            headlineContentColor = MaterialTheme.colorScheme.onSurface,
-                            todayContentColor = MaterialTheme.colorScheme.primary,
-                            todayDateBorderColor = MaterialTheme.colorScheme.primary
-                        )
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 6.dp,
+                        modifier = Modifier
+                            .fillMaxWidth(0.92f)
+                            .wrapContentHeight()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            DatePicker(
+                                state = datePickerState,
+                                colors = DatePickerDefaults.colors(
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                                    headlineContentColor = MaterialTheme.colorScheme.onSurface,
+                                    todayContentColor = MaterialTheme.colorScheme.primary,
+                                    todayDateBorderColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, end = 8.dp),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { showDatePickerSheet = false }) {
+                                    Text("Cancel", fontFamily = SpaceGroteskFamily)
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Button(
+                                    onClick = {
+                                        datePickerState.selectedDateMillis?.let { millis ->
+                                            val cal = Calendar.getInstance().apply { timeInMillis = millis }
+                                            selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                                set(Calendar.YEAR, cal.get(Calendar.YEAR))
+                                                set(Calendar.MONTH, cal.get(Calendar.MONTH))
+                                                set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH))
+                                            }
+                                        }
+                                        showDatePickerSheet = false
+                                    }
+                                ) {
+                                    Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

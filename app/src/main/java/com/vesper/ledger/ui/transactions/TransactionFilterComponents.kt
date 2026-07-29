@@ -41,6 +41,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Account
@@ -239,29 +241,47 @@ fun M3TransactionFilterSheet(
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = startDateFilter ?: System.currentTimeMillis()
         )
-        DatePickerDialog(
+        Dialog(
             onDismissRequest = { showM3DatePickerDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { ms ->
-                        viewModel.setDatePreset(DatePreset.CUSTOM, ms, ms)
-                    }
-                    showM3DatePickerDialog = false
-                }) {
-                    Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showM3DatePickerDialog = false }) {
-                    Text("Cancel", fontFamily = SpaceGroteskFamily)
-                }
-            },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 24.dp)
-                .wrapContentWidth()
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
-            DatePicker(state = datePickerState)
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp,
+                modifier = Modifier
+                    .fillMaxWidth(0.92f)
+                    .wrapContentHeight()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    DatePicker(state = datePickerState)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, end = 8.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { showM3DatePickerDialog = false }) {
+                            Text("Cancel", fontFamily = SpaceGroteskFamily)
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                datePickerState.selectedDateMillis?.let { ms ->
+                                    viewModel.setDatePreset(DatePreset.CUSTOM, ms, ms)
+                                }
+                                showM3DatePickerDialog = false
+                            }
+                        ) {
+                            Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1145,48 +1165,64 @@ fun DateRangePickerDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    DatePickerDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Save", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", fontFamily = SpaceGroteskFamily)
-            }
-        },
-        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
-        modifier = Modifier
-            .padding(horizontal = 20.dp, vertical = 24.dp)
-            .wrapContentWidth()
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        DateRangePicker(
-            state = state,
-            title = {
-                Text(
-                    text = "Select Date Range",
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 24.dp, top = 16.dp)
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp,
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .wrapContentHeight()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                DateRangePicker(
+                    state = state,
+                    title = {
+                        Text(
+                            text = "Select Date Range",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 24.dp, top = 16.dp)
+                        )
+                    },
+                    headline = {
+                        Text(
+                            text = state.selectedStartDateMillis?.let { start ->
+                                state.selectedEndDateMillis?.let { end ->
+                                    val df = SimpleDateFormat("MMM dd", Locale.getDefault())
+                                    "${df.format(Date(start))} – ${df.format(Date(end))}"
+                                } ?: SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(start))
+                            } ?: "Start - End dates",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 24.dp, bottom = 12.dp)
+                        )
+                    },
+                    modifier = Modifier.height(450.dp)
                 )
-            },
-            headline = {
-                Text(
-                    text = state.selectedStartDateMillis?.let { start ->
-                        state.selectedEndDateMillis?.let { end ->
-                            val df = SimpleDateFormat("MMM dd", Locale.getDefault())
-                            "${df.format(Date(start))} – ${df.format(Date(end))}"
-                        } ?: SimpleDateFormat("MMM dd", Locale.getDefault()).format(Date(start))
-                    } ?: "Start - End dates",
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 24.dp, bottom = 12.dp)
-                )
-            },
-            modifier = Modifier.height(450.dp)
-        )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, end = 8.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel", fontFamily = SpaceGroteskFamily)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = onConfirm) {
+                        Text("Save", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 }
