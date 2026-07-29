@@ -2,4 +2,6 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Path to context.getExternalFilesDir(null) -->
     <external-files-path name="updates" path="updates" />
+    <!-- Path to context.cacheDir for Excel export files -->
+    <cache-path name="exports" path="exports/" />
 </paths>
