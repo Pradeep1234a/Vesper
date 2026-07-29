@@ -164,13 +164,23 @@ jobs:
           git push origin HEAD:main
 
       - name: Create & Push Tag
+        id: create_tag
         run: |
           TAG="v${{ steps.bump.outputs.new_name }}"
-          git tag -a "$TAG" -m "Release $TAG (${{ steps.bump.outputs.new_code }}) — ${{ steps.bump.outputs.update_badge }}"
-          git push origin "$TAG"
+          git fetch --tags origin
+          # Check remote for exact tag
+          if git ls-remote --tags origin | grep -qE "refs/tags/${TAG}$"; then
+            echo "Tag $TAG already exists on remote — skipping tag creation."
+            echo "tag_created=false" >> $GITHUB_OUTPUT
+          else
+            git tag -a "$TAG" -m "Release $TAG (${{ steps.bump.outputs.new_code }}) — ${{ steps.bump.outputs.update_badge }}"
+            git push origin "$TAG"
+            echo "tag_created=true" >> $GITHUB_OUTPUT
+          fi
 
       # ── GitHub Release ──
       - name: Create GitHub Release
+        if: steps.create_tag.outputs.tag_created == 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.bump.outputs.new_name }}
