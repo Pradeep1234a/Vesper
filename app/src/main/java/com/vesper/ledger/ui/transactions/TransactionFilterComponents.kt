@@ -114,20 +114,12 @@ fun M3TransactionFilterSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
+        windowInsets = WindowInsets(0, 0, 0, 0),
         dragHandle = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp, bottom = 6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp, 4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
-                )
-            }
+            BottomSheetDefaults.DragHandle(
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+            )
         },
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -136,8 +128,8 @@ fun M3TransactionFilterSheet(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = screenHeight * 0.45f, max = screenHeight * 0.85f)
-                .padding(bottom = 16.dp)
+                .fillMaxHeight(0.85f)
+                .navigationBarsPadding()
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Top Header (Master Title or Section Back Title)
