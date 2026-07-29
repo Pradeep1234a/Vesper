@@ -1,5 +1,6 @@
 package com.vesper.ledger.ui.split
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,11 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,11 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.SplitExpense
-import com.vesper.ledger.data.model.SplitGroup
+import com.vesper.ledger.data.model.SplitExpenseShare
 import com.vesper.ledger.ui.components.ChildHeader
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
@@ -43,20 +41,27 @@ fun SplitHistoryScreen(
     currencySymbol: String = "₹",
     onBackClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val allExpenses by viewModel.allExpenses.collectAsState()
     val allGroups by viewModel.allGroups.collectAsState()
     val totalOwedToUser by viewModel.totalOwedToUser.collectAsState()
     val totalUserOwes by viewModel.totalUserOwes.collectAsState()
 
     var selectedFilter by remember { mutableStateOf("ALL") } // ALL, PAID_BY_ME, OWED_TO_ME
+    var selectedPaymentMethodFilter by remember { mutableStateOf("ALL") } // ALL, UPI, Cash, Card, Bank
+
     val df = remember { DecimalFormat("#,##0.00") }
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()) }
 
-    val filteredExpenses = remember(allExpenses, selectedFilter) {
-        when (selectedFilter) {
-            "PAID_BY_ME" -> allExpenses.filter { it.paidByMemberName.equals("Me", ignoreCase = true) }
-            "OWED_TO_ME" -> allExpenses.filter { !it.paidByMemberName.equals("Me", ignoreCase = true) }
-            else -> allExpenses
+    val filteredExpenses = remember(allExpenses, selectedFilter, selectedPaymentMethodFilter) {
+        allExpenses.filter { tx ->
+            val matchesType = when (selectedFilter) {
+                "PAID_BY_ME" -> tx.paidByMemberName.equals("Me", ignoreCase = true)
+                "OWED_TO_ME" -> !tx.paidByMemberName.equals("Me", ignoreCase = true)
+                else -> true
+            }
+            val matchesPm = if (selectedPaymentMethodFilter == "ALL") true else tx.paymentMethod.equals(selectedPaymentMethodFilter, ignoreCase = true)
+            matchesType && matchesPm
         }
     }
 
@@ -131,34 +136,46 @@ fun SplitHistoryScreen(
                 }
             }
 
-            // 2. FILTER CHIPS
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val filters = listOf(
-                    "ALL" to "All Splits",
-                    "PAID_BY_ME" to "Paid By Me",
-                    "OWED_TO_ME" to "Owed To Me"
-                )
-                items(filters) { (key, label) ->
-                    val isSelected = selectedFilter == key
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { selectedFilter = key },
-                        label = {
-                            Text(
-                                text = label,
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                        )
+            // 2. FILTER CHIPS (Paid Type & Payment Method)
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val typeFilters = listOf(
+                        "ALL" to "All Splits",
+                        "PAID_BY_ME" to "Paid By Me",
+                        "OWED_TO_ME" to "Owed To Me"
                     )
+                    items(typeFilters) { (key, label) ->
+                        val isSelected = selectedFilter == key
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedFilter = key },
+                            label = {
+                                Text(
+                                    text = label,
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        )
+                    }
+
+                    val pmFilters = listOf("ALL", "UPI", "Cash", "Card", "Bank Transfer")
+                    items(pmFilters) { pm ->
+                        val isSelected = selectedPaymentMethodFilter == pm
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedPaymentMethodFilter = pm },
+                            label = { Text(if (pm == "ALL") "All Methods" else pm, fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
+                        )
+                    }
                 }
             }
 
@@ -200,12 +217,23 @@ fun SplitHistoryScreen(
                 ) {
                     items(filteredExpenses, key = { it.id }) { expense ->
                         val group = allGroups.find { it.id == expense.groupId }
+                        val shares by viewModel.getSharesForExpense(expense.id).collectAsState(initial = emptyList())
+
                         SplitHistoryItemCard(
                             expense = expense,
+                            shares = shares,
                             groupName = group?.title ?: "Split Group",
                             currencySymbol = currencySymbol,
                             df = df,
-                            dateFormat = dateFormat
+                            dateFormat = dateFormat,
+                            onDeleteExpense = {
+                                viewModel.deleteExpense(expense.id) {
+                                    Toast.makeText(context, "Split expense deleted and account balance restored!", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onToggleSharePaid = { shareId, isPaid ->
+                                viewModel.toggleSharePaymentStatus(shareId, isPaid)
+                            }
                         )
                     }
                 }
@@ -214,13 +242,17 @@ fun SplitHistoryScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SplitHistoryItemCard(
     expense: SplitExpense,
+    shares: List<SplitExpenseShare>,
     groupName: String,
     currencySymbol: String,
     df: DecimalFormat,
-    dateFormat: SimpleDateFormat
+    dateFormat: SimpleDateFormat,
+    onDeleteExpense: () -> Unit,
+    onToggleSharePaid: (Long, Boolean) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val isPaidByMe = expense.paidByMemberName.equals("Me", ignoreCase = true)
@@ -290,27 +322,33 @@ fun SplitHistoryItemCard(
                     }
                 }
 
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "$currencySymbol${df.format(expense.totalAmount)}",
-                        fontFamily = SpaceGroteskFamily,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = expense.paymentMethod,
+                            text = "$currencySymbol${df.format(expense.totalAmount)}",
                             fontFamily = SpaceGroteskFamily,
-                            fontSize = 9.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface
                         )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = expense.paymentMethod,
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    IconButton(onClick = onDeleteExpense, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete Expense", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -321,28 +359,34 @@ fun SplitHistoryItemCard(
                         .fillMaxWidth()
                         .padding(top = 12.dp)
                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-                        .padding(12.dp)
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "TRANSACTION DETAILS",
+                        text = "MEMBER SHARE BREAKDOWN",
                         fontFamily = SpaceGroteskFamily,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Category: ${expense.categoryName}",
-                        fontFamily = PlusJakartaSansFamily,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Date: ${dateFormat.format(Date(expense.dateEpochMillis))}",
-                        fontFamily = PlusJakartaSansFamily,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+
+                    shares.forEach { s ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(s.memberName, fontFamily = PlusJakartaSansFamily, fontSize = 12.sp)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("$currencySymbol${df.format(s.shareAmount)}", fontFamily = SpaceGroteskFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                FilterChip(
+                                    selected = s.isPaid,
+                                    onClick = { onToggleSharePaid(s.id, !s.isPaid) },
+                                    label = { Text(if (s.isPaid) "PAID" else "UNPAID", fontFamily = SpaceGroteskFamily, fontSize = 9.sp) }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

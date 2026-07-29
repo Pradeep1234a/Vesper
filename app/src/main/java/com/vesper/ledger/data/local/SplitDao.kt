@@ -47,6 +47,9 @@ interface SplitDao {
     @Query("SELECT * FROM split_expenses ORDER BY dateEpochMillis DESC")
     fun getAllExpenses(): Flow<List<SplitExpense>>
 
+    @Query("SELECT * FROM split_expenses WHERE id = :expenseId")
+    suspend fun getExpenseById(expenseId: Long): SplitExpense?
+
     @Query("SELECT * FROM split_expenses WHERE groupId = :groupId ORDER BY dateEpochMillis DESC")
     fun getExpensesForGroup(groupId: Long): Flow<List<SplitExpense>>
 
@@ -58,6 +61,9 @@ interface SplitDao {
 
     @Delete
     suspend fun deleteExpense(expense: SplitExpense)
+
+    @Query("DELETE FROM split_expenses WHERE id = :expenseId")
+    suspend fun deleteExpenseById(expenseId: Long)
 
     // ── Expense Shares ──
     @Query("SELECT * FROM split_expense_shares WHERE expenseId = :expenseId")
@@ -72,6 +78,9 @@ interface SplitDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertShares(shares: List<SplitExpenseShare>)
 
+    @Query("DELETE FROM split_expense_shares WHERE expenseId = :expenseId")
+    suspend fun deleteSharesForExpense(expenseId: Long)
+
     @Query("UPDATE split_expense_shares SET isPaid = :isPaid WHERE id = :shareId")
     suspend fun updateSharePaymentStatus(shareId: Long, isPaid: Boolean)
 
@@ -84,4 +93,7 @@ interface SplitDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSettlement(settlement: SplitSettlement): Long
+
+    @Query("DELETE FROM split_settlements WHERE id = :settlementId")
+    suspend fun deleteSettlementById(settlementId: Long)
 }

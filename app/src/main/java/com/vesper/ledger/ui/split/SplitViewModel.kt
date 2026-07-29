@@ -8,6 +8,7 @@ import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.DebtSettlement
 import com.vesper.ledger.data.model.GroupAnalyticsSummary
 import com.vesper.ledger.data.model.SplitExpense
+import com.vesper.ledger.data.model.SplitExpenseShare
 import com.vesper.ledger.data.model.SplitGroup
 import com.vesper.ledger.data.model.SplitMember
 import com.vesper.ledger.data.repository.SplitRepository
@@ -87,6 +88,19 @@ class SplitViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun deleteExpense(expenseId: Long, onDelete: () -> Unit = {}) {
+        viewModelScope.launch {
+            repository.deleteSplitExpense(expenseId)
+            onDelete()
+        }
+    }
+
+    fun toggleSharePaymentStatus(shareId: Long, isPaid: Boolean) {
+        viewModelScope.launch {
+            repository.toggleSharePaymentStatus(shareId, isPaid)
+        }
+    }
+
     fun recordSettlement(
         groupId: Long,
         debtorId: Long,
@@ -120,5 +134,6 @@ class SplitViewModel(application: Application) : AndroidViewModel(application) {
     fun getMembersForGroup(groupId: Long): Flow<List<SplitMember>> = repository.getMembersForGroup(groupId)
     fun getGroupDebts(groupId: Long): Flow<List<DebtSettlement>> = repository.getGroupDebtSettlements(groupId)
     fun getExpensesForGroup(groupId: Long): Flow<List<SplitExpense>> = repository.getExpensesForGroup(groupId)
+    fun getSharesForExpense(expenseId: Long): Flow<List<SplitExpenseShare>> = repository.getSharesForExpense(expenseId)
     fun getGroupAnalyticsSummary(groupId: Long): Flow<GroupAnalyticsSummary?> = repository.getGroupAnalyticsSummary(groupId)
 }

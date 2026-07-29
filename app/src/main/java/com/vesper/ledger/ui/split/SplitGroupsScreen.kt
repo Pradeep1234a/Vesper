@@ -289,10 +289,7 @@ fun SplitGroupsScreen(
             accounts = accounts,
             currencySymbol = currencySymbol,
             onDismiss = { showAddExpenseGroup = null },
-            onConfirm = { title, amount, paidByMemberId, paidByMemberName, paymentMethod, accountId, categoryName, isPaidByCurrentUser ->
-                val equalShare = amount / (if (members.isNotEmpty()) members.size else 1)
-                val sharesMap = members.associate { it.id to equalShare }
-
+            onConfirm = { title, amount, paidByMemberId, paidByMemberName, paymentMethod, accountId, categoryName, sharesMap, isPaidByCurrentUser ->
                 viewModel.addExpense(
                     groupId = group.id,
                     title = title,
@@ -646,6 +643,7 @@ fun AddSplitExpenseDialog(
         paymentMethod: String,
         accountId: Long,
         categoryName: String,
+        sharesMap: Map<Long, Double>,
         isPaidByCurrentUser: Boolean
     ) -> Unit
 ) {
@@ -655,7 +653,9 @@ fun AddSplitExpenseDialog(
     var selectedPaymentMethod by remember { mutableStateOf("UPI") }
     var selectedCategory by remember { mutableStateOf("Food & Groceries") }
     var selectedAccount by remember { mutableStateOf(accounts.firstOrNull()) }
+    var splitMode by remember { mutableStateOf("EQUAL") } // EQUAL, EXACT
 
+    val customShares = remember { mutableStateMapOf<Long, String>() }
     val context = LocalContext.current
 
     AlertDialog(
@@ -693,6 +693,38 @@ fun AddSplitExpenseDialog(
                     shape = RoundedCornerShape(10.dp)
                 )
 
+                // Split Mode Selector
+                Text("SPLIT MODE", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = splitMode == "EQUAL",
+                        onClick = { splitMode = "EQUAL" },
+                        label = { Text("Equal", fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
+                    )
+                    FilterChip(
+                        selected = splitMode == "EXACT",
+                        onClick = { splitMode = "EXACT" },
+                        label = { Text("Custom Exact", fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
+                    )
+                }
+
+                if (splitMode == "EXACT") {
+                    Text("MEMBER SHARES", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    members.forEach { m ->
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(m.name, fontFamily = PlusJakartaSansFamily, modifier = Modifier.weight(1f))
+                            OutlinedTextField(
+                                value = customShares[m.id] ?: "",
+                                onValueChange = { customShares[m.id] = it },
+                                placeholder = { Text("0.00", fontFamily = SpaceGroteskFamily) },
+                                singleLine = true,
+                                modifier = Modifier.width(100.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                        }
+                    }
+                }
+
                 // Paid By Member Selector
                 Text("PAID BY", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -702,6 +734,18 @@ fun AddSplitExpenseDialog(
                             selected = isSelected,
                             onClick = { selectedMember = m },
                             label = { Text(m.name, fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                // Payment Method Selector
+                Text("PAYMENT METHOD", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("UPI", "Cash", "Card", "Bank Transfer").forEach { pm ->
+                        FilterChip(
+                            selected = selectedPaymentMethod == pm,
+                            onClick = { selectedPaymentMethod = pm },
+                            label = { Text(pm, fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
                         )
                     }
                 }
@@ -732,6 +776,24 @@ fun AddSplitExpenseDialog(
                         Toast.makeText(context, "Please select who paid", Toast.LENGTH_SHORT).show()
                     } else {
                         val m = selectedMember!!
+                        val calculatedShares = mutableMapOf<Long, Double>()
+
+                        if (splitMode == "EXACT") {
+                            var sumExact = 0.0
+                            members.forEach { mem ->
+                                val shareVal = customShares[mem.id]?.toDoubleOrNull() ?: 0.0
+                                calculatedShares[mem.id] = shareVal
+                                sumExact += shareVal
+                            }
+                            if (kotlin.math.abs(sumExact - amt) > 0.1) {
+                                Toast.makeText(context, "Custom shares ($sumExact) must equal total amount ($amt)", Toast.LENGTH_LONG).show()
+                                return@Button
+                            }
+                        } else {
+                            val eq = amt / (if (members.isNotEmpty()) members.size else 1)
+                            members.forEach { mem -> calculatedShares[mem.id] = eq }
+                        }
+
                         onConfirm(
                             title.trim(),
                             amt,
@@ -740,6 +802,7 @@ fun AddSplitExpenseDialog(
                             selectedPaymentMethod,
                             if (m.isCurrentUser) (selectedAccount?.id ?: 0L) else 0L,
                             selectedCategory,
+                            calculatedShares,
                             m.isCurrentUser
                         )
                     }

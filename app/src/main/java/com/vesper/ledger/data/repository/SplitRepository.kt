@@ -22,6 +22,7 @@ class SplitRepository(
     fun getExpensesForGroup(groupId: Long): Flow<List<SplitExpense>> = splitDao.getExpensesForGroup(groupId)
     fun getAllExpenses(): Flow<List<SplitExpense>> = splitDao.getAllExpenses()
     fun getAllShares(): Flow<List<SplitExpenseShare>> = splitDao.getAllShares()
+    fun getSharesForExpense(expenseId: Long): Flow<List<SplitExpenseShare>> = splitDao.getSharesForExpense(expenseId)
     fun getSettlementsForGroup(groupId: Long): Flow<List<SplitSettlement>> = splitDao.getSettlementsForGroup(groupId)
     fun getAllSettlements(): Flow<List<SplitSettlement>> = splitDao.getAllSettlements()
 
@@ -45,7 +46,7 @@ class SplitRepository(
         splitDao.deleteGroupById(groupId)
     }
 
-    // ── Add Split Expense with Main Account & Transaction Sync ──
+    // ── Add & Delete Split Expenses with Account Reversal Sync ──
     suspend fun addSplitExpense(
         groupId: Long,
         title: String,
@@ -110,6 +111,25 @@ class SplitRepository(
         }
 
         return expenseId
+    }
+
+    suspend fun deleteSplitExpense(expenseId: Long) {
+        val expense = splitDao.getExpenseById(expenseId)
+        if (expense != null) {
+            // If paid by current user and linked account exists, restore account balance
+            if (expense.paidByMemberName.equals("Me", ignoreCase = true) && expense.accountId != 0L) {
+                val account = accountDao.getAccountById(expense.accountId)
+                if (account != null) {
+                    accountDao.updateAccount(account.copy(initialBalance = account.initialBalance + expense.totalAmount))
+                }
+            }
+            splitDao.deleteSharesForExpense(expenseId)
+            splitDao.deleteExpenseById(expenseId)
+        }
+    }
+
+    suspend fun toggleSharePaymentStatus(shareId: Long, isPaid: Boolean) {
+        splitDao.updateSharePaymentStatus(shareId, isPaid)
     }
 
     // ── Settle Up Workflow ──
@@ -187,7 +207,7 @@ class SplitRepository(
             splitDao.getExpensesForGroup(groupId),
             splitDao.getAllShares(),
             splitDao.getSettlementsForGroup(groupId)
-        ) { members, expenses, allShares, settlements ->
+        ) { members: List<SplitMember>, expenses: List<SplitExpense>, allShares: List<SplitExpenseShare>, settlements: List<SplitSettlement> ->
             calculateDebts(groupId, members, expenses, allShares, settlements)
         }
     }
@@ -198,7 +218,7 @@ class SplitRepository(
             splitDao.getAllExpenses(),
             splitDao.getAllShares(),
             splitDao.getAllSettlements()
-        ) { members, expenses, allShares, settlements ->
+        ) { members: List<SplitMember>, expenses: List<SplitExpense>, allShares: List<SplitExpenseShare>, settlements: List<SplitSettlement> ->
             calculateDebts(0L, members, expenses, allShares, settlements)
         }
     }
