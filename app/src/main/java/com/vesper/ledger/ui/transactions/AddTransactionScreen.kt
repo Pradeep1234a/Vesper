@@ -72,6 +72,7 @@ import com.vesper.ledger.data.model.PaymentMethod
 import com.vesper.ledger.data.model.TransactionType
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
+import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -232,46 +233,91 @@ fun AddTransactionScreen(
     val selectedCategory = categories.find { it.id == selectedCategoryId }
     val parsedAmount = amountText.replace(",", "").toDoubleOrNull() ?: 0.0
 
-    // Delete Confirmation Dialog for Edit Mode
+    // Delete Confirmation Bottom Sheet for Edit Mode
     if (showDeleteConfirmDialog && transactionToEdit != null && onDeleteTransaction != null) {
-        AlertDialog(
+        ModalBottomSheet(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = {
-                Text(
-                    text = "Delete Transaction",
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            },
-            text = {
-                Text(
-                    text = "Are you sure you want to delete '${transactionToEdit.title.ifBlank { "this transaction" }}'? This action cannot be undone.",
-                    fontFamily = SpaceGroteskFamily,
-                    color = Color(0xFFA1A1AA)
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showDeleteConfirmDialog = false
-                        onDeleteTransaction(transactionToEdit)
-                        onBackClick()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
-                    shape = RoundedCornerShape(6.dp)
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFEF4444).copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Delete", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color.White)
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = null,
+                        tint = Color(0xFFEF4444),
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text("Cancel", fontFamily = SpaceGroteskFamily, color = Color(0xFFA1A1AA))
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Delete Transaction",
+                        fontFamily = SpaceGroteskFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Are you sure you want to delete '${transactionToEdit.title.ifBlank { "this transaction" }}'? This action cannot be undone.",
+                        fontFamily = PlusJakartaSansFamily,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
                 }
-            },
-            containerColor = Color(0xFF18181B),
-            shape = RoundedCornerShape(6.dp)
-        )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirmDialog = false },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = {
+                            showDeleteConfirmDialog = false
+                            onDeleteTransaction(transactionToEdit)
+                            onBackClick()
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFEF4444),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Delete", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -599,60 +645,66 @@ fun AddTransactionScreen(
                     }
 
                     if (showCategorySheet) {
-                        AlertDialog(
+                        ModalBottomSheet(
                             onDismissRequest = { showCategorySheet = false },
-                            containerColor = Color(0xFF121215), // Distinct Modal Surface
-                            shape = RoundedCornerShape(6.dp),
-                            modifier = Modifier.border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp)),
-                            title = {
-                                Text(
-                                    text = "SELECT CATEGORY",
-                                    style = MaterialTheme.typography.titleMedium.copy(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                                    .heightIn(max = 480.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Select Category (${type.name})",
                                         fontFamily = SpaceGroteskFamily,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
-                                        letterSpacing = 1.sp,
-                                        color = Color.White
+                                        fontSize = 18.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                )
-                            },
-                            text = {
-                                Column(
+                                    IconButton(onClick = { showCategorySheet = false }) {
+                                        Icon(Icons.Outlined.Close, contentDescription = "Close")
+                                    }
+                                }
+
+                                LazyColumn(
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .verticalScroll(rememberScrollState())
+                                    modifier = Modifier.weight(1f)
                                 ) {
-                                    filteredCategories.forEach { cat ->
+                                    items(filteredCategories, key = { it.id }) { cat ->
                                         val isSelected = cat.id == selectedCategoryId
                                         val catColor = safeParseColor(cat.colorHex)
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clip(RoundedCornerShape(6.dp))
-                                                .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
-                                                .border(
-                                                    1.dp,
-                                                    if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46),
-                                                    RoundedCornerShape(6.dp)
-                                                )
-                                                .clickable {
-                                                    selectedCategoryId = cat.id
-                                                    showCategorySheet = false
-                                                }
-                                                .padding(12.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceBetween
+
+                                        Surface(
+                                            onClick = {
+                                                selectedCategoryId = cat.id
+                                                showCategorySheet = false
+                                            },
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                            border = androidx.compose.foundation.BorderStroke(
+                                                1.dp,
+                                                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                            ),
+                                            modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Row(
+                                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                                             ) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .size(38.dp)
-                                                        .clip(RoundedCornerShape(6.dp))
-                                                        .background(if (isSelected) catColor.copy(alpha = 0.3f) else Color(0xFF18181B)),
+                                                        .size(36.dp)
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(catColor.copy(alpha = 0.2f)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Icon(
@@ -662,33 +714,30 @@ fun AddTransactionScreen(
                                                         modifier = Modifier.size(18.dp)
                                                     )
                                                 }
+
                                                 Text(
                                                     text = cat.name,
-                                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                                        fontFamily = SpaceGroteskFamily,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = Color.White
+                                                    fontFamily = SpaceGroteskFamily,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    fontSize = 14.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+
+                                                if (isSelected) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = "Selected",
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(20.dp)
                                                     )
-                                                )
-                                            }
-                                            if (isSelected) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Check,
-                                                    contentDescription = "Selected",
-                                                    tint = Color(0xFF38BDF8),
-                                                    modifier = Modifier.size(20.dp)
-                                                )
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            },
-                            confirmButton = {
-                                TextButton(onClick = { showCategorySheet = false }) {
-                                    Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                                }
                             }
-                        )
+                        }
                     }
                 }
 
@@ -778,104 +827,105 @@ fun AddTransactionScreen(
                         }
 
                         if (showAccountMenu) {
-                            AlertDialog(
+                            ModalBottomSheet(
                                 onDismissRequest = { showAccountMenu = false },
-                                containerColor = Color(0xFF121215), // Distinct Modal Surface
-                                shape = RoundedCornerShape(6.dp),
-                                modifier = Modifier.border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp)),
-                                title = {
-                                    Text(
-                                        text = "SELECT ACCOUNT",
-                                        style = MaterialTheme.typography.titleMedium.copy(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                                        .heightIn(max = 450.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Select Account",
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp,
-                                            letterSpacing = 1.sp,
-                                            color = Color.White
+                                            fontSize = 18.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
-                                    )
-                                },
-                                text = {
-                                    Column(
+                                        IconButton(onClick = { showAccountMenu = false }) {
+                                            Icon(Icons.Outlined.Close, contentDescription = "Close")
+                                        }
+                                    }
+
+                                    LazyColumn(
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .verticalScroll(rememberScrollState())
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        activeAccounts.forEach { account ->
+                                        items(activeAccounts, key = { it.id }) { account ->
                                             val isSelected = account.id == selectedAccount?.id
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(RoundedCornerShape(6.dp))
-                                                    .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
-                                                    .border(
-                                                        1.dp,
-                                                        if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46),
-                                                        RoundedCornerShape(6.dp)
-                                                    )
-                                                    .clickable {
-                                                        selectedAccount = account
-                                                        showAccountMenu = false
-                                                    }
-                                                    .padding(12.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween
+
+                                            Surface(
+                                                onClick = {
+                                                    selectedAccount = account
+                                                    showAccountMenu = false
+                                                },
+                                                shape = RoundedCornerShape(12.dp),
+                                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                                border = androidx.compose.foundation.BorderStroke(
+                                                    1.dp,
+                                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                                ),
+                                                modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 Row(
+                                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                                 ) {
                                                     Box(
                                                         modifier = Modifier
-                                                            .size(38.dp)
-                                                            .clip(RoundedCornerShape(6.dp))
-                                                            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.25f) else Color(0xFF18181B)),
+                                                            .size(36.dp)
+                                                            .clip(RoundedCornerShape(8.dp))
+                                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                                                         contentAlignment = Alignment.Center
                                                     ) {
                                                         Icon(
                                                             imageVector = getIconByName(account.iconName),
                                                             contentDescription = null,
-                                                            tint = Color.White,
+                                                            tint = MaterialTheme.colorScheme.primary,
                                                             modifier = Modifier.size(18.dp)
                                                         )
                                                     }
-                                                    Column {
+
+                                                    Column(modifier = Modifier.weight(1f)) {
                                                         Text(
                                                             text = account.name,
-                                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                                fontFamily = SpaceGroteskFamily,
-                                                                fontWeight = FontWeight.Bold,
-                                                                color = Color.White
-                                                            )
+                                                            fontFamily = SpaceGroteskFamily,
+                                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                            fontSize = 14.sp,
+                                                            color = MaterialTheme.colorScheme.onSurface
                                                         )
                                                         Text(
                                                             text = "Balance: $currencySymbol${df.format(account.initialBalance)}",
-                                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                                fontFamily = SpaceGroteskFamily,
-                                                                color = Color(0xFFA1A1AA)
-                                                            )
+                                                            fontFamily = PlusJakartaSansFamily,
+                                                            fontSize = 11.sp,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
-                                                }
-                                                if (isSelected) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Check,
-                                                        contentDescription = "Selected",
-                                                        tint = Color(0xFF38BDF8),
-                                                        modifier = Modifier.size(20.dp)
-                                                    )
+
+                                                    if (isSelected) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Check,
+                                                            contentDescription = "Selected",
+                                                            tint = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                },
-                                confirmButton = {
-                                    TextButton(onClick = { showAccountMenu = false }) {
-                                        Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                                    }
                                 }
-                            )
+                            }
                         }
                     }
 
@@ -960,95 +1010,98 @@ fun AddTransactionScreen(
                         }
 
                         if (showPaymentMenu) {
-                            AlertDialog(
+                            ModalBottomSheet(
                                 onDismissRequest = { showPaymentMenu = false },
-                                containerColor = Color(0xFF121215), // Distinct Modal Surface
-                                shape = RoundedCornerShape(6.dp),
-                                modifier = Modifier.border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp)),
-                                title = {
-                                    Text(
-                                        text = "SELECT PAYMENT METHOD",
-                                        style = MaterialTheme.typography.titleMedium.copy(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                                        .heightIn(max = 450.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Select Payment Method",
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp,
-                                            letterSpacing = 1.sp,
-                                            color = Color.White
+                                            fontSize = 18.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
-                                    )
-                                },
-                                text = {
-                                    Column(
+                                        IconButton(onClick = { showPaymentMenu = false }) {
+                                            Icon(Icons.Outlined.Close, contentDescription = "Close")
+                                        }
+                                    }
+
+                                    LazyColumn(
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .verticalScroll(rememberScrollState())
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        paymentMethods.forEach { method ->
+                                        items(paymentMethods, key = { it.name }) { method ->
                                             val isSelected = method.name == selectedPaymentMethod
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(RoundedCornerShape(6.dp))
-                                                    .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color(0xFF242429))
-                                                    .border(
-                                                        1.dp,
-                                                        if (isSelected) Color(0xFF38BDF8) else Color(0xFF3F3F46),
-                                                        RoundedCornerShape(6.dp)
-                                                    )
-                                                    .clickable {
-                                                        selectedPaymentMethod = method.name
-                                                        showPaymentMenu = false
-                                                    }
-                                                    .padding(12.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween
+
+                                            Surface(
+                                                onClick = {
+                                                    selectedPaymentMethod = method.name
+                                                    showPaymentMenu = false
+                                                },
+                                                shape = RoundedCornerShape(12.dp),
+                                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                                border = androidx.compose.foundation.BorderStroke(
+                                                    1.dp,
+                                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                                ),
+                                                modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 Row(
+                                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                                 ) {
                                                     Box(
                                                         modifier = Modifier
-                                                            .size(38.dp)
-                                                            .clip(RoundedCornerShape(6.dp))
-                                                            .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.25f) else Color(0xFF18181B)),
+                                                            .size(36.dp)
+                                                            .clip(RoundedCornerShape(8.dp))
+                                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                                                         contentAlignment = Alignment.Center
                                                     ) {
                                                         Icon(
                                                             imageVector = getPaymentMethodIcon(method.name),
                                                             contentDescription = null,
-                                                            tint = Color.White,
+                                                            tint = MaterialTheme.colorScheme.primary,
                                                             modifier = Modifier.size(18.dp)
                                                         )
                                                     }
+
                                                     Text(
                                                         text = method.name,
-                                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                                            fontFamily = SpaceGroteskFamily,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = Color.White
+                                                        fontFamily = SpaceGroteskFamily,
+                                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                        fontSize = 14.sp,
+                                                        color = MaterialTheme.colorScheme.onSurface,
+                                                        modifier = Modifier.weight(1f)
+                                                    )
+
+                                                    if (isSelected) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Check,
+                                                            contentDescription = "Selected",
+                                                            tint = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.size(20.dp)
                                                         )
-                                                    )
-                                                }
-                                                if (isSelected) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Check,
-                                                        contentDescription = "Selected",
-                                                        tint = Color(0xFF38BDF8),
-                                                        modifier = Modifier.size(20.dp)
-                                                    )
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                },
-                                confirmButton = {
-                                    TextButton(onClick = { showPaymentMenu = false }) {
-                                        Text("Close", color = Color(0xFFA1A1AA), fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                                    }
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -1263,63 +1316,67 @@ fun AddTransactionScreen(
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // DIALOG 3: OFFICIAL MATERIAL 3 SPEC DATE PICKER DIALOG
+            // BOTTOM SHEET 3: OFFICIAL MATERIAL 3 SPEC DATE PICKER BOTTOM SHEET
             // ────────────────────────────────────────────────────────────────────────
             if (showDatePickerSheet) {
                 val datePickerState = rememberDatePickerState(
                     initialSelectedDateMillis = selectedCalendar.timeInMillis
                 )
-                DatePickerDialog(
+                ModalBottomSheet(
                     onDismissRequest = { showDatePickerSheet = false },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                datePickerState.selectedDateMillis?.let { millis ->
-                                    val cal = Calendar.getInstance().apply { timeInMillis = millis }
-                                    selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
-                                        set(Calendar.YEAR, cal.get(Calendar.YEAR))
-                                        set(Calendar.MONTH, cal.get(Calendar.MONTH))
-                                        set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH))
-                                    }
-                                }
-                                showDatePickerSheet = false
-                            }
-                        ) {
-                            Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFF38BDF8))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDatePickerSheet = false }) {
-                            Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
-                        }
-                    },
-                    colors = DatePickerDefaults.colors(containerColor = Color(0xFF18181B))
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 ) {
-                    DatePicker(
-                        state = datePickerState,
-                        colors = DatePickerDefaults.colors(
-                            containerColor = Color(0xFF18181B),
-                            titleContentColor = Color.White,
-                            headlineContentColor = Color.White,
-                            weekdayContentColor = Color(0xFFA1A1AA),
-                            subheadContentColor = Color.White,
-                            yearContentColor = Color.White,
-                            currentYearContentColor = Color(0xFF38BDF8),
-                            selectedYearContentColor = Color.Black,
-                            selectedYearContainerColor = Color.White,
-                            dayContentColor = Color.White,
-                            disabledDayContentColor = Color(0xFF52525B),
-                            selectedDayContentColor = Color.Black,
-                            selectedDayContainerColor = Color.White,
-                            todayContentColor = Color(0xFF38BDF8),
-                            todayDateBorderColor = Color(0xFF38BDF8)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        DatePicker(
+                            state = datePickerState,
+                            colors = DatePickerDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                                headlineContentColor = MaterialTheme.colorScheme.onSurface,
+                                todayContentColor = MaterialTheme.colorScheme.primary,
+                                todayDateBorderColor = MaterialTheme.colorScheme.primary
+                            )
                         )
-                    )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextButton(onClick = { showDatePickerSheet = false }) {
+                                Text("Cancel", fontFamily = SpaceGroteskFamily)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    datePickerState.selectedDateMillis?.let { millis ->
+                                        val cal = Calendar.getInstance().apply { timeInMillis = millis }
+                                        selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                            set(Calendar.YEAR, cal.get(Calendar.YEAR))
+                                            set(Calendar.MONTH, cal.get(Calendar.MONTH))
+                                            set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH))
+                                        }
+                                    }
+                                    showDatePickerSheet = false
+                                }
+                            ) {
+                                Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
                 }
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // DIALOG 4: OFFICIAL MATERIAL 3 TIME PICKER DIALOG (EXACT SPEC MATCH)
+            // BOTTOM SHEET 4: OFFICIAL MATERIAL 3 TIME PICKER BOTTOM SHEET
             // ────────────────────────────────────────────────────────────────────────
             if (showTimePickerSheet) {
                 val timePickerState = rememberTimePickerState(
@@ -1329,108 +1386,73 @@ fun AddTransactionScreen(
                 )
                 var showKeyboardInputMode by remember { mutableStateOf(false) }
 
-                Dialog(onDismissRequest = { showTimePickerSheet = false }) {
-                    Surface(
-                        shape = RoundedCornerShape(28.dp),
-                        color = Color(0xFF18181B),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF27272A)),
-                        modifier = Modifier.wrapContentSize()
+                ModalBottomSheet(
+                    onDismissRequest = { showTimePickerSheet = false },
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(24.dp),
-                            horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = if (showKeyboardInputMode) "Enter time" else "Select time",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    color = Color(0xFFA1A1AA)
-                                )
+                                text = if (showKeyboardInputMode) "Enter Time" else "Select Time",
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
 
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (showKeyboardInputMode) {
-                                    TimeInput(
-                                        state = timePickerState,
-                                        colors = TimePickerDefaults.colors(
-                                            clockDialColor = Color(0xFF09090B),
-                                            clockDialSelectedContentColor = Color.Black,
-                                            clockDialUnselectedContentColor = Color.White,
-                                            selectorColor = Color.White,
-                                            containerColor = Color(0xFF18181B),
-                                            periodSelectorBorderColor = Color(0xFF27272A),
-                                            periodSelectorSelectedContainerColor = Color.White,
-                                            periodSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                            periodSelectorSelectedContentColor = Color.Black,
-                                            periodSelectorUnselectedContentColor = Color.White,
-                                            timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
-                                            timeSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                            timeSelectorSelectedContentColor = Color.White,
-                                            timeSelectorUnselectedContentColor = Color.White
-                                        )
-                                    )
-                                } else {
-                                    TimePicker(
-                                        state = timePickerState,
-                                        colors = TimePickerDefaults.colors(
-                                            clockDialColor = Color(0xFF09090B),
-                                            clockDialSelectedContentColor = Color.Black,
-                                            clockDialUnselectedContentColor = Color.White,
-                                            selectorColor = Color.White,
-                                            containerColor = Color(0xFF18181B),
-                                            periodSelectorBorderColor = Color(0xFF27272A),
-                                            periodSelectorSelectedContainerColor = Color.White,
-                                            periodSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                            periodSelectorSelectedContentColor = Color.Black,
-                                            periodSelectorUnselectedContentColor = Color.White,
-                                            timeSelectorSelectedContainerColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
-                                            timeSelectorUnselectedContainerColor = Color(0xFF09090B),
-                                            timeSelectorSelectedContentColor = Color.White,
-                                            timeSelectorUnselectedContentColor = Color.White
-                                        )
-                                    )
-                                }
+                            IconButton(onClick = { showKeyboardInputMode = !showKeyboardInputMode }) {
+                                Icon(
+                                    imageVector = if (showKeyboardInputMode) Icons.Outlined.Schedule else Icons.Outlined.Keyboard,
+                                    contentDescription = "Toggle mode",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
                             }
+                        }
 
-                            // Bottom row: Mode toggle icon on left, Cancel / OK buttons on right
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (showKeyboardInputMode) {
+                                TimeInput(state = timePickerState)
+                            } else {
+                                TimePicker(state = timePickerState)
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextButton(onClick = { showTimePickerSheet = false }) {
+                                Text("Cancel", fontFamily = SpaceGroteskFamily)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    isTimeManuallySet = true
+                                    selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                        set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                                        set(Calendar.MINUTE, timePickerState.minute)
+                                    }
+                                    showTimePickerSheet = false
+                                }
                             ) {
-                                IconButton(onClick = { showKeyboardInputMode = !showKeyboardInputMode }) {
-                                    Icon(
-                                        imageVector = if (showKeyboardInputMode) Icons.Outlined.Schedule else Icons.Outlined.Keyboard,
-                                        contentDescription = if (showKeyboardInputMode) "Switch to clock dial" else "Switch to keyboard input",
-                                        tint = Color.White
-                                    )
-                                }
-
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    TextButton(onClick = { showTimePickerSheet = false }) {
-                                        Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFFA1A1AA))
-                                    }
-                                    TextButton(
-                                        onClick = {
-                                            selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
-                                                set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                                                set(Calendar.MINUTE, timePickerState.minute)
-                                            }
-                                            showTimePickerSheet = false
-                                        }
-                                    ) {
-                                        Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = Color(0xFF38BDF8))
-                                    }
-                                }
+                                Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
