@@ -29,6 +29,7 @@ import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateSplitGroupScreen(
+    viewModel: SplitViewModel,
     onBackClick: () -> Unit = {},
     onGroupCreated: () -> Unit = {}
 ) {
@@ -36,7 +37,7 @@ fun CreateSplitGroupScreen(
     var groupName by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Trip") }
     var newMemberName by remember { mutableStateOf("") }
-    val membersList = remember { mutableStateListOf("You", "Rahul", "Ananya") }
+    val membersList = remember { mutableStateListOf<String>() }
 
     val groupCategories = listOf(
         "Trip" to Icons.Outlined.FlightTakeoff,
@@ -73,7 +74,7 @@ fun CreateSplitGroupScreen(
             OutlinedTextField(
                 value = groupName,
                 onValueChange = { groupName = it },
-                placeholder = { Text("e.g. Goa Trip 2026, Apartment Expenses", fontFamily = PlusJakartaSansFamily) },
+                placeholder = { Text("e.g. Goa Trip, Flat 302 Rent", fontFamily = PlusJakartaSansFamily) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -136,7 +137,7 @@ fun CreateSplitGroupScreen(
 
             // 3. MEMBERS SECTION
             Text(
-                text = "GROUP MEMBERS (${membersList.size})",
+                text = "ADD GROUP MEMBERS",
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontFamily = SpaceGroteskFamily,
                     fontWeight = FontWeight.Bold,
@@ -145,6 +146,28 @@ fun CreateSplitGroupScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
+
+            // Current user default badge
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("M", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text("Me (You - Group Creator)", fontFamily = PlusJakartaSansFamily, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            }
 
             // Add member row
             Row(
@@ -217,18 +240,16 @@ fun CreateSplitGroupScreen(
                             )
                         }
 
-                        if (member != "You") {
-                            IconButton(
-                                onClick = { membersList.removeAt(index) },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Remove",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                        IconButton(
+                            onClick = { membersList.removeAt(index) },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Remove",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     }
                 }
@@ -241,9 +262,18 @@ fun CreateSplitGroupScreen(
                 onClick = {
                     if (groupName.isBlank()) {
                         Toast.makeText(context, "Please enter a group name", Toast.LENGTH_SHORT).show()
+                    } else if (membersList.isEmpty()) {
+                        Toast.makeText(context, "Please add at least one member", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, "Group '$groupName' created!", Toast.LENGTH_SHORT).show()
-                        onGroupCreated()
+                        viewModel.createGroup(
+                            title = groupName.trim(),
+                            category = selectedCategory,
+                            memberNames = membersList.toList(),
+                            onCreated = {
+                                Toast.makeText(context, "Group '$groupName' created!", Toast.LENGTH_SHORT).show()
+                                onGroupCreated()
+                            }
+                        )
                     }
                 },
                 modifier = Modifier

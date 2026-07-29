@@ -14,9 +14,11 @@ import com.vesper.ledger.data.model.UserAccount
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.Budget
 import com.vesper.ledger.data.model.PaymentMethod
+import com.vesper.ledger.data.model.SplitExpense
+import com.vesper.ledger.data.model.SplitExpenseShare
+import com.vesper.ledger.data.model.SplitGroup
+import com.vesper.ledger.data.model.SplitMember
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Database(
     entities = [
@@ -26,9 +28,13 @@ import kotlinx.coroutines.launch
         UserAccount::class,
         Account::class,
         Budget::class,
-        PaymentMethod::class
+        PaymentMethod::class,
+        SplitGroup::class,
+        SplitMember::class,
+        SplitExpense::class,
+        SplitExpenseShare::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -39,6 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
     abstract fun budgetDao(): BudgetDao
     abstract fun paymentMethodDao(): PaymentMethodDao
+    abstract fun splitDao(): SplitDao
 
     companion object {
         private val DB_INSTANCES = java.util.concurrent.ConcurrentHashMap<String, AppDatabase>()

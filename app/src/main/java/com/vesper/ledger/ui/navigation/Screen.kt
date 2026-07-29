@@ -23,4 +23,5 @@ sealed class Screen(val route: String) {
     object AddSplitExpense : Screen("add_split_expense")
     object AddSavingsGoal : Screen("add_savings_goal")
     object ProfileManagement : Screen("profile_management")
+    object SplitHistory : Screen("split_history")
 }

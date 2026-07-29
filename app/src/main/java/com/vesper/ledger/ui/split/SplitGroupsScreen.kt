@@ -1,5 +1,6 @@
 package com.vesper.ledger.ui.split
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,37 +20,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vesper.ledger.data.model.Account
+import com.vesper.ledger.data.model.DebtSettlement
+import com.vesper.ledger.data.model.SplitGroup
+import com.vesper.ledger.data.model.SplitMember
 import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
-
-data class SplitGroupItem(
-    val id: String,
-    val title: String,
-    val category: String,
-    val memberCount: Int,
-    val netBalance: Double, // Positive = You are owed, Negative = You owe
-    val icon: ImageVector,
-    val members: List<String>
-)
+import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SplitGroupsScreen(
+    viewModel: SplitViewModel,
     currencySymbol: String = "₹",
     onCreateGroupClick: () -> Unit = {},
-    onAddExpenseClick: (groupId: String) -> Unit = {},
+    onHistoryClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val sampleGroups = remember { emptyList<SplitGroupItem>() }
+    val context = LocalContext.current
+    val groups by viewModel.allGroups.collectAsState()
+    val totalOwedToUser by viewModel.totalOwedToUser.collectAsState()
+    val totalUserOwes by viewModel.totalUserOwes.collectAsState()
+    val overallDebts by viewModel.overallDebts.collectAsState()
+    val accounts by viewModel.accounts.collectAsState()
 
-    val totalOwed = sampleGroups.filter { it.netBalance > 0 }.sumOf { it.netBalance }
-    val totalOwe = sampleGroups.filter { it.netBalance < 0 }.sumOf { kotlin.math.abs(it.netBalance) }
+    val df = remember { DecimalFormat("#,##0.00") }
+    var showAddExpenseGroup by remember { mutableStateOf<SplitGroup?>(null) }
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
@@ -84,16 +87,31 @@ fun SplitGroupsScreen(
                         contentPadding = PaddingValues(18.dp)
                     ) {
                         Column {
-                            Text(
-                                text = "NET GROUP SPLIT BALANCE",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontFamily = SpaceGroteskFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    letterSpacing = 1.2.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "NET GROUP SPLIT BALANCE",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        letterSpacing = 1.2.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 )
-                            )
+
+                                TextButton(
+                                    onClick = onHistoryClick,
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Icon(Icons.Filled.History, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Split History", fontFamily = SpaceGroteskFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
 
                             Spacer(modifier = Modifier.height(10.dp))
 
@@ -111,11 +129,11 @@ fun SplitGroupsScreen(
                                         )
                                     )
                                     Text(
-                                        text = "+$currencySymbol${String.format("%,.2f", totalOwed)}",
+                                        text = "+$currencySymbol${df.format(totalOwedToUser)}",
                                         style = MaterialTheme.typography.titleLarge.copy(
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF22C55E)
+                                            color = Color(0xFF16A34A)
                                         )
                                     )
                                 }
@@ -136,11 +154,11 @@ fun SplitGroupsScreen(
                                         )
                                     )
                                     Text(
-                                        text = "-$currencySymbol${String.format("%,.2f", totalOwe)}",
+                                        text = "-$currencySymbol${df.format(totalUserOwes)}",
                                         style = MaterialTheme.typography.titleLarge.copy(
                                             fontFamily = SpaceGroteskFamily,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFEF4444)
+                                            color = Color(0xFFDC2626)
                                         )
                                     )
                                 }
@@ -149,8 +167,27 @@ fun SplitGroupsScreen(
                     }
                 }
 
-                // 2. SECTION TITLE OR EMPTY STATE
-                if (sampleGroups.isEmpty()) {
+                // 2. OVERALL DEBT SUMMARY CARDS (Who Owes Whom)
+                if (overallDebts.isNotEmpty()) {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "WHO OWES WHOM SUMMARY",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            overallDebts.forEach { debt ->
+                                DebtSummaryCard(debt = debt, currencySymbol = currencySymbol, df = df)
+                            }
+                        }
+                    }
+                }
+
+                // 3. GROUPS LIST / EMPTY STATE
+                if (groups.isEmpty()) {
                     item {
                         ShCard(
                             modifier = Modifier.fillMaxWidth(),
@@ -183,13 +220,22 @@ fun SplitGroupsScreen(
                                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                     )
                                 )
+
+                                Button(
+                                    onClick = onCreateGroupClick,
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Create Split Group", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
                 } else {
                     item {
                         Text(
-                            text = "ACTIVE GROUPS (${sampleGroups.size})",
+                            text = "ACTIVE GROUPS (${groups.size})",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = SpaceGroteskFamily,
                                 fontWeight = FontWeight.Bold,
@@ -200,119 +246,286 @@ fun SplitGroupsScreen(
                         )
                     }
 
-                    items(sampleGroups) { group ->
-                    ShCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onAddExpenseClick(group.id) },
-                        contentPadding = PaddingValues(16.dp)
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = group.icon,
-                                        contentDescription = group.title,
-                                        tint = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                }
+                    items(groups, key = { it.id }) { group ->
+                        val members by viewModel.getMembersForGroup(group.id).collectAsState(initial = emptyList())
+                        val groupDebts by viewModel.getGroupDebts(group.id).collectAsState(initial = emptyList())
 
-                                Spacer(modifier = Modifier.width(12.dp))
-
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = group.title,
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        ),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = "${group.memberCount} members • ${group.members.joinToString(", ")}",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontFamily = PlusJakartaSansFamily,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        ),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                Column(horizontalAlignment = Alignment.End) {
-                                    val isOwed = group.netBalance >= 0
-                                    Text(
-                                        text = if (isOwed) "You get" else "You owe",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontFamily = PlusJakartaSansFamily,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    )
-                                    Text(
-                                        text = "$currencySymbol${String.format("%,.2f", kotlin.math.abs(group.netBalance))}",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontFamily = SpaceGroteskFamily,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isOwed) Color(0xFF22C55E) else Color(0xFFEF4444)
-                                        )
-                                    )
-                                }
-                            }
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                OutlinedButton(
-                                    onClick = { onAddExpenseClick(group.id) },
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(10.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.AddCard,
-                                        contentDescription = "Add Expense",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Add Expense", fontSize = 12.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                                }
-
-                                OutlinedButton(
-                                    onClick = { /* Settle Up */ },
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(10.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.CheckCircle,
-                                        contentDescription = "Settle Up",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Settle Up", fontSize = 12.sp, fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                            }
-                        }
+                        SplitGroupCard(
+                            group = group,
+                            members = members,
+                            debts = groupDebts,
+                            currencySymbol = currencySymbol,
+                            df = df,
+                            onAddExpense = { showAddExpenseGroup = group },
+                            onDeleteGroup = { viewModel.deleteGroup(group.id) }
+                        )
                     }
                 }
             }
         }
     }
+
+    // Add Expense Modal Dialog
+    if (showAddExpenseGroup != null) {
+        val group = showAddExpenseGroup!!
+        val members by viewModel.getMembersForGroup(group.id).collectAsState(initial = emptyList())
+
+        AddSplitExpenseDialog(
+            group = group,
+            members = members,
+            accounts = accounts,
+            currencySymbol = currencySymbol,
+            onDismiss = { showAddExpenseGroup = null },
+            onConfirm = { title, amount, paidByMemberId, paidByMemberName, paymentMethod, accountId, categoryName, isPaidByCurrentUser ->
+                val equalShare = amount / (if (members.isNotEmpty()) members.size else 1)
+                val sharesMap = members.associate { it.id to equalShare }
+
+                viewModel.addExpense(
+                    groupId = group.id,
+                    title = title,
+                    totalAmount = amount,
+                    paidByMemberId = paidByMemberId,
+                    paidByMemberName = paidByMemberName,
+                    paymentMethod = paymentMethod,
+                    accountId = accountId,
+                    categoryName = categoryName,
+                    shares = sharesMap,
+                    isPaidByCurrentUser = isPaidByCurrentUser,
+                    onSuccess = {
+                        Toast.makeText(context, "Split expense added successfully!", Toast.LENGTH_SHORT).show()
+                        showAddExpenseGroup = null
+                    }
+                )
+            }
+        )
+    }
+}
+
+@Composable
+fun DebtSummaryCard(debt: DebtSettlement, currencySymbol: String, df: DecimalFormat) {
+    val isOwedToUser = debt.isCreditorCurrentUser
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (isOwedToUser) Color(0xFF16A34A).copy(alpha = 0.08f) else Color(0xFFDC2626).copy(alpha = 0.08f))
+            .border(1.dp, if (isOwedToUser) Color(0xFF16A34A).copy(alpha = 0.2f) else Color(0xFFDC2626).copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = if (isOwedToUser) "${debt.debtorName} owes You" else "You owe ${debt.creditorName}",
+            fontFamily = SpaceGroteskFamily,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "$currencySymbol${df.format(debt.amount)}",
+            fontFamily = SpaceGroteskFamily,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isOwedToUser) Color(0xFF16A34A) else Color(0xFFDC2626)
+        )
+    }
+}
+
+@Composable
+fun SplitGroupCard(
+    group: SplitGroup,
+    members: List<SplitMember>,
+    debts: List<DebtSettlement>,
+    currencySymbol: String,
+    df: DecimalFormat,
+    onAddExpense: () -> Unit,
+    onDeleteGroup: () -> Unit
+) {
+    ShCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = group.title,
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "${group.category} • ${members.size} Members",
+                        fontFamily = PlusJakartaSansFamily,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(onClick = onDeleteGroup, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete Group", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                    }
+                    Button(
+                        onClick = onAddExpense,
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Add Expense", fontFamily = SpaceGroteskFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            if (debts.isNotEmpty()) {
+                Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "GROUP SETTLEMENT STATUS",
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    debts.forEach { debt ->
+                        DebtSummaryCard(debt = debt, currencySymbol = currencySymbol, df = df)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddSplitExpenseDialog(
+    group: SplitGroup,
+    members: List<SplitMember>,
+    accounts: List<Account>,
+    currencySymbol: String,
+    onDismiss: () -> Unit,
+    onConfirm: (
+        title: String,
+        amount: Double,
+        paidByMemberId: Long,
+        paidByMemberName: String,
+        paymentMethod: String,
+        accountId: Long,
+        categoryName: String,
+        isPaidByCurrentUser: Boolean
+    ) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var amountText by remember { mutableStateOf("") }
+    var selectedMember by remember { mutableStateOf(members.firstOrNull()) }
+    var selectedPaymentMethod by remember { mutableStateOf("UPI") }
+    var selectedCategory by remember { mutableStateOf("Food & Groceries") }
+    var selectedAccount by remember { mutableStateOf(accounts.firstOrNull()) }
+
+    val context = LocalContext.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Add Expense to ${group.title}",
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Expense Title (e.g. Dinner, Taxi)", fontFamily = PlusJakartaSansFamily) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp)
+                )
+
+                OutlinedTextField(
+                    value = amountText,
+                    onValueChange = { amountText = it },
+                    label = { Text("Total Amount ($currencySymbol)", fontFamily = PlusJakartaSansFamily) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp)
+                )
+
+                // Paid By Member Selector
+                Text("PAID BY", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    members.forEach { m ->
+                        val isSelected = selectedMember?.id == m.id
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedMember = m },
+                            label = { Text(m.name, fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                // If paid by "Me", allow selecting linked main account
+                if (selectedMember?.isCurrentUser == true && accounts.isNotEmpty()) {
+                    Text("LINK TO MY ACCOUNT (Auto-Deduct)", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        accounts.take(3).forEach { acct ->
+                            val isSelected = selectedAccount?.id == acct.id
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { selectedAccount = acct },
+                                label = { Text(acct.name, fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val amt = amountText.toDoubleOrNull()
+                    if (title.isBlank() || amt == null || amt <= 0) {
+                        Toast.makeText(context, "Please enter valid title and amount", Toast.LENGTH_SHORT).show()
+                    } else if (selectedMember == null) {
+                        Toast.makeText(context, "Please select who paid", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val m = selectedMember!!
+                        onConfirm(
+                            title.trim(),
+                            amt,
+                            m.id,
+                            m.name,
+                            selectedPaymentMethod,
+                            if (m.isCurrentUser) (selectedAccount?.id ?: 0L) else 0L,
+                            selectedCategory,
+                            m.isCurrentUser
+                        )
+                    }
+                },
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text("Add Expense", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", fontFamily = SpaceGroteskFamily)
+            }
+        }
+    )
 }

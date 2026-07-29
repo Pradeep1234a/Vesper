@@ -804,17 +804,30 @@ fun MainScreen(
                 }
 
                 composable(Screen.SplitGroups.route) {
-                    SplitGroupsScreen(
+                    val splitViewModel: com.vesper.ledger.ui.split.SplitViewModel = viewModel()
+                    com.vesper.ledger.ui.split.SplitGroupsScreen(
+                        viewModel = splitViewModel,
                         currencySymbol = currencySymbol,
                         onCreateGroupClick = { navController.navigate(Screen.CreateSplitGroup.route) },
-                        onAddExpenseClick = { navController.navigate(Screen.AddTransaction.route) }
+                        onHistoryClick = { navController.navigate(Screen.SplitHistory.route) }
                     )
                 }
 
                 composable(Screen.CreateSplitGroup.route) {
-                    CreateSplitGroupScreen(
+                    val splitViewModel: com.vesper.ledger.ui.split.SplitViewModel = viewModel()
+                    com.vesper.ledger.ui.split.CreateSplitGroupScreen(
+                        viewModel = splitViewModel,
                         onBackClick = { navController.popBackStack() },
                         onGroupCreated = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.SplitHistory.route) {
+                    val splitViewModel: com.vesper.ledger.ui.split.SplitViewModel = viewModel()
+                    com.vesper.ledger.ui.split.SplitHistoryScreen(
+                        viewModel = splitViewModel,
+                        currencySymbol = currencySymbol,
+                        onBackClick = { navController.popBackStack() }
                     )
                 }
 
