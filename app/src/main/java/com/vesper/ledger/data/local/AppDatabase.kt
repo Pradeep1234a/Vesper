@@ -18,6 +18,7 @@ import com.vesper.ledger.data.model.SplitExpense
 import com.vesper.ledger.data.model.SplitExpenseShare
 import com.vesper.ledger.data.model.SplitGroup
 import com.vesper.ledger.data.model.SplitMember
+import com.vesper.ledger.data.model.SplitSettlement
 import kotlinx.coroutines.CoroutineScope
 
 @Database(
@@ -32,9 +33,10 @@ import kotlinx.coroutines.CoroutineScope
         SplitGroup::class,
         SplitMember::class,
         SplitExpense::class,
-        SplitExpenseShare::class
+        SplitExpenseShare::class,
+        SplitSettlement::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

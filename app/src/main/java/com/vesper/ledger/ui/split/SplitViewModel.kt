@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.vesper.ledger.data.local.AppDatabase
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.DebtSettlement
+import com.vesper.ledger.data.model.GroupAnalyticsSummary
 import com.vesper.ledger.data.model.SplitExpense
 import com.vesper.ledger.data.model.SplitGroup
 import com.vesper.ledger.data.model.SplitMember
@@ -86,7 +87,38 @@ class SplitViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun recordSettlement(
+        groupId: Long,
+        debtorId: Long,
+        debtorName: String,
+        creditorId: Long,
+        creditorName: String,
+        amount: Double,
+        paymentMethod: String,
+        accountId: Long,
+        isDebtorCurrentUser: Boolean,
+        isCreditorCurrentUser: Boolean,
+        onSuccess: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            repository.recordSettlement(
+                groupId = groupId,
+                debtorId = debtorId,
+                debtorName = debtorName,
+                creditorId = creditorId,
+                creditorName = creditorName,
+                amount = amount,
+                paymentMethod = paymentMethod,
+                accountId = accountId,
+                isDebtorCurrentUser = isDebtorCurrentUser,
+                isCreditorCurrentUser = isCreditorCurrentUser
+            )
+            onSuccess()
+        }
+    }
+
     fun getMembersForGroup(groupId: Long): Flow<List<SplitMember>> = repository.getMembersForGroup(groupId)
     fun getGroupDebts(groupId: Long): Flow<List<DebtSettlement>> = repository.getGroupDebtSettlements(groupId)
     fun getExpensesForGroup(groupId: Long): Flow<List<SplitExpense>> = repository.getExpensesForGroup(groupId)
+    fun getGroupAnalyticsSummary(groupId: Long): Flow<GroupAnalyticsSummary?> = repository.getGroupAnalyticsSummary(groupId)
 }

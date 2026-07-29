@@ -46,10 +46,25 @@ data class SplitExpenseShare(
     val isPaid: Boolean = false
 )
 
+@Entity(tableName = "split_settlements")
+data class SplitSettlement(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val groupId: Long,
+    val debtorId: Long,
+    val debtorName: String,
+    val creditorId: Long,
+    val creditorName: String,
+    val amount: Double,
+    val paymentMethod: String = "UPI",
+    val accountId: Long = 0,
+    val dateEpochMillis: Long = System.currentTimeMillis()
+)
+
 /**
  * Calculated Debt Transaction representing direct settlement between two members
  */
 data class DebtSettlement(
+    val groupId: Long = 0,
     val debtorId: Long,
     val debtorName: String,
     val creditorId: Long,
@@ -57,4 +72,20 @@ data class DebtSettlement(
     val amount: Double,
     val isDebtorCurrentUser: Boolean,
     val isCreditorCurrentUser: Boolean
+)
+
+/**
+ * Analytical Group Summary DTO
+ */
+data class GroupAnalyticsSummary(
+    val groupId: Long,
+    val groupTitle: String,
+    val totalExpenseVolume: Double,
+    val totalExpensesCount: Int,
+    val topCategory: String,
+    val topSpenderName: String,
+    val topSpenderAmount: Double,
+    val memberBalances: Map<String, Double>, // MemberName -> NetBalance (+ owed, - owes)
+    val categoryBreakdown: Map<String, Double>, // CategoryName -> Spent
+    val paymentMethodBreakdown: Map<String, Double> // PaymentMethod -> Volume
 )

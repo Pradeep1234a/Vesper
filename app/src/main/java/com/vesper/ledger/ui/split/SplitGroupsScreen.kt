@@ -1,6 +1,7 @@
 package com.vesper.ledger.ui.split
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +12,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.outlined.*
@@ -26,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.DebtSettlement
+import com.vesper.ledger.data.model.GroupAnalyticsSummary
 import com.vesper.ledger.data.model.SplitGroup
 import com.vesper.ledger.data.model.SplitMember
 import com.vesper.ledger.ui.components.ShCard
@@ -51,6 +55,8 @@ fun SplitGroupsScreen(
 
     val df = remember { DecimalFormat("#,##0.00") }
     var showAddExpenseGroup by remember { mutableStateOf<SplitGroup?>(null) }
+    var showSettleDebt by remember { mutableStateOf<DebtSettlement?>(null) }
+    var showAnalyticsGroup by remember { mutableStateOf<SplitGroup?>(null) }
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val isFabVisible by com.vesper.ledger.ui.components.rememberFabVisibility(lazyListState)
@@ -180,7 +186,12 @@ fun SplitGroupsScreen(
                             )
 
                             overallDebts.forEach { debt ->
-                                DebtSummaryCard(debt = debt, currencySymbol = currencySymbol, df = df)
+                                DebtSummaryCard(
+                                    debt = debt,
+                                    currencySymbol = currencySymbol,
+                                    df = df,
+                                    onSettleUp = { showSettleDebt = debt }
+                                )
                             }
                         }
                     }
@@ -257,6 +268,8 @@ fun SplitGroupsScreen(
                             currencySymbol = currencySymbol,
                             df = df,
                             onAddExpense = { showAddExpenseGroup = group },
+                            onAnalyticsClick = { showAnalyticsGroup = group },
+                            onSettleUp = { debt -> showSettleDebt = debt },
                             onDeleteGroup = { viewModel.deleteGroup(group.id) }
                         )
                     }
@@ -265,7 +278,7 @@ fun SplitGroupsScreen(
         }
     }
 
-    // Add Expense Modal Dialog
+    // Add Expense Dialog
     if (showAddExpenseGroup != null) {
         val group = showAddExpenseGroup!!
         val members by viewModel.getMembersForGroup(group.id).collectAsState(initial = emptyList())
@@ -299,10 +312,59 @@ fun SplitGroupsScreen(
             }
         )
     }
+
+    // Settle Up Dialog
+    if (showSettleDebt != null) {
+        val debt = showSettleDebt!!
+        SettleUpDialog(
+            debt = debt,
+            accounts = accounts,
+            currencySymbol = currencySymbol,
+            df = df,
+            onDismiss = { showSettleDebt = null },
+            onConfirm = { amount, paymentMethod, accountId ->
+                viewModel.recordSettlement(
+                    groupId = debt.groupId,
+                    debtorId = debt.debtorId,
+                    debtorName = debt.debtorName,
+                    creditorId = debt.creditorId,
+                    creditorName = debt.creditorName,
+                    amount = amount,
+                    paymentMethod = paymentMethod,
+                    accountId = accountId,
+                    isDebtorCurrentUser = debt.isDebtorCurrentUser,
+                    isCreditorCurrentUser = debt.isCreditorCurrentUser,
+                    onSuccess = {
+                        Toast.makeText(context, "Settlement recorded!", Toast.LENGTH_SHORT).show()
+                        showSettleDebt = null
+                    }
+                )
+            }
+        )
+    }
+
+    // Group Analytics Dialog
+    if (showAnalyticsGroup != null) {
+        val group = showAnalyticsGroup!!
+        val analytics by viewModel.getGroupAnalyticsSummary(group.id).collectAsState(initial = null)
+
+        GroupAnalyticsDialog(
+            group = group,
+            analytics = analytics,
+            currencySymbol = currencySymbol,
+            df = df,
+            onDismiss = { showAnalyticsGroup = null }
+        )
+    }
 }
 
 @Composable
-fun DebtSummaryCard(debt: DebtSettlement, currencySymbol: String, df: DecimalFormat) {
+fun DebtSummaryCard(
+    debt: DebtSettlement,
+    currencySymbol: String,
+    df: DecimalFormat,
+    onSettleUp: () -> Unit
+) {
     val isOwedToUser = debt.isCreditorCurrentUser
 
     Row(
@@ -315,20 +377,35 @@ fun DebtSummaryCard(debt: DebtSettlement, currencySymbol: String, df: DecimalFor
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = if (isOwedToUser) "${debt.debtorName} owes You" else "You owe ${debt.creditorName}",
-            fontFamily = SpaceGroteskFamily,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = "$currencySymbol${df.format(debt.amount)}",
-            fontFamily = SpaceGroteskFamily,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (isOwedToUser) Color(0xFF16A34A) else Color(0xFFDC2626)
-        )
+        Column {
+            Text(
+                text = if (isOwedToUser) "${debt.debtorName} owes You" else "You owe ${debt.creditorName}",
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "$currencySymbol${df.format(debt.amount)}",
+                fontFamily = SpaceGroteskFamily,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isOwedToUser) Color(0xFF16A34A) else Color(0xFFDC2626)
+            )
+        }
+
+        Button(
+            onClick = onSettleUp,
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isOwedToUser) Color(0xFF16A34A) else Color(0xFFDC2626)
+            )
+        ) {
+            Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("Settle Up", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
@@ -340,6 +417,8 @@ fun SplitGroupCard(
     currencySymbol: String,
     df: DecimalFormat,
     onAddExpense: () -> Unit,
+    onAnalyticsClick: () -> Unit,
+    onSettleUp: (DebtSettlement) -> Unit,
     onDeleteGroup: () -> Unit
 ) {
     ShCard(
@@ -369,17 +448,20 @@ fun SplitGroupCard(
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(onClick = onAnalyticsClick, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Analytics, contentDescription = "Group Analytics", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    }
                     IconButton(onClick = onDeleteGroup, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete Group", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                     }
                     Button(
                         onClick = onAddExpense,
                         shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Add Expense", fontFamily = SpaceGroteskFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("Expense", fontFamily = SpaceGroteskFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -395,12 +477,157 @@ fun SplitGroupCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     debts.forEach { debt ->
-                        DebtSummaryCard(debt = debt, currencySymbol = currencySymbol, df = df)
+                        DebtSummaryCard(debt = debt, currencySymbol = currencySymbol, df = df, onSettleUp = { onSettleUp(debt) })
                     }
                 }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettleUpDialog(
+    debt: DebtSettlement,
+    accounts: List<Account>,
+    currencySymbol: String,
+    df: DecimalFormat,
+    onDismiss: () -> Unit,
+    onConfirm: (amount: Double, paymentMethod: String, accountId: Long) -> Unit
+) {
+    var amountText by remember { mutableStateOf(debt.amount.toString()) }
+    var selectedPaymentMethod by remember { mutableStateOf("UPI") }
+    var selectedAccount by remember { mutableStateOf(accounts.firstOrNull()) }
+
+    val context = LocalContext.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = if (debt.isCreditorCurrentUser) "Record Settlement from ${debt.debtorName}" else "Record Settlement to ${debt.creditorName}",
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = amountText,
+                    onValueChange = { amountText = it },
+                    label = { Text("Settlement Amount ($currencySymbol)", fontFamily = PlusJakartaSansFamily) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp)
+                )
+
+                Text("PAYMENT METHOD", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("UPI", "Cash", "Bank Transfer", "Card").forEach { pm ->
+                        FilterChip(
+                            selected = selectedPaymentMethod == pm,
+                            onClick = { selectedPaymentMethod = pm },
+                            label = { Text(pm, fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                if (accounts.isNotEmpty()) {
+                    Text("LINK TO MY ACCOUNT", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        accounts.take(3).forEach { acct ->
+                            FilterChip(
+                                selected = selectedAccount?.id == acct.id,
+                                onClick = { selectedAccount = acct },
+                                label = { Text(acct.name, fontFamily = SpaceGroteskFamily, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val amt = amountText.toDoubleOrNull()
+                    if (amt == null || amt <= 0) {
+                        Toast.makeText(context, "Please enter valid settlement amount", Toast.LENGTH_SHORT).show()
+                    } else {
+                        onConfirm(amt, selectedPaymentMethod, selectedAccount?.id ?: 0L)
+                    }
+                },
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text("Confirm Settlement", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", fontFamily = SpaceGroteskFamily)
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GroupAnalyticsDialog(
+    group: SplitGroup,
+    analytics: GroupAnalyticsSummary?,
+    currencySymbol: String,
+    df: DecimalFormat,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "${group.title} Analytics",
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        },
+        text = {
+            if (analytics == null) {
+                Box(modifier = Modifier.padding(24.dp)) { CircularProgressIndicator() }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Total Volume: $currencySymbol${df.format(analytics.totalExpenseVolume)}", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    Text("Top Category: ${analytics.topCategory}", fontFamily = PlusJakartaSansFamily)
+                    Text("Top Spender: ${analytics.topSpenderName} ($currencySymbol${df.format(analytics.topSpenderAmount)})", fontFamily = PlusJakartaSansFamily)
+
+                    Divider()
+                    Text("MEMBER NET BALANCES", fontFamily = SpaceGroteskFamily, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    analytics.memberBalances.forEach { (name, bal) ->
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(name, fontFamily = PlusJakartaSansFamily)
+                            Text(
+                                text = if (bal >= 0) "+$currencySymbol${df.format(bal)}" else "-$currencySymbol${df.format(kotlin.math.abs(bal))}",
+                                fontFamily = SpaceGroteskFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = if (bal >= 0) Color(0xFF16A34A) else Color(0xFFDC2626)
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

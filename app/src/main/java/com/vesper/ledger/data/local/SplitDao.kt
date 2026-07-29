@@ -5,6 +5,7 @@ import com.vesper.ledger.data.model.SplitExpense
 import com.vesper.ledger.data.model.SplitExpenseShare
 import com.vesper.ledger.data.model.SplitGroup
 import com.vesper.ledger.data.model.SplitMember
+import com.vesper.ledger.data.model.SplitSettlement
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -73,4 +74,14 @@ interface SplitDao {
 
     @Query("UPDATE split_expense_shares SET isPaid = :isPaid WHERE id = :shareId")
     suspend fun updateSharePaymentStatus(shareId: Long, isPaid: Boolean)
+
+    // ── Settlements ──
+    @Query("SELECT * FROM split_settlements WHERE groupId = :groupId ORDER BY dateEpochMillis DESC")
+    fun getSettlementsForGroup(groupId: Long): Flow<List<SplitSettlement>>
+
+    @Query("SELECT * FROM split_settlements ORDER BY dateEpochMillis DESC")
+    fun getAllSettlements(): Flow<List<SplitSettlement>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSettlement(settlement: SplitSettlement): Long
 }
