@@ -69,7 +69,7 @@ fun BudgetScreen(
                 onClick = onAddBudgetClick,
                 contentDescription = "Add Budget",
                 visible = isFabVisible,
-                hasBottomBar = false
+                hasBottomBar = true
             )
         }
     ) { paddingValues ->

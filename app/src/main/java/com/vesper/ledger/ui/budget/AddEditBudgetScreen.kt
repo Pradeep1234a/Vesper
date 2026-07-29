@@ -55,63 +55,101 @@ fun AddEditBudgetScreen(
     val context = LocalContext.current
     val isEditMode = budgetToEdit != null
 
-    var nameText by remember { mutableStateOf(budgetToEdit?.name ?: "") }
-    var amountText by remember { mutableStateOf(budgetToEdit?.amount?.let { if (it > 0) it.toString() else "" } ?: "") }
-    var selectedPeriod by remember { mutableStateOf(budgetToEdit?.period ?: "MONTHLY") }
-    var selectedCategoryId by remember { mutableStateOf(budgetToEdit?.categoryId ?: (categories.firstOrNull()?.id ?: 0L)) }
-    var notesText by remember { mutableStateOf(budgetToEdit?.notes ?: "") }
+    var nameText by remember(budgetToEdit) { mutableStateOf(budgetToEdit?.name ?: "") }
+    var amountText by remember(budgetToEdit) { mutableStateOf(budgetToEdit?.amount?.let { if (it > 0) it.toString() else "" } ?: "") }
+    var selectedPeriod by remember(budgetToEdit) { mutableStateOf(budgetToEdit?.period ?: "MONTHLY") }
+    var selectedCategoryId by remember(budgetToEdit) { mutableStateOf(budgetToEdit?.categoryId ?: (categories.firstOrNull()?.id ?: 0L)) }
+    var notesText by remember(budgetToEdit) { mutableStateOf(budgetToEdit?.notes ?: "") }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     val selectedCategory = categories.find { it.id == selectedCategoryId } ?: categories.firstOrNull()
 
-    // Delete Confirmation Dialog
+    // Delete Confirmation Bottom Sheet
     if (showDeleteConfirmDialog && budgetToEdit != null && onDeleteBudget != null) {
-        AlertDialog(
+        ModalBottomSheet(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = {
-                Text(
-                    text = "Delete Budget",
-                    fontFamily = SpaceGroteskFamily,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            },
-            text = {
-                Text(
-                    text = "Are you sure you want to delete '${budgetToEdit.name.ifBlank { selectedCategory?.name ?: "this budget" }}'? Spent records will remain intact.",
-                    fontFamily = PlusJakartaSansFamily,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDeleteBudget(budgetToEdit)
-                        showDeleteConfirmDialog = false
-                        Toast.makeText(context, "Budget deleted", Toast.LENGTH_SHORT).show()
-                        onBackClick()
-                    }
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(Color(0xFFEF4444).copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = null,
+                        tint = Color(0xFFEF4444),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Delete",
-                        color = MaterialTheme.colorScheme.error,
+                        text = "Delete Budget",
                         fontFamily = SpaceGroteskFamily,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirmDialog = false }) {
                     Text(
-                        text = "Cancel",
-                        fontFamily = SpaceGroteskFamily,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Are you sure you want to delete '${budgetToEdit.name.ifBlank { selectedCategory?.name ?: "this budget" }}'? Spent records will remain intact.",
+                        fontFamily = PlusJakartaSansFamily,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
-        )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirmDialog = false },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Cancel", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = {
+                            onDeleteBudget(budgetToEdit)
+                            showDeleteConfirmDialog = false
+                            Toast.makeText(context, "Budget deleted", Toast.LENGTH_SHORT).show()
+                            onBackClick()
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFEF4444),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Delete", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 
     Scaffold(
