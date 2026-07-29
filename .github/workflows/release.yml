@@ -166,16 +166,40 @@ jobs:
       - name: Create & Push Tag
         id: create_tag
         run: |
+          set -euo pipefail
           TAG="v${{ steps.bump.outputs.new_name }}"
           git fetch --tags origin
-          # Check remote for exact tag
+
+          # Check if tag already exists on origin
           if git ls-remote --tags origin | grep -qE "refs/tags/${TAG}$"; then
-            echo "Tag $TAG already exists on remote — skipping tag creation."
-            echo "tag_created=false" >> $GITHUB_OUTPUT
-          else
-            git tag -a "$TAG" -m "Release $TAG (${{ steps.bump.outputs.new_code }}) — ${{ steps.bump.outputs.update_badge }}"
-            git push origin "$TAG"
+            echo "Tag $TAG already exists on remote — checking target commit..."
+            REMOTE_SHA=$(git ls-remote --tags origin "refs/tags/${TAG}" | awk '{print $1}')
+            LOCAL_SHA=$(git rev-parse HEAD)
+            if [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
+              echo "Remote tag $TAG points to current commit — nothing to push."
+              echo "tag_created=false" >> $GITHUB_OUTPUT
+              exit 0
+            else
+              echo "Remote tag $TAG points to a different commit. Skipping tag creation to avoid overwrite."
+              echo "tag_created=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
+          # Create and push tag (handle rare race where another runner creates tag between check and push)
+          git tag -a "$TAG" -m "Release $TAG (${{ steps.bump.outputs.new_code }}) — ${{ steps.bump.outputs.update_badge }}"
+          if git push origin "$TAG"; then
+            echo "Tag $TAG pushed."
             echo "tag_created=true" >> $GITHUB_OUTPUT
+          else
+            echo "git push failed. Re-checking if tag now exists on remote (possible race)..."
+            if git ls-remote --tags origin | grep -qE "refs/tags/${TAG}$"; then
+              echo "Tag $TAG now exists on remote — treating as success."
+              echo "tag_created=false" >> $GITHUB_OUTPUT
+            else
+              echo "Push failed and tag does not exist — aborting with error."
+              exit 1
+            fi
           fi
 
       # ── GitHub Release ──
