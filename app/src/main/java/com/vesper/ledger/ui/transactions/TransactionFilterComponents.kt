@@ -1,14 +1,20 @@
 package com.vesper.ledger.ui.transactions
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
@@ -111,6 +117,16 @@ fun M3TransactionFilterSheet(
 
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
+    var overscrollOffset by remember { mutableStateOf(0f) }
+    val animatedOverscroll by animateFloatAsState(
+        targetValue = overscrollOffset,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "RubberBandSpring"
+    )
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
@@ -123,12 +139,31 @@ fun M3TransactionFilterSheet(
         },
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        tonalElevation = 6.dp
+        tonalElevation = 6.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f)
+                .graphicsLayer {
+                    translationY = -animatedOverscroll
+                }
+                .pointerInput(Unit) {
+                    detectVerticalDragGestures(
+                        onDragEnd = { overscrollOffset = 0f },
+                        onDragCancel = { overscrollOffset = 0f },
+                        onVerticalDrag = { change, dragAmount ->
+                            if (dragAmount < 0) { // Dragging upward past 85% height limit
+                                overscrollOffset = (overscrollOffset - dragAmount * 0.35f).coerceAtMost(65f)
+                                change.consume()
+                            } else if (overscrollOffset > 0f) {
+                                overscrollOffset = (overscrollOffset - dragAmount * 0.35f).coerceAtLeast(0f)
+                                change.consume()
+                            }
+                        }
+                    )
+                }
                 .navigationBarsPadding()
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
