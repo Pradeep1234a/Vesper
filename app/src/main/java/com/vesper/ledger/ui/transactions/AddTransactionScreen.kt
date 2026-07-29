@@ -1316,67 +1316,53 @@ fun AddTransactionScreen(
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // BOTTOM SHEET 3: OFFICIAL MATERIAL 3 SPEC DATE PICKER BOTTOM SHEET
+            // MODAL DIALOG 1: OFFICIAL MATERIAL 3 SPEC DATE PICKER DIALOG
             // ────────────────────────────────────────────────────────────────────────
             if (showDatePickerSheet) {
                 val datePickerState = rememberDatePickerState(
                     initialSelectedDateMillis = selectedCalendar.timeInMillis
                 )
-                ModalBottomSheet(
+                DatePickerDialog(
                     onDismissRequest = { showDatePickerSheet = false },
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        DatePicker(
-                            state = datePickerState,
-                            colors = DatePickerDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                titleContentColor = MaterialTheme.colorScheme.onSurface,
-                                headlineContentColor = MaterialTheme.colorScheme.onSurface,
-                                todayContentColor = MaterialTheme.colorScheme.primary,
-                                todayDateBorderColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            TextButton(onClick = { showDatePickerSheet = false }) {
-                                Text("Cancel", fontFamily = SpaceGroteskFamily)
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                onClick = {
-                                    datePickerState.selectedDateMillis?.let { millis ->
-                                        val cal = Calendar.getInstance().apply { timeInMillis = millis }
-                                        selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
-                                            set(Calendar.YEAR, cal.get(Calendar.YEAR))
-                                            set(Calendar.MONTH, cal.get(Calendar.MONTH))
-                                            set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH))
-                                        }
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                datePickerState.selectedDateMillis?.let { millis ->
+                                    val cal = Calendar.getInstance().apply { timeInMillis = millis }
+                                    selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                        set(Calendar.YEAR, cal.get(Calendar.YEAR))
+                                        set(Calendar.MONTH, cal.get(Calendar.MONTH))
+                                        set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH))
                                     }
-                                    showDatePickerSheet = false
                                 }
-                            ) {
-                                Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                                showDatePickerSheet = false
                             }
+                        ) {
+                            Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
                         }
-                    }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDatePickerSheet = false }) {
+                            Text("Cancel", fontFamily = SpaceGroteskFamily)
+                        }
+                    },
+                    colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    DatePicker(
+                        state = datePickerState,
+                        colors = DatePickerDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            headlineContentColor = MaterialTheme.colorScheme.onSurface,
+                            todayContentColor = MaterialTheme.colorScheme.primary,
+                            todayDateBorderColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
                 }
             }
 
             // ────────────────────────────────────────────────────────────────────────
-            // BOTTOM SHEET 4: OFFICIAL MATERIAL 3 TIME PICKER BOTTOM SHEET
+            // MODAL DIALOG 2: OFFICIAL MATERIAL 3 TIME PICKER DIALOG
             // ────────────────────────────────────────────────────────────────────────
             if (showTimePickerSheet) {
                 val timePickerState = rememberTimePickerState(
@@ -1386,73 +1372,72 @@ fun AddTransactionScreen(
                 )
                 var showKeyboardInputMode by remember { mutableStateOf(false) }
 
-                ModalBottomSheet(
-                    onDismissRequest = { showTimePickerSheet = false },
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                Dialog(onDismissRequest = { showTimePickerSheet = false }) {
+                    Surface(
+                        shape = RoundedCornerShape(28.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 6.dp,
+                        modifier = Modifier.wrapContentSize()
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             Text(
                                 text = if (showKeyboardInputMode) "Enter Time" else "Select Time",
-                                fontFamily = SpaceGroteskFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                color = MaterialTheme.colorScheme.onSurface
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
 
-                            IconButton(onClick = { showKeyboardInputMode = !showKeyboardInputMode }) {
-                                Icon(
-                                    imageVector = if (showKeyboardInputMode) Icons.Outlined.Schedule else Icons.Outlined.Keyboard,
-                                    contentDescription = "Toggle mode",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (showKeyboardInputMode) {
-                                TimeInput(state = timePickerState)
-                            } else {
-                                TimePicker(state = timePickerState)
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 12.dp),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            TextButton(onClick = { showTimePickerSheet = false }) {
-                                Text("Cancel", fontFamily = SpaceGroteskFamily)
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                onClick = {
-                                    isTimeManuallySet = true
-                                    selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
-                                        set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                                        set(Calendar.MINUTE, timePickerState.minute)
-                                    }
-                                    showTimePickerSheet = false
-                                }
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                                if (showKeyboardInputMode) {
+                                    TimeInput(state = timePickerState)
+                                } else {
+                                    TimePicker(state = timePickerState)
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(onClick = { showKeyboardInputMode = !showKeyboardInputMode }) {
+                                    Icon(
+                                        imageVector = if (showKeyboardInputMode) Icons.Outlined.Schedule else Icons.Outlined.Keyboard,
+                                        contentDescription = "Toggle mode",
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TextButton(onClick = { showTimePickerSheet = false }) {
+                                        Text("Cancel", fontFamily = SpaceGroteskFamily)
+                                    }
+                                    Button(
+                                        onClick = {
+                                            isTimeManuallySet = true
+                                            selectedCalendar = (selectedCalendar.clone() as Calendar).apply {
+                                                set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                                                set(Calendar.MINUTE, timePickerState.minute)
+                                            }
+                                            showTimePickerSheet = false
+                                        }
+                                    ) {
+                                        Text("OK", fontFamily = SpaceGroteskFamily, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
                     }
