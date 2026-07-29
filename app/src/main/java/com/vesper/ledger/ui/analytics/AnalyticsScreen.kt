@@ -1,5 +1,6 @@
 package com.vesper.ledger.ui.analytics
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -8,6 +9,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +18,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +33,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,10 +41,13 @@ import com.vesper.ledger.data.model.Account
 import com.vesper.ledger.data.model.Category
 import com.vesper.ledger.data.model.Transaction
 import com.vesper.ledger.data.model.TransactionType
+import com.vesper.ledger.ui.components.ShCard
 import com.vesper.ledger.ui.components.getIconByName
 import com.vesper.ledger.ui.components.safeParseColor
+import com.vesper.ledger.ui.theme.PlusJakartaSansFamily
 import com.vesper.ledger.ui.theme.SpaceGroteskFamily
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -55,9 +64,13 @@ fun AnalyticsScreen(
     onBackClick: (() -> Unit)? = null,
     onMenuClick: (() -> Unit)? = null
 ) {
-    var selectedFilter by remember { mutableStateOf("THIS_MONTH") } // THIS_MONTH, LAST_30_DAYS, THIS_WEEK, ALL
-    val df = DecimalFormat("#,##0.00")
-    val dfCompact = DecimalFormat("#,##0")
+    var selectedFilter by remember { mutableStateOf("THIS_MONTH") } // THIS_MONTH, LAST_30_DAYS, THIS_WEEK, THIS_YEAR, ALL
+    val df = remember { DecimalFormat("#,##0.00") }
+    val dfCompact = remember { DecimalFormat("#,##0") }
+
+    // Calendar Heatmap month offset state (0 = current month, -1 = previous month, etc.)
+    var calendarMonthOffset by remember { mutableStateOf(0) }
+    var selectedHeatmapDay by remember { mutableStateOf<Int?>(null) }
 
     // Filter transactions based on selected time period
     val filteredTransactions = remember(transactions, selectedFilter) {
@@ -84,57 +97,73 @@ fun AnalyticsScreen(
                 val thirtyDaysAgo = now - (30L * 24 * 60 * 60 * 1000)
                 transactions.filter { it.dateEpochMillis >= thirtyDaysAgo }
             }
+            "THIS_YEAR" -> {
+                cal.set(Calendar.DAY_OF_YEAR, 1)
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                val yearStart = cal.timeInMillis
+                transactions.filter { it.dateEpochMillis >= yearStart }
+            }
             else -> transactions
         }
     }
 
-    // Key financial metrics
-    val totalIncome = filteredTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
-    val totalExpense = filteredTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-    val netFlow = totalIncome - totalExpense
-    val savingsRate = if (totalIncome > 0) ((totalIncome - totalExpense) / totalIncome * 100).coerceIn(0.0, 100.0) else 0.0
+    // Financial totals
+    val expenseList = remember(filteredTransactions) { filteredTransactions.filter { it.type == TransactionType.EXPENSE } }
+    val incomeList = remember(filteredTransactions) { filteredTransactions.filter { it.type == TransactionType.INCOME } }
 
-    // Days count calculation for daily average
+    val totalExpense = remember(expenseList) { expenseList.sumOf { it.amount } }
+    val totalIncome = remember(incomeList) { incomeList.sumOf { it.amount } }
+    val netCashflow = totalIncome - totalExpense
+
+    val transactionCount = filteredTransactions.size
+    val avgTransactionValue = if (transactionCount > 0) (totalExpense + totalIncome) / transactionCount else 0.0
+
+    // Top spending transaction
+    val topSpendingTransaction = remember(expenseList) { expenseList.maxByOrNull { it.amount } }
+
+    // Ratio of Expense vs Income
+    val spendIncomeRatio = if (totalIncome > 0) (totalExpense / totalIncome * 100).coerceIn(0.0, 100.0) else if (totalExpense > 0) 100.0 else 0.0
+
+    // Days in selected period
     val daysInPeriod = remember(selectedFilter) {
         when (selectedFilter) {
             "THIS_WEEK" -> 7
             "THIS_MONTH" -> Calendar.getInstance().get(Calendar.DAY_OF_MONTH).coerceAtLeast(1)
             "LAST_30_DAYS" -> 30
+            "THIS_YEAR" -> Calendar.getInstance().get(Calendar.DAY_OF_YEAR).coerceAtLeast(1)
             else -> 30
         }
     }
     val dailyAvgExpense = if (daysInPeriod > 0) totalExpense / daysInPeriod else 0.0
 
-    // Category breakdown
-    val categoryGroup = remember(filteredTransactions) {
-        filteredTransactions
-            .filter { it.type == TransactionType.EXPENSE }
+    // Category Breakdown
+    val categoryGroup = remember(expenseList) {
+        expenseList
             .groupBy { it.categoryId }
             .mapValues { entry -> entry.value.sumOf { it.amount } }
             .toList()
             .sortedByDescending { it.second }
     }
 
-    // Payment method breakdown
-    val paymentModeGroup = remember(filteredTransactions) {
-        filteredTransactions
-            .filter { it.type == TransactionType.EXPENSE }
-            .groupBy { it.paymentMethod.ifBlank { "Cash" } }
-            .mapValues { entry ->
-                val sum = entry.value.sumOf { it.amount }
-                val count = entry.value.size
-                Pair(sum, count)
-            }
+    // Top Payees / Merchants
+    val topMerchants = remember(expenseList) {
+        expenseList
+            .groupBy { it.title.ifBlank { "General Expense" } }
+            .mapValues { entry -> Pair(entry.value.sumOf { it.amount }, entry.value.size) }
             .toList()
             .sortedByDescending { it.second.first }
+            .take(5)
     }
 
-    // Top merchants / single expenses
-    val topMerchants = remember(filteredTransactions) {
-        filteredTransactions
-            .filter { it.type == TransactionType.EXPENSE }
-            .sortedByDescending { it.amount }
-            .take(5)
+    // Payment Method Breakdown
+    val paymentModeGroup = remember(expenseList) {
+        expenseList
+            .groupBy { it.paymentMethod.ifBlank { "Cash" } }
+            .mapValues { entry -> Pair(entry.value.sumOf { it.amount }, entry.value.size) }
+            .toList()
+            .sortedByDescending { it.second.first }
     }
 
     Column(
@@ -142,25 +171,26 @@ fun AnalyticsScreen(
             .fillMaxSize()
             .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Spacer(modifier = Modifier.height(4.dp))
 
-        // 1. TIME PERIOD FILTER SELECTOR BAR
+        // 1. TOP PERIOD FILTER SELECTOR TABS
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(42.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .background(Color(0xFF18181B))
-                .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-                .padding(3.dp),
+                .height(44.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             listOf(
                 "THIS_MONTH" to "This Month",
                 "LAST_30_DAYS" to "30 Days",
-                "THIS_WEEK" to "This Week",
+                "THIS_WEEK" to "Week",
+                "THIS_YEAR" to "Year",
                 "ALL" to "All Time"
             ).forEach { (key, label) ->
                 val isSelected = selectedFilter == key
@@ -168,9 +198,9 @@ fun AnalyticsScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(if (isSelected) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color.Transparent)
-                        .border(1.dp, if (isSelected) Color(0xFF38BDF8) else Color.Transparent, RoundedCornerShape(4.dp))
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f) else Color.Transparent)
+                        .border(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(8.dp))
                         .clickable { selectedFilter = key },
                     contentAlignment = Alignment.Center
                 ) {
@@ -179,131 +209,154 @@ fun AnalyticsScreen(
                         fontFamily = SpaceGroteskFamily,
                         fontSize = 11.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White else Color(0xFFA1A1AA)
+                        color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
 
-        // 2. BENTO GRID: 4 KEY FINANCIAL KPI CARDS
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                // Total Expenses Card
-                BentoKpiCard(
-                    modifier = Modifier.weight(1f),
-                    title = "EXPENSES",
-                    value = "$currencySymbol${dfCompact.format(totalExpense)}",
-                    badgeText = "Total Spent",
-                    badgeColor = Color(0xFFEF4444),
-                    icon = Icons.Outlined.TrendingDown
-                )
+        // 2. OVERVIEW FINANCIAL SUMMARY BANNER
+        ShCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "FINANCIAL SUMMARY",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                            letterSpacing = 1.2.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
 
-                // Total Income Card
-                BentoKpiCard(
-                    modifier = Modifier.weight(1f),
-                    title = "INCOME",
-                    value = "$currencySymbol${dfCompact.format(totalIncome)}",
-                    badgeText = "Total Inflow",
-                    badgeColor = Color(0xFF22C55E),
-                    icon = Icons.Outlined.TrendingUp
-                )
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = if (netCashflow >= 0) Color(0xFF22C55E).copy(alpha = 0.15f) else Color(0xFFEF4444).copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, if (netCashflow >= 0) Color(0xFF22C55E) else Color(0xFFEF4444))
+                    ) {
+                        Text(
+                            text = if (netCashflow >= 0) "Net Flow +$currencySymbol${dfCompact.format(netCashflow)}" else "Net Flow -$currencySymbol${dfCompact.format(-netCashflow)}",
+                            fontFamily = SpaceGroteskFamily,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (netCashflow >= 0) Color(0xFF22C55E) else Color(0xFFEF4444),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Expenses
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Filled.ArrowDownward, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(14.dp))
+                            Text("Total Expenses", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Text(
+                            text = "$currencySymbol${df.format(totalExpense)}",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    // Divider
+                    Box(modifier = Modifier.height(36.dp).width(1.dp).background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)))
+
+                    // Income
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Filled.ArrowUpward, contentDescription = null, tint = Color(0xFF22C55E), modifier = Modifier.size(14.dp))
+                            Text("Total Income", fontFamily = PlusJakartaSansFamily, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Text(
+                            text = "$currencySymbol${df.format(totalIncome)}",
+                            fontFamily = SpaceGroteskFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
             }
+        }
 
+        // 3. 2x2 GRID OF QUICK METRIC CARDS
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Row 1: Transactions Count & Monthly Total Transactions
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Savings Rate Card
-                BentoKpiCard(
+                AnalyticsKpiCard(
                     modifier = Modifier.weight(1f),
-                    title = "SAVINGS RATE",
-                    value = "${String.format(Locale.getDefault(), "%.1f", savingsRate)}%",
-                    badgeText = if (netFlow >= 0) "Net +$currencySymbol${dfCompact.format(netFlow)}" else "Net -$currencySymbol${dfCompact.format(-netFlow)}",
-                    badgeColor = if (netFlow >= 0) Color(0xFF38BDF8) else Color(0xFFEF4444),
-                    icon = Icons.Outlined.Savings
+                    title = "TRANSACTIONS",
+                    value = "$transactionCount Total",
+                    subtitle = "Avg: $currencySymbol${dfCompact.format(avgTransactionValue)}",
+                    accentColor = Color(0xFF38BDF8),
+                    icon = Icons.Outlined.ReceiptLong
                 )
 
-                // Daily Average Card
-                BentoKpiCard(
+                AnalyticsKpiCard(
                     modifier = Modifier.weight(1f),
-                    title = "DAILY AVERAGE",
+                    title = "DAILY AVG SPEND",
                     value = "$currencySymbol${dfCompact.format(dailyAvgExpense)}",
-                    badgeText = "Per Day ($daysInPeriod Days)",
-                    badgeColor = Color(0xFFA1A1AA),
+                    subtitle = "Per Day ($daysInPeriod Days)",
+                    accentColor = Color(0xFFA855F7),
                     icon = Icons.Outlined.Schedule
                 )
             }
+
+            // Row 2: Top Single Spending & Spending % of Income Ratio
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                AnalyticsKpiCard(
+                    modifier = Modifier.weight(1f),
+                    title = "TOP SPENDING",
+                    value = topSpendingTransaction?.let { "$currencySymbol${dfCompact.format(it.amount)}" } ?: "${currencySymbol}0",
+                    subtitle = topSpendingTransaction?.title?.take(14) ?: "No transactions",
+                    accentColor = Color(0xFFF59E0B),
+                    icon = Icons.Outlined.MilitaryTech
+                )
+
+                AnalyticsKpiCard(
+                    modifier = Modifier.weight(1f),
+                    title = "SPEND / INCOME",
+                    value = "${String.format(Locale.getDefault(), "%.1f", spendIncomeRatio)}%",
+                    subtitle = if (spendIncomeRatio <= 70) "Healthy Ratio" else "High Ratio",
+                    accentColor = if (spendIncomeRatio <= 70) Color(0xFF22C55E) else Color(0xFFEF4444),
+                    icon = Icons.Outlined.PieChartOutline
+                )
+            }
         }
 
-        // 3. FL_CHART TYPE 1: SMOOTH CURVED LINE & AREA GRADIENT CHART (fl_chart LineChart)
-        BentoCard(title = "SPENDING TREND LINE CHART (FL_CHART)", icon = Icons.Outlined.ShowChart) {
-            val dailyExpenses = remember(filteredTransactions) {
-                val map = mutableMapOf<Int, Double>()
-                val cal = Calendar.getInstance()
-                filteredTransactions.filter { it.type == TransactionType.EXPENSE }.forEach { tx ->
-                    cal.timeInMillis = tx.dateEpochMillis
-                    val day = cal.get(Calendar.DAY_OF_MONTH)
-                    map[day] = (map[day] ?: 0.0) + tx.amount
-                }
-                map
-            }
-
-            val daysInMonth = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)
-            val pointsList = remember(dailyExpenses, daysInMonth) {
-                (1..daysInMonth).map { day ->
-                    Pair(day, dailyExpenses[day] ?: 0.0)
-                }
-            }
-
-            FLCurvedLineChart(
-                points = pointsList,
-                currencySymbol = currencySymbol,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-            )
-        }
-
-        // 4. FL_CHART TYPE 2: GRADIENT BAR ROD CHART (fl_chart BarChart)
-        BentoCard(title = "DAILY EXPENSE GRADIENT BARS (FL_CHART)", icon = Icons.Outlined.BarChart) {
-            val dailyExpenses = remember(filteredTransactions) {
-                val map = mutableMapOf<Int, Double>()
-                val cal = Calendar.getInstance()
-                filteredTransactions.filter { it.type == TransactionType.EXPENSE }.forEach { tx ->
-                    cal.timeInMillis = tx.dateEpochMillis
-                    val day = cal.get(Calendar.DAY_OF_MONTH)
-                    map[day] = (map[day] ?: 0.0) + tx.amount
-                }
-                map
-            }
-
-            val daysInMonth = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)
-            val barList = remember(dailyExpenses, daysInMonth) {
-                (1..daysInMonth).map { day ->
-                    Pair(day, dailyExpenses[day] ?: 0.0)
-                }
-            }
-
-            FLGradientBarChart(
-                bars = barList,
-                currencySymbol = currencySymbol,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp)
-            )
-        }
-
-        // 5. FL_CHART TYPE 3: CATEGORY DONUT CHART (fl_chart PieChart)
-        BentoCard(title = "CATEGORY BREAKDOWN DONUT (FL_CHART)", icon = Icons.Outlined.PieChart) {
+        // 4. CATEGORY BREAKDOWN BENTO CARD
+        AnalyticsBentoCard(
+            title = "CATEGORY BREAKDOWN",
+            icon = Icons.Outlined.Category
+        ) {
             if (categoryGroup.isEmpty()) {
                 Text(
                     text = "No category expense data recorded for this period.",
-                    fontFamily = SpaceGroteskFamily,
+                    fontFamily = PlusJakartaSansFamily,
                     fontSize = 12.sp,
-                    color = Color(0xFFA1A1AA),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
             } else {
@@ -312,13 +365,13 @@ fun AnalyticsScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Left Column: Donut Chart Canvas
+                    // Left: Donut Chart Canvas
                     Box(
-                        modifier = Modifier.size(120.dp),
+                        modifier = Modifier.size(110.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
-                            val strokeWidth = 16.dp.toPx()
+                            val strokeWidth = 14.dp.toPx()
                             val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
                             val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
                             var startAngle = -90f
@@ -347,19 +400,19 @@ fun AnalyticsScreen(
                                 fontFamily = SpaceGroteskFamily,
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFA1A1AA)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = "$currencySymbol${dfCompact.format(totalExpense)}",
                                 fontFamily = SpaceGroteskFamily,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
 
-                    // Right Column: Top Categories List
+                    // Right: Top Category Bento Cards List
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -371,46 +424,133 @@ fun AnalyticsScreen(
                             val catIcon = cat?.iconName ?: "category"
                             val percentage = if (totalExpense > 0) ((amt / totalExpense) * 100).toInt() else 0
 
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(26.dp)
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(catColor.copy(alpha = 0.2f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = getIconByName(catIcon),
+                                                contentDescription = null,
+                                                tint = catColor,
+                                                modifier = Modifier.size(14.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = catName,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+
+                                    Text(
+                                        text = "$currencySymbol${dfCompact.format(amt)} ($percentage%)",
+                                        fontFamily = SpaceGroteskFamily,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. TOP MERCHANTS & PAYEES BENTO CARD
+        AnalyticsBentoCard(
+            title = "TOP MERCHANTS & PAYEES",
+            icon = Icons.Outlined.Storefront
+        ) {
+            if (topMerchants.isEmpty()) {
+                Text(
+                    text = "No merchant expense records found.",
+                    fontFamily = PlusJakartaSansFamily,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    topMerchants.forEachIndexed { index, (merchantName, pair) ->
+                        val (spent, count) = pair
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(24.dp)
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(catColor.copy(alpha = 0.2f)),
+                                            .size(32.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(
-                                            imageVector = getIconByName(catIcon),
-                                            contentDescription = null,
-                                            tint = catColor,
-                                            modifier = Modifier.size(13.dp)
+                                        Text(
+                                            text = "#${index + 1}",
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.primary
                                         )
                                     }
-                                    Text(
-                                        text = catName,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+
+                                    Column {
+                                        Text(
+                                            text = merchantName,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "$count transactions",
+                                            fontFamily = PlusJakartaSansFamily,
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
 
                                 Text(
-                                    text = "$currencySymbol${dfCompact.format(amt)} ($percentage%)",
+                                    text = "$currencySymbol${df.format(spent)}",
                                     fontFamily = SpaceGroteskFamily,
-                                    fontSize = 11.sp,
+                                    fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFA1A1AA)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -419,66 +559,131 @@ fun AnalyticsScreen(
             }
         }
 
-        // 6. FL_CHART TYPE 4: 6-AXIS RADAR SPIDER CHART (fl_chart RadarChart)
-        BentoCard(title = "CATEGORY RADAR ANALYTICS (FL_CHART)", icon = Icons.Outlined.Radar) {
-            val radarData = remember(categoryGroup, categories) {
-                categoryGroup.take(6).map { (catId, amt) ->
-                    val cat = categories.find { it.id == catId }
-                    Pair(cat?.name ?: "Other", amt)
+        // 6. SPENDING TREND LINE CHART
+        AnalyticsBentoCard(
+            title = "SPENDING TREND (LINE & AREA)",
+            icon = Icons.Outlined.ShowChart
+        ) {
+            val dailyExpenses = remember(filteredTransactions) {
+                val map = mutableMapOf<Int, Double>()
+                val cal = Calendar.getInstance()
+                filteredTransactions.filter { it.type == TransactionType.EXPENSE }.forEach { tx ->
+                    cal.timeInMillis = tx.dateEpochMillis
+                    val day = cal.get(Calendar.DAY_OF_MONTH)
+                    map[day] = (map[day] ?: 0.0) + tx.amount
+                }
+                map
+            }
+
+            val daysInMonth = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)
+            val pointsList = remember(dailyExpenses, daysInMonth) {
+                (1..daysInMonth).map { day ->
+                    Pair(day, dailyExpenses[day] ?: 0.0)
                 }
             }
 
-            FLRadarChart(
-                data = radarData,
+            AnalyticsLineChart(
+                points = pointsList,
                 currencySymbol = currencySymbol,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(160.dp)
             )
         }
 
-        // 7. FL_CHART TYPE 5: TRANSACTION SCATTER PLOT CHART (fl_chart ScatterChart)
-        BentoCard(title = "TRANSACTION SCATTER CLUSTER (FL_CHART)", icon = Icons.Outlined.BubbleChart) {
-            val scatterPoints = remember(filteredTransactions) {
+        // 7. DAILY EXPENSE GRADIENT BAR CHART
+        AnalyticsBentoCard(
+            title = "DAILY EXPENSE GRADIENT BARS",
+            icon = Icons.Outlined.BarChart
+        ) {
+            val dailyExpenses = remember(filteredTransactions) {
+                val map = mutableMapOf<Int, Double>()
                 val cal = Calendar.getInstance()
-                filteredTransactions
-                    .filter { it.type == TransactionType.EXPENSE }
-                    .map { tx ->
-                        cal.timeInMillis = tx.dateEpochMillis
-                        val day = cal.get(Calendar.DAY_OF_MONTH)
-                        Triple(day, tx.amount, tx.title)
-                    }
+                filteredTransactions.filter { it.type == TransactionType.EXPENSE }.forEach { tx ->
+                    cal.timeInMillis = tx.dateEpochMillis
+                    val day = cal.get(Calendar.DAY_OF_MONTH)
+                    map[day] = (map[day] ?: 0.0) + tx.amount
+                }
+                map
             }
 
-            FLScatterChart(
-                points = scatterPoints,
+            val daysInMonth = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)
+            val barList = remember(dailyExpenses, daysInMonth) {
+                (1..daysInMonth).map { day ->
+                    Pair(day, dailyExpenses[day] ?: 0.0)
+                }
+            }
+
+            AnalyticsBarChart(
+                bars = barList,
                 currencySymbol = currencySymbol,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
+                    .height(140.dp)
             )
         }
 
-        // 8. BENTO GRID: MONTHLY CALENDAR SPENDING HEATMAP
-        BentoCard(title = "MONTHLY SPENDING HEATMAP", icon = Icons.Outlined.CalendarMonth) {
-            val cal = Calendar.getInstance()
-            val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-            val currentDay = cal.get(Calendar.DAY_OF_MONTH)
+        // 8. INTERACTIVE MONTHLY CALENDAR SPENDING HEATMAP
+        AnalyticsBentoCard(
+            title = "MONTHLY SPENDING HEATMAP",
+            icon = Icons.Outlined.CalendarMonth
+        ) {
+            val heatmapCal = remember(calendarMonthOffset) {
+                Calendar.getInstance().apply {
+                    add(Calendar.MONTH, calendarMonthOffset)
+                }
+            }
 
-            val dailyExpensesMap = remember(filteredTransactions) {
+            val monthName = remember(heatmapCal) {
+                SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(heatmapCal.time)
+            }
+
+            val daysInMonth = heatmapCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+            val currentActualDay = if (calendarMonthOffset == 0) Calendar.getInstance().get(Calendar.DAY_OF_MONTH) else -1
+
+            val dailyExpensesMap = remember(filteredTransactions, calendarMonthOffset) {
                 val map = mutableMapOf<Int, Double>()
                 val c = Calendar.getInstance()
+                val targetYear = heatmapCal.get(Calendar.YEAR)
+                val targetMonth = heatmapCal.get(Calendar.MONTH)
+
                 filteredTransactions.filter { it.type == TransactionType.EXPENSE }.forEach { tx ->
                     c.timeInMillis = tx.dateEpochMillis
-                    val day = c.get(Calendar.DAY_OF_MONTH)
-                    map[day] = (map[day] ?: 0.0) + tx.amount
+                    if (c.get(Calendar.YEAR) == targetYear && c.get(Calendar.MONTH) == targetMonth) {
+                        val day = c.get(Calendar.DAY_OF_MONTH)
+                        map[day] = (map[day] ?: 0.0) + tx.amount
+                    }
                 }
                 map
             }
 
             val maxExpenseDay = (dailyExpensesMap.values.maxOrNull() ?: 1.0).coerceAtLeast(1.0)
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // Month Navigation Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { calendarMonthOffset -= 1 }, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Filled.ChevronLeft, contentDescription = "Prev Month", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+
+                    Text(
+                        text = monthName,
+                        fontFamily = SpaceGroteskFamily,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    IconButton(onClick = { calendarMonthOffset += 1 }, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Filled.ChevronRight, contentDescription = "Next Month", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+
+                // Day Labels Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -493,12 +698,13 @@ fun AnalyticsScreen(
                                 fontFamily = SpaceGroteskFamily,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFA1A1AA)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
 
+                // Days Grid
                 val rows = (daysInMonth + 6) / 7
                 for (r in 0 until rows) {
                     Row(
@@ -511,23 +717,28 @@ fun AnalyticsScreen(
                                 val amt = dailyExpensesMap[dayNumber] ?: 0.0
                                 val ratio = (amt / maxExpenseDay).toFloat()
                                 val cellBg = when {
-                                    amt <= 0 -> Color(0xFF242429)
+                                    amt <= 0 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
                                     ratio < 0.3f -> Color(0xFF0284C7).copy(alpha = 0.35f)
                                     ratio < 0.7f -> Color(0xFF38BDF8).copy(alpha = 0.65f)
                                     else -> Color(0xFF38BDF8)
                                 }
 
+                                val isSelected = selectedHeatmapDay == dayNumber
+
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .aspectRatio(1f)
-                                        .clip(RoundedCornerShape(4.dp))
+                                        .clip(RoundedCornerShape(6.dp))
                                         .background(cellBg)
                                         .border(
                                             1.dp,
-                                            if (dayNumber == currentDay) Color.White else Color(0xFF3F3F46),
-                                            RoundedCornerShape(4.dp)
-                                        ),
+                                            if (isSelected) MaterialTheme.colorScheme.primary else if (dayNumber == currentActualDay) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                                            RoundedCornerShape(6.dp)
+                                        )
+                                        .clickable {
+                                            selectedHeatmapDay = if (selectedHeatmapDay == dayNumber) null else dayNumber
+                                        },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
@@ -535,7 +746,7 @@ fun AnalyticsScreen(
                                         fontFamily = SpaceGroteskFamily,
                                         fontSize = 10.sp,
                                         fontWeight = if (amt > 0) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (amt > 0) Color.White else Color(0xFFA1A1AA)
+                                        color = if (amt > 0) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             } else {
@@ -544,17 +755,51 @@ fun AnalyticsScreen(
                         }
                     }
                 }
+
+                // Heatmap Tooltip Detail Box
+                selectedHeatmapDay?.let { day ->
+                    val daySpend = dailyExpensesMap[day] ?: 0.0
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Day $day Spending:",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "$currencySymbol${df.format(daySpend)}",
+                                fontFamily = SpaceGroteskFamily,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
         }
 
-        // 9. BENTO GRID: ACCOUNTS BREAKDOWN & RANKINGS
-        BentoCard(title = "ACCOUNT DISTRIBUTION & BREAKDOWN", icon = Icons.Outlined.AccountBalance) {
+        // 9. ACCOUNTS DISTRIBUTION BENTO CARD
+        AnalyticsBentoCard(
+            title = "ACCOUNT DISTRIBUTION",
+            icon = Icons.Outlined.AccountBalance
+        ) {
             if (accounts.isEmpty()) {
                 Text(
                     text = "No financial accounts created yet.",
-                    fontFamily = SpaceGroteskFamily,
+                    fontFamily = PlusJakartaSansFamily,
                     fontSize = 12.sp,
-                    color = Color(0xFFA1A1AA),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
             } else {
@@ -567,72 +812,77 @@ fun AnalyticsScreen(
                         val currBal = acct.initialBalance + acctIncome - acctExpense - acctOut + acctIn
                         val acctTxnCount = transactions.count { it.accountId == acct.id || it.targetAccountId == acct.id }
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFF242429))
-                                .border(1.dp, Color(0xFF3F3F46), RoundedCornerShape(6.dp))
-                                .padding(10.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(Color(0xFF18181B)),
-                                    contentAlignment = Alignment.Center
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = getIconByName(acct.iconName),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = getIconByName(acct.iconName),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    Column {
+                                        Text(
+                                            text = acct.name,
+                                            fontFamily = SpaceGroteskFamily,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "$acctTxnCount transactions",
+                                            fontFamily = PlusJakartaSansFamily,
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
-                                Column {
-                                    Text(
-                                        text = acct.name,
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                    Text(
-                                        text = "$acctTxnCount transactions",
-                                        fontFamily = SpaceGroteskFamily,
-                                        fontSize = 10.sp,
-                                        color = Color(0xFFA1A1AA)
-                                    )
-                                }
-                            }
 
-                            Text(
-                                text = "$currencySymbol${df.format(currBal)}",
-                                fontFamily = SpaceGroteskFamily,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                                Text(
+                                    text = "$currencySymbol${df.format(currBal)}",
+                                    fontFamily = SpaceGroteskFamily,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        // 10. BENTO GRID: PAYMENT METHOD COMPARISON
-        BentoCard(title = "PAYMENT METHOD COMPARISON", icon = Icons.Outlined.CreditCard) {
+        // 10. PAYMENT METHOD COMPARISON BENTO CARD
+        AnalyticsBentoCard(
+            title = "PAYMENT METHOD COMPARISON",
+            icon = Icons.Outlined.CreditCard
+        ) {
             if (paymentModeGroup.isEmpty()) {
                 Text(
                     text = "No payment method data recorded.",
-                    fontFamily = SpaceGroteskFamily,
+                    fontFamily = PlusJakartaSansFamily,
                     fontSize = 12.sp,
-                    color = Color(0xFFA1A1AA),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
             } else {
@@ -657,13 +907,13 @@ fun AnalyticsScreen(
                                         fontFamily = SpaceGroteskFamily,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = "($modeCount txns)",
-                                        fontFamily = SpaceGroteskFamily,
+                                        fontFamily = PlusJakartaSansFamily,
                                         fontSize = 10.sp,
-                                        color = Color(0xFFA1A1AA)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 Text(
@@ -671,7 +921,7 @@ fun AnalyticsScreen(
                                     fontFamily = SpaceGroteskFamily,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
@@ -681,8 +931,8 @@ fun AnalyticsScreen(
                                     .fillMaxWidth()
                                     .height(6.dp)
                                     .clip(RoundedCornerShape(3.dp)),
-                                color = Color(0xFF38BDF8),
-                                trackColor = Color(0xFF242429)
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         }
                     }
@@ -695,10 +945,10 @@ fun AnalyticsScreen(
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// FL_CHART 1: SMOOTH CURVED LINE & AREA GRADIENT CHART
+// ANALYTICS LINE CHART COMPONENT
 // ────────────────────────────────────────────────────────────────────────────
 @Composable
-fun FLCurvedLineChart(
+private fun AnalyticsLineChart(
     points: List<Pair<Int, Double>>,
     currencySymbol: String,
     modifier: Modifier = Modifier
@@ -724,7 +974,7 @@ fun FLCurvedLineChart(
             val height = size.height
             val stepX = width / (points.size - 1).coerceAtLeast(1)
 
-            // Dashed horizontal grid lines (FL_Chart GridData)
+            // Horizontal Grid Lines
             val gridPathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
             val gridLines = 4
             for (i in 0..gridLines) {
@@ -767,7 +1017,7 @@ fun FLCurvedLineChart(
             fillPath.lineTo(coordinates.last().x, height)
             fillPath.close()
 
-            // Draw Area Gradient Fill (FL_Chart BarAreaData)
+            // Area Gradient Fill
             drawPath(
                 path = fillPath,
                 brush = Brush.verticalGradient(
@@ -778,14 +1028,14 @@ fun FLCurvedLineChart(
                 )
             )
 
-            // Draw Curved Line Stroke
+            // Curved Line Stroke
             drawPath(
                 path = strokePath,
                 color = Color(0xFF38BDF8),
                 style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
             )
 
-            // Draw Active Glowing Dots
+            // Glowing Dots
             coordinates.forEachIndexed { index, point ->
                 val (_, amt) = points[index]
                 val isSelected = selectedPointIndex == index
@@ -793,11 +1043,6 @@ fun FLCurvedLineChart(
                     drawCircle(
                         color = if (isSelected) Color.White else Color(0xFF38BDF8),
                         radius = if (isSelected) 6.dp.toPx() else 3.5.dp.toPx(),
-                        center = point
-                    )
-                    drawCircle(
-                        color = Color(0xFF38BDF8).copy(alpha = 0.4f),
-                        radius = if (isSelected) 10.dp.toPx() else 6.dp.toPx(),
                         center = point
                     )
                 }
@@ -808,21 +1053,21 @@ fun FLCurvedLineChart(
         selectedPointIndex?.let { index ->
             if (index in points.indices) {
                 val (day, amt) = points[index]
-                Box(
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 4.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFF242429))
-                        .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(6.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = "Day $day: $currencySymbol${dfCompact.format(amt)}",
                         fontFamily = SpaceGroteskFamily,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
             }
@@ -831,10 +1076,10 @@ fun FLCurvedLineChart(
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// FL_CHART 2: GRADIENT BAR CHART (fl_chart BarChart)
+// ANALYTICS BAR CHART COMPONENT
 // ────────────────────────────────────────────────────────────────────────────
 @Composable
-fun FLGradientBarChart(
+private fun AnalyticsBarChart(
     bars: List<Pair<Int, Double>>,
     currencySymbol: String,
     modifier: Modifier = Modifier
@@ -863,7 +1108,7 @@ fun FLGradientBarChart(
             val spacing = 2.5.dp.toPx()
             val barWidth = ((width - (spacing * (barCount - 1))) / barCount).coerceAtLeast(2.dp.toPx())
 
-            // Dashed horizontal grid background
+            // Dashed Grid Lines
             val gridPathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
             for (i in 1..3) {
                 val y = height * (i / 4f)
@@ -876,7 +1121,6 @@ fun FLGradientBarChart(
                 )
             }
 
-            // Draw Bar Rods with Gradient Fill (FL_Chart BarChartRodData)
             bars.forEachIndexed { index, (day, amount) ->
                 val ratio = (amount / maxVal).toFloat().coerceIn(0f, 1f)
                 val barHeight = (height * ratio).coerceAtLeast(if (amount > 0) 4.dp.toPx() else 1.5.dp.toPx())
@@ -903,204 +1147,26 @@ fun FLGradientBarChart(
             }
         }
 
-        // Interactive Bar Tooltip
         selectedBarIndex?.let { index ->
             if (index in bars.indices) {
                 val (day, amt) = bars[index]
-                Box(
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 4.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFF242429))
-                        .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(6.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = "Day $day: $currencySymbol${dfCompact.format(amt)}",
                         fontFamily = SpaceGroteskFamily,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
-            }
-        }
-    }
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-// FL_CHART 3: RADAR SPIDER CHART (fl_chart RadarChart)
-// ────────────────────────────────────────────────────────────────────────────
-@Composable
-fun FLRadarChart(
-    data: List<Pair<String, Double>>,
-    currencySymbol: String,
-    modifier: Modifier = Modifier
-) {
-    val dfCompact = remember { DecimalFormat("#,##0") }
-    val maxVal = remember(data) { (data.maxOfOrNull { it.second } ?: 1000.0).coerceAtLeast(100.0) }
-
-    Canvas(modifier = modifier) {
-        val center = Offset(size.width / 2f, size.height / 2f)
-        val radius = (size.height / 2f - 24.dp.toPx()).coerceAtLeast(20.dp.toPx())
-        val count = data.size.coerceAtLeast(3)
-        val angleStep = (2 * Math.PI / count).toFloat()
-
-        // 1. Draw Web Polygons (3 Concentric Rings)
-        for (ring in 1..3) {
-            val r = radius * (ring / 3f)
-            val webPath = Path()
-            for (i in 0 until count) {
-                val angle = i * angleStep - Math.PI.toFloat() / 2f
-                val x = center.x + r * cos(angle)
-                val y = center.y + r * sin(angle)
-                if (i == 0) webPath.moveTo(x, y) else webPath.lineTo(x, y)
-            }
-            webPath.close()
-            drawPath(
-                path = webPath,
-                color = Color(0xFF27272A),
-                style = Stroke(width = 1.dp.toPx())
-            )
-        }
-
-        // 2. Draw Spokes from Center
-        for (i in 0 until count) {
-            val angle = i * angleStep - Math.PI.toFloat() / 2f
-            val endX = center.x + radius * cos(angle)
-            val endY = center.y + radius * sin(angle)
-            drawLine(
-                color = Color(0xFF27272A),
-                start = center,
-                end = Offset(endX, endY),
-                strokeWidth = 1.dp.toPx()
-            )
-        }
-
-        if (data.isEmpty()) return@Canvas
-
-        // 3. Draw Data Polygon
-        val dataPath = Path()
-        val dataPoints = mutableListOf<Offset>()
-
-        data.forEachIndexed { i, pair ->
-            val ratio = (pair.second / maxVal).toFloat().coerceIn(0.1f, 1f)
-            val angle = i * angleStep - Math.PI.toFloat() / 2f
-            val ptX = center.x + radius * ratio * cos(angle)
-            val ptY = center.y + radius * ratio * sin(angle)
-            val pt = Offset(ptX, ptY)
-            dataPoints.add(pt)
-            if (i == 0) dataPath.moveTo(ptX, ptY) else dataPath.lineTo(ptX, ptY)
-        }
-        dataPath.close()
-
-        // Fill Radar Area
-        drawPath(
-            path = dataPath,
-            color = Color(0xFF38BDF8).copy(alpha = 0.35f)
-        )
-
-        // Stroke Radar Edge
-        drawPath(
-            path = dataPath,
-            color = Color(0xFF38BDF8),
-            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
-        )
-
-        // Draw Vertex Dots
-        dataPoints.forEach { pt ->
-            drawCircle(color = Color.White, radius = 3.5.dp.toPx(), center = pt)
-            drawCircle(color = Color(0xFF38BDF8), radius = 2.dp.toPx(), center = pt)
-        }
-    }
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-// FL_CHART 4: TRANSACTION SCATTER PLOT CHART (fl_chart ScatterChart)
-// ────────────────────────────────────────────────────────────────────────────
-@Composable
-fun FLScatterChart(
-    points: List<Triple<Int, Double, String>>,
-    currencySymbol: String,
-    modifier: Modifier = Modifier
-) {
-    var selectedPoint by remember { mutableStateOf<Triple<Int, Double, String>?>(null) }
-    val dfCompact = remember { DecimalFormat("#,##0") }
-    val maxVal = remember(points) { (points.maxOfOrNull { it.second } ?: 1000.0).coerceAtLeast(100.0) }
-
-    Box(modifier = modifier) {
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(points) {
-                    detectTapGestures { offset ->
-                        val width = size.width
-                        val height = size.height
-                        val tapped = points.minByOrNull { pt ->
-                            val px = (pt.first / 31f) * width
-                            val py = height - ((pt.second / maxVal) * (height - 20.dp.toPx())).toFloat()
-                            val dx = offset.x - px
-                            val dy = offset.y - py
-                            (dx * dx + dy * dy)
-                        }
-                        selectedPoint = if (selectedPoint == tapped) null else tapped
-                    }
-                }
-        ) {
-            val width = size.width
-            val height = size.height
-
-            // Dashed Grid Lines
-            val gridPathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
-            for (i in 1..3) {
-                val y = height * (i / 4f)
-                drawLine(
-                    color = Color(0xFF27272A),
-                    start = Offset(0f, y),
-                    end = Offset(width, y),
-                    strokeWidth = 1.dp.toPx(),
-                    pathEffect = gridPathEffect
-                )
-            }
-
-            points.forEach { pt ->
-                val x = (pt.first / 31f) * width
-                val y = height - ((pt.second / maxVal) * (height - 20.dp.toPx())).toFloat()
-                val isSelected = selectedPoint == pt
-                val radius = if (isSelected) 8.dp.toPx() else (4.dp.toPx() + (pt.second / maxVal * 6.dp.toPx()).toFloat())
-
-                drawCircle(
-                    color = if (isSelected) Color.White else Color(0xFF38BDF8).copy(alpha = 0.7f),
-                    radius = radius,
-                    center = Offset(x, y)
-                )
-                drawCircle(
-                    color = Color(0xFF38BDF8),
-                    radius = radius / 2f,
-                    center = Offset(x, y)
-                )
-            }
-        }
-
-        // Scatter Tooltip
-        selectedPoint?.let { pt ->
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 4.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Color(0xFF242429))
-                    .border(1.dp, Color(0xFF38BDF8), RoundedCornerShape(6.dp))
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "${pt.third}: $currencySymbol${dfCompact.format(pt.second)} (Day ${pt.first})",
-                    fontFamily = SpaceGroteskFamily,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
             }
         }
     }
@@ -1110,18 +1176,15 @@ fun FLScatterChart(
 // BENTO GRID HELPER COMPONENTS
 // ────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun BentoCard(
+private fun AnalyticsBentoCard(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(6.dp))
-            .background(Color(0xFF18181B))
-            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-            .padding(14.dp)
+    ShCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(14.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
@@ -1135,12 +1198,12 @@ private fun BentoCard(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
-                    color = Color(0xFFA1A1AA)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = Color(0xFFA1A1AA),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -1150,20 +1213,18 @@ private fun BentoCard(
 }
 
 @Composable
-private fun BentoKpiCard(
+private fun AnalyticsKpiCard(
     modifier: Modifier = Modifier,
     title: String,
     value: String,
-    badgeText: String,
-    badgeColor: Color,
+    subtitle: String,
+    accentColor: Color,
     icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(Color(0xFF18181B))
-            .border(1.dp, Color(0xFF27272A), RoundedCornerShape(6.dp))
-            .padding(12.dp)
+    ShCard(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(12.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(
@@ -1177,12 +1238,12 @@ private fun BentoKpiCard(
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
-                    color = Color(0xFFA1A1AA)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = badgeColor,
+                    tint = accentColor,
                     modifier = Modifier.size(15.dp)
                 )
             }
@@ -1190,23 +1251,22 @@ private fun BentoKpiCard(
             Text(
                 text = value,
                 fontFamily = SpaceGroteskFamily,
-                fontSize = 18.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(badgeColor.copy(alpha = 0.15f))
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = accentColor.copy(alpha = 0.15f)
             ) {
                 Text(
-                    text = badgeText,
-                    fontFamily = SpaceGroteskFamily,
+                    text = subtitle,
+                    fontFamily = PlusJakartaSansFamily,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
-                    color = badgeColor
+                    color = accentColor,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
         }
